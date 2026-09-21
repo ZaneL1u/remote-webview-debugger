@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>共存测试</title>
+    <!-- Other debug tools first, as pages that already use them do. -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda@3.4.3/eruda.min.js"></script>
+    <script>eruda.init();</script>
+    <script src="https://cdn.jsdelivr.net/npm/@huolala-tech/page-spy-browser@2.4.0/dist/iife/index.min.js"></script>
+    <script>window.$pageSpy = new PageSpy({ offline: true, project: 'rwd-compat' });</script>
+    <script src="/v1/sdk.js"></script>
+    <script>RemoteWebviewDebugger.run(location.origin + '/v1', 'rwd_pk_test0000000000000000000');</script>
+    <style>
+      body { font: 16px sans-serif; margin: 0; padding: 16px; }
+      .bottom { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 8px; padding: 12px; background: #fff; }
+      .bottom button { flex: 1; padding: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>共存测试</h1>
+    <p id="out">未点击</p>
+    <div class="bottom">
+      <button id="a" type="button" onclick="document.getElementById('out').textContent = '点了 A'">按钮 A</button>
+      <button id="b" type="button" onclick="document.getElementById('out').textContent = '点了 B'">按钮 B</button>
+    </div>
+  </body>
+</html>

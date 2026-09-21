@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>presence fallback</title>
+    <script src="/v1/sdk.js"></script>
+    <script>
+      // A key the gateway rejects: every WebSocket attempt fails.
+      window.runResult = RemoteWebviewDebugger.run(location.origin + '/v1', 'invalid-key')
+    </script>
+  </head>
+  <body><p>presence</p></body>
+</html>

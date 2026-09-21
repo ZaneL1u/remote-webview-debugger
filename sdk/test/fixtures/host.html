@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>host page</title>
+    <script src="/v1/sdk.js"></script>
+    <script>
+      // Tests set window.__rwdOpts (addInitScript) to play a native host:
+      // nativeKey, nativeApproval, deviceToken, deviceId, helpButton.
+      window.runResult = RemoteWebviewDebugger.run(
+        location.origin + '/v1',
+        'rwd_pk_test0000000000000000000',
+        Object.assign({ helpButton: false }, window.__rwdOpts || {})
+      )
+    </script>
+    <style>
+      body { font: 16px/1.5 sans-serif; margin: 16px; }
+      button, input { font: inherit; padding: 8px 12px; margin: 4px 0; }
+    </style>
+  </head>
+  <body>
+    <h1>二期</h1>
+    <p id="contact">联系电话 13800001111</p>
+    <label>会员名 <input id="member" value="李四" /></label>
+    <button id="plain" type="button">普通按钮</button>
+    <button id="danger" class="danger" type="button">删除账户</button>
+    <span id="count">0</span>
+    <form id="search">
+      <label>关键词 <input id="q" name="q" /></label>
+      <button type="submit" data-rwd-confirm>搜索</button>
+    </form>
+    <span id="submitted">0</span>
+    <script>
+      var n = 0
+      var bump = function () {
+        document.getElementById('count').textContent = String(++n)
+      }
+      document.getElementById('plain').addEventListener('click', bump)
+      document.getElementById('danger').addEventListener('click', bump)
+      document.getElementById('search').addEventListener('submit', function (e) {
+        e.preventDefault()
+        var el = document.getElementById('submitted')
+        el.textContent = String(Number(el.textContent) + 1)
+      })
+    </script>
+  </body>
+</html>
