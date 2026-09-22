@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title data-i18n="list.title">Demo Shop - Products</title>
+    <!-- RWD SDK: as early as possible, so console and network are recorded from the start. -->
+    <script src="/v1/sdk.js"></script>
+    <script src="i18n.js"></script>
+    <script src="rwd-boot.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header><span class="spacer"></span><h1 data-i18n="appName">Demo Shop</h1><span class="spacer"></span></header>
+    <main>
+      <a class="banner" href="promo.html" target="_blank">
+        <strong data-i18n="list.banner">11.11 Members’ Day</strong>
+        <span data-i18n="list.bannerText">$10 off orders over $100. Tap to open the sale in a new tab ›</span>
+      </a>
+      <div class="list" id="list" data-i18n-label="list.products" aria-label="Products"></div>
+      <div class="section" style="margin-top: 12px">
+        <h2 data-i18n="list.recommended">Recommended for you</h2>
+        <p class="muted" id="recommend" data-i18n="list.loading">Loading…</p>
+      </div>
+    </main>
+    <script src="shop.js"></script>
+    <script>
+      Shop.loadProducts().then(function (products) {
+        var list = document.getElementById('list');
+        products.forEach(function (p) {
+          var a = document.createElement('a');
+          a.className = 'card';
+          a.href = 'detail.html?id=' + p.id;
+          a.innerHTML =
+            '<div class="pic" style="background:' + p.color + '" aria-hidden="true">' + p.name.slice(0, 1) + '</div>' +
+            '<div class="info"><p class="name">' + p.name + '</p><span class="price">' + Shop.money(p.price) + '</span>' +
+            (p.stock ? '' : ' <span class="muted">' + I18n.t('soldOut') + '</span>') + '</div>';
+          list.appendChild(a);
+        });
+      });
+
+      // Deliberate: the recommendation API does not exist (404).
+      fetch('api/recommend.json')
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .catch(function (err) {
+          console.error(I18n.t('list.recommendFailed'), err.message);
+          document.getElementById('recommend').textContent = I18n.t('list.noRecommend');
+        });
+      console.warn(I18n.t('list.trackingFailed'));
+    </script>
+  </body>
+</html>

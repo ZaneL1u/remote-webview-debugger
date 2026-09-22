@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title data-i18n="checkout.title">Checkout</title>
+    <script src="/v1/sdk.js"></script>
+    <script src="i18n.js"></script>
+    <script src="rwd-boot.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header><a class="back" href="javascript:history.back()" data-i18n-label="back" aria-label="Back">‹</a><h1 data-i18n="checkout.title">Checkout</h1><span class="spacer"></span></header>
+    <main>
+      <div class="error-box" id="error" role="alert"></div>
+      <div class="section">
+        <h2 data-i18n="checkout.item">Item</h2>
+        <p id="item" class="muted" data-i18n="checkout.empty">(Your cart is empty)</p>
+      </div>
+      <form class="section" id="form" novalidate>
+        <h2 data-i18n="checkout.shipping">Shipping</h2>
+        <label class="field"><span data-i18n="checkout.receiver">Recipient</span><input id="receiver" name="receiver" data-i18n-placeholder="checkout.receiverHint" placeholder="Full name" autocomplete="name" /></label>
+        <label class="field"><span data-i18n="checkout.phone">Phone</span><input id="phone" name="phone" type="tel" data-i18n-placeholder="checkout.phoneHint" placeholder="Mobile number" data-rwd-mask /></label>
+        <label class="field"><span data-i18n="checkout.address">Address</span><input id="address" name="address" data-i18n-placeholder="checkout.addressHint" placeholder="Street, city, ZIP code" /></label>
+        <label class="field">
+          <span data-i18n="checkout.delivery">Delivery</span>
+          <select id="delivery" name="delivery">
+            <option value="express" data-i18n="checkout.express">Standard (free)</option>
+            <option value="same-day" data-i18n="checkout.sameDay">Same-day (+$8)</option>
+            <option value="pickup" data-i18n="checkout.pickup">Pick up in store</option>
+          </select>
+        </label>
+        <label class="field"><span data-i18n="checkout.note">Order note</span><textarea id="note" name="note" data-i18n-placeholder="checkout.optional" placeholder="Optional"></textarea></label>
+        <div class="field">
+          <span class="muted" data-i18n="checkout.coupon">Coupon code</span>
+          <div class="row">
+            <input id="coupon" data-i18n-placeholder="checkout.couponHint" placeholder="Enter a code" data-i18n-label="checkout.coupon" aria-label="Coupon code" />
+            <button type="button" id="apply" data-i18n="checkout.apply">Apply</button>
+          </div>
+        </div>
+        <label class="field"><span data-i18n="checkout.payPin">Payment PIN</span><input id="paypwd" type="password" inputmode="numeric" data-i18n-placeholder="checkout.payPinHint" placeholder="6 digits" /></label>
+      </form>
+      <p class="muted"><span data-i18n="checkout.memberCard">Member card: </span><span data-rwd-mask>6222 0200 1234 5678</span></p>
+    </main>
+    <div class="bar">
+      <div class="total"><span data-i18n="checkout.total">Total</span> <span class="price" id="total">--</span></div>
+      <button class="primary" id="submit" type="button" data-rwd-confirm data-i18n="checkout.submit">Place order</button>
+    </div>
+    <script src="shop.js"></script>
+    <script>
+      var order = null;
+      try {
+        order = JSON.parse(sessionStorage.getItem('demo:order') || 'null');
+      } catch (e) {
+        console.error(I18n.t('checkout.corrupt'), e);
+      }
+
+      function deliveryFee() {
+        return document.getElementById('delivery').value === 'same-day' ? I18n.t('sameDayFee') : 0;
+      }
+
+      // Throws for orders whose price is not a number (see detail.html).
+      function computeTotal() {
+        var subtotal = order.price.toFixed(2) * order.qty;
+        return subtotal + deliveryFee();
+      }
+
+      function render() {
+        if (!order) return;
+        document.getElementById('item').textContent =
+          order.name + ' · ' + order.spec + ' × ' + order.qty;
+        document.getElementById('total').textContent = Shop.money(computeTotal());
+      }
+
+      render();
+      document.getElementById('delivery').addEventListener('change', render);
+
+      document.getElementById('apply').addEventListener('click', function () {
+        var code = document.getElementById('coupon').value.trim();
+        if (!code) return Shop.toast(I18n.t('checkout.needCoupon'));
+        // Deliberate: the coupon API is missing (404).
+        fetch('api/coupon?code=' + encodeURIComponent(code))
+          .then(function (res) {
+            if (!res.ok) throw new Error(I18n.t('checkout.couponFailed', res.status));
+            return res.json();
+          })
+          .catch(function (err) {
+            console.error(err.message);
+            Shop.toast(I18n.t('checkout.couponUnavailable'));
+          });
+      });
+
+      document.getElementById('submit').addEventListener('click', function () {
+        var receiver = document.getElementById('receiver').value.trim();
+        var phone = document.getElementById('phone').value.trim();
+        var error = document.getElementById('error');
+        if (!order) return Shop.toast(I18n.t('checkout.cartEmpty'));
+        if (!receiver || !I18n.t('phonePattern').test(phone)) {
+          error.textContent = I18n.t('checkout.invalid');
+          error.className = 'error-box show';
+          return;
+        }
+        error.className = 'error-box';
+        var total = computeTotal();
+        fetch('api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer demo-token-123' },
+          body: JSON.stringify({ order: order, receiver: receiver, total: total, note: document.getElementById('note').value }),
+        }).then(function (res) {
+          if (!res.ok) {
+            console.error(I18n.t('checkout.orderFailedLog') + res.status);
+            Shop.toast(I18n.t('checkout.orderFailed'));
+            return;
+          }
+          Shop.toast(I18n.t('checkout.ordered'));
+        });
+      });
+    </script>
+  </body>
+</html>

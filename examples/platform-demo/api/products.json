@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "无线降噪耳机 Pro", "price": 899, "desc": "40 小时续航，主动降噪，通勤必备。", "color": "#5b8def", "stock": 12 },
+  { "id": 2, "name": "智能手环 6", "price": 249, "desc": "心率血氧监测，14 天长续航。", "color": "#34c18b", "stock": 30 },
+  { "id": 3, "name": "便携保温咖啡杯", "price": 129, "desc": "316 不锈钢内胆，6 小时保温。", "color": "#f08a4b", "stock": 5 },
+  { "id": 4, "name": "机械键盘 K8", "price": 459, "desc": "热插拔轴体，蓝牙三模连接。", "color": "#9b6bd6", "stock": 0 }
+]

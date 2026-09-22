@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title data-i18n="detail.title">Product details</title>
+    <script src="/v1/sdk.js"></script>
+    <script src="i18n.js"></script>
+    <script src="rwd-boot.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header><a class="back" href="index.html" data-i18n-label="back" aria-label="Back">‹</a><h1 data-i18n="detail.heading">Product</h1><span class="spacer"></span></header>
+    <main>
+      <div class="hero" id="hero" aria-hidden="true"></div>
+      <div class="section">
+        <h2 id="name">…</h2>
+        <p class="price" id="price"></p>
+        <p class="muted" id="desc"></p>
+      </div>
+      <div class="section">
+        <label class="field">
+          <span data-i18n="detail.option">Option</span>
+          <select id="spec">
+            <option value="standard" data-i18n="detail.standard">Standard</option>
+            <option value="gift" data-i18n="detail.gift">Gift box (+$5)</option>
+          </select>
+        </label>
+        <div class="field">
+          <span class="muted" data-i18n="detail.quantity">Quantity</span>
+          <div class="qty">
+            <button type="button" id="minus" data-i18n-label="detail.less" aria-label="Decrease quantity">－</button>
+            <input id="qty" type="number" min="1" value="1" data-i18n-label="detail.quantity" aria-label="Quantity" />
+            <button type="button" id="plus" data-i18n-label="detail.more" aria-label="Increase quantity">＋</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div class="bar">
+      <div class="total"><span data-i18n="detail.unitPrice">Unit price</span> <span class="price" id="unit"></span></div>
+      <button class="primary" id="buy" type="button" data-i18n="detail.buy">Buy now</button>
+    </div>
+    <script src="shop.js"></script>
+    <script>
+      var id = Number(Shop.query('id') || 1);
+      var product;
+      // What the bar shows and what goes into the order.
+      var unitPrice;
+
+      function updatePrice() {
+        var spec = document.getElementById('spec').value;
+        if (spec === 'gift') {
+          // BUG (deliberate, cross-page): stores the formatted text, not the number.
+          unitPrice = Shop.money(product.price + I18n.t('giftExtra'));
+        } else {
+          unitPrice = product.price;
+        }
+        document.getElementById('unit').textContent =
+          typeof unitPrice === 'number' ? Shop.money(unitPrice) : unitPrice;
+      }
+
+      Shop.loadProducts().then(function (products) {
+        product = products.filter(function (p) { return p.id === id; })[0];
+        if (!product) throw new Error(I18n.t('detail.notFound') + id);
+        document.title = I18n.t('detail.titleOf', product.name);
+        document.getElementById('name').textContent = product.name;
+        document.getElementById('price').textContent = Shop.money(product.price);
+        document.getElementById('desc').textContent = product.desc;
+        var hero = document.getElementById('hero');
+        hero.style.background = product.color;
+        hero.textContent = product.name.slice(0, 1);
+        if (!product.stock) {
+          var buy = document.getElementById('buy');
+          buy.disabled = true;
+          buy.textContent = I18n.t('soldOut');
+        }
+        updatePrice();
+      });
+
+      document.getElementById('spec').addEventListener('change', updatePrice);
+      document.getElementById('minus').addEventListener('click', function () {
+        var q = document.getElementById('qty');
+        q.value = Math.max(1, Number(q.value) - 1);
+      });
+      document.getElementById('plus').addEventListener('click', function () {
+        var q = document.getElementById('qty');
+        q.value = Number(q.value) + 1;
+      });
+      document.getElementById('buy').addEventListener('click', function () {
+        var qty = Math.max(1, parseInt(document.getElementById('qty').value, 10) || 1);
+        var spec = document.getElementById('spec');
+        sessionStorage.setItem(
+          'demo:order',
+          JSON.stringify({
+            id: product.id,
+            name: product.name,
+            spec: spec.options[spec.selectedIndex].text,
+            qty: qty,
+            price: unitPrice,
+          })
+        );
+        location.href = 'checkout.html';
+      });
+    </script>
+  </body>
+</html>

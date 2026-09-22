@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title data-i18n="promo.title">11.11 Members’ Day</title>
+    <script src="/v1/sdk.js"></script>
+    <script src="i18n.js"></script>
+    <script src="rwd-boot.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header><span class="spacer"></span><h1 data-i18n="promo.title">11.11 Members’ Day</h1><span class="spacer"></span></header>
+    <main>
+      <div class="hero" style="background: linear-gradient(120deg, #ff6a3d, #ff9a3d)" aria-hidden="true">🎁</div>
+      <div class="section">
+        <h2 data-i18n="promo.deal">$10 off orders over $100</h2>
+        <p class="muted" data-i18n="promo.dates">Nov 1 – Nov 11. One coupon per account.</p>
+        <button class="primary" id="claim" type="button" data-i18n="promo.claim">Claim coupon</button>
+        <p id="claimed" class="muted"></p>
+      </div>
+      <a href="index.html" data-i18n="promo.shop">Keep shopping ›</a>
+    </main>
+    <script src="shop.js"></script>
+    <script>
+      document.getElementById('claim').addEventListener('click', function () {
+        document.getElementById('claimed').textContent = I18n.t('promo.claimed');
+        this.disabled = true;
+      });
+    </script>
+  </body>
+</html>
