@@ -1,0 +1,7 @@
+node_modules
+dist
+*.tsbuildinfo
+mock/screenshots
+
+# The repo root ignores lib/ (build output elsewhere); this is source.
+!src/lib/

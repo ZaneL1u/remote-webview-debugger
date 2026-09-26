@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfbfd" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f1017" />
+    <meta name="description" content="Remote Debugger console: let AI remotely debug every WebView in your app." />
+    <title>Remote Debugger</title>
+    <script>
+      // Apply the saved theme before the first paint (lib/theme.ts owns the key).
+      try {
+        var t = localStorage.getItem('rwd:theme')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+      } catch (e) {}
+      // Same language rule as src/i18n/index.ts: saved choice, else zh* browsers get Chinese.
+      try {
+        var l = localStorage.getItem('rwd.lang')
+        if (l !== 'en' && l !== 'zh') l = /^zh\b/i.test(navigator.language) ? 'zh' : 'en'
+        document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en'
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

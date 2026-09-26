@@ -1,0 +1,230 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Remote Debugger design tokens.
+ *
+ * Brand: indigo-violet (#5D5CF5) fading to electric blue (#2E6CFF), the logo's gradient. Neutrals are tinted
+ * slightly cool (hue ~265) so greys sit with the brand instead of looking flat. Code surfaces are always
+ * dark ("ink"), in both themes.
+ *
+ * Theme: follows the OS unless <html data-theme="light|dark"> is set (see lib/theme.ts and the inline
+ * script in index.html). The `dark:` variant below follows the same rule.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.625rem;
+  --background: oklch(0.984 0.003 265);
+  --foreground: oklch(0.21 0.022 268);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.022 268);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.022 268);
+  --primary: oklch(0.255 0.03 270);
+  --primary-foreground: oklch(0.985 0.003 265);
+  --secondary: oklch(0.955 0.007 265);
+  --secondary-foreground: oklch(0.255 0.03 270);
+  --muted: oklch(0.958 0.006 265);
+  --muted-foreground: oklch(0.51 0.022 266);
+  --accent: oklch(0.948 0.012 270);
+  --accent-foreground: oklch(0.255 0.03 270);
+  --brand: oklch(0.54 0.215 274);
+  --brand-foreground: oklch(0.99 0.005 274);
+  --brand-soft: oklch(0.953 0.03 276);
+  --brand-2: oklch(0.6 0.2 258);
+  --destructive: oklch(0.577 0.215 27);
+  --destructive-soft: oklch(0.962 0.025 22);
+  --success: oklch(0.6 0.145 158);
+  --warning: oklch(0.68 0.16 62);
+  --warning-soft: oklch(0.968 0.045 85);
+  --border: oklch(0.918 0.008 268);
+  --input: oklch(0.895 0.01 268);
+  --ring: oklch(0.54 0.215 274 / 0.45);
+  --header: oklch(1 0 0 / 0.78);
+  --shadow-color: 268 30% 20%;
+
+  --code: oklch(0.215 0.03 272);
+  --code-foreground: oklch(0.92 0.012 270);
+  --code-border: oklch(0.3 0.035 272);
+  --code-muted: oklch(0.62 0.03 270);
+  --tok-comment: oklch(0.62 0.03 270);
+  --tok-string: oklch(0.82 0.12 150);
+  --tok-keyword: oklch(0.76 0.14 300);
+  --tok-number: oklch(0.82 0.13 65);
+  --tok-tag: oklch(0.76 0.13 240);
+  --tok-attr: oklch(0.82 0.1 200);
+  --tok-fn: oklch(0.84 0.1 90);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.158 0.014 270);
+  --foreground: oklch(0.955 0.005 265);
+  --card: oklch(0.196 0.017 270);
+  --card-foreground: oklch(0.955 0.005 265);
+  --popover: oklch(0.218 0.019 270);
+  --popover-foreground: oklch(0.955 0.005 265);
+  --primary: oklch(0.94 0.006 265);
+  --primary-foreground: oklch(0.2 0.02 270);
+  --secondary: oklch(0.255 0.02 270);
+  --secondary-foreground: oklch(0.955 0.005 265);
+  --muted: oklch(0.24 0.018 270);
+  --muted-foreground: oklch(0.71 0.02 266);
+  --accent: oklch(0.265 0.024 272);
+  --accent-foreground: oklch(0.955 0.005 265);
+  --brand: oklch(0.7 0.16 276);
+  --brand-foreground: oklch(0.17 0.03 276);
+  --brand-soft: oklch(0.285 0.07 276);
+  --brand-2: oklch(0.7 0.15 255);
+  --destructive: oklch(0.69 0.18 22);
+  --destructive-soft: oklch(0.29 0.07 22);
+  --success: oklch(0.74 0.15 158);
+  --warning: oklch(0.79 0.15 72);
+  --warning-soft: oklch(0.31 0.06 70);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.7 0.16 276 / 0.55);
+  --header: oklch(0.158 0.014 270 / 0.78);
+  --shadow-color: 270 40% 3%;
+  --code: oklch(0.13 0.014 270);
+  --code-border: oklch(1 0 0 / 9%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: oklch(0.158 0.014 270);
+    --foreground: oklch(0.955 0.005 265);
+    --card: oklch(0.196 0.017 270);
+    --card-foreground: oklch(0.955 0.005 265);
+    --popover: oklch(0.218 0.019 270);
+    --popover-foreground: oklch(0.955 0.005 265);
+    --primary: oklch(0.94 0.006 265);
+    --primary-foreground: oklch(0.2 0.02 270);
+    --secondary: oklch(0.255 0.02 270);
+    --secondary-foreground: oklch(0.955 0.005 265);
+    --muted: oklch(0.24 0.018 270);
+    --muted-foreground: oklch(0.71 0.02 266);
+    --accent: oklch(0.265 0.024 272);
+    --accent-foreground: oklch(0.955 0.005 265);
+    --brand: oklch(0.7 0.16 276);
+    --brand-foreground: oklch(0.17 0.03 276);
+    --brand-soft: oklch(0.285 0.07 276);
+    --brand-2: oklch(0.7 0.15 255);
+    --destructive: oklch(0.69 0.18 22);
+    --destructive-soft: oklch(0.29 0.07 22);
+    --success: oklch(0.74 0.15 158);
+    --warning: oklch(0.79 0.15 72);
+    --warning-soft: oklch(0.31 0.06 70);
+    --border: oklch(1 0 0 / 9%);
+    --input: oklch(1 0 0 / 14%);
+    --ring: oklch(0.7 0.16 276 / 0.55);
+    --header: oklch(0.158 0.014 270 / 0.78);
+    --shadow-color: 270 40% 3%;
+    --code: oklch(0.13 0.014 270);
+    --code-border: oklch(1 0 0 / 9%);
+  }
+}
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-2: var(--brand-2);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-header: var(--header);
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
+  --color-code-border: var(--code-border);
+  --color-code-muted: var(--code-muted);
+  --shadow-xs: 0 1px 2px 0 hsl(var(--shadow-color) / 0.06);
+  --shadow-sm: 0 1px 3px 0 hsl(var(--shadow-color) / 0.08), 0 1px 2px -1px hsl(var(--shadow-color) / 0.06);
+  --shadow-md: 0 4px 12px -2px hsl(var(--shadow-color) / 0.12), 0 2px 4px -2px hsl(var(--shadow-color) / 0.08);
+  --shadow-lg: 0 12px 32px -8px hsl(var(--shadow-color) / 0.2), 0 4px 10px -4px hsl(var(--shadow-color) / 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 6rem;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+    font-feature-settings: "tnum" 0;
+  }
+  #root {
+    isolation: isolate;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 24%, transparent);
+  }
+}
+
+@layer components {
+  /* Brand gradient, the same as the logo. */
+  .bg-brand-gradient {
+    background-image: linear-gradient(135deg, #8f7cff 0%, #5d5cf5 50%, #2e6cff 100%);
+  }
+  .text-brand-gradient {
+    background-image: linear-gradient(120deg, var(--brand) 0%, var(--brand-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Faint dotted grid used behind hero areas (login, docs header). */
+  .bg-dots {
+    background-image: radial-gradient(color-mix(in oklab, var(--foreground) 9%, transparent) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  /* Syntax tokens (lib/highlight.ts). */
+  .tok-comment { color: var(--tok-comment); font-style: italic; }
+  .tok-string { color: var(--tok-string); }
+  .tok-keyword { color: var(--tok-keyword); }
+  .tok-number { color: var(--tok-number); }
+  .tok-tag { color: var(--tok-tag); }
+  .tok-attr { color: var(--tok-attr); }
+  .tok-fn { color: var(--tok-fn); }
+}
