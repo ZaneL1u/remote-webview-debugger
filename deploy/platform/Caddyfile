@@ -1,0 +1,23 @@
+{
+	admin off
+	auto_https off
+	servers {
+		# The proxy in front of us (TLS terminator); set RWD_TRUSTED_PROXIES to its ranges.
+		trusted_proxies static {$RWD_TRUSTED_PROXIES:private_ranges}
+	}
+}
+
+:80 {
+	redir /demo /demo/
+
+	handle_path /demo/* {
+		root * /srv/demo
+		header Cache-Control "no-cache"
+		file_server
+	}
+
+	# Gateway: /v1/* (SDK, page WS, REST, MCP) and the console SPA.
+	handle {
+		reverse_proxy gateway:8080
+	}
+}
