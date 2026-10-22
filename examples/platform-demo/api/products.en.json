@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Noise-Cancelling Earbuds Pro", "price": 129, "desc": "40-hour battery, active noise cancelling, made for the commute.", "color": "#5b8def", "stock": 12 },
+  { "id": 2, "name": "Smart Band 6", "price": 39, "desc": "Heart rate and SpO2 tracking, 14-day battery.", "color": "#34c18b", "stock": 30 },
+  { "id": 3, "name": "Travel Coffee Mug", "price": 19, "desc": "Stainless steel, keeps drinks hot for 6 hours.", "color": "#f08a4b", "stock": 5 },
+  { "id": 4, "name": "Mechanical Keyboard K8", "price": 69, "desc": "Hot-swappable switches, Bluetooth and USB-C.", "color": "#9b6bd6", "stock": 0 }
+]
