@@ -1,0 +1,18 @@
+# Overlay for a host that faces the internet directly: Caddy gets a
+# certificate for RWD_DOMAIN and serves HTTPS on 443 (plus HTTP/3).
+# Enabled by COMPOSE_FILE=compose.yml:compose.tls.yml in .env, with
+# BIND=0.0.0.0 and PORT=80 so the base file publishes :80 for the ACME
+# challenge and the redirect.
+services:
+  web:
+    environment:
+      RWD_DOMAIN: ${RWD_DOMAIN:?set RWD_DOMAIN in .env}
+    ports:
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile.tls:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+
+volumes:
+  caddy-data:
