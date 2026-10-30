@@ -1,0 +1,243 @@
+// English copy. zh.ts mirrors this shape (checked by the Dict type).
+// Strings may contain a little trusted inline HTML (<code>, <em>, <strong>).
+
+export const en = {
+  lang: 'en',
+  htmlLang: 'en',
+  path: '/',
+  meta: {
+    title: 'Remote WebView Debugger — let AI agents debug WebViews on real phones',
+    description:
+      'Open-source, self-hosted: add one script and Claude Code, Cursor or any MCP client can inspect and operate H5 pages and in-app WebViews on your users’ phones — with the user’s approval, masking and a take-over button. No USB cable, no debugging port.',
+    ogTitle: 'Remote WebView Debugger',
+    ogDescription: 'Let your AI agent debug the WebView on your user’s phone. One script, a device code, an MCP endpoint. Open source.',
+    ogLocale: 'en_US',
+  },
+  nav: {
+    skip: 'Skip to content',
+    demo: 'Demo',
+    how: 'How it works',
+    features: 'Features',
+    privacy: 'Privacy',
+    selfHost: 'Self-host',
+    faq: 'FAQ',
+    github: 'GitHub',
+    menu: 'Menu',
+    themeToggle: 'Toggle color theme',
+    langLabel: 'Language',
+  },
+  hero: {
+    eyebrow: 'Open source · MIT · MCP',
+    titleHtml: 'Let your AI agent debug the WebView <em>on your user’s phone</em>.',
+    sub:
+      'Add one script to your H5 page or app WebView. Your user reads out a short device code, and Claude Code, Cursor or any MCP client can see the page, read console and network, and click through the bug — while the user watches and can take over at any time.',
+    ctaDemo: 'Try the live demo',
+    ctaGithub: 'Star on GitHub',
+    ctaSelfHost: 'Self-host in 5 minutes',
+    points: ['No USB cable', 'No remote-debugging port', 'No app rebuild beyond one script'],
+    ticker: [
+      'link established',
+      'device K7Q2-9M4X online',
+      'snapshot 42 ms',
+      '32 tools armed',
+      'masking on',
+      'level interact',
+      'audit recording',
+      'gateway self-hosted',
+    ],
+    flow: {
+      label: 'An AI agent talks MCP to your self-hosted gateway, which reaches the page SDK on the user’s phone over a WebSocket.',
+      agent: 'AI agent',
+      agentSub: 'Claude Code · Cursor · any MCP client',
+      gw: 'rwd gateway',
+      gwSub: 'self-hosted · approval · audit',
+      phone: 'User’s phone',
+      phoneSub: 'H5 page / app WebView + SDK',
+      mcp: 'MCP · HTTPS',
+      ws: 'WebSocket',
+      state: 'AI operating',
+    },
+  },
+  demo: {
+    kicker: 'Live demo',
+    title: 'A real bug, fixed on a “real” phone',
+    lead:
+      'The phone in this demo runs the actual page SDK inside a demo shop. Its gateway is mocked in your browser, so nothing leaves this tab — but every snapshot, click and console line below is real.',
+    agentTitle: 'AI agent',
+    agentSub: 'connected to the rwd MCP server',
+    phoneLabel: 'Customer’s phone',
+    play: 'Play',
+    pause: 'Pause',
+    restart: 'Restart',
+    speed: 'Speed',
+    start: 'Run the demo',
+    startHint: 'Watch an agent connect to the phone, reproduce a checkout bug and find the root cause.',
+    expand: 'Show full result',
+    collapse: 'Collapse',
+    running: 'running',
+    done: 'Done',
+    error: 'error',
+    you: 'Support engineer',
+    agent: 'Agent',
+    customer: 'Customer',
+    footnote:
+      'Runs entirely in your browser: the real SDK (<code>sdk.js</code>) in an iframe, a WebSocket shim that tunnels to an in-page mock gateway, and a scripted agent issuing real RPCs.',
+    stateIdle: 'Ready',
+    statePrelude: 'The customer runs into the bug',
+    stateRunning: 'Agent working',
+    statePaused: 'Paused',
+    stateWaitApproval: 'Waiting for the customer to approve',
+    stateWaitControl: 'Waiting for the customer to hand back',
+    stateDone: 'Finished',
+    stateStopped: 'Stopped',
+  },
+  how: {
+    kicker: 'How it works',
+    title: 'Three steps from “it’s broken on my phone” to a root cause',
+    steps: [
+      {
+        title: 'Add the page SDK',
+        body:
+          'One script in <code>&lt;head&gt;</code>, as early as possible, so console and network are recorded from the first line. In an app, inject the same script at document start.',
+      },
+      {
+        title: 'The user shares a device code',
+        body:
+          'Every phone gets a permanent code like <code>K7Q2-9M4X</code> in a small pill. Users can tap <em>Ask for help</em>, and the device jumps to the top of the agent’s list.',
+      },
+      {
+        title: 'Your agent connects over MCP',
+        body:
+          'Add the gateway’s hosted MCP endpoint with an API key. Then just describe the problem — the agent finds the device, asks for approval and starts working.',
+      },
+    ],
+    pill: { code: 'K7Q2-9M4X', online: 'Online', help: 'Ask for help' },
+    chip1: 'sdk.js · console + network from line one',
+    chip3: 'approved on the phone · level interact',
+    prompt: 'Device K7Q2-9M4X can’t check out — the total shows “--”. Find out why.',
+    tabsLabel: 'MCP client configuration',
+  },
+  features: {
+    kicker: 'What the agent gets',
+    title: 'The DevTools workflow, through MCP, on someone else’s phone',
+    items: [
+      { icon: 'tree', title: 'Accessibility snapshots', body: 'Playwright-style YAML with element refs. The agent reads the page as structure, not pixels — and acts on refs.' },
+      { icon: 'cursor', title: 'Real interactions', body: 'click, fill, type, press, select, hover, scroll, drag — with actionability checks and events React and Vue accept.' },
+      { icon: 'terminal', title: 'Console and network', body: 'Recorded from page load in bounded buffers, so errors from before the agent joined are still there. Bodies on request.' },
+      { icon: 'layers', title: 'Multi-page sessions', body: 'List → detail → checkout, or a second WebView: all pages of a device form one session, with a cross-page timeline.' },
+      { icon: 'bell', title: 'Session changes, pushed', body: 'Every tool result ends with what changed — new page, navigation, an error, the user taking over. No polling.' },
+      { icon: 'list', title: 'Task card on the phone', body: 'The agent shows its plan and progress on the device, so the user always knows what it is doing and why.' },
+      { icon: 'camera', title: 'Screenshots', body: 'Native pixels when the app provides a bridge, DOM rendering otherwise. Masking applies to both.' },
+      { icon: 'plug', title: 'Any MCP client', body: 'Streamable HTTP at <code>/v1/mcp</code> for Claude Code, Cursor and friends; a tiny stdio bridge for everything else.' },
+    ],
+    toolsTitle: 'All tools',
+  },
+  privacy: {
+    kicker: 'Privacy & control',
+    title: 'The user’s phone stays the user’s phone',
+    lead: 'Remote debugging only works if people trust it. Every session is visible, approved and interruptible.',
+    items: [
+      { title: 'Approval first', body: 'An agent asks to attach; the user sees who is asking and picks a level on the phone. Only real taps count — a script can’t approve itself.' },
+      { title: 'Take over or end, any time', body: 'While the agent works, the page is locked behind a glowing edge. One tap on <em>Take over</em> pauses the agent; <em>End</em> disconnects it.' },
+      { title: 'Masked by default', body: 'Passwords, and anything marked <code>data-rwd-mask</code>, show as <code>••••</code> in snapshots, screenshots, console and network data. Add selectors and regex patterns per project.' },
+      { title: 'Sensitive clicks need a yes', body: 'Mark buttons with <code>data-rwd-confirm</code> (“Submit order”, “Delete account”) and the user confirms each agent click on them.' },
+      { title: 'Permission levels', body: '<strong>observe</strong> reads, <strong>interact</strong> operates, <strong>advanced</strong> adds scripts, request bodies and storage. Capped per key and per project.' },
+      { title: 'Audit log', body: 'Every attach, approval, RPC and takeover is recorded with who, what and when — never page content or parameter values.' },
+    ],
+    levels: [
+      { name: 'observe', tools: 'snapshots, screenshots, console, network list, find, wait' },
+      { name: 'interact', tools: '+ click, fill, type, press, select, hover, scroll, drag, navigate' },
+      { name: 'advanced', tools: '+ evaluate_script, request/response bodies, storage' },
+    ],
+  },
+  native: {
+    kicker: 'Native apps',
+    title: 'In your app, it’s one user script',
+    lead:
+      'Download the SDK once and inject it at document start — WKUserScript on iOS, addDocumentStartJavaScript on Android. Your web pages don’t change at all.',
+    extras: [
+      { title: 'One device code everywhere', body: 'Pass a stable <code>deviceId</code> (and keep the <code>deviceToken</code>) so the code survives across WebViews and domains.' },
+      { title: 'Native controls', body: 'Show your own take over / hand back / end buttons with <code>nativeControl()</code>; page scripts can’t call it.' },
+      { title: 'Native approval dialogs', body: '<code>nativeApproval: true</code> hands attach requests and confirmations to your app’s own UI.' },
+      { title: 'Real-pixel screenshots', body: 'A small bridge (WKWebView snapshot, Android bitmap) gives the agent true pixels instead of a DOM rendering.' },
+    ],
+    tabs: { ios: 'iOS (Swift)', android: 'Android (Kotlin)', h5: 'H5 page' },
+  },
+  selfHost: {
+    kicker: 'Self-hosted',
+    title: 'One Go binary. Your servers. Your data.',
+    lead: 'The gateway embeds the web console and the page SDK. SQLite out of the box, Postgres when you need it, Docker Compose and Caddy for HTTPS.',
+    points: [
+      { title: 'Console', body: 'Devices, API keys, members and roles, QR invites, policies and an audit log — plus an integration guide filled with your own keys.' },
+      { title: 'Storage', body: 'SQLite file by default; set <code>RWD_DATABASE_URL=postgres://…</code> to use Postgres.' },
+      { title: 'Ops', body: 'Prometheus metrics at <code>/v1/metrics</code>, versioned SDK URLs with SRI, health check at <code>/v1/healthz</code>.' },
+    ],
+    stepsTitle: 'Quick start',
+    deployComment: '# build the binary (console and SDK embedded), ship it, start it',
+    runComment: '# or run it locally',
+    resultComment: '# → console  https://rwd.example.com\n# → gateway  https://rwd.example.com/v1  (MCP at /v1/mcp)',
+    requires: 'Building needs Go and Node; the server only needs Docker.',
+    docsLink: 'Deployment guide',
+  },
+  faq: {
+    kicker: 'FAQ',
+    title: 'Questions people ask',
+    items: [
+      {
+        q: 'Does the user have to install anything?',
+        a: 'No. For H5 pages the SDK is part of your page. In an app you inject it from native code. The user only sees a small pill with their device code and, when an agent attaches, an approval dialog.',
+      },
+      {
+        q: 'What can the agent see and do?',
+        a: 'Only what the user approved: the WebView pages of that device, at the granted level. It never controls anything outside the WebView. Masked fields stay masked, and page content is passed to the model as untrusted data.',
+      },
+      {
+        q: 'Which agents work with it?',
+        a: 'Any MCP client. Claude Code and Cursor use the hosted Streamable HTTP endpoint directly; clients that only speak stdio use <code>rwd mcp</code>, a small bridge to the same endpoint.',
+      },
+      {
+        q: 'Which platforms are supported?',
+        a: 'Any modern mobile WebView or browser: WKWebView on iOS, Android System WebView, in-app browsers, and plain mobile Safari or Chrome. Desktop browsers work too.',
+      },
+      {
+        q: 'What about bad networks or blocked WebSockets?',
+        a: 'The page keeps a light heartbeat WebSocket with exponential back-off. If it can’t connect three times in a row it falls back to a once-a-minute presence poll, and the gateway wakes it up when an agent wants to connect.',
+      },
+      {
+        q: 'Does it slow my page down?',
+        a: 'It’s one script. Console and network records live in bounded ring buffers (500 entries each, response bodies capped at 5 MB), and an idle connection only exchanges heartbeats.',
+      },
+      {
+        q: 'Does it work alongside eruda, vConsole or PageSpy?',
+        a: 'Yes — their nodes are skipped by snapshots and hit-testing, our own traffic stays out of their network logs, and it can even live as a tab inside eruda.',
+      },
+      {
+        q: 'Is the demo above real?',
+        a: 'The SDK is real and unmodified; only the gateway is simulated in your browser. A WebSocket shim tunnels the SDK’s connection to it with <code>postMessage</code>, and a scripted agent sends the same RPCs a real gateway would.',
+      },
+    ],
+  },
+  footer: {
+    tagline: 'Let AI agents debug H5 pages and app WebViews on real phones.',
+    project: 'Project',
+    docs: 'Docs',
+    links: {
+      github: 'GitHub',
+      issues: 'Issues',
+      license: 'MIT License',
+      protocol: 'Protocol',
+      gateway: 'Gateway',
+      sdk: 'Page SDK',
+      platform: 'Design notes',
+    },
+    note: 'Released under the MIT License. No cookies, no tracking.',
+  },
+  notFound: {
+    title: 'Page not found',
+    body: 'This page doesn’t exist — maybe the device went offline.',
+    home: 'Back to the homepage',
+  },
+  copy: { copy: 'Copy', copied: 'Copied' },
+}
+
+export type Dict = typeof en
