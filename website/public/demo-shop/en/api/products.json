@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Wireless ANC Headphones Pro", "price": 199, "desc": "40-hour battery, active noise cancelling. Built for the commute.", "color": "#5b8def", "stock": 12 },
+  { "id": 2, "name": "Smart Band 6", "price": 49, "desc": "Heart rate and SpO2 tracking, 14-day battery.", "color": "#34c18b", "stock": 30 },
+  { "id": 3, "name": "Travel Coffee Tumbler", "price": 29, "desc": "Stainless steel, keeps coffee hot for 6 hours.", "color": "#f08a4b", "stock": 5 },
+  { "id": 4, "name": "Mechanical Keyboard K8", "price": 89, "desc": "Hot-swappable switches, Bluetooth tri-mode.", "color": "#9b6bd6", "stock": 0 }
+]
