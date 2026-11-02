@@ -63,6 +63,9 @@ func scanUser(row interface{ Scan(...any) error }) (*User, error) {
 
 func normEmail(e string) string { return strings.ToLower(strings.TrimSpace(e)) }
 
+// NormEmail is how emails are stored and compared: trimmed, lower case.
+func NormEmail(e string) string { return normEmail(e) }
+
 func (s *Store) Users(ctx context.Context) ([]*User, error) {
 	rows, err := s.query(ctx, `SELECT `+userCols+` FROM users ORDER BY created_at`)
 	if err != nil {

@@ -40,8 +40,8 @@
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `RWD_ADMIN_PASSWORD` | 首次部署时生成 | owner 密码，**必填**。每次启动都会生效，所以改了它就等于重设 owner 的密码 |
-| `RWD_ADMIN_EMAIL` | `admin` | owner 账号（登录名） |
+| `RWD_ADMIN_PASSWORD` | 首次部署时生成 | owner 密码，**必填**。每次启动都会生效，所以改了它就等于重设 `RWD_ADMIN_EMAIL` 所指 owner 的密码 |
+| `RWD_ADMIN_EMAIL` | `admin` | owner 账号（登录名）。只在首次启动时创建；之后改它不会多出一个 owner，见 [gateway/README](../../gateway/README.zh-CN.md) |
 | `RWD_PUBLIC_URL` | 从请求推断 | 对外的网关地址，如 `https://rwd.example.com/v1`。建议设置 |
 | `RWD_METRICS_TOKEN` | 由 `deploy.sh` 生成 | 访问 `/v1/metrics` 用的 Bearer 令牌 |
 | `RWD_DATABASE_URL` | `./data` 里的 SQLite | 设为 `postgres://…` 改用 Postgres |

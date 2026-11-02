@@ -704,6 +704,52 @@ func TestForwardedHeaders(t *testing.T) {
 	}
 }
 
+// RWD_ADMIN_EMAIL / RWD_ADMIN_PASSWORD create an owner only while there is
+// none; afterwards the password applies to the owner of that email only.
+func TestBootstrapOwner(t *testing.T) {
+	f := setup(t, "") // owner@test / password1
+	ctx := context.Background()
+	dev, err := f.st.CreateUser(ctx, "dev@test", "Dev", store.RoleMember, hashPassword("memberpass"), "", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	boot := func(email, password string) {
+		t.Helper()
+		if err := f.s.bootstrapOwner(ctx, email, password); err != nil {
+			t.Fatal(err)
+		}
+	}
+	count := func() int {
+		n, err := f.st.UserCount(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	boot("dev@test", "newpass") // a member's email: neither promoted nor reset
+	boot("new@test", "newpass") // an unknown email: no second owner
+	boot("", "")
+	u, _ := f.st.User(ctx, dev.ID)
+	if count() != 2 || u.Role != store.RoleMember || !checkPassword(u.PasswordHash, "memberpass") {
+		t.Fatalf("owner exists: users %d, dev %s", count(), u.Role)
+	}
+	boot("Owner@Test", "password2") // the owner's email: password reset
+	f.login("owner@test", "password2")
+
+	// A database without an owner (hand-edited) gets one back: the named
+	// account is promoted, keeping its password.
+	owner, _ := f.st.UserByEmail(ctx, "owner@test")
+	member := store.RoleMember
+	if _, err := f.st.UpdateUser(ctx, owner.ID, store.UserPatch{Role: &member}); err != nil {
+		t.Fatal(err)
+	}
+	boot("dev@test", "")
+	u, _ = f.st.User(ctx, dev.ID)
+	if count() != 2 || u.Role != store.RoleOwner || !checkPassword(u.PasswordHash, "memberpass") {
+		t.Fatalf("no owner: users %d, dev %s", count(), u.Role)
+	}
+}
+
 func TestStreamAndMetrics(t *testing.T) {
 	f := setup(t, "")
 	c := f.login("owner@test", "password1")

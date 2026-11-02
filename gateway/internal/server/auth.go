@@ -126,33 +126,59 @@ func (s *Server) require(role string, next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// bootstrapOwner makes sure an owner exists. RWD_ADMIN_PASSWORD (re)sets the
-// owner's password, which doubles as account recovery; a phase 1 admin
-// password is migrated to the owner account.
+// bootstrapOwner makes sure an owner exists, and only then creates one: the
+// account RWD_ADMIN_EMAIL names (default "admin"), with RWD_ADMIN_PASSWORD, a
+// phase 1 admin password, or a generated password printed once; an existing
+// account of that email is promoted instead. Once an owner exists nothing is
+// created or promoted: RWD_ADMIN_PASSWORD then resets the password of the
+// owner RWD_ADMIN_EMAIL names (account recovery), and is ignored with a log
+// line when that email is not an owner's.
 func (s *Server) bootstrapOwner(ctx context.Context, email, password string) error {
 	if email == "" {
 		email = "admin"
-	}
-	owner, err := s.store.UserByEmail(ctx, email)
-	if err != nil && err != store.ErrNotFound {
-		return err
 	}
 	hash := ""
 	if password != "" {
 		hash = hashPassword(password)
 	}
-	if owner != nil {
-		if hash != "" {
-			return s.store.SetPassword(ctx, owner.ID, hash)
-		}
-		return nil
-	}
-	n, err := s.store.UserCount(ctx)
+	users, err := s.store.Users(ctx)
 	if err != nil {
 		return err
 	}
-	if n > 0 && hash == "" {
-		return nil // other accounts exist; nothing to bootstrap
+	var named *store.User
+	owners := []string{}
+	for _, u := range users {
+		if u.Email == store.NormEmail(email) {
+			named = u
+		}
+		if u.Role == store.RoleOwner {
+			owners = append(owners, u.Email)
+		}
+	}
+	if len(owners) > 0 {
+		switch {
+		case hash == "":
+		case named != nil && named.Role == store.RoleOwner:
+			return s.store.SetPassword(ctx, named.ID, hash)
+		case named != nil:
+			s.log.Warn("RWD_ADMIN_PASSWORD ignored: RWD_ADMIN_EMAIL is not an owner's email; the account keeps its role and password", "email", email, "role", named.Role, "owners", owners)
+		default:
+			s.log.Warn("RWD_ADMIN_PASSWORD ignored: no owner with that email, and an owner already exists; set RWD_ADMIN_EMAIL to the owner's email to reset the password", "email", email, "owners", owners)
+		}
+		return nil
+	}
+	if named != nil {
+		// Owners can't be demoted or deleted through the API, so this is a
+		// hand-edited database: give it an owner again.
+		role := store.RoleOwner
+		if _, err := s.store.UpdateUser(ctx, named.ID, store.UserPatch{Role: &role}); err != nil {
+			return err
+		}
+		s.log.Warn("promoted to owner: the database had none", "email", email)
+		if hash != "" {
+			return s.store.SetPassword(ctx, named.ID, hash)
+		}
+		return nil
 	}
 	if hash == "" {
 		if legacy, err := s.store.Setting(ctx, "admin_password", nil); err == nil {
