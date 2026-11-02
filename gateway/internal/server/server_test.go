@@ -931,7 +931,8 @@ func TestMigrateGlobalDevices(t *testing.T) {
 
 // An agent that let go of the device comes back within the grace period
 // without asking the user again, at no more than the level granted before.
-// Once the user ends the session, the next attach asks again.
+// Once the user ends the session, or another agent replaces it on the
+// device, the next attach asks again.
 func TestReattachWithinGrace(t *testing.T) {
 	f := setup(t, "")
 	var asked atomic.Int32
@@ -950,6 +951,26 @@ func TestReattachWithinGrace(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	if out, isErr := callText(t, s, "connect_device", map[string]any{"device": code}); isErr || asked.Load() != 2 {
 		t.Fatalf("after user end (asked %d): %s", asked.Load(), out)
+	}
+	callText(t, s, "disconnect_device", nil)
+	if out, isErr := callText(t, s, "connect_device", map[string]any{"device": code}); isErr || asked.Load() != 2 {
+		t.Fatalf("second reattach (asked %d): %s", asked.Load(), out)
+	}
+
+	// Another key replaces the agent: its grant goes with its attachment.
+	_, plain2, err := f.st.CreateAPIKey(context.Background(), f.s.pepper, store.NewKey{Name: "bot2", MaxLevel: store.LevelAdvanced})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s2, err := f.mcpWith(plain2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out, isErr := callText(t, s2, "connect_device", map[string]any{"device": code}); isErr || asked.Load() != 3 {
+		t.Fatalf("second agent (asked %d): %s", asked.Load(), out)
+	}
+	if out, isErr := callText(t, s, "connect_device", map[string]any{"device": code}); isErr || asked.Load() != 4 {
+		t.Fatalf("after being replaced (asked %d): %s", asked.Load(), out)
 	}
 }
 

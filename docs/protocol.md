@@ -378,7 +378,7 @@ With `approval: none` the agent attaches right away at the computed level.
 
 **Coming back without asking again.** An agent that lets go of the device itself — `disconnect_device`, connecting to another device, or `policy.attachMaxMinutes` running out — leaves a grant behind: for **10 minutes** the same API key may attach to that device again with no dialog on the phone, at **no more than the level the user granted before** (so asking for `advanced` after an `observe` approval still gets `observe`). Nothing else is relaxed: the key, the policy and the agent's own request still cap the level, and the device must have a connected page. Such an attachment is audited as `attach.resume` next to the usual `attach.start` ([§12.7](#127-audit-log)), and the page sees the ordinary `control` message, not an `attach_request`.
 
-The grant is dropped when the session ends for any other reason: the user taps **End** on the device, a console member ends it (`POST /devices/:id/end`), the API key is revoked, or the user denies a request. It also expires with the gateway process, since it is kept in memory.
+Coming back does not use the grant up: letting go again starts a fresh 10-minute window. The grant is dropped when the session ends for any other reason: the user taps **End** on the device, a console member ends it (`POST /devices/:id/end`), the API key is revoked, another agent attaches to the device and replaces this one, or the user denies a request. It also expires with the gateway process, since it is kept in memory.
 
 ## 8. Sensitive-action confirmation
 

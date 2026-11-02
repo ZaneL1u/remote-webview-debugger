@@ -155,8 +155,11 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 	dk := a.KeyID + "|" + d.Key
 	if g := h.grants[dk]; g != nil && pol.Approval == "prompt" && time.Now().Before(g.until) {
 		// The user approved this key a few minutes ago: come back at no more
-		// than the level they granted then.
+		// than the level they granted then. Coming back does not use the
+		// grant up: it starts a fresh window, which release() renews again
+		// when the agent lets go.
 		level = store.MinLevel(level, g.level)
+		g.until = time.Now().Add(reattachGrace)
 		h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.resume", d.Info.Code, "ok", map[string]any{"level": level})
 	} else if pol.Approval == "prompt" {
 		if dn := h.denials[dk]; dn != nil && dn.count >= denyLimit && time.Now().Before(dn.until) {
@@ -242,8 +245,9 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 		h.release(a, i18n.M(i18n.NoteSwitchedDevice))
 	}
 	if other := d.agent; other != nil && other != a {
-		other.device, other.pageID = nil, ""
-		other.notes = append(other.notes, h.lang.T(i18n.NoteReplaced))
+		// Like the user ending the session: the replaced agent loses its
+		// attach timer and any reattach grant, and has to ask again.
+		h.detach(other, i18n.M(i18n.NoteReplaced))
 	}
 	if d.Task != nil && d.agent != a {
 		d.Task = nil
