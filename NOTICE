@@ -1,0 +1,17 @@
+Remote WebView Debugger
+Copyright (c) 2026 zaneliu. Licensed under the MIT License (see LICENSE).
+
+This project includes third-party software:
+
+- chobitsu (https://github.com/liriliri/chobitsu), MIT License,
+  Copyright (c) 2020-present liriliri.
+  Vendored in packages/chobitsu (v1.8.6) with small changes to
+  src/domains/Network.ts and src/domains/Runtime.ts; see packages/chobitsu/LICENSE.
+
+- Playwright (https://github.com/microsoft/playwright), Apache License 2.0,
+  Copyright (c) Microsoft Corporation.
+  The accessibility snapshot code in packages/chobitsu/src/engine/vendor/playwright
+  is taken from Playwright's injected scripts; see the LICENSE and NOTICE files
+  in that directory.
+
+The page SDK bundle (sdk.js) also includes licia (MIT) and modern-screenshot (MIT).
