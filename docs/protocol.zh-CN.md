@@ -122,7 +122,7 @@
 {"t":"welcome", …}                                            // §3.4
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"客服机器人"}|null,"level":"interact"|null}   // §4，发给设备的所有页面
-{"t":"help","on":false}                                       // 求助被清除：agent 已接入，或控制台成员结束了调试
+{"t":"help","on":false}                                       // 求助被清除：agent 已接入、控制台成员结束了调试，或用户在设备上点了结束
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"客服机器人"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7，发给前台页面
 {"t":"attach_cancel","requestId":"…"}                         // §7，发给所有页面
@@ -207,7 +207,7 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
 
 网关向某个页面发送 `{"id":<n>,"method":"rwd.…","params":{…}}`，页面回复 `{"id":<n>,"result":{…}}` 或 `{"id":<n>,"error":{"code":"…","message":"…"}}`。`id` 在一个连接内唯一。连接断开时，进行中的调用立即失败。
 
-网关侧超时：MCP 调用 20 秒；`rwd.click` 和 `rwd.press` 45 秒（可能需要用户确认，§8）；控制台「测试连接」15 秒。
+网关侧超时：MCP 调用 20 秒；`rwd.click`、`rwd.press` 以及带 `submit: true` 的 `rwd.type` 45 秒（可能需要用户确认，§8）；控制台「测试连接」15 秒。
 
 错误码：
 
@@ -403,7 +403,9 @@ WebSocket 连续失败 3 次后，SDK 改为每 60 秒调用一次 `POST /v1/pre
 {"deviceCode":"K7Q2-9M4X","connect":false}
 ```
 
-- 网关使用 `key`、`deviceId`、`userId` 和 `device.{ua, platform, app}`，其余字段仅供参考。接入 Key 和来源的校验与 WebSocket 相同，限流也共用。
+- 网关使用 `key`、`deviceId`、`userId`、`device.{ua, platform, app}`、`deviceToken` 和 `help`；`pageId` 和 `page` 仅供参考。接入 Key 和来源的校验与 WebSocket 相同，限流也共用。
+- 已经拿到设备令牌（[§3.5](#35-设备令牌恢复令牌与邀请)）的设备，轮询时也必须带上它；否则返回 `401 bad_token`，设备的任何信息都不会被更新。没有令牌的设备（旧版 SDK）可以继续不带令牌轮询。
+- `help: true` 会把设备标记为求助中，作用和 `hello.help` 一样；已有 agent 接入时不生效。
 - 每次轮询后，设备在 90 秒内都算在线。
 - `connect: true` 表示页面应立即连 WebSocket。agent 对这台设备调用 `connect_device` 或 `wait_for_device` 时，网关会设置它。
 - 作为保险，SDK 每第 5 次轮询也会主动重试一次 WebSocket。
@@ -715,7 +717,7 @@ event: ping       data: {}                                   每 25 秒一次
 
 | 工具 | 级别 | 参数 | 说明 |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all`（默认 `online`）、`userId?`、`deviceCode?` | 最多 50 台，求助中的排在最前 |
+| `list_devices` | — | `status?: online\|waiting\|all`（默认 `online`）、`userId?`、`deviceCode?`（大小写、有无连字符都可以） | 最多 50 台，求助中的排在最前 |
 | `connect_device` | — | `device`（设备码或 deviceId）、`level?: Level`（默认 `interact`）、`follow?: true` | 接入设备，需要时先请用户审批（§7）；自己放开设备后 10 分钟内，同一把 Key 再接入不用重新审批，级别不超过上次授予的。接入后选中前台页面。设备没有已连接的页面时失败（并让轮询中的设备尽快重连） |
 | `disconnect_device` | — | — | 离开设备 |
 | `wait_for_device` | — | `device`、`timeoutSec?: 60`（最大 300） | 等待设备有页面连上；轮询中的设备会被通知立即重连 |

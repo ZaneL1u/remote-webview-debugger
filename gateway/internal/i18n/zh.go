@@ -193,6 +193,7 @@ var zh = map[Key]string{
 	APIUnknownEndpoint:      "未知的接口",
 	APITooManyConnections:   "连接过多",
 	APIBadAppKey:            "接入 Key 无效或项目已停用",
+	APIBadDeviceToken:       "设备令牌缺失或无效",
 	APIOriginNotAllowed:     "页面来源不在项目的允许列表中",
 	APIStreamingUnsupported: "不支持流式响应",
 	APIMetricsToken:         "需要 metrics token",

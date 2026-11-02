@@ -200,6 +200,7 @@ const (
 	APIUnknownEndpoint      Key = "api.unknown_endpoint"
 	APITooManyConnections   Key = "api.too_many_connections"
 	APIBadAppKey            Key = "api.bad_app_key"
+	APIBadDeviceToken       Key = "api.bad_device_token"
 	APIOriginNotAllowed     Key = "api.origin_not_allowed"
 	APIStreamingUnsupported Key = "api.streaming_unsupported"
 	APIMetricsToken         Key = "api.metrics_token"

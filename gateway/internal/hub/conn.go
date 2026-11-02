@@ -649,7 +649,12 @@ func (h *Hub) onMessage(deviceID string, p *Page, m *inbound) {
 			} else {
 				h.setControl(d, ControlNone, i18n.M(i18n.EventUserEnded))
 			}
-			d.Help = false
+			// Ending also withdraws the help request, on every page of the device.
+			if d.Help {
+				d.Help = false
+				d.addEvent(p.Label, "help", i18n.M(i18n.EventHelpCancelled))
+				d.broadcast(map[string]any{"t": "help", "on": false})
+			}
 		}
 	}
 }

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/ZaneL1u/remote-webview-debugger/gateway/internal/i18n"
+	"github.com/ZaneL1u/remote-webview-debugger/gateway/internal/ids"
 	"github.com/ZaneL1u/remote-webview-debugger/gateway/internal/store"
 )
 
@@ -631,7 +632,21 @@ func (h *Hub) OnlineCount(projectID string) int {
 
 // Presence records a polling device and reports whether it should open its
 // WebSocket now.
-func (h *Hub) Presence(ctx context.Context, info store.Device) (code string, connect bool, err error) {
+// ErrBadDeviceToken: the device has a token and the request did not present it.
+var ErrBadDeviceToken = errors.New("device token missing or invalid")
+
+// Presence is the polling fallback of a page that cannot hold a WebSocket. A
+// device that has been issued a token must present it here too: otherwise the
+// public app key and a deviceId would be enough to show a device online and
+// overwrite what is stored about it.
+func (h *Hub) Presence(ctx context.Context, info store.Device, token string, help bool) (code string, connect bool, err error) {
+	if known, err := h.store.Device(ctx, info.DeviceID); err == nil && known.TokenHash != "" {
+		if token == "" || ids.HashKey(h.pepper, token) != known.TokenHash {
+			return "", false, ErrBadDeviceToken
+		}
+	} else if err != nil && !errors.Is(err, store.ErrNotFound) {
+		return "", false, err
+	}
 	rec, err := h.store.UpsertDevice(ctx, info)
 	if err != nil {
 		return "", false, err
@@ -643,6 +658,10 @@ func (h *Hub) Presence(ctx context.Context, info store.Device) (code string, con
 		d.onlineSince = time.Now()
 	}
 	d.polledAt = time.Now()
+	if help && !d.Help && d.agent == nil {
+		d.Help = true
+		d.addEvent("", "help", i18n.M(i18n.EventHelp))
+	}
 	connect = d.pollConnect
 	d.pollConnect = false
 	return rec.Code, connect, nil
@@ -723,6 +742,10 @@ func normalizeCode(s string) string {
 	}
 	return s
 }
+
+// NormalizeCode turns what a person typed ("k7q29m4x", "K7Q2 9M4X") into the
+// device code as shown: upper case, a hyphen after four characters.
+func NormalizeCode(s string) string { return normalizeCode(s) }
 
 // DeviceListQuery is the console's org-wide device list (docs/protocol.md §12.5).
 type DeviceListQuery struct {

@@ -173,6 +173,20 @@ func detail(l i18n.Lang, re *hub.RPCError) string {
 
 const rpcTimeout = 20 * time.Second
 
+// mayConfirm reports whether the page may show the user a confirmation before
+// answering: clicks, key presses, and typing that submits the form.
+func mayConfirm(method string, params any) bool {
+	switch method {
+	case "rwd.click", "rwd.press":
+		return true
+	case "rwd.type":
+		m, _ := params.(map[string]any)
+		submit, _ := m["submit"].(bool)
+		return submit
+	}
+	return false
+}
+
 func (s *Server) call(ctx context.Context, a *hub.Agent, page, method string, params any, interactive bool) (json.RawMessage, *hub.Session, error) {
 	sess, err := s.hub.Current(a, page)
 	if err != nil {
@@ -187,7 +201,7 @@ func (s *Server) call(ctx context.Context, a *hub.Agent, page, method string, pa
 		}
 	}
 	timeout := rpcTimeout
-	if method == "rwd.click" || method == "rwd.press" {
+	if mayConfirm(method, params) {
 		timeout = 45 * time.Second // the user may be asked to confirm (protocol §8)
 	}
 	start := time.Now()
@@ -447,7 +461,7 @@ func (s *Server) addTools(srv *mcp.Server) {
 				if in.UserID != "" && fmt.Sprint(d.UserID) != in.UserID {
 					continue
 				}
-				if in.DeviceCode != "" && d.Code != strings.ToUpper(in.DeviceCode) {
+				if in.DeviceCode != "" && d.Code != hub.NormalizeCode(in.DeviceCode) {
 					continue
 				}
 				o.add("- %s", describeDevice(o.lang, d))

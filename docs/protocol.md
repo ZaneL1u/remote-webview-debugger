@@ -122,7 +122,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
 {"t":"welcome", …}                                            // §3.4
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"Support Bot"}|null,"level":"interact"|null} // §4, to every page of the device
-{"t":"help","on":false}                                       // help cleared: an agent attached, or a console member ended
+{"t":"help","on":false}                                       // help cleared: an agent attached, a console member ended the session, or the user ended it on the device
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, to the foreground page
 {"t":"attach_cancel","requestId":"…"}                         // §7, to every page
@@ -207,7 +207,7 @@ The SDK also refuses interactive RPCs with `takeover` while the user holds contr
 
 The gateway sends `{"id":<n>,"method":"rwd.…","params":{…}}` to one page; the page replies with `{"id":<n>,"result":{…}}` or `{"id":<n>,"error":{"code":"…","message":"…"}}`. Ids are unique per connection. If the connection drops, pending calls fail at once.
 
-Timeouts on the gateway side: 20 s for MCP calls, 45 s for `rwd.click` and `rwd.press` (the user may be asked to confirm, [§8](#8-sensitive-action-confirmation)), 15 s for the console's connection test.
+Timeouts on the gateway side: 20 s for MCP calls, 45 s for `rwd.click`, `rwd.press` and `rwd.type` with `submit: true` (the user may be asked to confirm, [§8](#8-sensitive-action-confirmation)), 15 s for the console's connection test.
 
 Error codes:
 
@@ -403,7 +403,9 @@ When the WebSocket fails 3 times in a row, the SDK calls `POST /v1/presence` eve
 {"deviceCode":"K7Q2-9M4X","connect":false}
 ```
 
-- The gateway uses `key`, `deviceId`, `userId` and `device.{ua, platform, app}`; the other fields are informational. App key and origin are checked as for the WebSocket, with the same rate limit.
+- The gateway uses `key`, `deviceId`, `userId`, `device.{ua, platform, app}`, `deviceToken` and `help`; `pageId` and `page` are informational. App key and origin are checked as for the WebSocket, with the same rate limit.
+- A device that has been issued a device token ([§3.5](#35-device-token-resume-token-and-invites)) must send it here too; otherwise the call fails with `401 bad_token` and nothing about the device is updated. A device without a token (an older SDK) keeps polling without one.
+- `help: true` marks the device as asking for help, as `hello.help` does, unless an agent is already attached.
 - A polling device counts as online for 90 seconds after each call.
 - `connect: true` tells the page to open the WebSocket now. The gateway sets it when an agent calls `connect_device` or `wait_for_device` for the device.
 - As a safety net the SDK also retries the WebSocket on every 5th poll.
@@ -715,7 +717,7 @@ Content that comes from the page (snapshots, console, network, storage, evaluate
 
 | Tool | Level | Parameters | Description |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all` (default `online`), `userId?`, `deviceCode?` | Up to 50 devices, those asking for help first |
+| `list_devices` | — | `status?: online\|waiting\|all` (default `online`), `userId?`, `deviceCode?` (any case, with or without the hyphen) | Up to 50 devices, those asking for help first |
 | `connect_device` | — | `device` (device code or deviceId), `level?: Level` (default `interact`), `follow?: true` | Attach, asking the user first if required ([§7](#7-attach-approval)); within 10 minutes of letting go of the device itself the same key comes back without asking again, at no more than the level granted then. Selects the foreground page. Fails if the device has no connected page (and nudges a polling device to reconnect) |
 | `disconnect_device` | — | — | Detach |
 | `wait_for_device` | — | `device`, `timeoutSec?: 60` (max 300) | Wait until the device has a connected page; a polling device is told to reconnect |

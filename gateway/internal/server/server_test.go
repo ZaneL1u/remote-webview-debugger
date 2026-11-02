@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -974,5 +975,66 @@ func TestSessionLogTools(t *testing.T) {
 	}
 	if out, isErr := callText(t, s, "get_session_log", map[string]any{"seq": 7}); !isErr || !strings.Contains(out, "advanced") {
 		t.Fatalf("record detail at interact: %s", out)
+	}
+}
+
+// The polling fallback must not let anyone with the public app key and a
+// deviceId impersonate a device that has a token, and it carries the help
+// request like hello does.
+func TestPresenceNeedsDeviceToken(t *testing.T) {
+	f := setup(t, "")
+	p := f.page(pageOpts{device: "dev-poll", pageID: "poll-1"})
+	code := p.welcome["deviceCode"].(string)
+	f.mu.Lock()
+	token := f.deviceToken["dev-poll"]
+	f.mu.Unlock()
+	if token == "" {
+		t.Fatal("no device token issued")
+	}
+
+	post := func(body map[string]any) (int, map[string]any) {
+		t.Helper()
+		b, _ := json.Marshal(body)
+		res, err := http.Post(f.srv.URL+"/v1/presence", "text/plain", bytes.NewReader(b))
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
+		var out map[string]any
+		json.NewDecoder(res.Body).Decode(&out)
+		return res.StatusCode, out
+	}
+	base := map[string]any{"key": f.appKey, "deviceId": "dev-poll", "userId": "someone-else"}
+
+	if st, out := post(base); st != http.StatusUnauthorized || out["error"].(map[string]any)["code"] != "bad_token" {
+		t.Fatalf("presence without token: %d %v", st, out)
+	}
+	wrong := map[string]any{"deviceToken": "nope"}
+	for k, v := range base {
+		wrong[k] = v
+	}
+	if st, _ := post(wrong); st != http.StatusUnauthorized {
+		t.Fatalf("presence with a wrong token: %d", st)
+	}
+	if d, _ := f.st.Device(context.Background(), "dev-poll"); d.UserID == "someone-else" {
+		t.Fatal("a rejected presence must not overwrite the device")
+	}
+
+	ok := map[string]any{"deviceToken": token, "help": true}
+	for k, v := range base {
+		ok[k] = v
+	}
+	st, out := post(ok)
+	if st != http.StatusOK || out["deviceCode"] != code {
+		t.Fatalf("presence with the token: %d %v", st, out)
+	}
+	s := f.mcp()
+	if list, _ := callText(t, s, "list_devices", map[string]any{"status": "waiting"}); !strings.Contains(list, code) {
+		t.Fatalf("help sent over presence should show the device as waiting:\n%s", list)
+	}
+
+	// A device that never got a token (older SDK) keeps polling without one.
+	if st, _ := post(map[string]any{"key": f.appKey, "deviceId": "dev-legacy"}); st != http.StatusOK {
+		t.Fatalf("presence of a tokenless device: %d", st)
 	}
 }

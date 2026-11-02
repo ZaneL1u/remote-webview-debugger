@@ -233,10 +233,12 @@ func (s *Server) servePage(w http.ResponseWriter, r *http.Request) {
 }
 
 type presenceReq struct {
-	Key      string `json:"key"`
-	DeviceID string `json:"deviceId"`
-	UserID   string `json:"userId"`
-	Device   struct {
+	Key         string `json:"key"`
+	DeviceID    string `json:"deviceId"`
+	UserID      string `json:"userId"`
+	DeviceToken string `json:"deviceToken"`
+	Help        bool   `json:"help"`
+	Device      struct {
 		UA       string         `json:"ua"`
 		Platform string         `json:"platform"`
 		App      *store.AppInfo `json:"app"`
@@ -262,7 +264,11 @@ func (s *Server) presence(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	code, connect, err := s.hub.Presence(r.Context(), store.Device{ProjectID: p.ID, DeviceID: req.DeviceID,
-		UserID: req.UserID, Platform: req.Device.Platform, UA: req.Device.UA, App: req.Device.App})
+		UserID: req.UserID, Platform: req.Device.Platform, UA: req.Device.UA, App: req.Device.App}, req.DeviceToken, req.Help)
+	if errors.Is(err, hub.ErrBadDeviceToken) {
+		s.fail(w, r, http.StatusUnauthorized, "bad_token", i18n.APIBadDeviceToken)
+		return
+	}
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "internal", err.Error())
 		return
