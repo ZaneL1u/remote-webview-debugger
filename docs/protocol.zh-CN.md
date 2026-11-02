@@ -544,7 +544,7 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 
 | 方法 | 路径 | 角色 | 响应 |
 |---|---|---|---|
-| GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}`（`pageSize` 最大 100）。`online`（默认）：在线设备，按本次上线时间倒序；`q` 匹配设备 ID、设备码（`-` 可省略）、userId、UA、系统描述和项目名。`all`：所有出现过的设备，按首次出现时间倒序；`q` 匹配设备 ID、设备码、userId 和 UA |
+| GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}`（`pageSize` 最大 100）。`online`（默认）：在线设备，按本次上线时间倒序。`all`：所有出现过的设备，按首次出现时间倒序。两种模式下 `q` 都匹配设备 ID、设备码（`-` 可省略）、userId、UA、系统描述（中英文均可）和项目名 |
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`：最近一个页面来自该项目的设备（默认 `all`，最多 500 台）。求助中的在前，其次在线，再按最近在线时间。`waiting` 指求助中 |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 始终返回 `200`：`{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<前 4000 个字符>","error"?:{"code","message"}}`。错误码：`device_offline`、`no_page`（页面正在重连）、`timeout`、`takeover`、`internal`，以及 §5.1 的 RPC 错误码 |

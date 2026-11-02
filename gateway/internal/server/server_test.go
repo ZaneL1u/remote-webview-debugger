@@ -778,6 +778,19 @@ func TestDeviceListAndStatus(t *testing.T) {
 	if code, body = c.do("GET", "/devices?status=all&q=dev-&page=2&pageSize=1", nil); code != 200 || body["total"].(float64) != 2 || len(body["devices"].([]any)) != 1 {
 		t.Fatalf("all, paged: %v", body)
 	}
+	// Both modes search the same fields: project name and system label too.
+	for _, q := range []string{"q=demo", "q=iOS", "status=all&q=demo", "status=all&q=iOS", "status=all&q=DEV-OLD"} {
+		want := 2.0
+		if strings.HasSuffix(q, "DEV-OLD") {
+			want = 1
+		}
+		if code, body = c.do("GET", "/devices?"+q, nil); code != 200 || body["total"].(float64) != want {
+			t.Fatalf("%s: %d %v", q, code, body)
+		}
+	}
+	if code, body = c.do("GET", "/devices?status=all&q=nothing-like-it", nil); code != 200 || body["total"].(float64) != 0 || len(body["devices"].([]any)) != 0 {
+		t.Fatalf("all, no match: %v", body)
+	}
 	code, st := c.do("GET", "/status", nil)
 	if code != 200 || st["onlineDevices"].(float64) != 2 || st["totalDevices"].(float64) != 2 || st["db"] == nil {
 		t.Fatalf("status: %v", st)

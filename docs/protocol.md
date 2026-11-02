@@ -544,7 +544,7 @@ API keys belong to the gateway, not to a project: one key reaches every device.
 
 | Method | Path | Role | Response |
 |---|---|---|---|
-| GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}` (`pageSize` ≤ 100). `online` (default): online devices, most recently connected first; `q` matches device id, device code (dashes optional), userId, user agent, system label and project names. `all`: every known device, newest first; `q` matches device id, code, userId and user agent |
+| GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}` (`pageSize` ≤ 100). `online` (default): online devices, most recently connected first. `all`: every known device, newest first. In both modes `q` matches device id, device code (dashes optional), userId, user agent, the system label (in either language) and project names |
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: devices whose latest page came from the project (default `all`, up to 500), asking for help first, then online, then most recently seen. `waiting` means asking for help |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | Always `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. Codes: `device_offline`, `no_page` (the page is reconnecting), `timeout`, `takeover`, `internal` and the RPC codes of [§5.1](#51-envelope) |

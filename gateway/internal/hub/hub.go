@@ -757,6 +757,20 @@ type DeviceListQuery struct {
 	Names     map[string]string // project id -> name, for display and search
 }
 
+// matchDevice is the console's device search (term lower-cased and trimmed,
+// compact without dashes): device id, device code with or without its dash,
+// userId, user agent, the system label in either language and the names of
+// the device's projects.
+func matchDevice(v DeviceView, term, compact string, names map[string]string) bool {
+	user, _ := v.UserID.(string)
+	fields := []string{v.ID, user, v.UA, ParseUA(v.UA, v.Platform, i18n.EN).Label, ParseUA(v.UA, v.Platform, i18n.ZH).Label}
+	for _, pid := range v.Projects {
+		fields = append(fields, names[pid])
+	}
+	hay := strings.ToLower(strings.Join(fields, "\n"))
+	return strings.Contains(hay, term) || strings.Contains(strings.ToLower(strings.ReplaceAll(v.Code, "-", "")), compact)
+}
+
 // DeviceList returns one page of devices and the total. Online devices come
 // from memory, newest connection first; "all" pages through the store,
 // newest first-seen first.
@@ -767,9 +781,21 @@ func (h *Hub) DeviceList(ctx context.Context, q DeviceListQuery) ([]DeviceView, 
 	if q.Page < 1 {
 		q.Page = 1
 	}
+	term := strings.ToLower(strings.TrimSpace(q.Q))
+	compact := strings.ReplaceAll(term, "-", "")
 	if q.Status == "all" {
-		stored, total, err := h.store.SearchDevices(ctx, store.DeviceQuery{ProjectID: q.ProjectID, Q: q.Q,
-			Offset: (q.Page - 1) * q.PageSize, Limit: q.PageSize})
+		var stored []*store.Device
+		var total int
+		var err error
+		if term == "" {
+			stored, total, err = h.store.SearchDevices(ctx, store.DeviceQuery{ProjectID: q.ProjectID,
+				Offset: (q.Page - 1) * q.PageSize, Limit: q.PageSize})
+		} else {
+			// The same search as for online devices, system labels and
+			// project names included: only the hub knows those, so it
+			// filters and pages the stored devices itself.
+			stored, err = h.store.AllDevices(ctx, q.ProjectID)
+		}
 		if err != nil {
 			return nil, 0, err
 		}
@@ -782,14 +808,20 @@ func (h *Hub) DeviceList(ctx context.Context, q DeviceListQuery) ([]DeviceView, 
 			}
 			v := h.viewOf(*info, d)
 			v.ProjectName = q.Names[v.ProjectID]
+			if term != "" && !matchDevice(v, term, compact, q.Names) {
+				continue
+			}
 			out = append(out, v)
 		}
 		h.mu.Unlock()
+		if term != "" {
+			total = len(out)
+			start := min((q.Page-1)*q.PageSize, total)
+			out = out[start:min(start+q.PageSize, total)]
+		}
 		return out, total, nil
 	}
 
-	term := strings.ToLower(strings.TrimSpace(q.Q))
-	compact := strings.ReplaceAll(term, "-", "")
 	h.mu.Lock()
 	all := []DeviceView{}
 	for _, d := range h.devices {
@@ -798,16 +830,8 @@ func (h *Hub) DeviceList(ctx context.Context, q DeviceListQuery) ([]DeviceView, 
 		}
 		v := h.viewOf(d.Info, d)
 		v.ProjectName = q.Names[v.ProjectID]
-		if term != "" {
-			user, _ := v.UserID.(string)
-			fields := []string{v.ID, user, v.UA, ParseUA(v.UA, v.Platform, i18n.EN).Label, ParseUA(v.UA, v.Platform, i18n.ZH).Label}
-			for _, pid := range v.Projects {
-				fields = append(fields, q.Names[pid])
-			}
-			hay := strings.ToLower(strings.Join(fields, "\n"))
-			if !strings.Contains(hay, term) && !strings.Contains(strings.ToLower(strings.ReplaceAll(v.Code, "-", "")), compact) {
-				continue
-			}
+		if term != "" && !matchDevice(v, term, compact, q.Names) {
+			continue
 		}
 		all = append(all, v)
 	}

@@ -771,10 +771,11 @@ func (s *Store) DeviceStats(ctx context.Context, projectID string) (total int, f
 	return
 }
 
-// DeviceQuery searches devices (console device list).
+// DeviceQuery pages through the devices of the console device list. A search
+// term is matched by the hub (hub.DeviceList), which also knows the system
+// labels and project names; it lists the candidates with AllDevices.
 type DeviceQuery struct {
 	ProjectID string // "" for every project; otherwise the project of the latest page
-	Q         string // matched against device id, code, user id and user agent
 	Offset    int
 	Limit     int
 }
@@ -784,12 +785,6 @@ func (s *Store) SearchDevices(ctx context.Context, q DeviceQuery) ([]*Device, in
 	where, args := []string{"1 = 1"}, []any{}
 	if q.ProjectID != "" {
 		where, args = append(where, "project_id = ?"), append(args, q.ProjectID)
-	}
-	if term := strings.ToLower(strings.TrimSpace(q.Q)); term != "" {
-		like := "%" + strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(term) + "%"
-		compact := "%" + strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`, "-", "").Replace(term) + "%"
-		where = append(where, `(LOWER(device_id) LIKE ? ESCAPE '\' OR LOWER(REPLACE(code, '-', '')) LIKE ? ESCAPE '\' OR LOWER(user_id) LIKE ? ESCAPE '\' OR LOWER(ua) LIKE ? ESCAPE '\')`)
-		args = append(args, like, compact, like, like)
 	}
 	cond := strings.Join(where, " AND ")
 	var total int
@@ -814,6 +809,26 @@ func (s *Store) SearchDevices(ctx context.Context, q DeviceQuery) ([]*Device, in
 		out = append(out, d)
 	}
 	return out, total, rows.Err()
+}
+
+// AllDevices lists every known device, newest first (the order of
+// SearchDevices); projectID ("" for all) keeps those whose latest page came
+// from that project.
+func (s *Store) AllDevices(ctx context.Context, projectID string) ([]*Device, error) {
+	rows, err := s.query(ctx, `SELECT `+deviceCols+` FROM devices WHERE ? = '' OR project_id = ? ORDER BY first_seen DESC, device_id`, projectID, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []*Device{}
+	for rows.Next() {
+		d, err := scanDevice(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
 }
 
 // CountDevices counts every known device.
