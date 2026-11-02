@@ -105,8 +105,6 @@ test('invite: rwd_invite goes into hello once and leaves the address bar', async
   // The gateway put the device into 求助中.
   expect(gw.devices.get(s.deviceId).invited).toBe(true)
   await expect(page.locator('#__rwd [data-action=help]')).toHaveText('取消求助')
-  // Removing the parameter is not an in-page navigation.
-  expect(gw.messages('event', s.pageId!).filter((e: any) => e.kind === 'nav')).toEqual([])
   expect(await page.evaluate(() => sessionStorage.getItem('rwd:invite'))).toBeNull()
 
   await page.reload()

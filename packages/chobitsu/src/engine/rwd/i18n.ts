@@ -106,7 +106,6 @@ const AGENT_EN = {
   wsFailed: (url: string) => `WebSocket ${url} → failed`,
 
   // timeline
-  inPageNav: (from: string, to: string) => `In-page navigation: ${from} → ${to}`,
   tapped: (role: string, text: string) => `Tapped ${role} "${text}"`,
   tappedTag: (role: string, tag: string) => `Tapped ${role} ${tag}`,
   roles: {
@@ -189,7 +188,6 @@ const AGENT_ZH: AgentText = {
   netFailed: (what, error) => `${what} → 失败（${error}）`,
   wsFailed: url => `WebSocket ${url} → 失败`,
 
-  inPageNav: (from, to) => `页面内跳转：${from} → ${to}`,
   tapped: (role, text) => `点击了${role}「${text}」`,
   tappedTag: (role, tag) => `点击了${role} ${tag}`,
   roles: {

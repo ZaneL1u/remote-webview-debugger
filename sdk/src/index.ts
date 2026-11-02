@@ -215,7 +215,6 @@ function watch() {
     onChange: page => {
       if (session) session.transport.send({ t: 'page', ...page })
     },
-    onNav: summary => emit('nav', summary),
     onTap: summary => {
       if (session) noteTap(session.identity.pageId)
       emit('user_tap', summary)

@@ -103,7 +103,7 @@
  "invite":"<令牌>"|null}         // 来自 ?rwd_invite=…
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // 有变化时发
-{"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap"|"nav","summary":"…","at":1730000000000}
+{"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
 {"t":"help","on":true}                                              // 用户点求助 / 取消求助
 {"t":"control","action":"takeover"|"handback"|"end"}                // 用户的按钮，§4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
@@ -112,7 +112,7 @@
 ```
 
 - `hello`：网关保存 `userId`（最长 128 字符）、`ua`（512）、`platform`（16）、`app`、`url`（2048）和 `title`（256）。`screen` 仅供参考。
-- `event.summary` 是写给 agent 的一句话，已经去掉了被遮盖的值，例如 `TypeError: Cannot read properties of undefined (reading 'orderId')`、`POST /api/order → 405`、`点击了按钮「提交订单」`。网关把 `error`、`console_error`、`net_fail`、`user_tap` 记入时间线（最长 300 字节）。`nav` 是 SDK 在页面内跳转时发的，网关目前忽略它，跳转以 `page` 消息为准。
+- `event.summary` 是写给 agent 的一句话，已经去掉了被遮盖的值，例如 `TypeError: Cannot read properties of undefined (reading 'orderId')`、`POST /api/order → 405`、`点击了按钮「提交订单」`。网关把每一种都记入时间线（最长 300 字节），不认识的 `kind` 忽略。页面跳转（包括页面内跳转）不是事件：网关从 `page` 消息推导出来（时间线上的 `navigated`，§12.9），SDK 则把它记进会话日志（§5.4）。
 - SDK 会去重（2 秒内同类同摘要只发一次），每 10 秒最多发 30 条。离线期间产生的事件和控制操作先排队（最多 100 条），等下一个 `welcome` 后再发。
 - `help` 和 `control` 只在用户亲手点击（或原生宿主调用，§10）时发出。
 

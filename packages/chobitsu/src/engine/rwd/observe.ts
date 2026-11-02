@@ -17,7 +17,7 @@ import { logRecord } from './coldlog'
 // bounded ring buffers: when full, plain logs (successful requests) go first,
 // errors and warnings (failed requests) are kept as long as possible.
 
-export type EventKind = 'nav' | 'error' | 'net_fail' | 'user_tap' | 'console_error'
+export type EventKind = 'error' | 'net_fail' | 'user_tap' | 'console_error'
 export type EmitEvent = (kind: EventKind, summary: string) => void
 
 export interface ConsoleEntry {

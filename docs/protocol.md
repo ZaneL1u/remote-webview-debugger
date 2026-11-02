@@ -103,7 +103,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
  "invite":"<token>"|null}        // from ?rwd_invite=…
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // on change
-{"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap"|"nav","summary":"…","at":1730000000000}
+{"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
 {"t":"help","on":true}                                              // the user asks for help / cancels
 {"t":"control","action":"takeover"|"handback"|"end"}                // the user's buttons, §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
@@ -112,7 +112,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
 ```
 
 - `hello`: the gateway keeps `userId` (up to 128 characters), `ua` (512), `platform` (16), `app`, `url` (2048) and `title` (256). `screen` is informational.
-- `event.summary` is one sentence for the agent, already scrubbed of masked values, e.g. `TypeError: Cannot read properties of undefined (reading 'orderId')`, `POST /api/order → 405`, `Tapped button "Place order"`. The gateway records `error`, `console_error`, `net_fail` and `user_tap` on the timeline (up to 300 bytes). `nav` is sent by the SDK for in-page navigations but is currently ignored: the gateway derives navigations from `page` messages.
+- `event.summary` is one sentence for the agent, already scrubbed of masked values, e.g. `TypeError: Cannot read properties of undefined (reading 'orderId')`, `POST /api/order → 405`, `Tapped button "Place order"`. The gateway records each kind on the timeline (up to 300 bytes) and ignores unknown kinds. Navigations, in-page ones included, are not events: the gateway derives them from `page` messages (`navigated` on the timeline, [§12.9](#129-timeline-events)); the SDK keeps them in the session log ([§5.4](#54-session-log)).
 - The SDK de-duplicates events (same kind and summary within 2 s) and sends at most 30 per 10 s. Events and control actions raised while offline wait in a queue (up to 100 messages) for the next `welcome`.
 - `help` and `control` are only sent for taps by the user (or calls from the native host, [§10](#10-javascript-api-for-hosts)).
 

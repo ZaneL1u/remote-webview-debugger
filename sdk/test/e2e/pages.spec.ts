@@ -43,12 +43,11 @@ test('page messages on title / url / visibility changes', async ({ page, gw }) =
   await gw.waitFor(() => gw.findPage(pageId).title === '新标题', 5000, 'title change')
   await page.evaluate(() => history.pushState({}, '', '#/tab2'))
   await gw.waitFor(() => gw.findPage(pageId).url.endsWith('#/tab2'), 5000, 'pushState')
-  await gw.waitFor(() => gw.messages('event', pageId).find((e: any) => e.kind === 'nav'), 5000, 'nav event')
-  expect(gw.messages('event', pageId).find((e: any) => e.kind === 'nav').summary).toBe(
-    '页面内跳转：/demo/platform/index.html → /demo/platform/index.html#/tab2'
-  )
   const pageMsgs = gw.messages('page', pageId)
   expect(pageMsgs.at(-1)).toMatchObject({ t: 'page', title: '新标题', visibility: 'visible' })
+  expect(pageMsgs.at(-1).url).toMatch(/#\/tab2$/)
+  // The gateway derives navigations from `page` messages: no `nav` event.
+  expect(gw.messages('event', pageId).map((e: any) => e.kind)).not.toContain('nav')
 })
 
 test('setUser reconnects with the new userId; stop() removes the UI', async ({ page, gw }) => {

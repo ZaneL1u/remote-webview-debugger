@@ -1,9 +1,9 @@
 import { agentText, closestComposed, describeForAgent, isDebugUi, isMasked, flushLog, logRecord, MASK, scrub, tagOf } from '@chobitsu/engine/rwd'
 
 // Page state for the gateway: url / title / visibility changes (`page`
-// messages) and timeline events: in-page navigations and the user's taps.
-// The same, plus the user's input, submits and scrolling, go to the session
-// log.
+// messages, from which the gateway derives navigations) and the user's taps
+// as timeline events. The same, plus the user's input, submits and scrolling,
+// go to the session log.
 
 export interface PageState {
   url: string
@@ -31,7 +31,6 @@ export function shortLocation(url: string) {
 
 export interface PageWatchOptions {
   onChange(page: PageState): void
-  onNav(summary: string): void
   onTap(summary: string, target: Element): void
 }
 
@@ -79,7 +78,6 @@ export function watchPage(opts: PageWatchOptions) {
     const prev = last
     last = page
     if (page.url !== prev.url) {
-      opts.onNav(agentText().inPageNav(shortLocation(prev.url), shortLocation(page.url)))
       logRecord('page', { event: 'nav', url: scrub(page.url), from: scrub(prev.url), title: scrub(page.title) })
     }
     if (page.visibility !== prev.visibility) {
