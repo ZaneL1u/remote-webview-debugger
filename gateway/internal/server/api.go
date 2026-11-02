@@ -26,7 +26,7 @@ func (s *Server) routes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /v1/api/auth/login", s.login)
 	mux.HandleFunc("POST /v1/api/auth/logout", func(w http.ResponseWriter, r *http.Request) {
-		clearSession(w, r)
+		s.clearSession(w, r)
 		writeJSON(w, map[string]bool{"ok": true})
 	})
 	mux.HandleFunc("GET /v1/api/me", member(func(w http.ResponseWriter, r *http.Request) { writeJSON(w, currentUser(r)) }))

@@ -782,7 +782,7 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **指标。** `GET /v1/metrics` 返回 Prometheus 文本格式。设置了 `RWD_METRICS_TOKEN` 时需要 `Authorization: Bearer <token>`。指标：`rwd_online_devices{project}`、`rwd_connected_pages`、`rwd_attached_agents`、`rwd_ws_connections`、`rwd_rpc_total{method,result}`、`rwd_rpc_duration_seconds{method}`（直方图）、`rwd_http_requests_total{code}`。
 - **SDK 版本。** 用于缓存的 SDK 版本号是网关内嵌 `sdk.js` 的 SHA-256 前 12 位十六进制，文件一变，`/v1/sdk/<version>/sdk.js` 的地址就跟着变。`GET /v1/api/config` 以 `sdkVersion` 返回它，同时返回 `sdkIntegrity`（`sha384-…`，用于 `integrity` 属性）。控制台提供固定版本的接入代码。
 - **数据库。** 设置 `RWD_DATABASE_URL=postgres://…`（或 `postgresql://`）时使用 Postgres，否则 `RWD_DATA`（默认 `rwd.db`）是 SQLite 文件路径。启动时自动建表和迁移。
-- **限流。** 控制台登录和接受邀请：每个客户端 IP 每分钟 10 次。页面连接和轮询：每个客户端 IP 每分钟 120 次。只有开启 `--trust-proxy` 时才从 `X-Forwarded-For` 取客户端 IP。
+- **限流。** 控制台登录和接受邀请：每个客户端 IP 每分钟 10 次。页面连接和轮询：每个客户端 IP 每分钟 120 次。只有开启 `--trust-proxy` 时才从 `X-Forwarded-For` 取客户端 IP；`X-Forwarded-Proto` 和 `X-Forwarded-Host` 也受同一个开关控制，它们决定会话 cookie 是否带 `Secure`，以及未设置 `--public-url` 时推断出的 `gatewayUrl` 的协议和域名。
 - **审计保留。** `RWD_AUDIT_RETENTION_DAYS`（默认 180 天），每 6 小时清理一次过期记录。
 
 网关的全部配置项见 [gateway/README.zh-CN.md](../gateway/README.zh-CN.md)。

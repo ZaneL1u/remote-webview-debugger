@@ -657,6 +657,53 @@ func TestAuth(t *testing.T) {
 	}
 }
 
+// X-Forwarded-Proto and X-Forwarded-Host count only with --trust-proxy, like
+// X-Forwarded-For: they decide the cookie's Secure flag and the inferred URL.
+func TestForwardedHeaders(t *testing.T) {
+	for _, trust := range []bool{false, true} {
+		f := setup(t, "")
+		f.s.cfg.TrustProxy = trust
+		get := func(path string) (*http.Response, map[string]any) {
+			req, _ := http.NewRequest("GET", f.srv.URL+path, nil)
+			req.Header.Set("X-Forwarded-Proto", "https")
+			req.Header.Set("X-Forwarded-Host", "rwd.example.com")
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer res.Body.Close()
+			var out map[string]any
+			json.NewDecoder(res.Body).Decode(&out)
+			return res, out
+		}
+		_, cfg := get("/v1/api/config")
+		wantURL := f.srv.URL + "/v1"
+		if trust {
+			wantURL = "https://rwd.example.com/v1"
+		}
+		if cfg["gatewayUrl"] != wantURL {
+			t.Fatalf("trust=%v: gatewayUrl %v, want %s", trust, cfg["gatewayUrl"], wantURL)
+		}
+		req, _ := http.NewRequest("POST", f.srv.URL+"/v1/api/auth/login", strings.NewReader(`{"email":"owner@test","password":"password1"}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Forwarded-Proto", "https")
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		var secure *bool
+		for _, c := range res.Cookies() {
+			if c.Name == sessionCookie {
+				secure = &c.Secure
+			}
+		}
+		if res.StatusCode != 200 || secure == nil || *secure != trust {
+			t.Fatalf("trust=%v: login %d, cookie secure %v", trust, res.StatusCode, secure)
+		}
+	}
+}
+
 func TestStreamAndMetrics(t *testing.T) {
 	f := setup(t, "")
 	c := f.login("owner@test", "password1")

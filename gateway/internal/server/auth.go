@@ -84,12 +84,12 @@ func (s *Server) sessionUser(ctx context.Context, tok string) *store.User {
 func (s *Server) setSession(w http.ResponseWriter, r *http.Request, uid string) {
 	http.SetCookie(w, &http.Cookie{
 		Name: sessionCookie, Value: s.signSession(uid, time.Now().Add(sessionTTL)), Path: "/",
-		HttpOnly: true, Secure: isHTTPS(r), SameSite: http.SameSiteLaxMode, MaxAge: int(sessionTTL.Seconds()),
+		HttpOnly: true, Secure: s.isHTTPS(r), SameSite: http.SameSiteLaxMode, MaxAge: int(sessionTTL.Seconds()),
 	})
 }
 
-func clearSession(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: "", Path: "/", HttpOnly: true, Secure: isHTTPS(r),
+func (s *Server) clearSession(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: "", Path: "/", HttpOnly: true, Secure: s.isHTTPS(r),
 		SameSite: http.SameSiteLaxMode, MaxAge: -1})
 }
 
@@ -167,8 +167,11 @@ func (s *Server) bootstrapOwner(ctx context.Context, email, password string) err
 	return err
 }
 
-func isHTTPS(r *http.Request) bool {
-	return r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
+// isHTTPS trusts X-Forwarded-Proto only when configured to (behind a proxy),
+// like the other X-Forwarded-* headers: it decides whether the session cookie
+// is Secure and the scheme of inferred public URLs.
+func (s *Server) isHTTPS(r *http.Request) bool {
+	return r.TLS != nil || (s.cfg.TrustProxy && strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https"))
 }
 
 // clientIP trusts X-Forwarded-For only when configured to (behind a proxy).

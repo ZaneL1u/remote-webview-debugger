@@ -137,7 +137,7 @@ func (s *Server) GatewayURL(r *http.Request) string {
 		return strings.TrimRight(s.cfg.PublicURL, "/")
 	}
 	scheme := "http"
-	if isHTTPS(r) {
+	if s.isHTTPS(r) {
 		scheme = "https"
 	}
 	host := r.Host
