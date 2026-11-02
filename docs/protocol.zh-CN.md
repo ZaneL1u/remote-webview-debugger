@@ -146,12 +146,12 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
  "deviceToken":"<令牌>",             // 只有这次新签发时才有
  "config":{"helpButton":false,"maskSelectors":[],"maskPatterns":[],
            "confirmSelectors":[],"networkExclude":[],"sessionLog":true,
-           "eruda":{"dock":false,"load":false}},
+           "eruda":{"dock":false,"load":false}},   // 也可能是 null，见下
  "agentLang":"en",                   // "en" | "zh"，§15
  "task":{…}}                         // 只有已接入的 agent 设置了任务时才有
 ```
 
-`config` 是远程配置，取自页面所用接入 Key 对应项目的策略（§11）。`config.helpButton` 已经按这个页面的 `userId` 算好（`all`，或 `listed` 且该用户在名单里）。`config.networkExclude` 会和页面自己在 `run({ networkExclude })` 里传的规则合并（§10）。`config.sessionLog` 是项目对会话日志的总开关，为 `false` 时页面停止记录，并删除这个来源下已经存下的日志（§5.4）。SDK 把最近一次的 `config` 存在 localStorage `rwd:cfg`，下一个页面收到自己的 `welcome` 之前先沿用它。
+`config` 是远程配置，取自页面所用接入 Key 对应项目的策略（§11）。`config.helpButton` 已经按这个页面的 `userId` 算好（`all`，或 `listed` 且该用户在名单里）。`config.networkExclude` 会和页面自己在 `run({ networkExclude })` 里传的规则合并（§10）。`config.sessionLog` 是项目对会话日志的总开关，为 `false` 时页面停止记录，并删除这个来源下已经存下的日志（§5.4）。`config.eruda` 是项目的 eruda 策略（§11）；它也可能是 `null` 或不存在（字段出现之前的网关，或之前存下的 `config`），SDK 把这两种情况都当作 `{"dock":false,"load":false}`，页面自己的 `run({ eruda })` 仍然逐项优先（§10）。SDK 把最近一次的 `config` 存在 localStorage `rwd:cfg`，下一个页面收到自己的 `welcome` 之前先沿用它。
 
 如果有待处理的接入请求，而重连上来的正好是设备的前台页面，网关会在 `welcome` 之后立即重发 `attach_request`。
 
@@ -475,7 +475,8 @@ type Policy = {
   attachMaxMinutes: number         // 一次接入的最长时长（默认 60，最大 1440）
   maxOnlineDevices: number         // 0 表示不限；超出时新设备以 4429 关闭
   maxAgents: number                // 本项目设备上同时接入的 agent 数；0 表示不限
-  eruda: { dock: boolean; load: boolean }  // run({ eruda }) 的远程默认值，本地选项逐项优先
+  eruda: { dock: boolean; load: boolean }  // run({ eruda }) 的远程默认值，本地选项逐项优先。
+                                           // 在 welcome.config 里可能是 null 或不存在（等同于两者都为 false），§3.4
 }
 ```
 

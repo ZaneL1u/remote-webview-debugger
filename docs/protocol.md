@@ -146,12 +146,12 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
  "deviceToken":"<token>",            // only when issued by this welcome
  "config":{"helpButton":false,"maskSelectors":[],"maskPatterns":[],
            "confirmSelectors":[],"networkExclude":[],"sessionLog":true,
-           "eruda":{"dock":false,"load":false}},
+           "eruda":{"dock":false,"load":false}},   // or null, see below
  "agentLang":"en",                   // "en" | "zh", §15
  "task":{…}}                         // only while the attached agent has set one
 ```
 
-`config` is the remote configuration from the policy of the project whose app key the page used ([§11](#11-project-policy)). `config.helpButton` is already resolved for this page's `userId` (`all`, or `listed` and the user is listed). `config.networkExclude` is added to the rules the page itself passed to `run({ networkExclude })` ([§10](#10-javascript-api-for-hosts)). `config.sessionLog` is the project's switch for the session log; `false` stops the recording and deletes what this origin already kept ([§5.4](#54-session-log)). The SDK keeps the last `config` in localStorage `rwd:cfg` and applies it on the next page until its `welcome` arrives.
+`config` is the remote configuration from the policy of the project whose app key the page used ([§11](#11-project-policy)). `config.helpButton` is already resolved for this page's `userId` (`all`, or `listed` and the user is listed). `config.networkExclude` is added to the rules the page itself passed to `run({ networkExclude })` ([§10](#10-javascript-api-for-hosts)). `config.sessionLog` is the project's switch for the session log; `false` stops the recording and deletes what this origin already kept ([§5.4](#54-session-log)). `config.eruda` is the project's eruda policy ([§11](#11-project-policy)); it may also be `null` or absent (a gateway or a stored `config` from before the field existed), which the SDK reads as `{"dock":false,"load":false}`, and the page's own `run({ eruda })` still wins field by field ([§10](#10-javascript-api-for-hosts)). The SDK keeps the last `config` in localStorage `rwd:cfg` and applies it on the next page until its `welcome` arrives.
 
 If an attach request is pending and the reconnecting page is the device's foreground page, the gateway sends the `attach_request` again right after the `welcome`.
 
@@ -475,7 +475,8 @@ type Policy = {
   attachMaxMinutes: number         // an attachment ends after this long (default 60, max 1440)
   maxOnlineDevices: number         // 0 = unlimited; over it, new devices are closed with 4429
   maxAgents: number                // agents attached at once to this project's devices; 0 = unlimited
-  eruda: { dock: boolean; load: boolean }  // remote default for run({ eruda }); local options win field by field
+  eruda: { dock: boolean; load: boolean }  // remote default for run({ eruda }); local options win field by field.
+                                           // In welcome.config it may be null or absent (= both false), §3.4
 }
 ```
 
