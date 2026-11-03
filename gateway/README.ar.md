@@ -1,0 +1,143 @@
+<!-- i18n-source: f03e81c3a9169e2ceffeb0d2771fad317c20c87d -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | العربية
+
+<div dir="rtl">
+
+# بوابة rwd
+
+خادم Remote WebView Debugger المكتوب بلغة Go: اتصالات الصفحات، وحالة اتصال الأجهزة، وحالة التحكم، ونقطة نهاية MCP المستضافة، وواجهة REST الخاصة بلوحة التحكم، إضافةً إلى لوحة التحكم وSDK الصفحة المضمَّنين فيه. ملف تنفيذي واحد هو الخادم بأكمله.
+
+- البروتوكول: [docs/protocol.ar.md](../docs/protocol.ar.md)
+- البنية ونموذج الموافقة وملاحظات الأمان: [docs/architecture.ar.md](../docs/architecture.ar.md)
+- النشر باستخدام Docker Compose: [deploy/platform/README.ar.md](../deploy/platform/README.ar.md)
+
+## البناء والتشغيل
+
+يتطلب البناء Go (الإصدار المحدد في `go.mod`) وNode.js مع npm، لأن لوحة التحكم وSDK يُبنيان ويُضمَّنان داخل الملف التنفيذي. من جذر المستودع:
+
+<div dir="ltr">
+
+```bash
+make -j16                                    # → gateway/bin/rwd-<os>-<arch>
+make -j16 GOOS=linux GOARCH=amd64            # cross-compile (amd64 or arm64)
+
+RWD_ADMIN_EMAIL=you@example.com RWD_ADMIN_PASSWORD='change-me' \
+  gateway/bin/rwd-darwin-arm64 serve --addr :8080
+```
+
+</div>
+
+افتح http://localhost:8080 وسجّل الدخول بهذا البريد الإلكتروني وكلمة المرور. تستخدم الصفحات والوكلاء عنوان البوابة `http://localhost:8080/v1` (وفي بيئة الإنتاج: `https://rwd.example.com/v1`).
+
+يعمل `go build ./cmd/rwd` داخل `gateway/` أيضًا، لكن الملف التنفيذي الناتج لا يحمل سوى عناصر نائبة بدلًا من لوحة التحكم وSDK. يضبط `make` الإصدار الذي يُبلِغ عنه `rwd version` و`/v1/healthz` اعتمادًا على أحدث وسم `gateway-vX.Y.Z` (`0.2.0` عند الوسم نفسه، و`0.2.0-3-gabc1234` بعده، و`0.0.0-dev` إن لم يوجد وسم)؛ ويمكن تجاوزه بـ `RWD_VERSION=…`. تُرفق الملفات التنفيذية الجاهزة لنظامَي Linux وmacOS (`amd64` و`arm64`) بكل [إصدار على GitHub](https://github.com/ZaneL1u/remote-webview-debugger/releases) يحمل الوسم `gateway-v*`؛ وللاطلاع على التغييرات: [سجل التغييرات](CHANGELOG.md).
+
+## الأوامر
+
+<div dir="ltr">
+
+```
+rwd serve [flags]                       run the gateway
+rwd mcp --gateway https://host/v1       stdio MCP bridge for local agents (API key from RWD_API_KEY)
+rwd version                             print the version
+```
+
+</div>
+
+## الإعدادات (`rwd serve`)
+
+لكل خيار متغير بيئة مقابل؛ والخيار المُمرَّر في سطر الأوامر له الأولوية.
+
+| الخيار / متغير البيئة | القيمة الافتراضية | الوصف |
+|---|---|---|
+| `--addr` / `RWD_ADDR` | `:8080` | عنوان الاستماع (HTTP عادي؛ ضع TLS أمامه، راجع [deploy/platform](../deploy/platform/README.ar.md)) |
+| `--data` / `RWD_DATABASE_URL` / `RWD_DATA` | `rwd.db` | قاعدة البيانات. عنوان URL يبدأ بـ `postgres://` أو `postgresql://` يختار Postgres؛ وأي قيمة أخرى تُعدّ مسار ملف SQLite. يتقدّم `RWD_DATABASE_URL` على `RWD_DATA`. يُنشأ المخطط ويُرحَّل عند بدء التشغيل |
+| `--public-url` / `RWD_PUBLIC_URL` | يُستنتج من كل طلب | العنوان العام للبوابة، وينتهي بـ `/v1`، مثل `https://rwd.example.com/v1`. يُستخدم في مقتطفات التكامل وروابط الدعوة و`/v1/api/config`. اضبطه عندما لا تستطيع البوابة استنتاج عنوانها العام |
+| `--trust-proxy` / `RWD_TRUST_PROXY=1` | معطَّل | يأخذ عنوان IP للعميل من `X-Forwarded-For`، ويأخذ مخطط العنوان العام المستنتَج ومضيفه (وكذلك ما إذا كان ملف تعريف الارتباط الخاص بلوحة التحكم `Secure`) من `X-Forwarded-Proto` / `X-Forwarded-Host`. لا تفعّله إلا خلف بروكسي عكسي، وإلا أمكن للعملاء تزوير هذه الترويسات والتحايل على قوائم السماح لعناوين IP وحدود معدل الطلبات. من دونه يُعامَل كل طلب على أنه HTTP عادي أيًّا كان ما يقوله البروكسي، فيُضبط ملف تعريف الارتباط الخاص بلوحة التحكم من دون `Secure` وتبدأ العناوين المستنتَجة بـ `http://` (اضبط `--public-url` في هذه الحالة) |
+| `--lang` / `RWD_LANG` | `en` | لغة كل ما يقرؤه الذكاء الاصطناعي: تعليمات MCP، وأوصاف الأدوات ومعاملاتها، ونتائج الأدوات، و`[Session changes]`، والأخطاء. وتصل أيضًا إلى SDK الصفحة بوصفها `welcome.agentLang`، فتتطابق معها الأخطاء وملخصات الأحداث التي تُكتب داخل الصفحة. القيم: `en` أو `zh` (وتُقبل `zh-CN` و`zh_CN` وما شابهها). أما لوحة التحكم فتختار لغتها لكل طلب (`?lang=` أو `Accept-Language`) وتعود إلى هذه القيمة احتياطيًا |
+| `--demo-dir` / `RWD_DEMO_DIR` | — | يقدّم هذا المجلد على المسار `/demo/` (اختياري، لصفحات العرض التوضيحي) |
+| `RWD_ADMIN_EMAIL` | `admin` | البريد الإلكتروني (اسم الدخول) لحساب المالك. لا يُنشأ مالك إلا إذا كانت قاعدة البيانات خالية من أي مالك (أي عند أول تشغيل)؛ وتغيير هذه القيمة لاحقًا **لا** يُنشئ مالكًا ثانيًا، بل يحدد فقط المالك الذي تنطبق عليه `RWD_ADMIN_PASSWORD` |
+| `RWD_ADMIN_PASSWORD` | — | كلمة مرور المالك. تُستخدم عند إنشاء المالك، ثم عند **كل** تشغيل لاحق لإعادة تعيين كلمة مرور المالك المحدد بـ `RWD_ADMIN_EMAIL`، وهو ما يصلح أيضًا لاستعادة الحساب. إذا لم يكن هذا البريد لمالك (بل لعضو آخر، أو لا يخص أحدًا)، تُتجاهل القيمة ويذكر السجل ذلك مع أسماء المالكين. وإذا لم تُضبط وكانت قاعدة البيانات فارغة، تُولَّد كلمة مرور عشوائية وتُطبع مرة واحدة في السجل |
+| `RWD_METRICS_TOKEN` | — | عند ضبطه، يتطلب `/v1/metrics` الترويسة `Authorization: Bearer <token>` |
+| `RWD_AUDIT_RETENTION_DAYS` | `180` | عدد أيام الاحتفاظ بسجل التدقيق |
+
+أمور أخرى تستحق المعرفة:
+
+- الأسرار التي تحتاجها البوابة (قيمة pepper لمفاتيح API وسرّ جلسات لوحة التحكم) تُولَّد عند أول تشغيل وتُخزَّن في قاعدة البيانات. احتفظ بنسخ احتياطية من قاعدة البيانات وأبقِها خاصة.
+- تحتفظ البوابة بالحالة الحية (الصفحات المتصلة، وحالة التحكم، والخطوط الزمنية) في الذاكرة، لذا شغّل نسخة واحدة فقط لكل قاعدة بيانات.
+- فحص السلامة: `GET /v1/healthz` ← `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## ربط الوكيل
+
+أنشئ مفتاح API في لوحة التحكم (**API keys**)، ثم أضف نقطة نهاية MCP المستضافة إلى عميلك، مثلًا في Claude Code:
+
+<div dir="ltr">
+
+```bash
+claude mcp add --transport http rwd https://rwd.example.com/v1/mcp \
+  --header "Authorization: Bearer rwd_sk_live_…"
+```
+
+</div>
+
+وللعملاء الذين لا يتعاملون إلا مع stdio، يتولى الملف التنفيذي نفسه تمرير stdio إلى نقطة النهاية المستضافة:
+
+<div dir="ltr">
+
+```bash
+claude mcp add rwd -e RWD_API_KEY=rwd_sk_live_… -- rwd mcp --gateway https://rwd.example.com/v1
+```
+
+</div>
+
+| إعداد `rwd mcp` | الوصف |
+|---|---|
+| `--gateway` / `RWD_GATEWAY` | عنوان البوابة، وينتهي بـ `/v1` |
+| `RWD_API_KEY` | مفتاح API (عبر متغير البيئة فقط، كي لا يظهر في قوائم العمليات) |
+
+مفتاح واحد يصل إلى كل الأجهزة المتصلة بالبوابة. الأدوات مدرجة في [protocol.ar.md §14](../docs/protocol.ar.md#14-mcp).
+
+## بنية الشيفرة المصدرية
+
+<div dir="ltr">
+
+```
+cmd/rwd/            entry point: serve, mcp (stdio bridge), version
+internal/store/     SQLite / Postgres: projects and policies, members, API keys (HMAC; level, expiry,
+                    IP allowlist), devices and device tokens, device invites, audit log, settings
+internal/hub/       live state: devices, pages, control state machine, attach approval, level checks,
+                    timelines, RPC routing, SSE subscriptions, metrics
+internal/server/    HTTP: page WebSocket, presence polling, REST with sign-in and roles, MCP tools,
+                    SSE, /v1/metrics, static files
+internal/i18n/      English and Chinese text for agents and the console
+internal/ids/       app keys, API keys, device codes, secrets
+internal/web/       the embedded console and SDK (staged by `make gateway`, placeholders otherwise)
+scripts/embed.sh    stages console/dist and sdk.js into internal/web for go:embed
+```
+
+</div>
+
+## الاختبارات
+
+<div dir="ltr">
+
+```bash
+cd gateway && go test -race ./...
+```
+
+</div>
+
+يقود `internal/server/server_test.go` المسار الكامل بصفحات محاكاة وعميل MCP: الاتصال عبر رمز الجهاز؛ والموافقة على الجهاز (السماح، والرفض، والرفض المتكرر وما يتبعه من حظر، والعرض فقط)؛ وإعادة الارتباط خلال فترة السماح دون موافقة ثانية؛ والتحقق من المستويات؛ واللقطات؛ وقفل الشاشة عند أول تفاعل؛ وتتبّع الانتقال بين الصفحات وإسقاط صفحة استُبدلت بـ WebView أُعيد إنشاؤه؛ وتولّي التحكم وإعادة التحكم؛ والإجراءات المجمّعة؛ وإنهاء المستخدم للجلسة؛ وسجلات التدقيق؛ وتوكنات الأجهزة (4401)، وتوكنات الاستئناف (4409)، والحصص (4429)؛ والدعوات أحادية الاستخدام؛ وانتهاء صلاحية المفاتيح وقوائم السماح لعناوين IP؛ والإلغاء الفوري؛ ودعوات الأعضاء وأدوارهم؛ وSSE والمقاييس؛ وحالات فشل المصادقة.
+
+تُشغَّل الاختبارات نفسها على Postgres (كل اختبار في مخطط مؤقت خاص به):
+
+<div dir="ltr">
+
+```bash
+RWD_TEST_DATABASE_URL='postgres://user:pw@127.0.0.1:5432/rwd?sslmode=disable' go test -race ./internal/server/
+```
+
+</div>
+
+يشغّل `make -j16 check` في جذر المستودع فحوص البوابة وSDK ولوحة التحكم التي يشغّلها CI.
+
+</div>

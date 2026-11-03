@@ -1,4 +1,5 @@
-[English](README.md) | 简体中文
+<!-- i18n-source: f03e81c3a9169e2ceffeb0d2771fad317c20c87d -->
+[English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
 

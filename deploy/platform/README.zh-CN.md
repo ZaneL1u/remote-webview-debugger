@@ -1,4 +1,5 @@
-[English](README.md) | 简体中文
+<!-- i18n-source: 13471b8c993b5e5c4b8a2e958fb22d65ba820dbf -->
+[English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose 部署
 

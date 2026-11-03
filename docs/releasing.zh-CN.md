@@ -1,4 +1,5 @@
-[English](releasing.md) | 简体中文
+<!-- i18n-source: 9be9df7e70f41a674848b25979f1ef7cb1f96f33 -->
+[English](releasing.md) | 简体中文 | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # 发版流程
 

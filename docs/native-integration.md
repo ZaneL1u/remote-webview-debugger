@@ -1,4 +1,4 @@
-English | [简体中文](native-integration.zh-CN.md)
+English | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Native app integration
 

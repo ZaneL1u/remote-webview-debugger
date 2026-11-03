@@ -1,4 +1,5 @@
-[English](architecture.md) | 简体中文
+<!-- i18n-source: b5b0ed9ac18878e35bf16c58582f6e92dd72b172 -->
+[English](architecture.md) | 简体中文 | [繁體中文](architecture.zh-TW.md) | [日本語](architecture.ja.md) | [Español](architecture.es.md) | [Français](architecture.fr.md) | [Русский](architecture.ru.md) | [العربية](architecture.ar.md)
 
 # 架构
 

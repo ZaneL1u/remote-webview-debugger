@@ -1,10 +1,13 @@
+<!-- i18n-source: 8aea4dc120575de41a0827859bcf05eb445e030f -->
 <div align="center">
 
 # Remote WebView Debugger
 
 **让 AI agent 通过 MCP，远程调试真实用户手机上的 App WebView 和 H5 页面。**
 
-[debugger.site](https://debugger.site/zh/) · [在线演示](https://debugger.site/zh/#demo) · [文档](docs/architecture.zh-CN.md) · [English](README.md) | 简体中文
+[debugger.site](https://debugger.site/zh/) · [在线演示](https://debugger.site/zh/#demo) · [文档](docs/architecture.zh-CN.md)
+
+[English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 [![CI](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml)
 [![SDK on npm](https://img.shields.io/npm/v/remote-webview-debugger?label=sdk&color=cb3837)](https://www.npmjs.com/package/remote-webview-debugger)

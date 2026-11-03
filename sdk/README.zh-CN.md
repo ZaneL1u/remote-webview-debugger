@@ -1,4 +1,5 @@
-[English](README.md) | 简体中文
+<!-- i18n-source: a4e7bc52d91627a8d67fac32547089d8321a7d2e -->
+[English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 页面 SDK（`sdk/`）
 

@@ -1,4 +1,4 @@
-English | [简体中文](releasing.zh-CN.md)
+English | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # Releasing
 

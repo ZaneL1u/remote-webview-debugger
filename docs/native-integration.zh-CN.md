@@ -1,4 +1,5 @@
-[English](native-integration.md) | 简体中文
+<!-- i18n-source: 576f0b6889d3f5665ef4e6d44a51a5d2289eebbd -->
+[English](native-integration.md) | 简体中文 | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # App 原生接入
 

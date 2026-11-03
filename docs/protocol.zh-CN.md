@@ -1,4 +1,5 @@
-[English](protocol.md) | 简体中文
+<!-- i18n-source: b852d212294c4dd63aad9e760443da91cb0ccaa0 -->
+[English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
 
