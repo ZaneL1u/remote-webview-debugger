@@ -1,4 +1,4 @@
-<!-- i18n-source: b356ba9005954ef85d8a12f95b7e8e136e054fd4 -->
+<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
 [English](native-integration.md) | 简体中文 | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # App 原生接入
@@ -15,7 +15,7 @@ H5 页面用一个 `<script>` 标签就能接入 SDK。在自己的 App 里还�
 ## 接入清单
 
 1. **征得用户同意。** 用户同意后才开启远程调试（模拟 App 会先弹一个原生的授权说明）。在此之上，设备上的接入审批照常生效。
-2. **获取 SDK。** 把 npm 包 [`remote-webview-debugger`](../sdk/README.zh-CN.md) 里的 `dist/sdk.js` 打包进 App，这样网关和 CDN 都无法向 App 推送代码；或者在开启调试时下载一次，来源可以是你的网关（`https://rwd.example.com/v1/sdk.js`）或固定版本的 CDN 地址（`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js`）。
+2. **获取 SDK。** 把 npm 包 [`remote-webview-debugger`](../sdk/README.zh-CN.md) 里的 `dist/sdk.js` 打包进 App，这样网关和 CDN 都无法向 App 推送代码；或者在开启调试时下载一次，来源可以是你的网关（`https://rwd.example.com/v1/sdk.js`）或固定版本的 CDN 地址（`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`）。
 3. **拼出启动脚本：** SDK 源码，接着 `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`，再加一个（可选的）定时器把 `status()` 报给原生代码。
 4. **在文档开始时注入**到每个 WebView 的主 frame，并且在加载第一个页面之前完成，这样记录能在任何页面脚本运行之前开始。
 5. **保存 `deviceId` 和 `deviceToken`**，并传给每个 WebView。

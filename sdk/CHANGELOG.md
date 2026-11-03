@@ -4,6 +4,19 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The page SDK, published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger). Tags: `sdk-vX.Y.Z`.
 
+## v0.2.1 (2026-11-04)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.0...sdk-v0.2.1)
+
+### 🩹 Fixes
+
+- the task card's current-step ripple is no longer clipped by the step list ([1b7a889](https://github.com/ZaneL1u/remote-webview-debugger/commit/1b7a889))
+- a device whose first welcome was lost starts over instead of being refused forever ([d58e91f](https://github.com/ZaneL1u/remote-webview-debugger/commit/d58e91f))
+
+### 📖 Documentation
+
+- SDK 0.2.0 in every language ([fe1334c](https://github.com/ZaneL1u/remote-webview-debugger/commit/fe1334c))
+
 ## v0.2.0 (2026-11-03)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.1.0...sdk-v0.2.0)

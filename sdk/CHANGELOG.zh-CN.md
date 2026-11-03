@@ -4,6 +4,19 @@
 
 页面 SDK，npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)。tag 形如 `sdk-vX.Y.Z`。
 
+## v0.2.1 (2026-11-04)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.0...sdk-v0.2.1)
+
+### 🩹 修复
+
+- 任务卡当前步骤的扩散动画不再被步骤列表裁掉 ([1b7a889](https://github.com/ZaneL1u/remote-webview-debugger/commit/1b7a889))
+- 首次握手的 welcome 丢失时，设备会作为新设备重新注册，不再被网关永久拒绝 ([d58e91f](https://github.com/ZaneL1u/remote-webview-debugger/commit/d58e91f))
+
+### 📖 文档
+
+- 各语言文档里的 SDK 版本号更新为 0.2.0 ([fe1334c](https://github.com/ZaneL1u/remote-webview-debugger/commit/fe1334c))
+
 ## v0.2.0 (2026-11-03)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.1.0...sdk-v0.2.0)

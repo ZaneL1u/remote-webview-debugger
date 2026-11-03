@@ -1,4 +1,4 @@
-<!-- i18n-source: b356ba9005954ef85d8a12f95b7e8e136e054fd4 -->
+<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | Русский | [العربية](native-integration.ar.md)
 
 # Интеграция с нативным приложением
@@ -15,7 +15,7 @@ H5-страница может загрузить SDK тегом `<script>`. В 
 ## Чек-лист
 
 1. **Спросите согласие.** Включайте удалённую отладку только после того, как пользователь согласится (mock-приложение сначала показывает нативный диалог согласия). Одобрение подключения на устройстве при этом всё равно действует.
-2. **Получите SDK.** Встройте `dist/sdk.js` из npm-пакета [`remote-webview-debugger`](../sdk/README.ru.md) в приложение — тогда ни шлюз, ни CDN никогда не смогут подсунуть ему код; или скачайте его один раз при включении отладки с вашего шлюза (`https://rwd.example.com/v1/sdk.js`) либо по закреплённому URL на CDN (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js`).
+2. **Получите SDK.** Встройте `dist/sdk.js` из npm-пакета [`remote-webview-debugger`](../sdk/README.ru.md) в приложение — тогда ни шлюз, ни CDN никогда не смогут подсунуть ему код; или скачайте его один раз при включении отладки с вашего шлюза (`https://rwd.example.com/v1/sdk.js`) либо по закреплённому URL на CDN (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`).
 3. **Соберите загрузочный скрипт:** исходный код SDK, затем `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`, затем (по желанию) таймер, который передаёт `status()` в нативный код.
 4. **Внедряйте его в начале документа** в главный фрейм каждого WebView, до загрузки первой страницы, чтобы перехват начинался раньше, чем выполнится любой скрипт страницы.
 5. **Храните `deviceId` и `deviceToken`** в хранилище приложения и передавайте оба в каждый WebView.

@@ -1,4 +1,4 @@
-<!-- i18n-source: b356ba9005954ef85d8a12f95b7e8e136e054fd4 -->
+<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | 繁體中文 | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # App 原生整合
@@ -15,7 +15,7 @@ H5 頁面用一個 `<script>` 標籤就能載入 SDK。在你自己的 App 裡�
 ## 整合檢查清單
 
 1. **徵得使用者同意。** 使用者同意之後才開啟遠端除錯（模擬 App 會先顯示一個原生的同意對話框）。在此之上，裝置上的連線核准依然有效。
-2. **取得 SDK。** 把 npm 套件 [`remote-webview-debugger`](../sdk/README.zh-TW.md) 中的 `dist/sdk.js` 打包進 App，這樣閘道和 CDN 都無法向它推送程式碼；或是在啟用除錯時下載一次，來源可以是你的閘道（`https://rwd.example.com/v1/sdk.js`）或固定版本的 CDN 網址（`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js`）。
+2. **取得 SDK。** 把 npm 套件 [`remote-webview-debugger`](../sdk/README.zh-TW.md) 中的 `dist/sdk.js` 打包進 App，這樣閘道和 CDN 都無法向它推送程式碼；或是在啟用除錯時下載一次，來源可以是你的閘道（`https://rwd.example.com/v1/sdk.js`）或固定版本的 CDN 網址（`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`）。
 3. **組出啟動指令碼：** 先是 SDK 原始碼，接著 `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`，再加上一個（選用的）計時器，把 `status()` 回報給原生程式碼。
 4. **在 document start 時注入**到每個 WebView 的主 frame，並且在第一個頁面載入之前完成，讓記錄在任何頁面指令碼執行之前就開始。
 5. **把 `deviceId` 和 `deviceToken` 保存**在 App 的儲存空間中，並傳給每個 WebView。

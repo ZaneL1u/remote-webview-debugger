@@ -1,4 +1,4 @@
-<!-- i18n-source: 01d1f8a551ff976520e185700fb811f2c8fdcf56 -->
+<!-- i18n-source: 9d72ce89dfa86583d406e421998986f82d9827b1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 頁面 SDK（`sdk/`）
@@ -6,7 +6,7 @@
 由 App WebView 或 H5 頁面載入的單一 JS 檔案，讓 AI agent 透過 RWD 閘道（`gateway/`）和 MCP 檢視並操作頁面。協定請見 [`docs/protocol.zh-TW.md`](../docs/protocol.zh-TW.md)；架構請見 [`docs/architecture.zh-TW.md`](../docs/architecture.zh-TW.md)。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 選用
@@ -24,7 +24,7 @@
 
 | 用法 | 來源 |
 |---|---|
-| 從 CDN 以 `<script>` 載入 | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js` 或 `https://unpkg.com/remote-webview-debugger@0.2.0/dist/sdk.js`（壓縮過的 IIFE，全域物件 `RemoteWebviewDebugger`；請固定版本號，需要的話再加上 `integrity`） |
+| 從 CDN 以 `<script>` 載入 | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js` 或 `https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js`（壓縮過的 IIFE，全域物件 `RemoteWebviewDebugger`；請固定版本號，需要的話再加上 `integrity`） |
 | 打包工具 | `npm install remote-webview-debugger`，然後 `import { run, status } from 'remote-webview-debugger'`（附型別定義的 ES module）。請在你自己的程式碼之前 import，讓記錄盡早開始。同一個頁面不要再載入 `<script>` 版本 |
 | 你的閘道 | `https://<閘道>/v1/sdk.js`，即閘道內嵌的那一份（主控台另外提供依內容定址、可搭配 SRI 的網址） |
 | 原生 App | 把套件中的 `dist/sdk.js` 打包進 App，或從上述任一來源下載；請見[原生整合](../docs/native-integration.zh-TW.md) |
@@ -72,7 +72,7 @@
 
 **如何載入。** 英文和簡體中文包含在 `sdk.js` 裡。其他語言包會在頁面第一次需要時才載入（在那一刻，介面先顯示遞補語言）：
 
-- `<script>` 版本：從 `sdk.js` 同一目錄下的 `locales/<id>.js` 載入（CDN 路徑如 `…/remote-webview-debugger@0.2.0/dist/locales/ja.js`，或你的閘道的 `/v1/locales/ja.js`），失敗時再從傳給 `run()` 的閘道載入。想省下這次請求，可以自己在 `sdk.js` 之前或之後載入語言包：`<script src="…/dist/locales/ja.js"></script>`。
+- `<script>` 版本：從 `sdk.js` 同一目錄下的 `locales/<id>.js` 載入（CDN 路徑如 `…/remote-webview-debugger@0.2.1/dist/locales/ja.js`，或你的閘道的 `/v1/locales/ja.js`），失敗時再從傳給 `run()` 的閘道載入。想省下這次請求，可以自己在 `sdk.js` 之前或之後載入語言包：`<script src="…/dist/locales/ja.js"></script>`。
 - ES module 版本：使用動態 import，所以打包工具會把每種語言拆成獨立的 chunk。若要一開始就打包進去：`import ja from 'remote-webview-debugger/locales/ja'`，然後 `run(url, key, { locales: [ja] })`。
 
 **自訂語言包和文字。** 語言包的格式是 `{ id, name, dir?, ui?, action?, agent? }`；沒寫的部分取自它的遞補語言：
