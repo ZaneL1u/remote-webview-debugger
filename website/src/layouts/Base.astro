@@ -1,0 +1,92 @@
+---
+// The page shell: head (SEO for 11 languages), backdrop, header, footer and
+// the behaviour script. Every language page renders through here.
+import '../styles/global.css'
+import type { Dict } from '../i18n/en.ts'
+import { DEFAULT, LOCALES, href, type Locale } from '../i18n/locales.ts'
+import { REPO, SITE } from '../lib/site.ts'
+import Backdrop from '../components/Backdrop.astro'
+import Footer from '../components/Footer.astro'
+import Header from '../components/Header.astro'
+
+interface Props {
+  t: Dict
+  locale: Locale
+}
+const { t, locale } = Astro.props
+const url = SITE + href(locale)
+const isDefault = locale.code === DEFAULT.code
+
+// First visit to the English root with another language in the browser:
+// go to that language, unless a choice was stored or ?lang=en was asked for.
+const matches = LOCALES.map(l => [l.path, l.match] as const)
+const redirect = isDefault
+  ? `try{var L=${JSON.stringify(matches)};var s=localStorage.getItem('rwd.lang');if(!s&&!/[?&]lang=/.test(location.search)){var ls=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']).map(function(x){return String(x).toLowerCase()});outer:for(var i=0;i<ls.length;i++){for(var j=0;j<L.length;j++){var m=L[j][1];for(var k=0;k<m.length;k++){if(ls[i]===m[k]||ls[i].indexOf(m[k]+'-')===0){if(L[j][0])location.replace('/'+L[j][0]+'/'+location.hash);break outer}}}}}}catch(e){}`
+  : ''
+
+const app = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Remote WebView Debugger',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'iOS, Android, Web',
+  description: t.meta.description,
+  url,
+  inLanguage: locale.code,
+  license: 'https://opensource.org/licenses/MIT',
+  codeRepository: REPO,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+}
+const strip = (s: string) => s.replace(/<[^>]+>/g, '')
+const faq = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: t.faq.items.map(it => ({ '@type': 'Question', name: strip(it.q), acceptedAnswer: { '@type': 'Answer', text: strip(it.a) } })),
+}
+---
+
+<!doctype html>
+<html lang={locale.code} dir={locale.dir} data-page-lang={locale.code}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{t.meta.title}</title>
+    <meta name="description" content={t.meta.description} />
+    <link rel="canonical" href={url} />
+    {LOCALES.map(l => <link rel="alternate" hreflang={l.code} href={SITE + href(l)} />)}
+    <link rel="alternate" hreflang="x-default" href={SITE + '/'} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Remote WebView Debugger" />
+    <meta property="og:title" content={t.meta.ogTitle} />
+    <meta property="og:description" content={t.meta.ogDescription} />
+    <meta property="og:url" content={url} />
+    <meta property="og:locale" content={locale.ogLocale} />
+    {LOCALES.filter(l => l !== locale).map(l => <meta property="og:locale:alternate" content={l.ogLocale} />)}
+    <meta property="og:image" content={`${SITE}/og.png`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={t.meta.ogTitle} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={t.meta.ogTitle} />
+    <meta name="twitter:description" content={t.meta.ogDescription} />
+    <meta name="twitter:image" content={`${SITE}/og.png`} />
+    <meta name="theme-color" content="#04060d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eef2fb" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script is:inline set:html={`(function(){var d=document.documentElement;d.className+=' js';try{var t=localStorage.getItem('rwd.theme');if(t==='light'||t==='dark')d.setAttribute('data-theme',t);}catch(e){}${redirect}})();`} />
+    <script type="application/ld+json" set:html={JSON.stringify(app)} />
+    <script type="application/ld+json" set:html={JSON.stringify(faq)} />
+    <template data-i18n set:html={JSON.stringify({ copy: t.copy.copy, copied: t.copy.copied })} />
+  </head>
+  <body>
+    <Backdrop />
+    <Header t={t} locale={locale} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer t={t} locale={locale} />
+    <script src="../scripts/main.ts"></script>
+  </body>
+</html>

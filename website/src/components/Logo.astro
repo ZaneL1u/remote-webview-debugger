@@ -1,0 +1,10 @@
+---
+import { logo } from '../lib/icons.ts'
+interface Props {
+  id: string
+  class?: string
+}
+const { id, class: cls = 'logo-mark' } = Astro.props
+---
+
+<Fragment set:html={logo(id, cls)} />

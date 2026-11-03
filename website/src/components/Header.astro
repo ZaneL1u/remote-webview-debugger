@@ -1,0 +1,64 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import { LOCALES, href, type Locale } from '../i18n/locales.ts'
+import { REPO } from '../lib/site.ts'
+import Icon from './Icon.astro'
+import Logo from './Logo.astro'
+
+interface Props {
+  t: Dict
+  locale: Locale
+}
+const { t, locale } = Astro.props
+const home = href(locale)
+const nav: [string, string][] = [
+  ['#demo', t.nav.demo],
+  ['#live', t.nav.live],
+  ['#how', t.nav.how],
+  ['#features', t.nav.features],
+  ['#highlights', t.nav.highlights],
+  ['#privacy', t.nav.privacy],
+  ['#self-host', t.nav.selfHost],
+  ['#faq', t.nav.faq],
+]
+---
+
+<a class="skip" href="#main">{t.nav.skip}</a>
+<header class="site-header" data-header>
+  <div class="wrap header-inner">
+    <a class="brand" href={home} aria-label="Remote WebView Debugger">
+      <Logo id="lg-h" />
+      <span class="brand-name"><span class="brand-remote">Remote </span>WebView Debugger</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <ul>{nav.map(([h, l]) => <li><a href={h}>{l}</a></li>)}</ul>
+    </nav>
+    <div class="header-tools">
+      <div class="lang" data-lang-menu>
+        <button class="lang-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="lang-menu" aria-label={t.nav.langLabel} title={t.nav.langLabel}>
+          <Icon name="globe" />
+          <span class="lang-name">{locale.name}</span>
+          <Icon name="chevron" class="ic chev" />
+        </button>
+        <div class="lang-menu" id="lang-menu" role="menu" aria-label={t.nav.langLabel} hidden>
+          {LOCALES.map(l => (
+            <a role="menuitem" href={href(l)} hreflang={l.code} lang={l.code} data-lang={l.code} aria-current={l.code === locale.code ? 'true' : undefined}>
+              <span>{l.name}</span>
+              <small>{l.code}</small>
+            </a>
+          ))}
+        </div>
+      </div>
+      <button class="icon-btn theme-btn" type="button" data-theme-toggle aria-label={t.nav.themeToggle} title={t.nav.themeToggle}>
+        <Icon name="sun" class="ic sun" /><Icon name="moon" class="ic moon" />
+      </button>
+      <a class="icon-btn gh" href={REPO} aria-label="GitHub" title="GitHub"><Icon name="github" /></a>
+      <button class="icon-btn menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label={t.nav.menu}>
+        <Icon name="menu" class="ic open" /><Icon name="close" class="ic shut" />
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile" hidden>
+    <ul>{nav.map(([h, l]) => <li><a href={h}>{l}</a></li>)}<li><a href={REPO}>GitHub</a></li></ul>
+  </nav>
+</header>

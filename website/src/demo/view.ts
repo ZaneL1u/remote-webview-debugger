@@ -2,6 +2,7 @@
 // calls with their (real) results, plus the status bar and the phone hint.
 
 import type { ToolResult } from './tools'
+import { play } from '../scripts/lottie.ts'
 
 export type DemoState = 'idle' | 'prelude' | 'running' | 'paused' | 'waitApproval' | 'waitControl' | 'done' | 'stopped'
 
@@ -67,8 +68,6 @@ export class View {
     this.statusDot = root.querySelector('[data-status-dot]')!
     this.progressEl = root.querySelector('[data-progress]')!
     this.hintEl = root.querySelector('[data-hint]')!
-    // Follow new output unless the reader scrolled up (our own smooth
-    // scrolling must not count as that).
     let lastInput = 0
     const input = () => (lastInput = performance.now())
     for (const ev of ['wheel', 'touchstart', 'keydown', 'pointerdown']) this.log.addEventListener(ev, input, { passive: true })
@@ -151,7 +150,6 @@ export class View {
       this.scroll()
       return
     }
-    // Type in chunks, then swap in the formatted text.
     const step = 3
     for (let i = step; i < text.length + step; i += step) {
       p.textContent = text.slice(0, i)
@@ -177,9 +175,24 @@ export class View {
       `<span class="tool-chev" aria-hidden="true"></span>` +
       `</button><div class="tool-body" hidden></div>`
     this.append(n)
+    // A Lottie orbit while it runs (the CSS spinner until it has loaded).
+    const ic = n.querySelector<HTMLElement>('.tool-ic')!
+    let orbit: Promise<import('lottie-web').AnimationItem | null> | null = null
+    if (!this.reduced && this.root.dataset.skin !== 'claude' && this.root.dataset.skin !== 'codex') {
+      orbit = play(ic, 'orbit').then(a => {
+        if (a && n.dataset.state === 'running') ic.classList.add('has-lottie')
+        else a?.destroy()
+        return a
+      })
+    }
     return {
       done: (r: ToolResult) => {
         n.dataset.state = r.isError ? 'error' : 'ok'
+        void orbit?.then(a => {
+          a?.destroy()
+          ic.classList.remove('has-lottie')
+          ic.innerHTML = ''
+        })
         const ms = n.querySelector('.tool-ms')!
         ms.textContent = r.isError ? `${this.t.error} · ${r.ms} ms` : `${r.ms} ms`
         const body = n.querySelector('.tool-body') as HTMLElement
@@ -211,9 +224,9 @@ export class View {
   summary(html: string) {
     const n = document.createElement('div')
     n.className = 'summary'
-    n.innerHTML = html
+    n.innerHTML = `<span class="summary-check" aria-hidden="true"></span>` + html
     this.log.appendChild(n)
-    // Long: show its beginning rather than its end.
+    if (!this.reduced) void play(n.querySelector('.summary-check')!, 'check', { loop: false })
     if (this.stickToBottom) this.log.scrollTo({ top: n.offsetTop - 16, behavior: this.reduced ? 'auto' : 'smooth' })
   }
 }

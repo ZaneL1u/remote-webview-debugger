@@ -1,0 +1,51 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import { LOCALES, href, type Locale } from '../i18n/locales.ts'
+import { BLOB, REPO } from '../lib/site.ts'
+import Logo from './Logo.astro'
+
+interface Props {
+  t: Dict
+  locale: Locale
+}
+const { t, locale } = Astro.props
+const f = t.footer
+---
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a class="brand" href={href(locale)}><Logo id="lg-f" /><span class="brand-name"><span class="brand-remote">Remote </span>WebView Debugger</span></a>
+      <p>{f.tagline}</p>
+    </div>
+    <div class="footer-cols">
+      <div>
+        <h2>{f.project}</h2>
+        <ul>
+          <li><a href={REPO}>{f.links.github}</a></li>
+          <li><a href={`${REPO}/issues`}>{f.links.issues}</a></li>
+          <li><a href={`${BLOB}/LICENSE`}>{f.links.license}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>{f.docs}</h2>
+        <ul>
+          <li><a href={`${BLOB}/docs/architecture.md`}>{f.links.architecture}</a></li>
+          <li><a href={`${BLOB}/docs/protocol.md`}>{f.links.protocol}</a></li>
+          <li><a href={`${BLOB}/gateway/README.md`}>{f.links.gateway}</a></li>
+          <li><a href={`${BLOB}/sdk/README.md`}>{f.links.sdk}</a></li>
+          <li><a href={`${BLOB}/docs/native-integration.md`}>{f.links.native}</a></li>
+        </ul>
+      </div>
+      <div class="footer-langs">
+        <h2>{f.languages}</h2>
+        <ul>
+          {LOCALES.map(l => (
+            <li><a href={href(l)} hreflang={l.code} lang={l.code} data-lang={l.code} aria-current={l.code === locale.code ? 'true' : undefined}>{l.name}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="wrap footer-note"><p>{f.note}</p><p>© 2026 Remote WebView Debugger</p></div>
+</footer>

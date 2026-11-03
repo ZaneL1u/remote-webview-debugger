@@ -1,0 +1,60 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import type { Locale } from '../i18n/locales.ts'
+import { code, tabs } from '../lib/html.ts'
+import * as S from '../lib/snippets.ts'
+import Icon from './Icon.astro'
+import SectionHead from './SectionHead.astro'
+
+interface Props {
+  t: Dict
+  locale: Locale
+}
+const { t, locale } = Astro.props
+const h = t.how
+const mcp = tabs('mcp', h.tabsLabel, [
+  { key: 'claude', title: 'Claude Code', body: code(S.claudeCodeSnippet(), 'sh', 'terminal') },
+  { key: 'codex', title: 'Codex', body: code(S.codexSnippet(), 'sh', 'terminal') },
+  { key: 'cursor', title: 'Cursor', body: code(S.cursorSnippet(), 'json', '.cursor/mcp.json') },
+  { key: 'stdio', title: 'stdio', body: code(S.stdioSnippet(locale.shop), 'sh', 'terminal') },
+])
+---
+
+<section id="how" class="section" aria-labelledby="how-title">
+  <div class="wrap">
+    <SectionHead num="03" kicker={h.kicker} title={h.title} id="how-title" />
+    <ol class="steps">
+      <li class="step reveal hud">
+        <span class="step-num" aria-hidden="true">01</span>
+        <h3>{h.steps[0].title}</h3>
+        <p set:html={h.steps[0].body} />
+        <div class="step-chip" aria-hidden="true"><span class="t-t">&lt;script</span> <span class="t-a">src</span>=<span class="t-s">"…/remote-webview-debugger/dist/sdk.js"</span><span class="t-t">&gt;</span><small>{h.chip1}</small></div>
+      </li>
+      <li class="step reveal hud">
+        <span class="step-num" aria-hidden="true">02</span>
+        <h3>{h.steps[1].title}</h3>
+        <p set:html={h.steps[1].body} />
+        <div class="pill-demo" aria-hidden="true">
+          <span class="pill"><span class="pill-dot"></span><b>{h.pill.code}</b><span class="pill-state">{h.pill.online}</span></span>
+          <span class="pill pill-help"><Icon name="hand" />{h.pill.help}</span>
+        </div>
+      </li>
+      <li class="step reveal hud">
+        <span class="step-num" aria-hidden="true">03</span>
+        <h3>{h.steps[2].title}</h3>
+        <p set:html={h.steps[2].body} />
+        <div class="step-chip" aria-hidden="true"><span class="t-fn">connect_device</span>(<span class="t-s">"K7Q2-9M4X"</span>)<small><span class="ok-dot"></span>{h.chip3}</small></div>
+      </li>
+    </ol>
+    <div class="how-code">
+      <div class="reveal">
+        <Fragment set:html={code(S.h5Snippet(locale.shop), 'html', 'index.html')} />
+        <p class="how-note" set:html={h.sdkNote} />
+      </div>
+      <div class="reveal">
+        <Fragment set:html={mcp} />
+        <div class="prompt-line hud"><Icon name="bot" /><span>{h.prompt}</span></div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,350 @@
+import type { Dict } from './en.ts'
+
+// 한국어 문안. 구조는 en.ts와 같습니다.
+
+export const ko: Dict = {
+  meta: {
+    title: 'Remote WebView Debugger — AI 에이전트가 실제 휴대폰 속 WebView를 디버깅해요',
+    description:
+      '오픈소스, 셀프 호스팅: 스크립트 하나만 넣으면 Claude Code, Codex, Cursor 등 어떤 MCP 클라이언트든 사용자 휴대폰의 H5 페이지와 앱 WebView를 보고 조작할 수 있어요. 사용자가 허용해야 접속되고, 민감한 정보는 마스킹되고, 사용자는 언제든 직접 조작할 수 있어요. 데이터 케이블도, 디버깅 포트도 필요 없어요.',
+    ogTitle: 'Remote WebView Debugger',
+    ogDescription: 'AI 에이전트가 사용자 휴대폰 속 WebView를 직접 디버깅해요. 스크립트 하나, 기기 코드 하나, MCP 주소 하나. 오픈소스예요.',
+  },
+  nav: {
+    skip: '본문으로 건너뛰기',
+    demo: '데모',
+    live: '직접 해 보기',
+    how: '작동 방식',
+    features: '기능',
+    highlights: '하이라이트',
+    privacy: '개인정보와 제어',
+    selfHost: '셀프 호스팅',
+    faq: '자주 묻는 질문',
+    github: 'GitHub',
+    menu: '메뉴',
+    themeToggle: '밝은 테마 / 어두운 테마 전환',
+    langLabel: '언어',
+  },
+  hero: {
+    eyebrow: '오픈소스 · MIT · MCP',
+    titleHtml: 'AI 에이전트가 <em>사용자 휴대폰 속</em> WebView를 디버깅해요',
+    sub:
+      'H5 페이지나 앱 WebView에 스크립트 하나만 추가하세요. 사용자가 짧은 기기 코드를 알려 주면 Claude Code, Codex, Cursor 등 어떤 MCP 클라이언트든 페이지를 보고, console과 네트워크를 읽고, 직접 탭해 가며 버그를 재현할 수 있어요. 그 과정은 사용자에게 모두 보이고, 사용자는 언제든 직접 조작할 수 있어요.',
+    ctaDemo: '데모 보기',
+    ctaLive: '내 에이전트로 해 보기',
+    ctaGithub: 'GitHub에서 Star 누르기',
+    ctaSelfHost: '5분 만에 셀프 호스팅',
+    points: ['데이터 케이블 불필요', '원격 디버깅 포트 불필요', '앱은 스크립트 하나만 주입', '버그가 지난 뒤에 접속해도 괜찮아요'],
+    ticker: [
+      '연결 완료',
+      '기기 K7Q2-9M4X 온라인',
+      '스냅샷 42 MS',
+      '도구 34개 준비',
+      '마스킹 켜짐',
+      '권한 · interact',
+      '세션 로그 · 최근 3회 실행',
+      '라이브 패치 검증됨',
+      '감사 기록 중',
+      '게이트웨이 · 셀프 호스팅',
+      '11개 언어',
+    ],
+    flow: {
+      label: 'AI 에이전트가 MCP로 직접 운영하는 게이트웨이에 연결하고, 게이트웨이는 WebSocket으로 사용자 휴대폰의 페이지 SDK에 닿아요.',
+      agent: 'AI 에이전트',
+      agentSub: 'Claude Code · Codex · Cursor 등 MCP 클라이언트',
+      gw: 'rwd 게이트웨이',
+      gwSub: '셀프 호스팅 · 승인 · 감사',
+      phone: '사용자의 휴대폰',
+      phoneSub: 'H5 페이지 / 앱 WebView + SDK',
+      mcp: 'MCP · HTTPS',
+      ws: 'WebSocket',
+      state: 'AI 조작 중',
+    },
+  },
+  demo: {
+    kicker: '라이브 데모',
+    title: '실제 버그를 ‘실제’ 휴대폰에서 잡아내기',
+    lead:
+      '데모 속 휴대폰에서 돌아가는 건 데모 쇼핑몰에 들어간 진짜 페이지 SDK예요. 게이트웨이만 브라우저 안에서 모사하니 어떤 데이터도 이 탭을 벗어나지 않아요. 그래도 아래의 스냅샷, 클릭, console 출력, 라이브 패치는 모두 진짜예요.',
+    agentTitle: 'AI 에이전트',
+    agentSub: 'rwd MCP 서버에 연결됨',
+    skinLabel: '에이전트 스타일',
+    skinClaude: 'Claude Code',
+    skinCodex: 'Codex',
+    phoneLabel: '고객의 휴대폰',
+    play: '재생',
+    pause: '일시정지',
+    restart: '다시 시작',
+    speed: '속도',
+    start: '데모 실행',
+    startHint: '에이전트가 휴대폰에 접속해 결제 버그를 재현하고, 근본 원인을 찾아 그 자리에서 수정을 검증하는 과정을 보세요.',
+    expand: '전체 결과 보기',
+    collapse: '접기',
+    running: '실행 중',
+    done: '완료',
+    error: '오류',
+    you: '기술 지원 담당자',
+    agent: '에이전트',
+    customer: '고객',
+    /** The hand that points at “Allow” when nobody taps it. */
+    guideTap: '“허용” 탭하기',
+    guideAuto: (s: number) => `${s}초 후 자동`,
+    footnote:
+      '전부 브라우저 안에서 돌아가요. iframe 안에는 진짜 SDK(<code>sdk.js</code>)가 있고, WebSocket 심이 그 연결을 페이지 안의 모의 게이트웨이로 넘겨 주고, 스크립트화된 에이전트가 실제 RPC를 보내요. 에이전트의 말은 페이지 언어를 따르고, 도구 결과는 게이트웨이 언어(영어 또는 중국어)를 써요.',
+    stateIdle: '준비됨',
+    statePrelude: '고객이 버그를 만나요',
+    stateRunning: '에이전트 작업 중',
+    statePaused: '일시정지됨',
+    stateWaitApproval: '고객의 허용을 기다리는 중',
+    stateWaitControl: '고객이 다시 맡겨 주기를 기다리는 중',
+    stateDone: '완료됨',
+    stateStopped: '중지됨',
+  },
+  live: {
+    kicker: '직접 체험',
+    title: '이번엔 내 에이전트로 해 보세요',
+    lead:
+      '위의 데모는 브라우저 안에서 돌아가지만, 이건 진짜예요. <code>demo.debugger.site</code>에 공개 데모 게이트웨이가 있고, 다른 모든 것과 분리되어 매일 초기화돼요. 오른쪽 쇼핑몰은 거기서 불러온 진짜 페이지예요. 키를 받아 에이전트를 연결하고, 이 페이지에서 작업하는 모습을 지켜보세요.',
+    steps: [
+      {
+        title: '내 키 받기',
+        body: '클릭 한 번, 가입은 필요 없어요. 이 키는 데모 게이트웨이에서만 동작하고, 데모가 초기화될 때까지 유효해요.',
+      },
+      {
+        title: '에이전트에 데모 게이트웨이 추가하기',
+        body: '터미널에서 명령을 한 번 실행하거나, MCP 클라이언트 설정에 넣으세요. 키는 이미 채워져 있어요.',
+      },
+      {
+        title: '에이전트에게 요청하기',
+        body: '오른쪽 쇼핑몰의 기기 코드가 프롬프트에 채워져 있어요. 에이전트가 접속을 요청하면 쇼핑몰에서 <em>허용</em>을 탭하고 작업하는 모습을 보세요. <em>직접 조작</em>이나 <em>종료</em>는 언제든 가능해요.',
+      },
+    ],
+    phoneTitle: '데모 쇼핑몰, 실시간',
+    phoneHint: '이게 바로 진짜 SDK가 돌아가고 있는 <code>demo.debugger.site</code>예요. 코드를 스캔하면 휴대폰에서 열 수 있어요.',
+    open: '새 탭에서 열기',
+    scan: '스캔해서 휴대폰에서 열기',
+    tabsLabel: '데모 MCP 설정',
+    getKey: '내 키 받기',
+    keyIdle: '키를 받으면 아래 명령에 자동으로 채워져요.',
+    keyLoading: '키를 받는 중…',
+    keyReady: '내 키가 채워졌어요. 데모가 초기화되면(매일 04:00 UTC+8) 더 이상 동작하지 않으니, 그때 여기서 새로 받으세요.',
+    keyFailed: '지금은 데모 게이트웨이에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.',
+    keyLimited: '같은 네트워크에서 키를 너무 많이 받았어요. 한 시간 후에 다시 시도해 주세요.',
+    deviceWaiting: '쇼핑몰이 온라인이 되기를 기다리는 중…',
+    deviceReady: (code: string) => `이 페이지의 기기 코드는 ${code}예요. 프롬프트에 채워 뒀어요.`,
+    deviceUnavailable: '쇼핑몰이 기기 코드를 알려 주지 않았어요. 쇼핑몰의 배지에서 읽어 주세요.',
+    prompt:
+      'rwd-demo MCP 서버를 써서 기기 XXXX-XXXX에 접속해. 쇼핑몰에서 상품 하나에 Gift box 포장을 고르고 결제로 넘어가서, 합계가 “--”로 표시되는 이유를 찾아 줘.',
+    promptLabel: '프롬프트',
+    promptNote: '<code>XXXX-XXXX</code>를 쇼핑몰에 표시된 기기 코드로 바꿔 주세요.',
+    limitsTitle: '데모의 제한',
+    limits: [
+      '방문자마다 키 하나: 에이전트는 기기 코드를 알려 준 페이지에만, 그것도 허용한 뒤에 접속해요',
+      '<strong>interact</strong> 권한만: 스크립트, 요청 본문, 저장소는 쓸 수 없어요',
+      '에이전트는 한 페이지를 최대 15분까지 점유해요(유휴 상태면 5분)',
+      'IP당 분당 MCP 요청 120회',
+      '매일 04:00(UTC+8)에 초기화돼요. 실제 개인정보는 입력하지 마세요',
+    ],
+  },
+  how: {
+    kicker: '작동 방식',
+    title: '“내 휴대폰에서만 안 돼요”에서 근본 원인까지, 세 단계',
+    steps: [
+      {
+        title: '페이지 SDK 추가하기',
+        body:
+          '<code>&lt;head&gt;</code>에 되도록 이른 위치로 스크립트 하나를 넣으면 console과 네트워크가 첫 줄부터 기록돼요. 앱에서는 같은 스크립트를 문서 시작 시점에 주입하세요.',
+      },
+      {
+        title: '사용자가 기기 코드를 알려 줘요',
+        body:
+          '휴대폰마다 <code>K7Q2-9M4X</code> 같은 고정 기기 코드가 작은 배지에 보여요. 사용자가 <em>지원 요청</em>을 탭하면 그 기기가 에이전트 목록 맨 앞으로 올라와요.',
+      },
+      {
+        title: '에이전트가 MCP로 접속해요',
+        body:
+          'API 키와 함께 게이트웨이의 MCP 주소를 에이전트에 추가하세요. 그다음엔 문제를 설명하기만 하면 돼요. 에이전트가 기기를 찾아 승인을 요청하고 작업을 시작해요.',
+      },
+    ],
+    pill: { code: 'K7Q2-9M4X', online: '온라인', help: '지원 요청' },
+    chip1: 'CDN의 sdk.js · 첫 줄부터 console과 네트워크 기록',
+    chip3: '휴대폰에서 허용됨 · interact 권한',
+    prompt: '기기 K7Q2-9M4X에서 결제가 안 돼. 합계가 “--”로 나오는데, 이유를 찾아 줘.',
+    tabsLabel: 'MCP 클라이언트 설정',
+    sdkNote: '프로덕션에서는 버전을 고정하거나, 게이트웨이가 제공하는 <code>/v1/sdk.js</code>를 쓰세요(SRI 값은 콘솔에 있어요).',
+  },
+  features: {
+    kicker: '에이전트가 쓸 수 있는 것',
+    title: '익숙한 DevTools 작업 흐름을, MCP를 통해 남의 휴대폰에서',
+    items: [
+      { icon: 'tree', title: '접근성 스냅샷', body: '요소 ref가 붙은 Playwright 스타일 YAML이에요. 에이전트는 픽셀이 아니라 구조로 페이지를 읽고, ref로 정확히 조작해요.' },
+      { icon: 'cursor', title: '진짜 상호작용', body: '클릭, 채우기, 입력, 키 누르기, 선택, 호버, 스크롤, 드래그까지. 조작 가능 여부를 확인하고, React와 Vue가 받아들이는 이벤트를 발생시켜요.' },
+      { icon: 'terminal', title: 'console과 네트워크', body: '페이지 로드부터 크기 제한이 있는 버퍼에 기록되니, 에이전트가 접속하기 전의 오류도 그대로 남아 있어요. 본문은 필요할 때 가져와요.' },
+      { icon: 'layers', title: '여러 페이지 세션', body: '목록 → 상세 → 결제, 또는 새로 열린 WebView까지. 한 기기의 모든 페이지가 하나의 세션을 이루고, 페이지를 넘나드는 타임라인이 있어요.' },
+      { icon: 'bell', title: '변경 사항을 바로 알려 줘요', body: '모든 도구 결과 끝에 무엇이 바뀌었는지 붙어요. 새 페이지, 페이지 이동, 오류, 사용자의 직접 조작까지요. 폴링은 필요 없어요.' },
+      { icon: 'list', title: '휴대폰 속 작업 카드', body: '에이전트가 계획과 진행 상황을 기기에 보여 주니, 사용자는 AI가 무엇을 왜 하고 있는지 항상 알 수 있어요.' },
+      { icon: 'camera', title: '스크린샷', body: '앱이 브리지를 제공하면 실제 픽셀이고, 아니면 DOM 재렌더링이에요. 두 경우 모두 마스킹이 적용돼요.' },
+      { icon: 'scroll', title: '기기에 남는 세션 로그', body: '앱이 실행된 뒤의 페이지, 탭, console, 모든 요청이 휴대폰의 IndexedDB에 보관돼요. 나중에도 읽을 수 있어요.' },
+      { icon: 'wrench', title: '라이브 패치', body: 'advanced 권한에서는 에이전트가 <code>evaluate_script</code>로 실행 중인 페이지에 패치를 넣어 그 자리에서 수정을 검증할 수 있어요.' },
+      { icon: 'wifi', title: '느린 네트워크에서도', body: '백오프가 붙은 가벼운 하트비트를 쓰고, 세 번 실패하면 1분에 한 번만 존재를 확인해요. 필요할 때는 게이트웨이가 페이지를 깨워요.' },
+      { icon: 'globe', title: '11개 언어', body: '휴대폰 UI, 콘솔, 에이전트용 텍스트를 11개 언어로 제공해요. 오른쪽에서 왼쪽으로 쓰는 아랍어도 있어요. 직접 만든 언어 팩과 문구도 넣을 수 있어요.' },
+      { icon: 'plug', title: '어떤 MCP 클라이언트든', body: '<code>/v1/mcp</code>는 Streamable HTTP라 Claude Code, Codex, Cursor에서 바로 쓸 수 있고, stdio만 지원하는 클라이언트는 아주 작은 브리지를 쓰면 돼요.' },
+    ],
+    toolsTitle: '전체 도구',
+  },
+  highlights: {
+    kicker: '하이라이트',
+    title: '바깥에서만 생기는 버그를 위해 만들었어요',
+    lead: '케이블이나 원격 디버깅 포트, 화면 녹화로는 얻을 수 없는 세 가지예요.',
+    items: [
+      {
+        title: '버그가 이미 지나갔나요? 로그는 휴대폰에 남아 있어요.',
+        body:
+          '앱이 실행된 순간부터 SDK는 기기의 IndexedDB에 세션 로그를 써요. 방문한 페이지, 사용자의 탭과 입력, console 출력, 그리고 모든 요청까지요. 실패한 요청은 헤더와 본문도 함께 남아요. 이 데이터는 어디로도 전송되지 않고, 같은 마스킹 규칙 아래 휴대폰에만 머물러요. 사용자가 허용한 에이전트가 <code>get_session_overview</code>와 <code>get_session_log</code>로 요청할 때까지요. 최근 3회 실행분을 각각 최대 10 MB까지 보관해요.',
+        tag: '세션 로그 · 기기에 보관',
+        visual: {
+          title: 'rwd-log · 3회 중 3번째 실행',
+          rows: ['09:41:02  열기   index.html', '09:41:09  탭     “Gift box”', '09:41:11  탭     Buy now', '09:41:12  오류   TypeError: order.price.toFixed…', '09:41:13  요청   GET api/coupon → 404', '09:52:30  agent  접속됨(interact)', '09:52:31  읽기   get_session_log'],
+        },
+      },
+      {
+        title: '출시 전에, 고객 휴대폰에서 수정을 검증해요.',
+        body:
+          '사용자가 <strong>advanced</strong>를 허용하면 <code>evaluate_script</code>가 페이지 안에서 실행돼요. 에이전트는 잘못된 상태를 바로잡고, 함수를 덮어쓰고, 화면을 다시 렌더링해서 실제 기기에서 결과를 확인할 수 있어요. 진단을 증명하는 라이브 패치죠. 패치는 그 페이지의 메모리에만 있고 아무것도 저장되지 않아요. 민감한 클릭은 여전히 사용자의 확인이 필요해요.',
+        tag: '라이브 패치 · evaluate_script',
+        visual: {
+          title: 'checkout.html · 실시간',
+          before: '합계  --',
+          after: '합계  $208.00',
+          code: 'order.price = Number(order.price)',
+        },
+      },
+      {
+        title: 'DevTools를 든 사람이 아니라, 에이전트를 위해 만들었어요.',
+        body:
+          '모든 도구 결과 끝에는 지난 호출 이후 기기에서 바뀐 것이 붙어서, 에이전트가 폴링할 일이 없어요. 페이지 내용은 신뢰할 수 없는 데이터로 전달돼요. 휴대폰의 작업 카드가 에이전트의 계획을 보여 주고, 게이트웨이는 에이전트의 언어로 말해요. 도구 설명과 결과가 11개 언어로 제공돼요.',
+        tag: '에이전트 중심 · MCP',
+        visual: {
+          title: '도구 결과 · 끝부분',
+          rows: ['[세션 변경 사항]', '- p2 “Checkout” 열림(포그라운드)', '- p1 console 오류: TypeError …', '- 사용자가 직접 조작으로 전환했습니다'],
+        },
+      },
+    ],
+  },
+  privacy: {
+    kicker: '개인정보와 제어',
+    title: '사용자의 휴대폰은 끝까지 사용자의 것이에요',
+    lead: '원격 디버깅은 신뢰가 있어야 성립해요. 모든 세션은 눈에 보이고, 허용을 받고, 언제든 끊을 수 있어요.',
+    items: [
+      { title: '먼저 허용을 받아요', body: '에이전트가 접속을 요청하면 사용자가 누가 요청하는지 보고 휴대폰에서 권한 수준을 골라요. 실제 탭만 인정되니, 스크립트가 스스로 허용할 수는 없어요.' },
+      { title: '언제든 직접 조작하거나 종료해요', body: '에이전트가 작업하는 동안 화면 테두리가 빛나고 페이지는 잠겨요. <em>직접 조작</em>을 한 번 탭하면 에이전트가 멈추고, <em>종료</em>를 탭하면 연결이 끊겨요.' },
+      { title: '기본값은 마스킹', body: '비밀번호와 <code>data-rwd-mask</code>가 붙은 내용은 스냅샷, 스크린샷, console, 네트워크 데이터, 세션 로그에서 <code>••••</code>로 보여요. 프로젝트마다 선택자와 정규식을 더할 수 있어요.' },
+      { title: '민감한 클릭은 확인을 받아요', body: '“주문하기”, “계정 삭제” 같은 버튼에 <code>data-rwd-confirm</code>을 붙이면, 에이전트가 그 버튼을 클릭할 때마다 사용자가 확인해요.' },
+      { title: '권한 수준', body: '<strong>observe</strong>는 읽고, <strong>interact</strong>는 조작하고, <strong>advanced</strong>는 스크립트, 요청 본문, 저장소까지 더해요. 키마다, 프로젝트마다 상한을 둘 수 있어요.' },
+      { title: '감사 로그', body: '접속, 승인, RPC 호출, 직접 조작 전환이 누가 무엇을 언제 했는지와 함께 기록돼요. 페이지 내용과 매개변수 값은 남기지 않아요.' },
+    ],
+    levels: [
+      { name: 'observe', tools: '스냅샷, 스크린샷, console, 네트워크 목록, 세션 로그, 요소 찾기, 대기' },
+      { name: 'interact', tools: '+ 클릭, 채우기, 입력, 키 누르기, 선택, 호버, 스크롤, 드래그, 페이지 이동' },
+      { name: 'advanced', tools: '+ evaluate_script(라이브 패치), 요청 / 응답 본문, 저장소' },
+    ],
+  },
+  native: {
+    kicker: '네이티브 앱',
+    title: '앱에서는 사용자 스크립트 하나예요',
+    lead:
+      'SDK를 한 번 내려받아 문서 시작 시점에 주입하세요. iOS는 WKUserScript, Android는 addDocumentStartJavaScript를 쓰면 돼요. 웹 페이지는 한 줄도 바꾸지 않아요.',
+    extras: [
+      { title: '어디서나 같은 기기 코드', body: '고정된 <code>deviceId</code>를 넘기고 <code>deviceToken</code>을 보관하면, WebView와 도메인이 달라져도 기기 코드가 그대로예요.' },
+      { title: '네이티브 컨트롤', body: '<code>nativeControl()</code>로 직접 조작 / AI에 맡기기 / 종료 버튼을 직접 만들 수 있어요. 페이지 스크립트는 이 함수를 호출할 수 없어요.' },
+      { title: '네이티브 승인 창', body: '<code>nativeApproval: true</code>로 설정하면 접속 요청과 확인을 앱의 UI가 처리해요.' },
+      { title: '실제 픽셀 스크린샷', body: '작은 브리지(WKWebView 스냅샷, Android 비트맵)만 있으면 에이전트가 DOM 재렌더링이 아닌 진짜 화면을 받아요.' },
+    ],
+    tabs: { ios: 'iOS(Swift)', android: 'Android(Kotlin)', h5: 'H5 페이지' },
+  },
+  selfHost: {
+    kicker: '셀프 호스팅',
+    title: 'Go 바이너리 하나. 내 서버, 내 데이터.',
+    lead: '게이트웨이가 웹 콘솔과 페이지 SDK를 함께 담고 있어요. 기본은 SQLite, 필요하면 Postgres를 쓰고, HTTPS는 Docker Compose와 Caddy가 맡아요.',
+    points: [
+      { title: '콘솔', body: '기기, API 키, 멤버와 역할, QR 초대, 정책, 감사 로그. 내 키가 채워진 연동 가이드까지 들어 있어요.' },
+      { title: '저장소', body: '기본은 SQLite 파일 하나예요. <code>RWD_DATABASE_URL=postgres://…</code>를 설정하면 Postgres를 써요.' },
+      { title: '운영', body: '<code>/v1/metrics</code>에서 Prometheus 메트릭, 버전과 SRI가 붙은 SDK 주소, <code>/v1/healthz</code> 헬스 체크를 제공해요.' },
+    ],
+    stepsTitle: '빠른 시작',
+    dockerComment: '# 컨테이너 하나: 콘솔 + 게이트웨이 + SDK',
+    deployComment: '# 또는 직접 빌드해 올리고 Caddy로 HTTPS 붙이기',
+    resultComment: '# → 콘솔        https://rwd.example.com\n# → 게이트웨이  https://rwd.example.com/v1  (MCP는 /v1/mcp)',
+    requires: '서버에는 Docker만 있으면 되고, 소스에서 빌드할 때는 Go와 Node가 필요해요.',
+    docsLink: '배포 가이드',
+  },
+  faq: {
+    kicker: '자주 묻는 질문',
+    title: '많이 받는 질문',
+    items: [
+      {
+        q: '사용자가 무언가 설치해야 하나요?',
+        a: '아니요. H5 페이지에서는 SDK가 페이지의 일부이고, 앱에서는 네이티브 코드로 주입해요. 사용자에게는 기기 코드가 적힌 작은 배지와, 에이전트가 접속할 때 뜨는 승인 창만 보여요.',
+      },
+      {
+        q: '에이전트는 무엇을 보고 무엇을 할 수 있나요?',
+        a: '사용자가 허용한 것만요. 그 기기의 WebView 페이지를, 부여된 권한 수준으로 다뤄요. WebView 밖은 전혀 조작할 수 없어요. 마스킹된 입력란은 계속 마스킹되고, 페이지 내용은 신뢰할 수 없는 데이터로 모델에 전달돼요.',
+      },
+      {
+        q: '버그는 에이전트가 접속하기 전에 났어요. 그럼 못 보나요?',
+        a: '볼 수 있어요. SDK가 앱 실행 시점부터 기기에 세션 로그를 남기니까요. 페이지, 탭, console, 요청이 모두 들어 있어서 나중에 접속한 에이전트도 <code>get_session_log</code>로 버그까지 이어지는 과정을 전부 읽을 수 있어요. 그 밖에는 로그가 휴대폰을 떠나지 않아요.',
+      },
+      {
+        q: '에이전트가 휴대폰에서 버그를 고칠 수 있나요?',
+        a: '수정을 검증할 수 있어요. <strong>advanced</strong> 권한에서 <code>evaluate_script</code>가 실행 중인 페이지를 메모리 안에서 패치해요. 상태를 바로잡고, 함수를 덮어쓰고, 다시 렌더링해서 문제가 사라지는지 보는 거예요. 실제 수정은 평소의 배포 과정을 그대로 따르고, 기기에는 아무것도 남지 않아요.',
+      },
+      {
+        q: '어떤 에이전트에서 쓸 수 있나요?',
+        a: 'MCP 클라이언트라면 모두요. Claude Code, Codex, Cursor는 호스팅된 Streamable HTTP 주소를 바로 쓰고, stdio만 지원하는 클라이언트는 같은 주소로 이어 주는 작은 브리지 <code>rwd mcp</code>를 쓰면 돼요.',
+      },
+      {
+        q: '어떤 플랫폼을 지원하나요?',
+        a: '요즘 쓰는 모바일 WebView와 브라우저라면 다 돼요. iOS의 WKWebView, Android System WebView, 앱 내장 브라우저, 그리고 휴대폰의 Safari와 Chrome까지요. 데스크톱 브라우저도 돼요.',
+      },
+      {
+        q: '네트워크가 나쁘거나 WebSocket이 막혀 있으면요?',
+        a: '페이지는 지수 백오프를 쓰는 가벼운 하트비트 WebSocket만 유지해요. 세 번 연속 실패하면 1분에 한 번 존재를 확인하는 방식으로 바꾸고, 에이전트가 접속하려 할 때 게이트웨이가 페이지를 깨워요.',
+      },
+      {
+        q: '페이지가 느려지지 않나요?',
+        a: '스크립트 하나예요. console과 네트워크 기록은 크기가 정해진 링 버퍼에 담기고(각각 500개, 응답 본문은 최대 5 MB), 세션 로그는 백그라운드에서 쓰고, 유휴 상태의 연결은 하트비트만 주고받아요.',
+      },
+      {
+        q: 'eruda, vConsole, PageSpy와 같이 써도 되나요?',
+        a: '네. 스냅샷과 히트 테스트는 그 도구들의 노드를 건너뛰고, SDK 자신의 트래픽은 그 도구들의 네트워크 로그에 나타나지 않아요. eruda 안의 탭으로 넣을 수도 있어요.',
+      },
+      {
+        q: '위의 데모는 진짜인가요?',
+        a: 'SDK는 진짜이고 전혀 고치지 않았어요. 게이트웨이만 브라우저 안에서 모사해요. WebSocket 심이 <code>postMessage</code>로 SDK의 연결을 그쪽으로 넘기고, 스크립트화된 에이전트가 실제 게이트웨이와 똑같은 RPC를 보내요. 처음부터 끝까지 진짜를 보고 싶다면 <a href="#live">내 에이전트로 해 보세요</a>.',
+      },
+    ],
+  },
+  footer: {
+    tagline: 'AI 에이전트가 실제 휴대폰의 H5 페이지와 앱 WebView를 디버깅하게 해 줘요.',
+    project: '프로젝트',
+    docs: '문서',
+    languages: '언어',
+    links: {
+      github: 'GitHub',
+      issues: '이슈',
+      license: 'MIT 라이선스',
+      protocol: '프로토콜',
+      gateway: '게이트웨이',
+      sdk: '페이지 SDK',
+      architecture: '아키텍처',
+      native: '네이티브 연동',
+    },
+    note: 'MIT 라이선스로 공개했어요. 쿠키도, 추적도 없어요.',
+  },
+  notFound: {
+    title: '페이지를 찾을 수 없어요',
+    body: '이 페이지는 없어요. 기기가 오프라인이 된 걸지도 몰라요.',
+    home: '홈으로 돌아가기',
+  },
+  copy: { copy: '복사', copied: '복사됨' },
+}

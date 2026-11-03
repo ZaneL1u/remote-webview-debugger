@@ -1,0 +1,30 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import type { Locale } from '../i18n/locales.ts'
+import { code, tabs } from '../lib/html.ts'
+import * as S from '../lib/snippets.ts'
+import Icon from './Icon.astro'
+import SectionHead from './SectionHead.astro'
+
+interface Props {
+  t: Dict
+  locale: Locale
+}
+const { t, locale } = Astro.props
+const n = t.native
+const tb = tabs('native', n.kicker, [
+  { key: 'ios', title: n.tabs.ios, body: code(S.iosSnippet(locale.shop), 'swift', 'RemoteDebugger.swift') },
+  { key: 'android', title: n.tabs.android, body: code(S.androidSnippet(locale.shop), 'kotlin', 'RemoteDebugger.kt') },
+  { key: 'h5', title: n.tabs.h5, body: code(S.h5Snippet(locale.shop), 'html', 'index.html') },
+])
+---
+
+<section id="native" class="section section-alt" aria-labelledby="native-title">
+  <div class="wrap split">
+    <div>
+      <SectionHead num="07" kicker={n.kicker} title={n.title} lead={n.lead} id="native-title" />
+      <ul class="extras">{n.extras.map(e => <li class="reveal"><Icon name="check" /><div><h3>{e.title}</h3><p set:html={e.body} /></div></li>)}</ul>
+    </div>
+    <div class="reveal" set:html={tb} />
+  </div>
+</section>

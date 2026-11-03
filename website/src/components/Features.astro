@@ -1,0 +1,32 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import { TOOLS } from '../lib/snippets.ts'
+import Icon from './Icon.astro'
+import SectionHead from './SectionHead.astro'
+
+interface Props {
+  t: Dict
+}
+const { t } = Astro.props
+const f = t.features
+---
+
+<section id="features" class="section" aria-labelledby="features-title">
+  <div class="wrap">
+    <SectionHead num="04" kicker={f.kicker} title={f.title} id="features-title" />
+    <ul class="features" data-stagger>
+      {f.items.map(it => (
+        <li class="feature reveal hud">
+          <span class="feature-ic"><Icon name={it.icon} /></span>
+          <h3>{it.title}</h3>
+          <p set:html={it.body} />
+        </li>
+      ))}
+    </ul>
+    <div class="tools reveal hud">
+      <span class="radar" aria-hidden="true"></span>
+      <h3>{f.toolsTitle} <span class="count" data-count={TOOLS.length}>{TOOLS.length}</span></h3>
+      <ul>{TOOLS.map(n => <li><code>{n}</code></li>)}</ul>
+    </div>
+  </div>
+</section>

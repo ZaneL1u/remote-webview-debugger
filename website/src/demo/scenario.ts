@@ -4,12 +4,16 @@
 // deny, take over, hand back or end on the phone, and the agent reacts the
 // way the product expects an agent to (wait_for_control, stop when ended).
 
-import { highlight } from '../highlight'
-import type { Level, MockGateway } from './gateway'
+import { highlight } from '../lib/highlight.ts'
+import type { Lang, Level, MockGateway } from './gateway'
+import type { Guide } from './guide.ts'
 import { Cancelled, type Player } from './player'
-import { SCRIPT_TEXT, fixDiff, summaryHtml } from './script-text'
+import { scriptText, type ScriptText } from './text/index.ts'
 import type { ToolResult, Tools } from './tools'
 import type { View } from './view'
+
+/** How long the demo waits for a tap on "Allow" before the hand taps it. */
+const AUTO_ALLOW_S = 9
 
 export class Ended extends Error {
   constructor(public why: 'ended' | 'denied' | 'timeout') {
@@ -18,19 +22,25 @@ export class Ended extends Error {
 }
 
 export interface ScenarioCtx {
-  lang: 'en' | 'zh'
+  /** The page language (locale code). */
+  lang: string
+  /** The shop's language (and the mock gateway's). */
+  shop: Lang
   gw: MockGateway
   tools: Tools
   view: View
+  guide: Guide
   player: Player
   token: number
   frame: HTMLIFrameElement
   /** Called after each tool call with (done, total). */
   onProgress: (done: number, total: number) => void
+  /** Whether the live patch proved the fix (null when it was skipped). */
+  onVerified: (ok: boolean | null) => void
 }
 
 /** Tool calls in the happy path (for the progress bar). */
-const TOTAL_CALLS = 24
+const TOTAL_CALLS = 29
 
 /** `- role "name…" … [ref=eN]` → eN, first line whose name contains `name`. */
 export function findRef(snapshot: string, role: string, name: string): string | null {
@@ -40,8 +50,8 @@ export function findRef(snapshot: string, role: string, name: string): string | 
 }
 
 export async function runScenario(ctx: ScenarioCtx) {
-  const { lang, gw, tools, view, player, token: tk } = ctx
-  const t = SCRIPT_TEXT[lang]
+  const { lang, shop, gw, tools, view, guide, player, token: tk } = ctx
+  const t = scriptText(lang)
   let calls = 0
   let skipped = false
 
@@ -115,7 +125,7 @@ export async function runScenario(ctx: ScenarioCtx) {
     }
   }
 
-  const shopUrl = (path: string) => new URL(`/demo-shop/${lang}/${path}`, location.href).href
+  const shopUrl = (path: string) => new URL(`/demo-shop/${shop}/${path}`, location.href).href
 
   /** Make sure the phone is on the page a step needs (the user may have wandered off). */
   const ensurePage = async (match: string, path: string, where: string) => {
@@ -143,12 +153,24 @@ export async function runScenario(ctx: ScenarioCtx) {
   let decided = false
   let autoUsed = false
   let requestId = ''
+  // Nobody taps "Allow"? A hand points at it, counts down, then taps it.
   const auto = (async () => {
     try {
-      await gw.waitFor(() => requestId || null, 10_000, player.signal)
-      await sleep(9000)
+      // The request id arrives right after connect_device sends the request.
+      for (let i = 0; i < 100 && !requestId; i++) await sleep(100)
+      if (!requestId) return
+      await sleep(1200)
+      if (decided || !player.alive(tk)) return
+      const shown = await guide.show()
+      for (let left = AUTO_ALLOW_S; left > 0; left--) {
+        if (decided || !player.alive(tk)) return
+        if (shown) guide.countdown(left)
+        view.hint(shown ? t.hintApproveAuto(left) : t.hintApprove)
+        await sleep(1000)
+      }
       if (!decided && requestId && player.alive(tk)) {
         autoUsed = true
+        if (shown) await guide.press()
         view.note(t.autoApproved, 'warn')
         tools.autoApprove(requestId, 'advanced')
       }
@@ -160,6 +182,7 @@ export async function runScenario(ctx: ScenarioCtx) {
     tools.connect_device({ device: gw.code, level: 'advanced' }, { onPending: id => (requestId = id), signal: player.signal }),
   )
   decided = true
+  guide.hide()
   void auto
   if (conn.isError) {
     view.hint(null)
@@ -269,17 +292,61 @@ export async function runScenario(ctx: ScenarioCtx) {
   const fn = "() => [...document.scripts].flatMap(s => s.textContent.split('\\n')).map(l => l.trim()).filter(l => l.startsWith('unitPrice ='))"
   await call('evaluate_script', { function: fn }, () => tools.evaluate_script({ function: fn }))
 
+  // 6. A live patch in the page's memory: prove the fix on the device.
   await say(t.s11)
+  await task(5)
+  await ensurePage('checkout', 'checkout.html', t.whereCheckout)
+  const patch =
+    "() => { const k = 'demo:order'; const o = JSON.parse(sessionStorage.getItem(k) || 'null'); if (!o) return { patched: false }; const before = o.price; o.price = Number(String(o.price).replace(/[^\\d.]/g, '')); sessionStorage.setItem(k, JSON.stringify(o)); setTimeout(() => location.reload(), 60); return { patched: true, before, after: o.price } }"
+  const patched = await call('evaluate_script', { function: patch }, () => tools.evaluate_script({ function: patch }), 400)
+  let verified: boolean | null = null
+  if (!patched.isError && patched.data?.value?.patched) {
+    // The page reloads with the corrected order; wait for it to come back.
+    await sleep(900)
+    await waitPage('checkout')
+    await sleep(500)
+    const after = await call('find_elements', { text: t.find.total }, () => tools.find_elements({ text: t.find.total }))
+    const m2 = String(after.data?.matches?.[0]?.text || '').match(/[$¥][\d.,]+/)
+    verified = !!m2
+    await say(verified ? t.s12(m2![0]) : t.s12b)
+  } else if (!patched.isError) {
+    await say(t.s12b)
+  }
+  ctx.onVerified(verified)
   await task(t.task.steps.length)
   await call('disconnect_device', {}, () => tools.disconnect_device(), 300)
   ctx.onProgress(TOTAL_CALLS, TOTAL_CALLS)
-  view.summary(summaryHtml(lang, price, highlight(fixDiff(lang), 'diff'), skipped))
+  view.summary(summaryHtml(t, price, highlight(fixDiff(t), 'diff'), skipped, verified))
+}
+
+function summaryHtml(t: ScriptText, price: string, diffHtml: string, skipped: boolean, verified: boolean | null) {
+  const s = t.summary
+  return `<h4>${s.rootCause}</h4>
+<p>${s.rootCauseText(price)}</p>
+<h4>${s.evidence}</h4>
+<ul>${s.evidenceItems(price).map(x => `<li>${x}</li>`).join('')}</ul>
+<h4>${s.verified}</h4>
+<p>${verified ? s.verifiedText(t.patchedTotal) : s.notVerified}</p>
+<h4>${s.fix}</h4>
+<div class="code code-diff"><pre><code>${diffHtml}</code></pre></div>
+<p>${s.fixText}</p>
+<h4>${s.also}</h4>
+<p>${s.alsoText}</p>
+${skipped ? `<p class="muted">${s.skipped}</p>` : ''}
+<p class="muted">${s.left}</p>`
+}
+
+function fixDiff(t: ScriptText) {
+  return `   if (spec === 'gift') {
+-    unitPrice = Shop.money(product.price + ${t.diffExtra})
++    unitPrice = product.price + ${t.diffExtra}
+   } else {`
 }
 
 /** The customer's side before the agent shows up: browse, pick gift box, buy, request assistance. */
 export async function runPrelude(ctx: ScenarioCtx) {
   const { lang, gw, view, player, token: tk, frame } = ctx
-  const t = SCRIPT_TEXT[lang]
+  const t = scriptText(lang)
   const sleep = (ms: number) => player.sleep(tk, ms)
   const win = () => frame.contentWindow as (Window & { ShopNav?: { go(u: string): void }; RemoteWebviewDebugger?: any }) | null
   const doc = () => frame.contentDocument

@@ -1,0 +1,36 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import type { Locale } from '../i18n/locales.ts'
+import { code } from '../lib/html.ts'
+import * as S from '../lib/snippets.ts'
+import Icon from './Icon.astro'
+import SectionHead from './SectionHead.astro'
+
+interface Props {
+  t: Dict
+  locale: Locale
+}
+const { t, locale } = Astro.props
+const p = t.privacy
+const icons = ['shield', 'hand', 'mask', 'check', 'key', 'scroll']
+---
+
+<section id="privacy" class="section" aria-labelledby="privacy-title">
+  <div class="wrap">
+    <SectionHead num="06" kicker={p.kicker} title={p.title} lead={p.lead} id="privacy-title" />
+    <div class="privacy-grid">
+      <ul class="privs">
+        {p.items.map((it, i) => (
+          <li class="priv reveal">
+            <span class="priv-ic hud"><Icon name={icons[i]} /></span>
+            <div><h3>{it.title}</h3><p set:html={it.body} /></div>
+          </li>
+        ))}
+      </ul>
+      <aside class="privacy-side">
+        <div class="levels reveal hud"><ul>{p.levels.map((l, i) => <li><span class={`lvl lvl-${i}`}>{l.name}</span><span>{l.tools}</span></li>)}</ul></div>
+        <div class="reveal" set:html={code(S.maskedSnapshot(locale.shop), 'yaml', 'take_snapshot', 'code-mask')} />
+      </aside>
+    </div>
+  </div>
+</section>

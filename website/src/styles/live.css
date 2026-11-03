@@ -1,0 +1,301 @@
+/* ------------------------------ try it live ------------------------------ */
+
+.live {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+}
+.live > * {
+  min-width: 0;
+}
+.live-steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+.live-step {
+  min-width: 0;
+  padding: 22px 24px 24px;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.live-step:has([data-live-state='ready']),
+[data-live-state='ready'] .live-step.is-key {
+  border-color: color-mix(in srgb, var(--green) 45%, transparent);
+}
+.live-step h3 {
+  margin-top: 14px;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  font-weight: 640;
+}
+.live-step > p {
+  margin-top: 6px;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+.live-visual {
+  margin-top: 16px;
+}
+.live-visual .tablist {
+  margin-bottom: 10px;
+}
+.live-visual pre code {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+  white-space: inherit;
+}
+.live-get {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.live-status,
+.live-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--ink-3);
+  font-size: 13.5px;
+}
+.live-get .live-status {
+  flex: 1 1 14em;
+}
+.live-status .status-dot {
+  margin-top: 0.5em;
+  background: var(--ink-3);
+  color: var(--ink-3);
+}
+[data-live-state='ready'] [data-live-get] {
+  display: none;
+}
+[data-live-state='loading'] .live-status .status-dot::after {
+  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+[data-live-state='ready'] .live-status .status-dot {
+  background: var(--green);
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--green) 70%, transparent);
+}
+[data-live-state='failed'] .live-status .status-dot,
+[data-live-state='limited'] .live-status .status-dot {
+  background: #f87171;
+}
+[data-live-state='failed'] .live-status,
+[data-live-state='limited'] .live-status {
+  color: var(--amber);
+}
+.live-key-check {
+  width: 26px;
+  height: 26px;
+  margin: -4px 0 -4px -4px;
+}
+.live-note {
+  display: block;
+  margin-top: 10px;
+}
+.live-device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+.live-device .status-dot {
+  background: var(--ink-3);
+  color: var(--ink-3);
+}
+.live-device.is-ready {
+  color: var(--ink-2);
+}
+.live-device.is-ready .status-dot {
+  background: var(--green);
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--green) 70%, transparent);
+}
+.live-device.is-waiting .status-dot::after {
+  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.live-device code {
+  font-family: var(--font-hud);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.code-prompt pre {
+  white-space: pre-wrap;
+  font-size: 14.5px;
+  direction: inherit;
+  text-align: start;
+}
+.code-prompt code {
+  font-family: var(--font-sans);
+}
+[dir='rtl'] .code-prompt {
+  direction: rtl;
+}
+.code-prompt [data-live-device] {
+  color: #93b0ff;
+  font-family: var(--font-mono);
+}
+.live-limits {
+  margin-top: 18px;
+  padding: 18px 22px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--line-2);
+}
+.live-limits h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 620;
+}
+.live-limits h3 .ic {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
+.live-limits ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 28px;
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.live-limits li {
+  position: relative;
+  padding-inline-start: 16px;
+}
+.live-limits li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-2);
+}
+
+/* the real shop, in a phone */
+.live-phone {
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.live-phone .phone-label {
+  color: var(--ink-2);
+}
+.live-phone .phone-label .ic {
+  color: var(--ink-3);
+}
+.live-phone .phone-label code {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  color: var(--accent-text);
+}
+.live-phone .phone-stage {
+  height: 620px;
+}
+.live-phone .phone-stage::before {
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+  opacity: 0.6;
+}
+.live-phone .phone {
+  --d-glow: var(--glow);
+}
+.live-phone.is-online .phone::after {
+  opacity: 0.8;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--green) 80%, transparent),
+    0 0 18px 3px color-mix(in srgb, var(--green) 45%, transparent),
+    0 0 60px 10px color-mix(in srgb, var(--green) 18%, transparent);
+}
+.live-phone .phone-screen iframe {
+  background: #fff;
+}
+.phone-loading {
+  position: absolute;
+  inset: 46px 0 0;
+  display: grid;
+  place-items: center;
+  background: #f4f5f7;
+  color: #666;
+  font: 500 14px/1.4 var(--font-sans);
+  text-align: center;
+  padding: 24px;
+  transition: opacity 0.4s;
+}
+.phone-loading[hidden] {
+  display: none;
+}
+.live-open {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.live-qr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+.live-qr .qr {
+  width: 96px;
+  height: 96px;
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px var(--line-2), var(--shadow);
+}
+.live-qr figcaption {
+  max-width: 9em;
+}
+.live-phone-hint {
+  max-width: 360px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+@media (max-width: 980px) {
+  .live {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .live-phone {
+    position: relative;
+    top: auto;
+    order: -1;
+  }
+  .live-limits ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 680px) {
+  /* On a phone the shop opens right here: a QR code would point at itself. */
+  .live-qr {
+    display: none;
+  }
+  .live-open .btn,
+  .live-get .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .live-phone .phone-stage {
+    height: 560px;
+  }
+}

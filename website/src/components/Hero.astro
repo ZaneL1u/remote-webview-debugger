@@ -1,0 +1,50 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import { REPO } from '../lib/site.ts'
+import Icon from './Icon.astro'
+
+interface Props {
+  t: Dict
+}
+const { t } = Astro.props
+const h = t.hero
+const f = h.flow
+const run = h.ticker
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-inner">
+      <p class="eyebrow reveal" data-hero="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>{h.eyebrow}</p>
+      <h1 id="hero-title" class="reveal" data-hero="title" set:html={h.titleHtml} />
+      <p class="hero-sub reveal" data-hero="sub">{h.sub}</p>
+      <div class="cta reveal" data-hero="cta">
+        <a class="btn btn-primary" href="#demo"><Icon name="play" /><span>{h.ctaDemo}</span></a>
+        <a class="btn btn-ghost" href="#live"><Icon name="key" /><span>{h.ctaLive}</span></a>
+        <a class="btn btn-ghost" href={REPO}><Icon name="github" /><span>{h.ctaGithub}</span></a>
+        <a class="btn btn-link" href="#self-host"><span>{h.ctaSelfHost}</span><Icon name="arrow" /></a>
+      </div>
+      <ul class="hero-points reveal" data-hero="points">{h.points.map(p => <li><Icon name="check" />{p}</li>)}</ul>
+    </div>
+    <div class="flow reveal hud" role="img" aria-label={f.label} data-flow>
+      <div class="flow-node flow-agent hud" data-flow-node><span class="flow-ic"><Icon name="bot" /></span><div><b>{f.agent}</b><small>{f.agentSub}</small></div></div>
+      <div class="flow-link"><span class="flow-wire" data-wire><i></i><i></i></span><span class="flow-label">{f.mcp}</span></div>
+      <div class="flow-node flow-gw hud" data-flow-node><span class="flow-ic"><Icon name="server" /></span><div><b>{f.gw}</b><small>{f.gwSub}</small></div></div>
+      <div class="flow-link"><span class="flow-wire" data-wire><i></i><i></i></span><span class="flow-label">{f.ws}</span></div>
+      <div class="flow-node flow-phone hud" data-flow-node>
+        <span class="flow-ic"><span class="flow-pulse" data-lottie="pulse" aria-hidden="true"></span><Icon name="phone" /></span>
+        <div><b>{f.phone}</b><small>{f.phoneSub}</small></div>
+        <span class="flow-state"><span></span>{f.state}</span><code class="flow-code">K7Q2-9M4X</code>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="ticker reveal hud" aria-hidden="true">
+      <div class="ticker-track">
+        <span class="ticker-run">{run.map(s => <b>{s}</b>)}</span>
+        <span class="ticker-run">{run.map(s => <b>{s}</b>)}</span>
+      </div>
+    </div>
+  </div>
+</section>

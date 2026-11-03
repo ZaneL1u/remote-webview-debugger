@@ -1,0 +1,13 @@
+/* debugger.site — Tailwind CSS v4 + the site's own tokens and components.
+   Deep-space control room: dark by default, an "ice lab" light theme on request. */
+
+@import 'tailwindcss';
+@import './tokens.css';
+@import './base.css';
+@import './sections.css';
+@import './demo.css';
+@import './live.css';
+
+/* Tailwind variants the templates use. */
+@custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));
+@custom-variant rtl (&:where([dir='rtl'], [dir='rtl'] *));

@@ -1,0 +1,29 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import { code } from '../lib/html.ts'
+import { REPO } from '../lib/site.ts'
+import * as S from '../lib/snippets.ts'
+import Icon from './Icon.astro'
+import SectionHead from './SectionHead.astro'
+
+interface Props {
+  t: Dict
+}
+const { t } = Astro.props
+const s = t.selfHost
+const icons = ['server', 'db', 'chart']
+---
+
+<section id="self-host" class="section" aria-labelledby="self-host-title">
+  <div class="wrap split">
+    <div>
+      <SectionHead num="08" kicker={s.kicker} title={s.title} lead={s.lead} id="self-host-title" />
+      <ul class="host-points reveal">{s.points.map((p, i) => <li><Icon name={icons[i]} /><div><h3>{p.title}</h3><p set:html={p.body} /></div></li>)}</ul>
+      <p class="reveal"><a class="btn btn-link" href={`${REPO}/tree/main/deploy/platform`}>{s.docsLink}<Icon name="arrow" /></a></p>
+    </div>
+    <div class="reveal">
+      <Fragment set:html={code(S.selfHostSnippet(s), 'sh', s.stepsTitle, 'code-term')} />
+      <p class="requires">{s.requires}</p>
+    </div>
+  </div>
+</section>

@@ -2,7 +2,9 @@ import '@fontsource-variable/geist/wght.css'
 import '@fontsource-variable/geist-mono/wght.css'
 // Orbitron is used only for small HUD labels (kickers, readouts, the ticker).
 import '@fontsource/orbitron/latin-500.css'
-import './styles/main.css'
+import { mountStars, restyleStars } from './stars.ts'
+import { mountMotion } from './motion.ts'
+import { mountAll as mountLottie } from './lottie.ts'
 
 const root = document.documentElement
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -18,8 +20,6 @@ function store(key: string, value?: string): string | null {
 
 /* --------------------------------- theme -------------------------------- */
 
-// Deep space is the site's own theme; the ice-lab light theme is a deliberate
-// choice, remembered in localStorage.
 const themeBtn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]')
 const currentTheme = () => (root.dataset.theme === 'light' ? 'light' : 'dark')
 themeBtn?.addEventListener('click', () => {
@@ -29,131 +29,45 @@ themeBtn?.addEventListener('click', () => {
   restyleStars()
 })
 
-/* ------------------------------- star field ------------------------------ */
-
-// A thin layer of drifting, breathing dust behind everything. Capped particle
-// count, transform-free (one clearRect + fillRect per star), paused while the
-// tab is hidden, and completely still under prefers-reduced-motion.
-interface Star {
-  x: number
-  y: number
-  r: number
-  a: number
-  tw: number
-  ph: number
-  vx: number
-  vy: number
-}
-
-let starRgb = '190, 214, 255'
-
-function restyleStars() {
-  starRgb = getComputedStyle(root).getPropertyValue('--star').trim() || starRgb
-}
-
-;(() => {
-  const canvas = document.querySelector<HTMLCanvasElement>('[data-stars]')
-  const ctx = canvas?.getContext('2d', { alpha: true })
-  if (!canvas || !ctx) return
-  restyleStars()
-
-  let stars: Star[] = []
-  let w = 0
-  let h = 0
-  let frame = 0
-  let last = 0
-
-  const size = () => {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    w = canvas.clientWidth
-    h = canvas.clientHeight
-    canvas.width = Math.round(w * dpr)
-    canvas.height = Math.round(h * dpr)
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    // One star per ~16k px², between 40 and 130 of them.
-    const n = Math.max(40, Math.min(130, Math.round((w * h) / 16000)))
-    stars = Array.from({ length: n }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: 0.4 + Math.random() * Math.random() * 1.5,
-      a: 0.2 + Math.random() * 0.6,
-      tw: 0.4 + Math.random() * 1.1,
-      ph: Math.random() * Math.PI * 2,
-      vx: (Math.random() - 0.5) * 2.4,
-      vy: -2 - Math.random() * 4,
-    }))
-  }
-
-  const draw = (t: number) => {
-    ctx.clearRect(0, 0, w, h)
-    for (const s of stars) {
-      const a = reduced ? s.a : s.a * (0.55 + 0.45 * Math.sin(t * s.tw + s.ph))
-      ctx.fillStyle = `rgba(${starRgb}, ${a.toFixed(3)})`
-      if (s.r > 1) {
-        ctx.beginPath()
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
-        ctx.fill()
-      } else {
-        ctx.fillRect(s.x - s.r, s.y - s.r, s.r * 2, s.r * 2)
-      }
-    }
-  }
-
-  const tick = (now: number) => {
-    frame = requestAnimationFrame(tick)
-    const dt = Math.min((now - last) / 1000, 0.05)
-    last = now
-    for (const s of stars) {
-      s.x += s.vx * dt
-      s.y += s.vy * dt
-      if (s.y < -2) {
-        s.y = h + 2
-        s.x = Math.random() * w
-      }
-      if (s.x < -2) s.x = w + 2
-      else if (s.x > w + 2) s.x = -2
-    }
-    draw(now / 1000)
-  }
-
-  const stop = () => {
-    if (frame) cancelAnimationFrame(frame)
-    frame = 0
-  }
-  const play = () => {
-    if (frame || reduced || document.hidden) return
-    last = performance.now()
-    frame = requestAnimationFrame(tick)
-  }
-
-  size()
-  draw(0)
-  play()
-  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : play()))
-  let resizeTimer = 0
-  window.addEventListener(
-    'resize',
-    () => {
-      clearTimeout(resizeTimer)
-      resizeTimer = window.setTimeout(() => {
-        size()
-        draw(performance.now() / 1000)
-      }, 180)
-    },
-    { passive: true },
-  )
-})()
+mountStars()
 
 /* -------------------------------- language ------------------------------- */
 
 // An explicit choice always wins over the browser language.
-document.querySelectorAll<HTMLAnchorElement>('[data-lang]').forEach(a =>
+document.querySelectorAll<HTMLAnchorElement>('a[data-lang]').forEach(a =>
   a.addEventListener('click', () => {
     store('rwd.lang', a.dataset.lang!)
-    // Keep the reader's place.
     if (location.hash) a.href = a.getAttribute('href')!.split('#')[0] + location.hash
   }),
 )
+const langMenu = document.querySelector<HTMLElement>('[data-lang-menu]')
+if (langMenu) {
+  const btn = langMenu.querySelector<HTMLButtonElement>('.lang-btn')!
+  const menu = langMenu.querySelector<HTMLElement>('.lang-menu')!
+  const set = (open: boolean) => {
+    btn.setAttribute('aria-expanded', String(open))
+    menu.hidden = !open
+  }
+  btn.addEventListener('click', () => set(menu.hidden))
+  document.addEventListener('click', e => {
+    if (!langMenu.contains(e.target as Node)) set(false)
+  })
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !menu.hidden) {
+      set(false)
+      btn.focus()
+    }
+  })
+  menu.addEventListener('keydown', e => {
+    const items = [...menu.querySelectorAll<HTMLAnchorElement>('a')]
+    const i = items.indexOf(document.activeElement as HTMLAnchorElement)
+    const to = e.key === 'ArrowDown' ? i + 1 : e.key === 'ArrowUp' ? i - 1 : -1
+    if (to >= 0 && to < items.length) {
+      e.preventDefault()
+      items[to].focus()
+    }
+  })
+}
 
 /* --------------------------------- header -------------------------------- */
 
@@ -212,8 +126,7 @@ document.querySelectorAll<HTMLElement>('[data-tabs]').forEach(box => {
 
 const i18n = (() => {
   try {
-    const raw = document.querySelector('template[data-i18n]')?.innerHTML || '{}'
-    return JSON.parse(raw.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'))
+    return JSON.parse(document.querySelector('template[data-i18n]')?.innerHTML || '{}')
   } catch {
     return {}
   }
@@ -239,24 +152,10 @@ document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach(btn => {
   })
 })
 
-/* --------------------------------- reveal -------------------------------- */
+/* --------------------------------- motion -------------------------------- */
 
-if (!reduced && 'IntersectionObserver' in window) {
-  const io = new IntersectionObserver(
-    entries => {
-      for (const e of entries) {
-        if (e.isIntersecting) {
-          e.target.classList.add('in')
-          io.unobserve(e.target)
-        }
-      }
-    },
-    { rootMargin: '0px 0px -6% 0px' },
-  )
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el))
-} else {
-  document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'))
-}
+mountMotion()
+if (!reduced) mountLottie()
 
 /* ---------------------------------- demo --------------------------------- */
 
@@ -266,12 +165,11 @@ if (demoEl) {
   let wantStart = false
   let loading: Promise<void> | null = null
   const load = () =>
-    (loading ||= import('./demo/index').then(m => {
+    (loading ||= import('../demo/index.ts').then(m => {
       demo = m.mountDemo(demoEl)
     })).then(() => {
       if (wantStart) demo?.start()
     })
-  // Load the phone when the demo comes near; start playing once it is in view.
   const near = new IntersectionObserver(
     entries => {
       if (entries.some(e => e.isIntersecting)) {
@@ -295,7 +193,6 @@ if (demoEl) {
     )
     seen.observe(demoEl)
   }
-  // "Try the live demo" starts it right away.
   document.querySelectorAll<HTMLAnchorElement>('a[href="#demo"]').forEach(a =>
     a.addEventListener('click', () => {
       wantStart = true
@@ -307,8 +204,9 @@ if (demoEl) {
 /* ---------------------------------- live --------------------------------- */
 
 // The public demo gateway hands each visitor an API key of their own
-// (POST /v1/demo/keys). The key is remembered in this browser until the demo
-// starts over (resetAt in rwd-demo.json, written by deploy/demo/reset.sh).
+// (POST /v1/demo/keys), remembered in this browser until the demo starts
+// over (resetAt in rwd-demo.json). The real shop runs in the phone frame and
+// reports its device code, which goes into the prompt.
 const liveEl = document.querySelector<HTMLElement>('[data-live]')
 if (liveEl) {
   type Stored = { key: string; issuedAt: number }
@@ -320,6 +218,14 @@ if (liveEl) {
   const show = (state: 'loading' | 'ready' | 'failed' | 'limited') => {
     liveEl.dataset.liveState = state
     if (text) text.textContent = status?.dataset[state] || ''
+    if (state === 'ready' && status && !reduced) {
+      const dot = status.querySelector<HTMLElement>('.status-dot')
+      if (dot && !dot.dataset.lottieMounted) {
+        dot.dataset.lottieMounted = '1'
+        dot.classList.add('live-key-check')
+        void import('./lottie.ts').then(m => m.play(dot, 'check', { loop: false }))
+      }
+    }
   }
   const fill = (key: string) => {
     liveEl.querySelectorAll('[data-live-key]').forEach(el => (el.textContent = key))
@@ -332,12 +238,11 @@ if (liveEl) {
       return null
     }
   }
-  // A key from before the demo last started over is gone: forget it.
   const restore = () =>
     fetch(liveEl.dataset.live || '', { cache: 'no-store', signal: timeout() })
       .then(res => (res.ok ? (res.json() as Promise<{ resetAt?: number }>) : null))
       .then(cfg => {
-        if (liveEl.dataset.liveState !== 'idle') return // the visitor got a key meanwhile
+        if (liveEl.dataset.liveState !== 'idle') return
         const s = stored()
         if (s?.key && cfg?.resetAt && s.issuedAt > cfg.resetAt) fill(s.key)
         else if (!cfg) show('failed')
@@ -352,7 +257,6 @@ if (liveEl) {
         const body = res.ok ? ((await res.json()) as { key?: string; expiresAt?: number }) : null
         if (!body?.key) return show('failed')
         try {
-          // The gateway's clock: issued a day before the key expires.
           localStorage.setItem(STORE, JSON.stringify({ key: body.key, issuedAt: (body.expiresAt || Date.now()) - 86400000 }))
         } catch {
           // No storage: the key still works, it just isn't remembered.
@@ -362,12 +266,67 @@ if (liveEl) {
       .catch(() => show('failed'))
       .finally(() => (button.disabled = false))
   })
+
+  // The shop in the phone: loaded when the section comes near; its device
+  // code arrives by postMessage (examples/platform-demo/rwd-boot.js).
+  const frame = liveEl.querySelector<HTMLIFrameElement>('[data-live-frame]')
+  const phone = liveEl.querySelector<HTMLElement>('[data-live-phone]')
+  const stage = liveEl.querySelector<HTMLElement>('[data-live-stage]')
+  const loadingEl = liveEl.querySelector<HTMLElement>('[data-live-loading]')
+  const devStatus = liveEl.querySelector<HTMLElement>('[data-live-device-status]')
+  const devText = liveEl.querySelector<HTMLElement>('[data-live-device-text]')
+  const origin = liveEl.dataset.liveOrigin || ''
+  const PHONE_W = 399
+  const PHONE_H = 822
+  const fit = () => {
+    if (!stage) return
+    const w = stage.clientWidth || PHONE_W
+    const maxH = window.innerWidth < 720 ? 560 : 620
+    const s = Math.min(1, w / PHONE_W, maxH / PHONE_H)
+    stage.style.setProperty('--s', s.toFixed(4))
+    stage.style.height = `${Math.round(PHONE_H * s)}px`
+  }
+  if (stage) {
+    new ResizeObserver(fit).observe(stage)
+    fit()
+  }
+  let codeShown = false
+  const device = (code: string | null) => {
+    if (!devStatus) return
+    if (code) {
+      codeShown = true
+      devStatus.classList.remove('is-waiting')
+      devStatus.classList.add('is-ready')
+      if (devText) devText.textContent = (devStatus.dataset.readyTpl || '{code}').replace('{code}', code)
+      liveEl.querySelectorAll('[data-live-device]').forEach(el => (el.textContent = code))
+      liveEl.querySelectorAll('[data-live-phone-code]').forEach(el => (el.textContent = code))
+      phone?.classList.add('is-online')
+    } else if (!codeShown) {
+      devStatus.classList.remove('is-waiting')
+      if (devText) devText.textContent = devStatus.dataset.unavailable || ''
+    }
+  }
+  window.addEventListener('message', e => {
+    if (e.origin !== origin || !e.data || e.data.rwdDemo !== 'device') return
+    const code = String(e.data.deviceCode || '')
+    if (/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) device(code)
+  })
+  const loadShop = () => {
+    if (!frame || frame.src) return
+    frame.addEventListener('load', () => {
+      if (loadingEl) loadingEl.hidden = true
+      // No code within a while: the shop may be an older build; say so.
+      setTimeout(() => device(null), 15000)
+    })
+    frame.src = frame.dataset.src || ''
+  }
   if ('IntersectionObserver' in window) {
     const near = new IntersectionObserver(
       entries => {
         if (entries.some(e => e.isIntersecting)) {
           near.disconnect()
           void restore()
+          loadShop()
         }
       },
       { rootMargin: '600px 0px' },
@@ -375,5 +334,6 @@ if (liveEl) {
     near.observe(liveEl)
   } else {
     void restore()
+    loadShop()
   }
 }

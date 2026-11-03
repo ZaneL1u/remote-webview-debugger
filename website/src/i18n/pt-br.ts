@@ -1,0 +1,350 @@
+import type { Dict } from './en.ts'
+
+// Português do Brasil (você). A loja da demo deste idioma é a em inglês ($).
+
+export const ptBR: Dict = {
+  meta: {
+    title: 'Remote WebView Debugger — deixe agentes de IA depurarem WebViews em celulares reais',
+    description:
+      'Open source e auto-hospedado: adicione uma tag script e o Claude Code, o Codex, o Cursor ou qualquer cliente MCP passa a inspecionar e operar páginas H5 e WebViews de apps nos celulares dos seus usuários — com a aprovação do usuário, mascaramento e um botão para assumir o controle. Sem cabo USB, sem porta de depuração.',
+    ogTitle: 'Remote WebView Debugger',
+    ogDescription: 'Deixe seu agente de IA depurar a WebView no celular do seu usuário. Uma tag script, um código do dispositivo, um endpoint MCP. Open source.',
+  },
+  nav: {
+    skip: 'Ir para o conteúdo',
+    demo: 'Demo',
+    live: 'Teste ao vivo',
+    how: 'Como funciona',
+    features: 'Recursos',
+    highlights: 'Destaques',
+    privacy: 'Privacidade',
+    selfHost: 'Auto-hospedagem',
+    faq: 'Perguntas frequentes',
+    github: 'GitHub',
+    menu: 'Menu',
+    themeToggle: 'Alternar o tema de cores',
+    langLabel: 'Idioma',
+  },
+  hero: {
+    eyebrow: 'Open source · MIT · MCP',
+    titleHtml: 'Deixe seu agente de IA depurar a WebView <em>no celular do seu usuário</em>.',
+    sub:
+      'Adicione uma tag script à sua página H5 ou à WebView do seu app. Seu usuário dita um código do dispositivo curto e o Claude Code, o Codex, o Cursor ou qualquer cliente MCP já consegue ver a página, ler o console e a rede e ir clicando até o bug — enquanto o usuário acompanha e pode assumir o controle a qualquer momento.',
+    ctaDemo: 'Ver a demo',
+    ctaLive: 'Testar com o seu agente',
+    ctaGithub: 'Dar uma estrela no GitHub',
+    ctaSelfHost: 'Auto-hospedar em 5 minutos',
+    points: ['Sem cabo USB', 'Sem porta de depuração remota', 'Sem recompilar o app: só um script', 'Funciona depois que o bug aconteceu'],
+    ticker: [
+      'conexão estabelecida',
+      'dispositivo K7Q2-9M4X online',
+      'snapshot em 42 ms',
+      '34 ferramentas prontas',
+      'mascaramento ativo',
+      'nível interact',
+      'log da sessão · 3 inicializações',
+      'patch ao vivo verificado',
+      'auditoria gravando',
+      'gateway auto-hospedado',
+      '11 idiomas',
+    ],
+    flow: {
+      label: 'Um agente de IA fala MCP com o seu gateway auto-hospedado, que alcança o SDK da página no celular do usuário por um WebSocket.',
+      agent: 'Agente de IA',
+      agentSub: 'Claude Code · Codex · Cursor · qualquer cliente MCP',
+      gw: 'gateway rwd',
+      gwSub: 'auto-hospedado · aprovação · auditoria',
+      phone: 'Celular do usuário',
+      phoneSub: 'página H5 / WebView do app + SDK',
+      mcp: 'MCP · HTTPS',
+      ws: 'WebSocket',
+      state: 'IA operando',
+    },
+  },
+  demo: {
+    kicker: 'Demo ao vivo',
+    title: 'Um bug real, resolvido em um celular “real”',
+    lead:
+      'O celular desta demo roda o SDK de verdade dentro de uma loja de demonstração. O gateway dele é simulado no seu navegador, então nada sai desta aba — mas todo snapshot, clique, linha de console e patch ao vivo aqui embaixo é real.',
+    agentTitle: 'Agente de IA',
+    agentSub: 'conectado ao servidor MCP do rwd',
+    skinLabel: 'Estilo do agente',
+    skinClaude: 'Claude Code',
+    skinCodex: 'Codex',
+    phoneLabel: 'Celular do cliente',
+    play: 'Reproduzir',
+    pause: 'Pausar',
+    restart: 'Reiniciar',
+    speed: 'Velocidade',
+    start: 'Rodar a demo',
+    startHint: 'Veja um agente se conectar ao celular, reproduzir um bug no checkout, achar a causa raiz e verificar a correção ao vivo.',
+    expand: 'Ver o resultado completo',
+    collapse: 'Recolher',
+    running: 'em execução',
+    done: 'Concluído',
+    error: 'erro',
+    you: 'Suporte técnico',
+    agent: 'Agente',
+    customer: 'Cliente',
+    /** The hand that points at “Allow” when nobody taps it. */
+    guideTap: 'Toque em “Permitir”',
+    guideAuto: (s: number) => `automático em ${s}s`,
+    footnote:
+      'Roda inteirinho no seu navegador: o SDK de verdade (<code>sdk.js</code>) em um iframe, um shim de WebSocket que faz um túnel até um gateway simulado na própria página e um agente roteirizado emitindo RPCs reais. As mensagens do agente seguem o idioma da página; os resultados das ferramentas vêm no idioma do gateway (inglês ou chinês).',
+    stateIdle: 'Pronto',
+    statePrelude: 'O cliente encontra o bug',
+    stateRunning: 'Agente trabalhando',
+    statePaused: 'Pausado',
+    stateWaitApproval: 'Aguardando a permissão do cliente',
+    stateWaitControl: 'Aguardando o cliente devolver o controle',
+    stateDone: 'Finalizado',
+    stateStopped: 'Interrompido',
+  },
+  live: {
+    kicker: 'Mão na massa',
+    title: 'Agora teste com o seu próprio agente',
+    lead:
+      'A demo acima roda no seu navegador. Esta aqui é real: um gateway de demonstração público em <code>demo.debugger.site</code>, separado de todo o resto e apagado todos os dias. A loja à direita é a de verdade, carregada de lá — pegue uma chave, aponte seu agente para ela e veja o agente trabalhar nesta página.',
+    steps: [
+      {
+        title: 'Pegue uma chave sua',
+        body: 'Um clique, sem cadastro. A chave só funciona no gateway de demonstração e vale até a demo ser reiniciada.',
+      },
+      {
+        title: 'Adicione o gateway de demonstração ao seu agente',
+        body: 'Rode o comando uma vez no terminal, ou coloque-o nas configurações do seu cliente MCP. A chave já vem preenchida.',
+      },
+      {
+        title: 'Peça ao seu agente',
+        body: 'O código do dispositivo da loja à direita já está no prompt. Quando o agente pedir para se conectar, toque em <em>Permitir</em> na loja e veja o agente trabalhar; você pode <em>Assumir</em> ou <em>Encerrar</em> a qualquer momento.',
+      },
+    ],
+    phoneTitle: 'A loja de demonstração, ao vivo',
+    phoneHint: 'Esta é a própria <code>demo.debugger.site</code>, rodando o SDK de verdade. Escaneie o código para abri-la no seu celular.',
+    open: 'Abrir em uma nova aba',
+    scan: 'Escaneie para abrir no seu celular',
+    tabsLabel: 'Configuração do MCP de demonstração',
+    getKey: 'Pegar minha chave',
+    keyIdle: 'Pegue uma chave e ela é preenchida no comando abaixo.',
+    keyLoading: 'Pegando sua chave…',
+    keyReady: 'Sua chave está preenchida. Ela para de funcionar quando a demo é reiniciada (todo dia às 04:00 UTC+8); volte aqui para pegar outra.',
+    keyFailed: 'Não foi possível alcançar o gateway de demonstração agora; tente novamente mais tarde.',
+    keyLimited: 'Chaves demais vindas da sua rede; tente novamente em uma hora.',
+    deviceWaiting: 'Aguardando a loja ficar online…',
+    deviceReady: (code: string) => `O código do dispositivo desta página é ${code} — já preenchido no prompt.`,
+    deviceUnavailable: 'A loja não informou um código do dispositivo; leia o código na pílula dentro dela.',
+    prompt:
+      'Use o servidor MCP rwd-demo e conecte-se ao dispositivo XXXX-XXXX. Na loja, escolha a embalagem de presente (“Gift box”) de um produto, vá para o checkout e descubra por que o total aparece como “--”.',
+    promptLabel: 'Prompt',
+    promptNote: 'Troque <code>XXXX-XXXX</code> pelo código mostrado na loja.',
+    limitsTitle: 'Limites da demo',
+    limits: [
+      'Uma chave por visitante: seu agente alcança apenas a página cujo código você der a ele, depois que você permitir',
+      'Somente o nível <strong>interact</strong>: sem scripts, corpos de requisição ou armazenamento',
+      'Um agente fica com uma página por no máximo 15 minutos (5 se ficar ocioso)',
+      '120 requisições MCP por minuto por IP',
+      'Apagado todo dia às 04:00 (UTC+8) — não insira dados pessoais reais',
+    ],
+  },
+  how: {
+    kicker: 'Como funciona',
+    title: 'Três passos entre “quebrou no meu celular” e a causa raiz',
+    steps: [
+      {
+        title: 'Adicione o SDK da página',
+        body:
+          'Uma tag script no <code>&lt;head&gt;</code>, o mais no início possível, para que console e rede sejam gravados desde a primeira linha. Em um app, injete o mesmo script no início do documento.',
+      },
+      {
+        title: 'O usuário compartilha um código do dispositivo',
+        body:
+          'Todo celular ganha um código permanente como <code>K7Q2-9M4X</code> em uma pequena pílula. O usuário pode tocar em <em>Solicitar assistência</em>, e o dispositivo vai para o topo da lista do agente.',
+      },
+      {
+        title: 'Seu agente se conecta via MCP',
+        body:
+          'Adicione o endpoint MCP hospedado pelo gateway com uma chave de API. Depois é só descrever o problema — o agente encontra o dispositivo, pede a aprovação e começa a trabalhar.',
+      },
+    ],
+    pill: { code: 'K7Q2-9M4X', online: 'Online', help: 'Solicitar assistência' },
+    chip1: 'sdk.js da CDN · console + rede desde a primeira linha',
+    chip3: 'aprovado no celular · nível interact',
+    prompt: 'O dispositivo K7Q2-9M4X não consegue finalizar a compra — o total aparece como “--”. Descubra por quê.',
+    tabsLabel: 'Configuração do cliente MCP',
+    sdkNote: 'Fixe uma versão em produção, ou use a cópia que o seu gateway serve em <code>/v1/sdk.js</code> (com SRI, disponível no console).',
+  },
+  features: {
+    kicker: 'O que o agente ganha',
+    title: 'O fluxo do DevTools, via MCP, no celular de outra pessoa',
+    items: [
+      { icon: 'tree', title: 'Snapshots de acessibilidade', body: 'YAML no estilo do Playwright, com refs de elementos. O agente lê a página como estrutura, não como pixels — e age sobre as refs.' },
+      { icon: 'cursor', title: 'Interações reais', body: 'click, fill, type, press, select, hover, scroll, drag — com verificação de acionabilidade e eventos que o React e o Vue aceitam.' },
+      { icon: 'terminal', title: 'Console e rede', body: 'Gravados desde o carregamento da página em buffers limitados, então os erros de antes de o agente chegar continuam lá. Corpos sob demanda.' },
+      { icon: 'layers', title: 'Sessões com várias páginas', body: 'Lista → detalhe → checkout, ou uma segunda WebView: todas as páginas de um dispositivo formam uma sessão, com uma linha do tempo que atravessa as páginas.' },
+      { icon: 'bell', title: 'Mudanças na sessão, na hora', body: 'Todo resultado de ferramenta termina com o que mudou — página nova, navegação, um erro, o usuário assumindo o controle. Sem polling.' },
+      { icon: 'list', title: 'Cartão de tarefa no celular', body: 'O agente mostra o plano e o progresso no dispositivo, para que o usuário sempre saiba o que ele está fazendo e por quê.' },
+      { icon: 'camera', title: 'Capturas de tela', body: 'Pixels nativos quando o app oferece uma bridge, renderização do DOM caso contrário. O mascaramento vale para as duas.' },
+      { icon: 'scroll', title: 'Log da sessão no dispositivo', body: 'Páginas, toques, console e todas as requisições desde que o app abriu, guardados no celular no IndexedDB — e legíveis depois do fato.' },
+      { icon: 'wrench', title: 'Patches ao vivo', body: 'No nível avançado, o agente pode aplicar um patch na página em execução com <code>evaluate_script</code> e verificar a correção na hora.' },
+      { icon: 'wifi', title: 'Redes ruins', body: 'Um heartbeat leve com back-off; depois de três falhas, uma verificação de presença por minuto, e o gateway acorda a página quando for preciso.' },
+      { icon: 'globe', title: '11 idiomas', body: 'Interface do celular, console e textos para o agente em 11 idiomas, incluindo o árabe da direita para a esquerda. Traga seus próprios pacotes e a sua própria redação.' },
+      { icon: 'plug', title: 'Qualquer cliente MCP', body: 'Streamable HTTP em <code>/v1/mcp</code> para Claude Code, Codex, Cursor e companhia; uma bridge stdio minúscula para todo o resto.' },
+    ],
+    toolsTitle: 'Todas as ferramentas',
+  },
+  highlights: {
+    kicker: 'Destaques',
+    title: 'Feito para os bugs que só acontecem lá fora',
+    lead: 'Três coisas que um cabo, uma porta de depuração remota ou uma gravação de tela não dão a você.',
+    items: [
+      {
+        title: 'O bug já aconteceu? O log ainda está no celular.',
+        body:
+          'Desde o momento em que o app abre, o SDK escreve um log da sessão no IndexedDB do dispositivo: páginas visitadas, os toques e as digitações do usuário, a saída do console e todas as requisições — as que falharam com cabeçalhos e corpos. Nada é transmitido para lugar algum; o log fica no celular, sob as mesmas regras de mascaramento, até que um agente aprovado pelo usuário o peça com <code>get_session_overview</code> e <code>get_session_log</code>. As três últimas inicializações são mantidas, com até 10 MB cada.',
+        tag: 'Log da sessão · guardado no dispositivo',
+        visual: {
+          title: 'rwd-log · inicialização 3 de 3',
+          rows: ['09:41:02  abriu  index.html', '09:41:09  toque  “Gift box”', '09:41:11  toque  Buy now', '09:41:12  erro   TypeError: order.price.toFixed…', '09:41:13  rede   GET api/coupon → 404', '09:52:30  agente conectou (interact)', '09:52:31  leu    get_session_log'],
+        },
+      },
+      {
+        title: 'Verifique a correção no celular do cliente, antes de publicar.',
+        body:
+          'Com a aprovação <strong>avançada</strong> do usuário, <code>evaluate_script</code> roda dentro da página — então o agente pode corrigir um estado errado, sobrescrever uma função ou renderizar uma tela de novo e ver o resultado no aparelho de verdade: um patch ao vivo que prova o diagnóstico. Ele vive só na memória daquela página; nada é persistido, e cliques sensíveis continuam precisando do sim do usuário.',
+        tag: 'Patch ao vivo · evaluate_script',
+        visual: {
+          title: 'checkout.html · ao vivo',
+          before: 'Total  --',
+          after: 'Total  $208.00',
+          code: 'order.price = Number(order.price)',
+        },
+      },
+      {
+        title: 'Feito para agentes, não para uma pessoa com o DevTools aberto.',
+        body:
+          'Todo resultado de ferramenta termina com o que mudou no dispositivo desde a última chamada, então o agente nunca fica fazendo polling. O conteúdo da página é entregue como dado não confiável. Um cartão de tarefa no celular mostra o plano do agente, e o gateway fala o idioma do agente — descrições e resultados das ferramentas em 11 idiomas.',
+        tag: 'Nativo para agentes · MCP',
+        visual: {
+          title: 'resultado da ferramenta · final',
+          rows: ['[Mudanças na sessão]', '- p2 “Checkout” abriu (primeiro plano)', '- p1 erro de console: TypeError …', '- o usuário assumiu o controle'],
+        },
+      },
+    ],
+  },
+  privacy: {
+    kicker: 'Privacidade e controle',
+    title: 'O celular do usuário continua sendo do usuário',
+    lead: 'Depuração remota só funciona se as pessoas confiarem nela. Toda sessão é visível, aprovada e interrompível.',
+    items: [
+      { title: 'Aprovação antes de tudo', body: 'Um agente pede para se conectar; o usuário vê quem está pedindo e escolhe um nível no celular. Só toques de verdade valem — um script não consegue se aprovar.' },
+      { title: 'Assumir ou encerrar, quando quiser', body: 'Enquanto o agente trabalha, a página fica bloqueada atrás de uma borda luminosa. Um toque em <em>Assumir</em> pausa o agente; <em>Encerrar</em> o desconecta.' },
+      { title: 'Mascarado por padrão', body: 'Senhas e tudo que estiver marcado com <code>data-rwd-mask</code> aparecem como <code>••••</code> em snapshots, capturas de tela, console, dados de rede e no log da sessão. Adicione seletores e expressões regulares por projeto.' },
+      { title: 'Cliques sensíveis precisam de um sim', body: 'Marque botões com <code>data-rwd-confirm</code> (“Enviar pedido”, “Excluir conta”) e o usuário confirma cada clique do agente neles.' },
+      { title: 'Níveis de permissão', body: '<strong>observe</strong> lê, <strong>interact</strong> opera, <strong>advanced</strong> acrescenta scripts, corpos de requisição e armazenamento. Com limite por chave e por projeto.' },
+      { title: 'Log de auditoria', body: 'Cada conexão, aprovação, RPC e tomada de controle é registrada com quem, o quê e quando — nunca o conteúdo da página nem os valores dos parâmetros.' },
+    ],
+    levels: [
+      { name: 'observe', tools: 'snapshots, capturas de tela, console, lista de rede, log da sessão, find, wait' },
+      { name: 'interact', tools: '+ click, fill, type, press, select, hover, scroll, drag, navigate' },
+      { name: 'advanced', tools: '+ evaluate_script (patches ao vivo), corpos de requisição/resposta, armazenamento' },
+    ],
+  },
+  native: {
+    kicker: 'Apps nativos',
+    title: 'No seu app, é um user script',
+    lead:
+      'Baixe o SDK uma vez e injete-o no início do documento — WKUserScript no iOS, addDocumentStartJavaScript no Android. Suas páginas web não mudam em nada.',
+    extras: [
+      { title: 'Um código do dispositivo em toda parte', body: 'Passe um <code>deviceId</code> estável (e guarde o <code>deviceToken</code>) para que o código continue o mesmo entre WebViews e domínios.' },
+      { title: 'Controles nativos', body: 'Mostre seus próprios botões de assumir / devolver / encerrar com <code>nativeControl()</code>; scripts da página não conseguem chamá-lo.' },
+      { title: 'Diálogos de aprovação nativos', body: '<code>nativeApproval: true</code> entrega os pedidos de conexão e as confirmações para a interface do seu próprio app.' },
+      { title: 'Capturas com pixels reais', body: 'Uma bridge pequena (snapshot do WKWebView, bitmap no Android) dá ao agente pixels de verdade em vez de uma renderização do DOM.' },
+    ],
+    tabs: { ios: 'iOS (Swift)', android: 'Android (Kotlin)', h5: 'Página H5' },
+  },
+  selfHost: {
+    kicker: 'Auto-hospedado',
+    title: 'Um binário Go. Seus servidores. Seus dados.',
+    lead: 'O gateway embute o console web e o SDK da página. SQLite de fábrica, Postgres quando você precisar, Docker Compose e Caddy para o HTTPS.',
+    points: [
+      { title: 'Console', body: 'Dispositivos, chaves de API, membros e papéis, convites por QR code, políticas e um log de auditoria — além de um guia de integração já preenchido com as suas chaves.' },
+      { title: 'Armazenamento', body: 'Arquivo SQLite por padrão; defina <code>RWD_DATABASE_URL=postgres://…</code> para usar Postgres.' },
+      { title: 'Operação', body: 'Métricas do Prometheus em <code>/v1/metrics</code>, URLs do SDK versionadas com SRI, health check em <code>/v1/healthz</code>.' },
+    ],
+    stepsTitle: 'Início rápido',
+    dockerComment: '# um contêiner: console + gateway + SDK',
+    deployComment: '# ou compile, publique e tenha HTTPS com o Caddy',
+    resultComment: '# → console  https://rwd.example.com\n# → gateway  https://rwd.example.com/v1  (MCP em /v1/mcp)',
+    requires: 'O servidor só precisa do Docker; compilar a partir do código-fonte exige Go e Node.',
+    docsLink: 'Guia de implantação',
+  },
+  faq: {
+    kicker: 'Perguntas frequentes',
+    title: 'O que as pessoas perguntam',
+    items: [
+      {
+        q: 'O usuário precisa instalar alguma coisa?',
+        a: 'Não. Em páginas H5, o SDK faz parte da sua página. Em um app, você o injeta pelo código nativo. O usuário só vê uma pequena pílula com o código do dispositivo e, quando um agente se conecta, um diálogo de aprovação.',
+      },
+      {
+        q: 'O que o agente consegue ver e fazer?',
+        a: 'Só o que o usuário aprovou: as páginas WebView daquele dispositivo, no nível concedido. Ele nunca controla nada fora da WebView. Campos mascarados continuam mascarados, e o conteúdo da página é passado ao modelo como dado não confiável.',
+      },
+      {
+        q: 'O bug aconteceu antes de o agente se conectar. Está perdido?',
+        a: 'Não. O SDK mantém um log da sessão no dispositivo desde que o app abriu — páginas, toques, console e requisições — então um agente que se conecta depois lê todo o caminho até o bug com <code>get_session_log</code>. Fora isso, o log nunca sai do celular.',
+      },
+      {
+        q: 'O agente consegue corrigir o bug no celular?',
+        a: 'Ele consegue verificar uma correção: no nível <strong>advanced</strong>, <code>evaluate_script</code> aplica um patch na página em execução, em memória — corrigir um estado, sobrescrever uma função, renderizar de novo — e o agente vê se o problema desaparece. A correção de verdade continua indo pelo seu processo de release normal; nada é persistido no dispositivo.',
+      },
+      {
+        q: 'Com quais agentes funciona?',
+        a: 'Com qualquer cliente MCP. O Claude Code, o Codex e o Cursor usam direto o endpoint Streamable HTTP hospedado; clientes que só falam stdio usam <code>rwd mcp</code>, uma bridge pequena para o mesmo endpoint.',
+      },
+      {
+        q: 'Quais plataformas são suportadas?',
+        a: 'Qualquer WebView ou navegador móvel moderno: WKWebView no iOS, Android System WebView, navegadores dentro de apps e o Safari ou o Chrome do celular. Navegadores de desktop também funcionam.',
+      },
+      {
+        q: 'E em redes ruins ou com o WebSocket bloqueado?',
+        a: 'A página mantém um WebSocket de heartbeat leve com back-off exponencial. Se ela não conseguir se conectar três vezes seguidas, passa a uma verificação de presença por minuto, e o gateway a acorda quando um agente quiser se conectar.',
+      },
+      {
+        q: 'Isso deixa a minha página mais lenta?',
+        a: 'É uma tag script. Os registros de console e de rede ficam em ring buffers limitados (500 entradas cada, corpos de resposta limitados a 5 MB), o log da sessão é escrito em segundo plano e uma conexão ociosa só troca heartbeats.',
+      },
+      {
+        q: 'Funciona junto com eruda, vConsole ou PageSpy?',
+        a: 'Sim — os nós deles são ignorados pelos snapshots e pelo hit-testing, o nosso próprio tráfego fica fora dos logs de rede deles, e ele pode até viver como uma aba dentro do eruda.',
+      },
+      {
+        q: 'A demo acima é real?',
+        a: 'O SDK é real e sem modificações; só o gateway é simulado no seu navegador. Um shim de WebSocket faz um túnel da conexão do SDK até ele com <code>postMessage</code>, e um agente roteirizado envia os mesmos RPCs que um gateway real enviaria. Para ver a coisa real de ponta a ponta, <a href="#live">teste com o seu próprio agente</a>.',
+      },
+    ],
+  },
+  footer: {
+    tagline: 'Deixe agentes de IA depurarem páginas H5 e WebViews de apps em celulares reais.',
+    project: 'Projeto',
+    docs: 'Documentação',
+    languages: 'Idiomas',
+    links: {
+      github: 'GitHub',
+      issues: 'Issues',
+      license: 'Licença MIT',
+      protocol: 'Protocolo',
+      gateway: 'Gateway',
+      sdk: 'SDK da página',
+      architecture: 'Arquitetura',
+      native: 'Integração nativa',
+    },
+    note: 'Publicado sob a Licença MIT. Sem cookies, sem rastreamento.',
+  },
+  notFound: {
+    title: 'Página não encontrada',
+    body: 'Esta página não existe — talvez o dispositivo tenha ficado offline.',
+    home: 'Voltar para a página inicial',
+  },
+  copy: { copy: 'Copiar', copied: 'Copiado' },
+}

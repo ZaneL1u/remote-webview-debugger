@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /demo-shop/
 
-Sitemap: https://debugger.site/sitemap.xml
+Sitemap: https://debugger.site/sitemap-index.xml

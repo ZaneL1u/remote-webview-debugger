@@ -1,0 +1,35 @@
+---
+// One language's home page.
+import type { Locale } from '../i18n/locales.ts'
+import { dict } from '../i18n/index.ts'
+import Base from '../layouts/Base.astro'
+import Hero from './Hero.astro'
+import Demo from './Demo.astro'
+import Live from './Live.astro'
+import How from './How.astro'
+import Features from './Features.astro'
+import Highlights from './Highlights.astro'
+import Privacy from './Privacy.astro'
+import Native from './Native.astro'
+import SelfHost from './SelfHost.astro'
+import Faq from './Faq.astro'
+
+interface Props {
+  locale: Locale
+}
+const { locale } = Astro.props
+const t = dict(locale.code)
+---
+
+<Base t={t} locale={locale}>
+  <Hero t={t} />
+  <Demo t={t} locale={locale} />
+  <Live t={t} locale={locale} />
+  <How t={t} locale={locale} />
+  <Features t={t} />
+  <Highlights t={t} />
+  <Privacy t={t} locale={locale} />
+  <Native t={t} locale={locale} />
+  <SelfHost t={t} />
+  <Faq t={t} />
+</Base>

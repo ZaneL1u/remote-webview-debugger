@@ -1,0 +1,31 @@
+---
+import '../styles/global.css'
+import { en } from '../i18n/en.ts'
+import { zh } from '../i18n/zh.ts'
+import Backdrop from '../components/Backdrop.astro'
+import Logo from '../components/Logo.astro'
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>404 · Remote WebView Debugger</title>
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline set:html={`(function(){var d=document.documentElement;d.className+=' js no-motion';try{var t=localStorage.getItem('rwd.theme');if(t==='light'||t==='dark')d.setAttribute('data-theme',t);}catch(e){}})();`} />
+  </head>
+  <body class="nf">
+    <Backdrop />
+    <main class="nf-main" id="main">
+      <a class="brand" href="/"><Logo id="lg-n" /><span class="brand-name"><span class="brand-remote">Remote </span>WebView Debugger</span></a>
+      <p class="nf-code">404</p>
+      <h1>{en.notFound.title} <span lang="zh-CN">· {zh.notFound.title}</span></h1>
+      <p>{en.notFound.body}<br /><span lang="zh-CN">{zh.notFound.body}</span></p>
+      <p class="nf-links"><a class="btn btn-primary" href="/">{en.notFound.home}</a><a class="btn btn-ghost" href="/zh/" lang="zh-CN">{zh.notFound.home}</a></p>
+    </main>
+    <script src="../scripts/notfound.ts"></script>
+  </body>
+</html>

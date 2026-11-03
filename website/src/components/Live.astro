@@ -1,0 +1,82 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import type { Locale } from '../i18n/locales.ts'
+import { code, copyButton, escapeHtml, qr, tabs } from '../lib/html.ts'
+import { DEMO } from '../lib/site.ts'
+import * as S from '../lib/snippets.ts'
+import Icon from './Icon.astro'
+import SectionHead from './SectionHead.astro'
+
+interface Props {
+  t: Dict
+  locale: Locale
+}
+const { t, locale } = Astro.props
+const l = t.live
+// The shop in the shop's language, the SDK's UI in the visitor's.
+const shop = `${DEMO}/?lang=${locale.shop}&ui=${encodeURIComponent(locale.code)}`
+const keyed = (html: string) => html.replace(/rwd_sk_live_…/g, '<span data-live-key>rwd_sk_live_…</span>')
+const mcp = tabs('live', l.tabsLabel, [
+  { key: 'claude', title: 'Claude Code', body: keyed(code(S.liveClaudeSnippet(), 'sh', 'terminal')) },
+  { key: 'codex', title: 'Codex', body: keyed(code(S.liveCodexSnippet(), 'sh', 'terminal')) },
+  { key: 'cursor', title: 'Cursor', body: keyed(code(S.liveCursorSnippet(), 'json', '.cursor/mcp.json')) },
+])
+const prompt = `<div class="code code-prompt"><div class="code-head"><span class="code-label">${escapeHtml(l.promptLabel)}</span>${copyButton()}</div><pre tabindex="0"><code>${escapeHtml(l.prompt).replace('XXXX-XXXX', '<span data-live-device>XXXX-XXXX</span>')}</code></pre></div>`
+---
+
+<section id="live" class="section section-alt" aria-labelledby="live-title">
+  <div class="wrap">
+    <SectionHead num="02" kicker={l.kicker} title={l.title} lead={l.lead} id="live-title" />
+    <div class="live" data-live={`${DEMO}/demo/rwd-demo.json`} data-live-keys={`${DEMO}/v1/demo/keys`} data-live-state="idle" data-live-origin={DEMO}>
+      <ol class="live-steps">
+        <li class="live-step is-key reveal hud">
+          <span class="step-num" aria-hidden="true">01</span>
+          <h3>{l.steps[0].title}</h3>
+          <p set:html={l.steps[0].body} />
+          <div class="live-visual live-get">
+            <button class="btn btn-primary" type="button" data-live-get><Icon name="key" /><span>{l.getKey}</span></button>
+            <p class="live-status" data-live-status data-loading={l.keyLoading} data-ready={l.keyReady} data-failed={l.keyFailed} data-limited={l.keyLimited} aria-live="polite">
+              <span class="status-dot" aria-hidden="true"></span><span data-live-text>{l.keyIdle}</span>
+            </p>
+          </div>
+        </li>
+        <li class="live-step reveal hud">
+          <span class="step-num" aria-hidden="true">02</span>
+          <h3>{l.steps[1].title}</h3>
+          <p set:html={l.steps[1].body} />
+          <div class="live-visual" set:html={mcp} />
+        </li>
+        <li class="live-step reveal hud">
+          <span class="step-num" aria-hidden="true">03</span>
+          <h3>{l.steps[2].title}</h3>
+          <p set:html={l.steps[2].body} />
+          <div class="live-visual">
+            <Fragment set:html={prompt} />
+            <p class="live-device is-waiting" data-live-device-status data-waiting={l.deviceWaiting} data-unavailable={l.deviceUnavailable} data-ready-tpl={l.deviceReady('{code}')}>
+              <span class="status-dot" aria-hidden="true"></span><span data-live-device-text>{l.deviceWaiting}</span>
+            </p>
+            <p class="live-note" set:html={l.promptNote} />
+          </div>
+        </li>
+      </ol>
+      <div class="live-phone reveal" data-live-phone>
+        <p class="phone-label"><Icon name="phone" /><span>{l.phoneTitle}</span><code data-live-phone-code>····-····</code></p>
+        <div class="phone-stage" data-live-stage>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-status" aria-hidden="true"><span>9:41</span><span class="phone-island"></span><span class="phone-icons"><i class="sig"></i><i class="bat"></i></span></div>
+              <iframe data-live-frame title={l.phoneTitle} data-src={shop} loading="lazy" referrerpolicy="no-referrer"></iframe>
+              <div class="phone-loading" data-live-loading>{l.deviceWaiting}</div>
+            </div>
+          </div>
+        </div>
+        <div class="live-open">
+          <figure class="live-qr"><Fragment set:html={qr(shop, l.scan)} /><figcaption>{l.scan}</figcaption></figure>
+          <a class="btn btn-ghost" href={shop} target="_blank" rel="noopener"><Icon name="phone" /><span>{l.open}</span><Icon name="arrow" /></a>
+        </div>
+        <p class="live-phone-hint" set:html={l.phoneHint} />
+      </div>
+    </div>
+    <div class="live-limits reveal"><h3><Icon name="shield" />{l.limitsTitle}</h3><ul>{l.limits.map(x => <li set:html={x} />)}</ul></div>
+  </div>
+</section>

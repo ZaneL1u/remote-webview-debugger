@@ -1,0 +1,62 @@
+---
+import type { Dict } from '../i18n/en.ts'
+import SectionHead from './SectionHead.astro'
+
+interface Props {
+  t: Dict
+}
+const { t } = Astro.props
+const h = t.highlights
+const [log, patch, agent] = h.items
+const rowClass = (r: string) => (/error|错误|報錯|报错|エラー|오류|ошибк|erreur|fehler|خطأ|erro/i.test(r) ? 'is-err' : /agent|エージェント|에이전트|агент|agente|وكيل/i.test(r) ? 'is-agent' : /get_session_log/.test(r) ? 'is-read' : '')
+---
+
+<section id="highlights" class="section section-alt" aria-labelledby="highlights-title">
+  <div class="wrap">
+    <SectionHead num="05" kicker={h.kicker} title={h.title} lead={h.lead} id="highlights-title" />
+    <div class="spots">
+      <article class="spot reveal hud" data-spot="log">
+        <div class="spot-text">
+          <span class="spot-tag">{log.tag}</span>
+          <h3>{log.title}</h3>
+          <p set:html={log.body} />
+        </div>
+        <div class="screen" aria-hidden="true">
+          <div class="screen-head">{log.visual.title}</div>
+          <div class="screen-body" data-log-rows>
+            {log.visual.rows?.map(r => <span class={`log-row ${rowClass(r)}`}>{r}</span>)}
+            <span class="log-cursor"></span>
+          </div>
+        </div>
+      </article>
+      <article class="spot reveal hud" data-spot="patch">
+        <div class="spot-text">
+          <span class="spot-tag">{patch.tag}</span>
+          <h3>{patch.title}</h3>
+          <p set:html={patch.body} />
+        </div>
+        <div class="screen" aria-hidden="true">
+          <div class="screen-head">{patch.visual.title}</div>
+          <div class="screen-body patch" data-patch>
+            <div class="patch-total"><span>{patch.visual.before?.split(/\s{2,}/)[0]}</span><span class="val" data-patch-val data-before={patch.visual.before?.split(/\s{2,}/)[1]} data-after={patch.visual.after?.split(/\s{2,}/)[1]}>{patch.visual.before?.split(/\s{2,}/)[1]}</span></div>
+            <div class="patch-arrow"><span>evaluate_script</span><i></i></div>
+            <div class="patch-code">{patch.visual.code}</div>
+          </div>
+        </div>
+      </article>
+      <article class="spot reveal hud" data-spot="agent">
+        <div class="spot-text">
+          <span class="spot-tag">{agent.tag}</span>
+          <h3>{agent.title}</h3>
+          <p set:html={agent.body} />
+        </div>
+        <div class="screen" aria-hidden="true">
+          <div class="screen-head">{agent.visual.title}</div>
+          <div class="screen-body" data-log-rows>
+            {agent.visual.rows?.map((r, i) => <span class={`log-row ${i === 0 ? 'is-head' : /error|错误|報錯|报错|エラー|오류|ошибк|erreur|fehler|خطأ|erro/i.test(r) ? 'is-err' : ''}`}>{r}</span>)}
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

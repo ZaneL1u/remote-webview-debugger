@@ -1,6 +1,8 @@
 // Code shown on the page. Formats follow console/src/lib/snippets.ts (what
 // the product's own console hands out), shortened for the website.
 
+import { DEMO, SDK_CDN } from './site.ts'
+
 type L = 'en' | 'zh'
 
 const GW = 'https://rwd.example.com/v1'
@@ -8,10 +10,10 @@ const GW = 'https://rwd.example.com/v1'
 export function h5Snippet(lang: L) {
   const c =
     lang === 'zh'
-      ? ['<!-- 放在 <head> 里，越早越好 -->', '// 可选：按用户查找设备', '// 显示「请求协助」按钮']
-      : ['<!-- In <head>, before your own scripts -->', '// optional: find devices by user', '// show the “Request assistance” button']
+      ? ['<!-- 放在 <head> 里，越早越好；生产环境请锁定版本号 -->', '// 可选：按用户查找设备', '// 显示「请求协助」按钮']
+      : ['<!-- In <head>, before your own scripts; pin a version in production -->', '// optional: find devices by user', '// show the “Request assistance” button']
   return `${c[0]}
-<script src="${GW}/sdk.js"></script>
+<script src="${SDK_CDN}"></script>
 <script>
   RemoteWebviewDebugger.run("${GW}", "rwd_pk_…", {
     userId: currentUser?.id ?? null, ${c[1]}
@@ -25,6 +27,12 @@ export function claudeCodeSnippet() {
   --header "Authorization: Bearer rwd_sk_live_…"`
 }
 
+export function codexSnippet() {
+  return `codex mcp add rwd --url ${GW}/mcp \\
+  --bearer-token-env-var RWD_API_KEY
+export RWD_API_KEY=rwd_sk_live_…`
+}
+
 export function cursorSnippet() {
   return JSON.stringify(
     { mcpServers: { rwd: { url: `${GW}/mcp`, headers: { Authorization: 'Bearer rwd_sk_live_…' } } } },
@@ -33,12 +41,15 @@ export function cursorSnippet() {
   )
 }
 
-// The public demo gateway (deploy/demo); main.ts fills in the visitor's key.
-export const DEMO = 'https://demo.debugger.site'
-
 export function liveClaudeSnippet() {
   return `claude mcp add --transport http rwd-demo ${DEMO}/v1/mcp \\
   --header "Authorization: Bearer rwd_sk_live_…"`
+}
+
+export function liveCodexSnippet() {
+  return `codex mcp add rwd-demo --url ${DEMO}/v1/mcp \\
+  --bearer-token-env-var RWD_DEMO_KEY
+export RWD_DEMO_KEY=rwd_sk_live_…`
 }
 
 export function liveCursorSnippet() {
@@ -110,19 +121,17 @@ fun installRemoteDebugger(webView: WebView, userId: String?, onReady: () -> Unit
 }`
 }
 
-export function selfHostSnippet(t: { deployComment: string; runComment: string; resultComment: string }) {
-  return `git clone https://github.com/ZaneL1u/remote-webview-debugger
-cd remote-webview-debugger
+export function selfHostSnippet(t: { dockerComment: string; deployComment: string; resultComment: string }) {
+  return `${t.dockerComment}
+docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \\
+  -e RWD_ADMIN_PASSWORD='change-me' \\
+  ghcr.io/zanel1u/remote-webview-debugger:latest
 
 ${t.deployComment}
+git clone https://github.com/ZaneL1u/remote-webview-debugger
 RWD_DOMAIN=rwd.example.com \\
-  deploy/platform/deploy.sh you@your-server amd64
-${t.resultComment}
-
-${t.runComment}
-make -j16
-RWD_ADMIN_PASSWORD=change-me \\
-  gateway/bin/rwd-darwin-arm64 serve --addr :8080`
+  remote-webview-debugger/deploy/platform/deploy.sh you@your-server amd64
+${t.resultComment}`
 }
 
 export function maskedSnapshot(lang: L) {
@@ -171,6 +180,8 @@ export const TOOLS = [
   'evaluate_script',
   'set_task',
   'get_session_timeline',
+  'get_session_overview',
+  'get_session_log',
   'wait_for_event',
   'wait_for_control',
   'disconnect_device',

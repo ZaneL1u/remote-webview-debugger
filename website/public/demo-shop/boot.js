@@ -3,6 +3,13 @@
 // the SDK's WebSocket to it. Outside the website's demo frame this does nothing.
 (function () {
   var lang = /\/zh\//.test(location.pathname) ? 'zh' : 'en'
+  // The SDK's UI language: the website passes the visitor's language as
+  // ?ui=<tag> on the first page; later pages of the shop remember it.
+  var ui = new URLSearchParams(location.search).get('ui')
+  try {
+    if (ui) sessionStorage.setItem('rwd-demo:ui', ui)
+    else ui = sessionStorage.getItem('rwd-demo:ui')
+  } catch (e) {}
 
   // Keep the shop's navigations out of the website's session history (an
   // iframe's navigations would otherwise pile up behind the browser's Back
@@ -52,7 +59,7 @@
 
   if (window.parent === window || !window.RemoteWebviewDebugger) return
   RemoteWebviewDebugger.run(location.origin + '/mock-gateway/v1', 'rwd_pk_demo7Hc2Qm9XvB4nL8sKd3Rt', {
-    lang: lang,
+    lang: ui || lang,
     helpButton: true,
     userId: 'demo-user-42',
     app: { name: lang === 'zh' ? '演示商城' : 'Demo Shop', version: '1.0.0' },

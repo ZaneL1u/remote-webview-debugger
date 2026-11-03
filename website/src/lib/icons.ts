@@ -32,6 +32,13 @@ const P: Record<string, string> = {
   server: '<rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/>',
   db: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
   chart: '<path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/>',
+  wrench: '<path d="M14.5 5.5a4 4 0 015 5l-9.3 9.3a2 2 0 01-2.8-2.8l9.3-9.3"/><path d="M14.5 5.5l-2 2 3.5 3.5 2-2"/>',
+  wifi: '<path d="M3 9.5a13 13 0 0118 0M6.3 13a8.5 8.5 0 0111.4 0M9.6 16.4a4 4 0 014.8 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/>',
+  pointer: '<path d="M9 11.5V5a1.5 1.5 0 013 0v5.5M12 10.5V8.5a1.5 1.5 0 013 0v2.5M15 11V9.5a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-.5a6 6 0 01-5-2.7L4.2 15a1.4 1.4 0 012.3-1.6L9 16.2"/>',
+  chevron: '<path d="M6 9l6 6 6-6"/>',
+  claude: '<path fill="currentColor" stroke="none" d="M12 2.5l1.6 5.3 5.2-1.9-3.7 4.1 4.9 2.5-5.4.6 1.9 5.2-4.5-3.2-4.5 3.2 1.9-5.2-5.4-.6 4.9-2.5L5.2 5.9l5.2 1.9z"/>',
+  codex: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M12 11v10M4 7l8 4 8-4"/>',
+  spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>',
 }
 
 export function icon(name: string, cls = 'ic'): string {

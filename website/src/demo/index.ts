@@ -1,12 +1,12 @@
 // Mounts the interactive demo: phone frame + mock gateway + scripted agent,
-// and the play / pause / restart / speed controls.
+// the play / pause / restart / speed controls and the agent-style switch.
 
-import { en } from '../i18n/en'
-import { zh } from '../i18n/zh'
-import { MockGateway } from './gateway'
+import { dict } from '../i18n/index.ts'
+import { scriptText } from './text/index.ts'
+import { MockGateway, type Lang } from './gateway'
+import { Guide } from './guide.ts'
 import { Cancelled, Player } from './player'
 import { Ended, runPrelude, runScenario, type ScenarioCtx } from './scenario'
-import { SCRIPT_TEXT } from './script-text'
 import { Tools } from './tools'
 import { Tunnel } from './tunnel'
 import { View, type DemoState } from './view'
@@ -21,17 +21,22 @@ export interface DemoDebug {
   stopped: string | null
   errors: string[]
   calls: number
+  verified: boolean | null
 }
 
 export function mountDemo(root: HTMLElement) {
-  const lang = (root.dataset.lang === 'zh' ? 'zh' : 'en') as 'en' | 'zh'
-  const d = (lang === 'zh' ? zh : en).demo
-  const st = SCRIPT_TEXT[lang]
+  const code = root.dataset.lang || 'en'
+  // The shop (and the mock gateway's tool results) are English or Chinese;
+  // the agent's own messages and the SDK's UI follow the page language.
+  const shop: Lang = root.dataset.shop === 'zh' ? 'zh' : 'en'
+  const d = dict(code).demo
+  const st = scriptText(code)
   const frame = root.querySelector<HTMLIFrameElement>('[data-phone-frame]')!
   const stage = root.querySelector<HTMLElement>('[data-phone-stage]')!
   const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!
   const restartBtn = root.querySelector<HTMLButtonElement>('[data-restart]')!
   const speedBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-speed]')]
+  const skinBtns = [...root.querySelectorAll<HTMLButtonElement>('.skin [data-skin]')]
   const startBtn = root.querySelector<HTMLButtonElement>('[data-start]')
 
   const states: Record<DemoState, string> = {
@@ -46,7 +51,8 @@ export function mountDemo(root: HTMLElement) {
   }
   const view = new View(root, { expand: d.expand, collapse: d.collapse, running: d.running, error: d.error, you: d.you, agent: d.agent, customer: d.customer, states })
   const tunnel = new Tunnel(frame)
-  const debug: DemoDebug = { phase: 'idle', runs: 0, done: false, stopped: null, errors: [], calls: 0 }
+  const guide = new Guide(frame, root)
+  const debug: DemoDebug = { phase: 'idle', runs: 0, done: false, stopped: null, errors: [], calls: 0, verified: null }
   ;(window as any).__rwdDemo = debug
 
   let gw: MockGateway | null = null
@@ -54,11 +60,30 @@ export function mountDemo(root: HTMLElement) {
   let lastState: DemoState = 'idle'
   const player = new Player(() => syncControls())
 
+  /* ------------------------------- skins ------------------------------- */
+
+  const setSkin = (skin: string) => {
+    root.dataset.skin = skin
+    for (const b of skinBtns) b.setAttribute('aria-pressed', String(b.dataset.skin === skin))
+    try {
+      localStorage.setItem('rwd.skin', skin)
+    } catch {
+      // Fine.
+    }
+  }
+  let saved = 'claude'
+  try {
+    saved = localStorage.getItem('rwd.skin') || 'claude'
+  } catch {
+    // Fine.
+  }
+  setSkin(saved === 'codex' ? 'codex' : 'claude')
+  for (const b of skinBtns) b.addEventListener('click', () => setSkin(b.dataset.skin || 'claude'))
+
   /* ------------------------------- phone ------------------------------- */
 
   const fit = () => {
     const w = stage.clientWidth || PHONE_W
-    // Keep the whole demo card on screen on laptops; phones get a readable size.
     const maxH = window.innerWidth < 720 ? 600 : Math.max(540, Math.min(700, window.innerHeight - 250))
     const s = Math.min(1, w / PHONE_W, maxH / PHONE_H)
     stage.style.setProperty('--s', s.toFixed(4))
@@ -100,14 +125,15 @@ export function mountDemo(root: HTMLElement) {
 
   /** A fresh phone: new gateway, clean SDK state, the shop's front page. */
   const freshPhone = async () => {
+    guide.hide()
     gw?.dispose()
     gw = null
     tunnel.use(null)
     if (frame.getAttribute('src')) await navigateFrame('about:blank')
     clearStorage()
-    const g = (gw = new MockGateway(lang))
+    const g = (gw = new MockGateway(shop))
     tunnel.use(g)
-    await navigateFrame(`/demo-shop/${lang}/index.html`)
+    await navigateFrame(`/demo-shop/${shop}/index.html?ui=${encodeURIComponent(code)}`)
     await g.waitFor(() => g.foreground(), 5000)
   }
   let phoneReady: Promise<void> = Promise.resolve()
@@ -136,7 +162,6 @@ export function mountDemo(root: HTMLElement) {
     if (running) view.status(player.paused ? 'paused' : lastState === 'paused' ? 'running' : lastState)
   }
 
-  // Remember the scenario's own state so pause / resume can restore it.
   const origStatus = view.status.bind(view)
   view.status = (s: DemoState) => {
     if (s !== 'paused') lastState = s
@@ -151,6 +176,7 @@ export function mountDemo(root: HTMLElement) {
     debug.done = false
     debug.stopped = null
     debug.calls = 0
+    debug.verified = null
     view.clear()
     view.hideStart()
     syncControls()
@@ -161,12 +187,14 @@ export function mountDemo(root: HTMLElement) {
       await phoneReady
     }
     if (!player.alive(tk) || !gw) return
-    const tools = new Tools(gw, lang)
+    const tools = new Tools(gw, shop)
     const ctx: ScenarioCtx = {
-      lang,
+      lang: code,
+      shop,
       gw,
       tools,
       view,
+      guide,
       player,
       token: tk,
       frame,
@@ -174,6 +202,7 @@ export function mountDemo(root: HTMLElement) {
         debug.calls = n
         view.progress(n / total)
       },
+      onVerified: ok => (debug.verified = ok),
     }
     try {
       await runPrelude(ctx)
@@ -183,6 +212,7 @@ export function mountDemo(root: HTMLElement) {
       view.progress(1)
       debug.done = true
     } catch (e) {
+      guide.hide()
       if (e instanceof Cancelled || !player.alive(tk)) return
       if (e instanceof Ended) {
         debug.stopped = e.why
@@ -228,7 +258,6 @@ export function mountDemo(root: HTMLElement) {
   startBtn?.addEventListener('click', () => void start())
   for (const b of speedBtns) b.addEventListener('click', () => player.setSpeed(Number(b.dataset.speed) || 1))
 
-  // Pause / resume with the space bar while the demo has focus (not inside the phone).
   root.addEventListener('keydown', e => {
     if (e.key === ' ' && e.target === root) {
       e.preventDefault()
