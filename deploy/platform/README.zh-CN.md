@@ -13,8 +13,8 @@
 
 | 文件 | 作用 |
 |---|---|
-| `Dockerfile` | 网关镜像：Alpine 加上预先构建好的 `rwd` 二进制（内嵌控制台和 SDK）。以 uid 10001 运行，设置 `RWD_ADDR=:8080`、`RWD_DATA=/data/rwd.db` 和 `RWD_TRUST_PROXY=1`（它只会在 Caddy 后面） |
-| `compose.yml` | 两个服务。`gateway`：由 Dockerfile 构建，`./data` 挂载到 `/data`，配置来自 `.env`，不对外发布端口。`web`：`caddy:2-alpine`，发布在 `${BIND:-127.0.0.1}:${PORT:-18788}`，在 `/demo/` 下提供 `./demo`，其余请求全部转给网关 |
+| `Dockerfile` | 网关镜像：Alpine 加上预先构建好的 `rwd` 二进制（内嵌控制台和 SDK）。以 uid 10001 运行，设置 `RWD_ADDR=:8080` 和 `RWD_DATA=/data/rwd.db`，带 `/v1/healthz` 健康检查。发布到 GHCR 的也是这个镜像，可以单独运行 |
+| `compose.yml` | 两个服务。`gateway`：由 Dockerfile 构建，`./data` 挂载到 `/data`，配置来自 `.env`，设置 `RWD_TRUST_PROXY=1`（只有 Caddy 能访问到它），不对外发布端口。`web`：`caddy:2-alpine`，发布在 `${BIND:-127.0.0.1}:${PORT:-18788}`，在 `/demo/` 下提供 `./demo`，其余请求全部转给网关 |
 | `Caddyfile` | 在 `:80` 上提供明文 HTTP。只信任来自 `RWD_TRUSTED_PROXIES`（默认私有地址段）的 `X-Forwarded-*` |
 | `compose.tls.yml` | 直接提供 HTTPS 的叠加配置：增加 `443/tcp` 和 `443/udp`（HTTP/3）端口，换用 `Caddyfile.tls`，证书保存在 `caddy-data` 卷里 |
 | `Caddyfile.tls` | 用自动签发的证书为 `RWD_DOMAIN` 提供 HTTPS，并把 HTTP 重定向到 HTTPS |
@@ -139,6 +139,8 @@ docker compose up -d --build
 ### 使用发版镜像
 
 网关每次发版还会发布镜像 `ghcr.io/zanel1u/remote-webview-debugger`（linux/amd64 和 linux/arm64，内嵌控制台和 SDK），tag 有 `<版本号>`（如 `0.2.0`）、`<主版本>.<次版本>` 和 `latest`。想直接用它而不是自己构建：把 `compose.yml` 里的 `build: .` 和 `image: rwd-gateway:local` 换成 `image: ghcr.io/zanel1u/remote-webview-debugger:<版本号>`，不用复制二进制，然后 `docker compose up -d`。升级时改 tag，再 `docker compose pull && docker compose up -d`（先像 `deploy.sh` 那样备份 `data/`）。
+
+只想快速试用、不用 Compose 的话，镜像也可以单独运行，见[快速开始](../../README.zh-CN.md#1-运行网关)。单独运行时它不信任 `X-Forwarded-*`；如果你在前面加了自己的反向代理，再加上 `-e RWD_TRUST_PROXY=1`。
 
 ## 升级
 

@@ -13,8 +13,8 @@ Runs the gateway on a Docker host with a small [Caddy](https://caddyserver.com) 
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Gateway image: Alpine plus the prebuilt `rwd` binary (console and SDK embedded). Runs as uid 10001 with `RWD_ADDR=:8080`, `RWD_DATA=/data/rwd.db` and `RWD_TRUST_PROXY=1` (it only ever sits behind Caddy) |
-| `compose.yml` | Two services. `gateway`: built from the Dockerfile, `./data` mounted at `/data`, settings from `.env`, not published. `web`: `caddy:2-alpine`, published on `${BIND:-127.0.0.1}:${PORT:-18788}`, serves `./demo` at `/demo/` and proxies everything else to the gateway |
+| `Dockerfile` | Gateway image: Alpine plus the prebuilt `rwd` binary (console and SDK embedded). Runs as uid 10001 with `RWD_ADDR=:8080` and `RWD_DATA=/data/rwd.db`, with a health check on `/v1/healthz`. The same image is published to GHCR and also runs on its own |
+| `compose.yml` | Two services. `gateway`: built from the Dockerfile, `./data` mounted at `/data`, settings from `.env`, `RWD_TRUST_PROXY=1` (only Caddy reaches it), not published. `web`: `caddy:2-alpine`, published on `${BIND:-127.0.0.1}:${PORT:-18788}`, serves `./demo` at `/demo/` and proxies everything else to the gateway |
 | `Caddyfile` | Plain HTTP on `:80`. Trusts `X-Forwarded-*` only from `RWD_TRUSTED_PROXIES` (default: private ranges) |
 | `compose.tls.yml` | Overlay for direct HTTPS: adds ports `443/tcp` and `443/udp` (HTTP/3), swaps in `Caddyfile.tls`, keeps certificates in the `caddy-data` volume |
 | `Caddyfile.tls` | Serves `RWD_DOMAIN` over HTTPS with an automatic certificate and redirects HTTP to HTTPS |
@@ -139,6 +139,8 @@ docker compose up -d --build
 ### With the release image
 
 Each gateway release also publishes the image `ghcr.io/zanel1u/remote-webview-debugger` for linux/amd64 and linux/arm64, tagged `<version>` (e.g. `0.2.0`), `<major>.<minor>` and `latest`, with the console and the SDK embedded. To run it instead of building one, replace `build: .` and `image: rwd-gateway:local` in `compose.yml` with `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, skip the binary, and start with `docker compose up -d`. Upgrade by changing the tag, then `docker compose pull && docker compose up -d` (back up `data/` first, as `deploy.sh` does).
+
+For a quick try without Compose, the image also runs on its own: see the [quick start](../../README.md#1-run-the-gateway). On its own it does not trust `X-Forwarded-*`; if you put your own proxy in front, add `-e RWD_TRUST_PROXY=1`.
 
 ## Upgrading
 

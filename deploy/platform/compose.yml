@@ -19,6 +19,7 @@ services:
     image: rwd-gateway:local
     restart: unless-stopped
     environment:
+      RWD_TRUST_PROXY: "1" # only `web` reaches it
       RWD_ADMIN_PASSWORD: ${RWD_ADMIN_PASSWORD:?set RWD_ADMIN_PASSWORD in .env}
       RWD_PUBLIC_URL: ${RWD_PUBLIC_URL:-}
       RWD_ADMIN_EMAIL: ${RWD_ADMIN_EMAIL:-}
