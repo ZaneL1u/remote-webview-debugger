@@ -16,6 +16,7 @@
 // --edit opens both changelogs in $EDITOR before the commit, to touch them up.
 // Pushing the tag (git push origin main <tag>) starts .github/workflows/release.yml.
 import { execFileSync, spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { determineSemverChange, formatReference, getGitDiff, loadChangelogConfig, parseCommits } from 'changelogen'
@@ -30,8 +31,8 @@ const COMPONENTS = {
     changelog: 'sdk/CHANGELOG',
     intro: 'The page SDK, published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger). Tags: `sdk-vX.Y.Z`.',
     introZh: '页面 SDK，npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)。tag 形如 `sdk-vX.Y.Z`。',
-    // Docs whose CDN / npm examples pin the SDK version.
-    docs: ['README.md', 'README.zh-CN.md', 'sdk/README.md', 'sdk/README.zh-CN.md', 'docs/native-integration.md', 'docs/native-integration.zh-CN.md'],
+    // Docs whose CDN / npm examples pin the SDK version, with their translations (X.<lang>.md).
+    docs: ['README.md', 'sdk/README.md', 'docs/native-integration.md'],
   },
   gateway: {
     name: 'gateway',
@@ -189,16 +190,28 @@ const changed = [
 if (id === 'sdk') {
   execFileSync('npm', ['version', version, '--no-git-tag-version', '--allow-same-version'], { cwd: path.join(root, 'sdk'), stdio: 'ignore' })
   changed.push('sdk/package.json', 'sdk/package-lock.json')
+  // A translation records the git blob id of the English file it was translated from
+  // (scripts/docs/i18n.mjs); one that was in step before the bump is stamped again after it.
+  const blobId = (buf) => createHash('sha1').update(`blob ${buf.length}\0`).update(buf).digest('hex')
+  const restamp = []
   for (const doc of comp.docs) {
-    const p = path.join(root, doc)
-    if (!fs.existsSync(p)) continue
-    const s = fs.readFileSync(p, 'utf8')
-    const t = s.replace(/(remote-webview-debugger@)\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?/g, `$1${version}`)
-    if (t !== s) {
+    const dir = path.dirname(doc)
+    const base = path.basename(doc, '.md')
+    const translations = fs.readdirSync(path.join(root, dir))
+      .filter((f) => f.startsWith(`${base}.`) && f.endsWith('.md') && f !== `${base}.md`)
+      .map((f) => path.join(dir, f))
+    const source = blobId(fs.readFileSync(path.join(root, doc)))
+    for (const file of [doc, ...translations]) {
+      const p = path.join(root, file)
+      const s = fs.readFileSync(p, 'utf8')
+      const t = s.replace(/(remote-webview-debugger@)\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?/g, `$1${version}`)
+      if (t === s) continue
       fs.writeFileSync(p, t)
-      changed.push(doc)
+      changed.push(file)
+      if (file !== doc && s.startsWith(`<!-- i18n-source: ${source} -->\n`)) restamp.push(file)
     }
   }
+  if (restamp.length) execFileSync('node', ['scripts/docs/i18n.mjs', 'stamp', ...restamp], { cwd: root, stdio: 'ignore' })
 }
 
 if (opts.edit) {
