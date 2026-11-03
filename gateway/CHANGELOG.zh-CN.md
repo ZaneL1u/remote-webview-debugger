@@ -4,6 +4,16 @@
 
 网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）。tag 形如 `gateway-vX.Y.Z`。
 
+## v0.1.1 (2026-11-03)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.1.0...gateway-v0.1.1)
+
+> 内嵌页面 SDK：v0.1.0
+
+### 🩹 修复
+
+- **deploy:** 镜像可以直接 docker run 单独运行，默认不再信任 X-Forwarded-* 请求头；新增健康检查 ([b66d1f9](https://github.com/ZaneL1u/remote-webview-debugger/commit/b66d1f9))
+
 ## v0.1.0 (2026-11-03)
 
 首个版本。
