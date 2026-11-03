@@ -1,0 +1,24 @@
+# The public site of the demo, in the host's own Caddy (which terminates
+# HTTPS). Replace demo.example.com with the demo's host name and 18789 with
+# PORT if you changed it.
+#
+# The root goes to the demo's entrance (/demo/index.html, written by
+# reset.sh), which opens the shop with today's AppKey. Only what visitors
+# need is public: the SDK, page connections, MCP, the health check and the
+# demo pages. The console and its API (/v1/api/*) stay private: reset.sh
+# reaches them on 127.0.0.1.
+demo.example.com {
+	encode zstd gzip
+
+	@public path /v1/sdk.js /v1/sdk/* /v1/page /v1/presence /v1/mcp /v1/healthz /demo/*
+	handle @public {
+		reverse_proxy 127.0.0.1:18789
+	}
+	# The website reads the current keys from here.
+	header /demo/rwd-demo.json Access-Control-Allow-Origin *
+
+	redir / /demo{uri}
+	handle {
+		respond "Not found" 404
+	}
+}
