@@ -33,7 +33,7 @@ export function cursorSnippet() {
   )
 }
 
-// The public demo gateway (deploy/demo); main.ts fills in today's key.
+// The public demo gateway (deploy/demo); main.ts fills in the visitor's key.
 export const DEMO = 'https://demo.debugger.site'
 
 export function liveClaudeSnippet() {

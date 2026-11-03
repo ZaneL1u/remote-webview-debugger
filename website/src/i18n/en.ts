@@ -104,7 +104,7 @@ export const en = {
       },
       {
         title: 'Add the demo gateway to your agent',
-        body: 'Run this once in a terminal, or add it to your MCP client’s settings. The key is public and limited, and it changes every day.',
+        body: 'Get a key of your own, then run the command once in a terminal or add it to your MCP client’s settings. The key only works on the demo and lasts until it starts over.',
       },
       {
         title: 'Ask your agent',
@@ -114,15 +114,19 @@ export const en = {
     open: 'Open the demo shop',
     scan: 'Scan to open it on your phone',
     tabsLabel: 'Demo MCP configuration',
-    keyLoading: 'Fetching today’s key…',
-    keyReady: 'Today’s key is filled in. If your agent later says it is invalid, copy the command again.',
+    getKey: 'Get my key',
+    keyIdle: 'Get a key and it is filled into the command.',
+    keyLoading: 'Getting your key…',
+    keyReady: 'Your own key is filled in. It stops working when the demo starts over (daily at 04:00 UTC+8); come back here for a new one.',
     keyFailed: 'The demo gateway can’t be reached right now; please try again later.',
+    keyLimited: 'Too many keys from your network; please try again in an hour.',
     prompt:
       'Use the rwd-demo MCP server and connect to device XXXX-XXXX. In the shop, choose the gift box for a product, go to checkout and find out why the total shows “--”.',
     promptLabel: 'Prompt',
     promptNote: 'Replace <code>XXXX-XXXX</code> with the code on your page.',
     limitsTitle: 'Limits of the demo',
     limits: [
+      'A key per visitor: your agent reaches only the page whose code you give it, after you allow it',
       'Level <strong>interact</strong> only: no scripts, request bodies or storage',
       'An agent keeps a page for at most 15 minutes (5 when idle)',
       '120 MCP requests per minute per IP',

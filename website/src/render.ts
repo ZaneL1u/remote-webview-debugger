@@ -241,7 +241,7 @@ function qr(text: string, label: string) {
   return `<svg class="qr" viewBox="-3 -3 ${n + 6} ${n + 6}" shape-rendering="crispEdges" role="img" aria-label="${escapeHtml(label)}"><rect x="-3" y="-3" width="${n + 6}" height="${n + 6}" fill="#fff"/><path d="${d}" fill="#04060d"/></svg>`
 }
 
-/** The real thing: the public demo gateway. main.ts fills in today's key. */
+/** The real thing: the public demo gateway. main.ts gets the visitor a key of their own. */
 function live(t: Dict, lang: 'en' | 'zh') {
   const l = t.live
   const shop = `${S.DEMO}/?lang=${lang}`
@@ -256,7 +256,9 @@ function live(t: Dict, lang: 'en' | 'zh') {
       <figure class="live-qr">${qr(shop, l.scan)}<figcaption>${l.scan}</figcaption></figure>
       <a class="btn btn-primary" href="${shop}" target="_blank" rel="noopener">${icon('phone')}<span>${l.open}</span>${icon('arrow')}</a>
     </div>`,
-    `${mcp}<p class="live-status" data-live-status data-ready="${escapeHtml(l.keyReady)}" data-failed="${escapeHtml(l.keyFailed)}" aria-live="polite"><span class="status-dot" aria-hidden="true"></span><span data-live-text>${l.keyLoading}</span></p>`,
+    `<div class="live-get"><button class="btn btn-primary" type="button" data-live-get>${icon('key')}<span>${l.getKey}</span></button>
+      <p class="live-status" data-live-status data-loading="${escapeHtml(l.keyLoading)}" data-ready="${escapeHtml(l.keyReady)}" data-failed="${escapeHtml(l.keyFailed)}" data-limited="${escapeHtml(l.keyLimited)}" aria-live="polite"><span class="status-dot" aria-hidden="true"></span><span data-live-text>${l.keyIdle}</span></p></div>
+      ${mcp}`,
     `${prompt}<p class="live-note">${l.promptNote}</p>`,
   ]
   const steps = l.steps
@@ -270,7 +272,7 @@ function live(t: Dict, lang: 'en' | 'zh') {
   return `<section id="live" class="section section-alt" aria-labelledby="live-title">
   <div class="wrap">
     ${sectionHead('02', l.kicker, l.title, l.lead, 'live-title')}
-    <div class="live" data-live="${S.DEMO}/demo/rwd-demo.json" data-live-state="loading">
+    <div class="live" data-live="${S.DEMO}/demo/rwd-demo.json" data-live-keys="${S.DEMO}/v1/demo/keys" data-live-state="idle">
       <ol class="live-steps">${steps}</ol>
       <div class="live-limits reveal"><h3>${icon('shield')}${l.limitsTitle}</h3><ul>${l.limits.map(x => `<li>${x}</li>`).join('')}</ul></div>
     </div>

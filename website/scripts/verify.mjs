@@ -7,9 +7,10 @@
 //    phone and takes over / hands back, the other lets the demo auto-approve),
 //    and fails on any console error or uncaught error from the website itself.
 //    (The demo shop's own errors are the bug under investigation and expected.)
-// 2. Checks the "try it live" section: today's key from the public demo
-//    gateway (a fixture here) lands in the snippets, and a gateway that can't
-//    be reached says so.
+// 2. Checks the "try it live" section against a fixture of the public demo
+//    gateway: "Get my key" fills the visitor's key into the snippets, the key
+//    is remembered after a reload, and a gateway that can't be reached or
+//    refuses more keys says so.
 // 3. Screenshots desktop (1440) and mobile (390), both languages, both color
 //    schemes, into ./shots, and checks that nothing scrolls horizontally.
 //
@@ -30,17 +31,25 @@ const fail = msg => {
   console.log('  FAIL', msg)
 }
 
-// The live section fetches today's keys from the public demo gateway; every
-// context gets a fixture instead, so nothing here depends on the real one.
+// The live section talks to the public demo gateway; every context gets a
+// fixture instead, so nothing here depends on the real one. live: 'up',
+// 'down' (unreachable) or 'limited' (no more keys for this IP).
 const LIVE_CONFIG = 'https://demo.debugger.site/demo/rwd-demo.json'
+const LIVE_KEYS = 'https://demo.debugger.site/v1/demo/keys'
 const LIVE_KEY = 'rwd_sk_live_verify0000000000000000000000'
 
-async function newContext(browser, opts, liveUp = true) {
+async function newContext(browser, opts, live = 'up') {
   const ctx = await browser.newContext(opts)
+  const cors = { 'Access-Control-Allow-Origin': '*' }
   await ctx.route(LIVE_CONFIG, route =>
-    liveUp
-      ? route.fulfill({ json: { apiKey: LIVE_KEY, appKey: 'rwd_pk_verify' }, headers: { 'Access-Control-Allow-Origin': '*' } })
-      : route.abort('connectionrefused'),
+    live === 'down' ? route.abort('connectionrefused') : route.fulfill({ json: { resetAt: Date.now() - 3600000 }, headers: cors }),
+  )
+  await ctx.route(LIVE_KEYS, route =>
+    live === 'down'
+      ? route.abort('connectionrefused')
+      : live === 'limited'
+        ? route.fulfill({ status: 429, json: { error: { code: 'rate_limited' } }, headers: cors })
+        : route.fulfill({ json: { key: LIVE_KEY, expiresAt: Date.now() + 86400000 }, headers: cors }),
   )
   return ctx
 }
@@ -209,35 +218,55 @@ async function checkLive(browser) {
     const errors = watch(page, label)
     await page.goto(`${BASE}${lang === 'zh' ? '/zh/' : '/'}#live`)
     await page.locator('#live').scrollIntoViewIfNeeded()
+    await page.waitForTimeout(800)
+    const before = await page.getAttribute('[data-live]', 'data-live-state')
+    if (before !== 'idle') fail(`${label}: state before getting a key: ${before}`)
+    await page.click('[data-live-get]')
     try {
       await page.waitForSelector('[data-live-state="ready"]', { timeout: 15000 })
     } catch {
-      fail(`${label}: today's key was not filled in`)
+      fail(`${label}: the visitor's key was not filled in`)
     }
-    const codes = await page.$$eval('#live [role="tabpanel"] code', els => els.map(e => e.textContent))
-    if (codes.length !== 2 || !codes.every(c => c.includes(`Bearer ${LIVE_KEY}`))) fail(`${label}: snippets without the key: ${JSON.stringify(codes)}`)
+    const codes = () => page.$$eval('#live [role="tabpanel"] code', els => els.map(e => e.textContent))
+    let got = await codes()
+    if (got.length !== 2 || !got.every(c => c.includes(`Bearer ${LIVE_KEY}`))) fail(`${label}: snippets without the key: ${JSON.stringify(got)}`)
     const shop = await page.getAttribute('#live .live-open a', 'href')
     if (shop !== `https://demo.debugger.site/?lang=${lang}`) fail(`${label}: shop link ${shop}`)
     if (!(await page.locator('#live svg.qr path').count())) fail(`${label}: no QR code`)
     await page.screenshot({ path: `shots/${label}.png` })
+    // Remembered until the demo starts over.
+    await page.reload()
+    await page.locator('#live').scrollIntoViewIfNeeded()
+    try {
+      await page.waitForSelector('[data-live-state="ready"]', { timeout: 15000 })
+      got = await codes()
+      if (!got.every(c => c.includes(LIVE_KEY))) fail(`${label}: remembered key not filled in`)
+    } catch {
+      fail(`${label}: the key was not remembered after a reload`)
+    }
     for (const e of errors) fail(e)
     console.log(`  ${label}: ok`)
     await ctx.close()
   }
-  // The gateway can't be reached: say so (the failed request is expected).
-  const ctx = await newContext(browser, { viewport: { width: 1440, height: 900 } }, false)
-  const page = await ctx.newPage()
-  const uncaught = []
-  page.on('pageerror', e => uncaught.push(e.message))
-  await page.goto(`${BASE}/#live`)
-  try {
-    await page.waitForSelector('[data-live-state="failed"]', { timeout: 15000 })
-  } catch {
-    fail('live-down: no failure shown')
+  // Unreachable, and out of keys: say so (the failed requests are expected).
+  for (const [live, want] of [['down', 'failed'], ['limited', 'limited']]) {
+    const ctx = await newContext(browser, { viewport: { width: 1440, height: 900 } }, live)
+    const page = await ctx.newPage()
+    const uncaught = []
+    page.on('pageerror', e => uncaught.push(e.message))
+    await page.goto(`${BASE}/#live`)
+    await page.locator('#live').scrollIntoViewIfNeeded()
+    await page.waitForTimeout(800)
+    await page.click('[data-live-get]')
+    try {
+      await page.waitForSelector(`[data-live-state="${want}"]`, { timeout: 15000 })
+    } catch {
+      fail(`live-${live}: state ${await page.getAttribute('[data-live]', 'data-live-state')}, want ${want}`)
+    }
+    if (uncaught.length) fail(`live-${live}: uncaught ${uncaught.join('; ')}`)
+    console.log(`  live-${live}: ok`)
+    await ctx.close()
   }
-  if (uncaught.length) fail(`live-down: uncaught ${uncaught.join('; ')}`)
-  console.log('  live-down: ok')
-  await ctx.close()
 }
 
 async function shots(browser) {

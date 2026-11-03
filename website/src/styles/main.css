@@ -2896,21 +2896,33 @@ li code {
   background: var(--ink-3);
   color: var(--ink-3);
 }
-.live-status .status-dot::after {
+.live-get {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 14px;
+}
+.live-get .live-status {
+  flex: 1 1 14em;
+  margin-top: 0;
+}
+[data-live-state='ready'] [data-live-get] {
+  display: none;
+}
+[data-live-state='loading'] .live-status .status-dot::after {
   animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 [data-live-state='ready'] .live-status .status-dot {
   background: var(--green);
   box-shadow: 0 0 10px 1px color-mix(in srgb, var(--green) 70%, transparent);
 }
-[data-live-state='failed'] .live-status .status-dot {
+[data-live-state='failed'] .live-status .status-dot,
+[data-live-state='limited'] .live-status .status-dot {
   background: #f87171;
 }
-[data-live-state='ready'] .live-status .status-dot::after,
-[data-live-state='failed'] .live-status .status-dot::after {
-  animation: none;
-}
-[data-live-state='failed'] .live-status {
+[data-live-state='failed'] .live-status,
+[data-live-state='limited'] .live-status {
   color: var(--amber);
 }
 .live-note {
@@ -2974,7 +2986,8 @@ li code {
   .live-qr {
     display: none;
   }
-  .live-open .btn {
+  .live-open .btn,
+  .live-get .btn {
     flex: 1 1 auto;
     justify-content: center;
   }

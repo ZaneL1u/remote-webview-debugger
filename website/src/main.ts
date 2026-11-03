@@ -306,37 +306,74 @@ if (demoEl) {
 
 /* ---------------------------------- live --------------------------------- */
 
-// The public demo gateway publishes today's keys (deploy/demo/reset.sh);
-// fetch them once the section comes near and fill them into the snippets.
+// The public demo gateway hands each visitor an API key of their own
+// (POST /v1/demo/keys). The key is remembered in this browser until the demo
+// starts over (resetAt in rwd-demo.json, written by deploy/demo/reset.sh).
 const liveEl = document.querySelector<HTMLElement>('[data-live]')
 if (liveEl) {
+  type Stored = { key: string; issuedAt: number }
+  const STORE = 'rwd.demoKey'
   const status = liveEl.querySelector<HTMLElement>('[data-live-status]')
   const text = liveEl.querySelector<HTMLElement>('[data-live-text]')
-  const settle = (state: 'ready' | 'failed') => {
+  const button = liveEl.querySelector<HTMLButtonElement>('[data-live-get]')
+  const timeout = () => AbortSignal.timeout?.(10000)
+  const show = (state: 'loading' | 'ready' | 'failed' | 'limited') => {
     liveEl.dataset.liveState = state
     if (text) text.textContent = status?.dataset[state] || ''
   }
-  const load = () =>
-    fetch(liveEl.dataset.live || '', { cache: 'no-store', signal: AbortSignal.timeout?.(10000) })
-      .then(res => (res.ok ? (res.json() as Promise<{ apiKey?: string }>) : null))
+  const fill = (key: string) => {
+    liveEl.querySelectorAll('[data-live-key]').forEach(el => (el.textContent = key))
+    show('ready')
+  }
+  const stored = (): Stored | null => {
+    try {
+      return JSON.parse(localStorage.getItem(STORE) || 'null')
+    } catch {
+      return null
+    }
+  }
+  // A key from before the demo last started over is gone: forget it.
+  const restore = () =>
+    fetch(liveEl.dataset.live || '', { cache: 'no-store', signal: timeout() })
+      .then(res => (res.ok ? (res.json() as Promise<{ resetAt?: number }>) : null))
       .then(cfg => {
-        if (!cfg?.apiKey) return settle('failed')
-        liveEl.querySelectorAll('[data-live-key]').forEach(el => (el.textContent = cfg.apiKey!))
-        settle('ready')
+        if (liveEl.dataset.liveState !== 'idle') return // the visitor got a key meanwhile
+        const s = stored()
+        if (s?.key && cfg?.resetAt && s.issuedAt > cfg.resetAt) fill(s.key)
+        else if (!cfg) show('failed')
       })
-      .catch(() => settle('failed'))
+      .catch(() => liveEl.dataset.liveState === 'idle' && show('failed'))
+  button?.addEventListener('click', () => {
+    show('loading')
+    button.disabled = true
+    fetch(liveEl.dataset.liveKeys || '', { method: 'POST', signal: timeout() })
+      .then(async res => {
+        if (res.status === 429) return show('limited')
+        const body = res.ok ? ((await res.json()) as { key?: string; expiresAt?: number }) : null
+        if (!body?.key) return show('failed')
+        try {
+          // The gateway's clock: issued a day before the key expires.
+          localStorage.setItem(STORE, JSON.stringify({ key: body.key, issuedAt: (body.expiresAt || Date.now()) - 86400000 }))
+        } catch {
+          // No storage: the key still works, it just isn't remembered.
+        }
+        fill(body.key)
+      })
+      .catch(() => show('failed'))
+      .finally(() => (button.disabled = false))
+  })
   if ('IntersectionObserver' in window) {
     const near = new IntersectionObserver(
       entries => {
         if (entries.some(e => e.isIntersecting)) {
           near.disconnect()
-          void load()
+          void restore()
         }
       },
       { rootMargin: '600px 0px' },
     )
     near.observe(liveEl)
   } else {
-    void load()
+    void restore()
   }
 }
