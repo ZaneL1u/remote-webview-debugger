@@ -144,9 +144,11 @@ const footnote = escapeHtml(d.footnote).replace(/&lt;(\/?code)&gt;/g, '<$1>')
                 <iframe data-live-frame title={l.phoneTitle} data-src={shop} referrerpolicy="no-referrer" data-show="try"></iframe>
                 <div class="phone-loading" data-live-loading data-show="try">{l.deviceWaiting}</div>
                 <div class="guide" data-guide aria-hidden="true" data-show="watch">
-                  <div class="guide-tap" data-lottie="tap" data-lottie-lazy></div>
-                  <div class="guide-hand"><Icon name="pointer" class="" /></div>
-                  <div class="guide-label"><span data-guide-text>{d.guideTap}</span><small data-guide-count></small></div>
+                  <span class="guide-glow"></span>
+                  <svg class="guide-ring" preserveAspectRatio="none"><rect class="track" pathLength="100" /><rect class="fill" pathLength="100" data-guide-fill /></svg>
+                  <span class="guide-tip"><i></i><i></i></span>
+                  <svg class="guide-hand" viewBox="0 0 24 24"><path class="palm" d="M9 4a1.5 1.5 0 0 1 3 0v5.6a1.5 1.5 0 0 1 3 .2v.6a1.5 1.5 0 0 1 3 .4V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.9-2.6l-2.7-3.9a1.4 1.4 0 0 1 2.3-1.6L9 15.2Z" /><path class="crease" d="M12 9.6v2.6M15 10.4v2.2" /></svg>
+                  <span class="guide-label"><span data-guide-text>{d.guideTap}</span><b data-guide-count></b></span>
                 </div>
               </div>
             </div>

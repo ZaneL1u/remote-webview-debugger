@@ -161,7 +161,7 @@ export async function runScenario(ctx: ScenarioCtx) {
       if (!requestId) return
       await sleep(1200)
       if (decided || !player.alive(tk)) return
-      const shown = await guide.show()
+      const shown = await guide.show(AUTO_ALLOW_S)
       for (let left = AUTO_ALLOW_S; left > 0; left--) {
         if (decided || !player.alive(tk)) return
         if (shown) guide.countdown(left)
