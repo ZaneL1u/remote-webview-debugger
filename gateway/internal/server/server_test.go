@@ -1173,3 +1173,41 @@ func TestPresenceNeedsDeviceToken(t *testing.T) {
 		t.Fatalf("presence of a tokenless device: %d", st)
 	}
 }
+
+// --mcp-rate-limit caps MCP requests per client IP, before the key is checked.
+func TestMCPRateLimit(t *testing.T) {
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	s, err := New(context.Background(), Config{MCPRateLimit: 3, Lang: i18n.EN, Version: "test"}, openStore(t), log)
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(s.Handler())
+	t.Cleanup(srv.Close)
+	post := func() *http.Response {
+		req, _ := http.NewRequest("POST", srv.URL+"/v1/mcp", strings.NewReader(`{}`))
+		req.Header.Set("Authorization", "Bearer rwd_sk_live_wrong")
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		res.Body.Close()
+		return res
+	}
+	for i := range 3 {
+		if res := post(); res.StatusCode != 401 {
+			t.Fatalf("request %d: %d", i+1, res.StatusCode)
+		}
+	}
+	if res := post(); res.StatusCode != 429 || res.Header.Get("Retry-After") != "60" {
+		t.Fatalf("over the limit: %d %q", res.StatusCode, res.Header.Get("Retry-After"))
+	}
+	f := setup(t, "") // no limit by default
+	for range 5 {
+		if _, err := f.mcpWith("rwd_sk_live_wrong"); err == nil {
+			t.Fatal("bad key accepted")
+		}
+	}
+	if _, err := f.mcpWith(f.apiKey); err != nil {
+		t.Fatal(err)
+	}
+}

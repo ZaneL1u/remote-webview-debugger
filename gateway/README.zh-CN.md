@@ -1,4 +1,4 @@
-<!-- i18n-source: f03e81c3a9169e2ceffeb0d2771fad317c20c87d -->
+<!-- i18n-source: be98b789b938ca3d39ee71a64de14dee2afe6f79 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
@@ -45,6 +45,7 @@ rwd version                             打印版本号
 | `--trust-proxy` / `RWD_TRUST_PROXY=1` | 关闭 | 从 `X-Forwarded-For` 取客户端 IP，从 `X-Forwarded-Proto` / `X-Forwarded-Host` 取推断出的对外地址的协议和域名（以及控制台 cookie 是否带 `Secure`）。只在反向代理后面开启，否则客户端可以伪造这些请求头，绕过 IP 白名单和限流。不开启时，不管代理怎么说，所有请求都按明文 HTTP 处理：控制台 cookie 不带 `Secure`，推断出的地址也以 `http://` 开头（这种情况请设置 `--public-url`） |
 | `--lang` / `RWD_LANG` | `en` | AI 读到的所有内容的语言：MCP 说明、工具与参数描述、工具结果、`[会话变化]` 和错误信息。它还会通过 `welcome.agentLang` 告诉页面 SDK，让页面里生成的错误信息和事件摘要使用同一种语言。取 `en` 或 `zh`（也接受 `zh-CN`、`zh_CN` 等写法）。控制台按每个请求的 `?lang=` 或 `Accept-Language` 选择语言，都没有时才用它 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | 在 `/demo/` 下提供这个目录（可选，用于演示页面） |
+| `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0`（不限） | 每个客户端 IP 每分钟允许的 MCP 请求数，超出的返回 `429` 并带 `Retry-After: 60`。用于 API Key 公开的网关，比如演示网关（[deploy/demo](../deploy/demo/README.zh-CN.md)）。放在代理后面时需要 `--trust-proxy` 才能拿到客户端 IP |
 | `RWD_ADMIN_EMAIL` | `admin` | owner 账号的邮箱（登录名）。只有数据库里还没有 owner 时（首次启动）才会创建 owner；之后再改这个值**不会**多出一个 owner，只决定 `RWD_ADMIN_PASSWORD` 作用于哪个 owner |
 | `RWD_ADMIN_PASSWORD` | — | owner 密码。创建 owner 时使用；之后**每次启动**都会重设 `RWD_ADMIN_EMAIL` 所指 owner 的密码，所以也能用来找回账号。如果这个邮箱不是 owner 的（是别的成员，或者不存在），则忽略并在日志里说明，同时列出现有 owner。没有设置且数据库为空时，会随机生成一个密码，并在日志里打印一次 |
 | `RWD_METRICS_TOKEN` | — | 设置后，访问 `/v1/metrics` 需要 `Authorization: Bearer <token>` |

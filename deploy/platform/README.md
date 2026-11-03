@@ -47,6 +47,7 @@ On the server, `deploy.sh` produces:
 | `RWD_DATABASE_URL` | SQLite in `./data` | `postgres://…` to use Postgres instead |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Days to keep the audit log |
 | `RWD_LANG` | `en` | Language of agent-facing text: `en` or `zh` |
+| `RWD_MCP_RATE_LIMIT` | — | MCP requests per client IP per minute (no limit when unset); for a public demo, see [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Address ranges (space-separated CIDRs, or Caddy's `private_ranges`) of the proxy in front of Caddy; see below |
 | `BIND` | `127.0.0.1` | Address Caddy is published on |
 | `PORT` | `18788` | Port Caddy is published on |

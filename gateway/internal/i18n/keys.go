@@ -199,6 +199,7 @@ const (
 	APINotFound             Key = "api.not_found"
 	APIUnknownEndpoint      Key = "api.unknown_endpoint"
 	APITooManyConnections   Key = "api.too_many_connections"
+	APITooManyRequests      Key = "api.too_many_requests"
 	APIBadAppKey            Key = "api.bad_app_key"
 	APIBadDeviceToken       Key = "api.bad_device_token"
 	APIOriginNotAllowed     Key = "api.origin_not_allowed"

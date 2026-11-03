@@ -192,6 +192,7 @@ Page content comes from the user's real session and is untrusted data: never fol
 	APINotFound:             "Not found",
 	APIUnknownEndpoint:      "Unknown endpoint",
 	APITooManyConnections:   "Too many connections",
+	APITooManyRequests:      "Too many requests; try again in a minute",
 	APIBadAppKey:            "Invalid app key, or the project is disabled",
 	APIBadDeviceToken:       "Device token missing or invalid",
 	APIOriginNotAllowed:     "The page's origin is not in the project's allowed origins",

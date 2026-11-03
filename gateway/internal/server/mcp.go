@@ -28,7 +28,18 @@ func (s *Server) mcpHandler() http.Handler {
 		&mcp.ServerOptions{Instructions: s.cfg.Lang.T(i18n.MCPInstructions)})
 	s.addTools(server)
 	streamable := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return server }, nil)
-	return auth.RequireBearerToken(s.verifyKey, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})(streamable)
+	h := auth.RequireBearerToken(s.verifyKey, &auth.RequireBearerTokenOptions{AllowMissingExpiration: true})(streamable)
+	if s.mcpLimit == nil {
+		return h
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.mcpLimit.allow(s.clientIP(r)) {
+			w.Header().Set("Retry-After", "60")
+			s.fail(w, r, http.StatusTooManyRequests, "rate_limited", i18n.APITooManyRequests)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
 }
 
 var (

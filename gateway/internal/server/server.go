@@ -41,6 +41,9 @@ type Config struct {
 	AuditRetentionDays int
 	// DemoDir, if set, is served at /demo/ (demo sites for trying the SDK).
 	DemoDir string
+	// MCPRateLimit, if positive, caps MCP requests per client IP per minute
+	// (for a gateway whose API key is public, like a demo).
+	MCPRateLimit int
 	// Lang is the language of agent-facing text (MCP, page SDK errors) and
 	// the console's fallback (RWD_LANG; default English).
 	Lang    i18n.Lang
@@ -58,6 +61,7 @@ type Server struct {
 
 	loginLimit *limiter
 	pageLimit  *limiter
+	mcpLimit   *limiter // nil: unlimited
 	mcp        http.Handler
 	audit      chan store.AuditEvent
 	httpCodes  httpCounter
@@ -87,6 +91,9 @@ func New(ctx context.Context, cfg Config, st *store.Store, log *slog.Logger) (*S
 	s.hub.Audit = s.recordEvent
 	go s.auditWriter()
 	s.loadSDK()
+	if cfg.MCPRateLimit > 0 {
+		s.mcpLimit = newLimiter(cfg.MCPRateLimit, time.Minute)
+	}
 	s.mcp = s.mcpHandler()
 	return s, nil
 }

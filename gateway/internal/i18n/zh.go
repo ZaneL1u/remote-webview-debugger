@@ -192,6 +192,7 @@ var zh = map[Key]string{
 	APINotFound:             "资源不存在",
 	APIUnknownEndpoint:      "未知的接口",
 	APITooManyConnections:   "连接过多",
+	APITooManyRequests:      "请求过于频繁，请 1 分钟后再试",
 	APIBadAppKey:            "接入 Key 无效或项目已停用",
 	APIBadDeviceToken:       "设备令牌缺失或无效",
 	APIOriginNotAllowed:     "页面来源不在项目的允许列表中",
