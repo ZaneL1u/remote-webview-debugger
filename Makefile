@@ -9,7 +9,8 @@ GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 # The gateway's version comes from its latest gateway-vX.Y.Z tag:
 # 0.2.0 on the tag, 0.2.0-3-gabc1234 after it, 0.0.0-dev without one.
-RWD_VERSION ?= $(shell v=$$(git describe --tags --match 'gateway-v*' --dirty 2>/dev/null) && echo $${v\#gateway-v} || echo 0.0.0-dev)
+# (sed, not $${v#…}: make 3.81 and 4.3+ disagree on escaping the #.)
+RWD_VERSION ?= $(shell git describe --tags --match 'gateway-v*' --dirty 2>/dev/null | sed 's/^gateway-v//' | grep . || echo 0.0.0-dev)
 
 .PHONY: platform sdk console gateway website check release-sdk release-gateway
 platform: sdk console .WAIT gateway
