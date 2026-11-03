@@ -18,6 +18,7 @@
     "@fontsource/orbitron": "5.3.0",
     "@playwright/test": "1.58.2",
     "@types/node": "24.19.2",
+    "qrcode-generator": "2.0.4",
     "typescript": "5.9.3",
     "vite": "8.3.4"
   }

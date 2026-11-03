@@ -17,6 +17,7 @@ export const zh: Dict = {
   nav: {
     skip: '跳到正文',
     demo: '演示',
+    live: '亲手试试',
     how: '工作原理',
     features: '能力',
     privacy: '隐私与控制',
@@ -91,6 +92,42 @@ export const zh: Dict = {
     stateWaitControl: '等待用户交还控制',
     stateDone: '已完成',
     stateStopped: '已停止',
+  },
+  live: {
+    kicker: '亲手体验',
+    title: '用你自己的 agent 来试一次',
+    lead:
+      '上面的演示完全跑在浏览器里，这里的则是真的：<code>demo.debugger.site</code> 上有一个公开的演示网关，和其他服务完全隔离，每天清空。打开商城，把 agent 接上去，看它干活。',
+    steps: [
+      {
+        title: '打开演示商城',
+        body: '用手机扫码，或者在新标签页里打开。页面角落的胶囊会显示这个页面的设备码，形如 <code>K7Q2-9M4X</code>。',
+      },
+      {
+        title: '把演示网关加给你的 agent',
+        body: '在终端里运行一次，或者写进 MCP 客户端的配置。这把 Key 是公开的、权限受限，每天更换。',
+      },
+      {
+        title: '给 agent 下指令',
+        body: '把设备码换成你页面上的。agent 请求接入时，在页面上点「允许」，然后看它操作；随时可以点「接管」或「结束」。',
+      },
+    ],
+    open: '打开演示商城',
+    scan: '用手机扫码打开',
+    tabsLabel: '演示网关的 MCP 配置',
+    keyLoading: '正在获取今天的 Key…',
+    keyReady: '已填入今天的 Key。如果之后 agent 提示 Key 无效，回来重新复制即可。',
+    keyFailed: '暂时连不上演示网关，请稍后再试。',
+    prompt: '用 rwd-demo 这个 MCP 服务器连接设备 XXXX-XXXX。在商城里给一件商品选上礼盒包装，去结算，找出总价显示“--”的原因。',
+    promptLabel: '指令',
+    promptNote: '把 <code>XXXX-XXXX</code> 换成你页面上的设备码。',
+    limitsTitle: '演示的限制',
+    limits: [
+      '只有 <strong>interact</strong> 级别：不能执行脚本，不能读请求体和存储',
+      '每个 agent 最多占用页面 15 分钟（空闲 5 分钟即释放）',
+      '每个 IP 每分钟最多 120 次 MCP 请求',
+      '每天 04:00（北京时间）清空，请不要输入真实的个人信息',
+    ],
   },
   how: {
     kicker: '工作原理',
@@ -211,7 +248,7 @@ export const zh: Dict = {
       },
       {
         q: '上面的演示是真的吗？',
-        a: 'SDK 是真实的，没有任何改动；只有网关是在你浏览器里模拟的。一个 WebSocket 垫片通过 <code>postMessage</code> 把 SDK 的连接转给它，再由脚本化的 agent 发出和真实网关一样的 RPC。',
+        a: 'SDK 是真实的，没有任何改动；只有网关是在你浏览器里模拟的。一个 WebSocket 垫片通过 <code>postMessage</code> 把 SDK 的连接转给它，再由脚本化的 agent 发出和真实网关一样的 RPC。想完整体验真实链路，可以<a href="#live">用你自己的 agent 试一次</a>。',
       },
     ],
   },

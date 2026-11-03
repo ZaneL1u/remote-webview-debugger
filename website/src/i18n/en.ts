@@ -16,6 +16,7 @@ export const en = {
   nav: {
     skip: 'Skip to content',
     demo: 'Demo',
+    live: 'Try it live',
     how: 'How it works',
     features: 'Features',
     privacy: 'Privacy',
@@ -90,6 +91,43 @@ export const en = {
     stateWaitControl: 'Waiting for the customer to hand back',
     stateDone: 'Finished',
     stateStopped: 'Stopped',
+  },
+  live: {
+    kicker: 'Hands-on',
+    title: 'Now try it with your own agent',
+    lead:
+      'The demo above runs in your browser. This one is real: a public demo gateway at <code>demo.debugger.site</code>, kept apart from everything else and wiped every day. Open the shop, point your agent at it and watch it work.',
+    steps: [
+      {
+        title: 'Open the demo shop',
+        body: 'On your phone (scan the code) or in another tab. The pill in the corner shows the page’s device code, like <code>K7Q2-9M4X</code>.',
+      },
+      {
+        title: 'Add the demo gateway to your agent',
+        body: 'Run this once in a terminal, or add it to your MCP client’s settings. The key is public and limited, and it changes every day.',
+      },
+      {
+        title: 'Ask your agent',
+        body: 'Put in the device code from your page. When the agent asks to connect, tap <em>Allow</em> on the page and watch it work; <em>Take over</em> or <em>End</em> it at any time.',
+      },
+    ],
+    open: 'Open the demo shop',
+    scan: 'Scan to open it on your phone',
+    tabsLabel: 'Demo MCP configuration',
+    keyLoading: 'Fetching today’s key…',
+    keyReady: 'Today’s key is filled in. If your agent later says it is invalid, copy the command again.',
+    keyFailed: 'The demo gateway can’t be reached right now; please try again later.',
+    prompt:
+      'Use the rwd-demo MCP server and connect to device XXXX-XXXX. In the shop, choose the gift box for a product, go to checkout and find out why the total shows “--”.',
+    promptLabel: 'Prompt',
+    promptNote: 'Replace <code>XXXX-XXXX</code> with the code on your page.',
+    limitsTitle: 'Limits of the demo',
+    limits: [
+      'Level <strong>interact</strong> only: no scripts, request bodies or storage',
+      'An agent keeps a page for at most 15 minutes (5 when idle)',
+      '120 MCP requests per minute per IP',
+      'Wiped daily at 04:00 (UTC+8) — don’t enter real personal data',
+    ],
   },
   how: {
     kicker: 'How it works',
@@ -213,7 +251,7 @@ export const en = {
       },
       {
         q: 'Is the demo above real?',
-        a: 'The SDK is real and unmodified; only the gateway is simulated in your browser. A WebSocket shim tunnels the SDK’s connection to it with <code>postMessage</code>, and a scripted agent sends the same RPCs a real gateway would.',
+        a: 'The SDK is real and unmodified; only the gateway is simulated in your browser. A WebSocket shim tunnels the SDK’s connection to it with <code>postMessage</code>, and a scripted agent sends the same RPCs a real gateway would. For the real thing end to end, <a href="#live">try it with your own agent</a>.',
       },
     ],
   },

@@ -2,6 +2,7 @@
 // dev and build time (transformIndexHtml), so every language gets real,
 // crawlable markup; src/main.ts only adds behaviour on top.
 
+import qrcode from 'qrcode-generator'
 import { en, type Dict } from './i18n/en.ts'
 import { zh } from './i18n/zh.ts'
 import { escapeHtml, highlight, type CodeLang } from './highlight.ts'
@@ -110,6 +111,7 @@ function header(t: Dict, lang: 'en' | 'zh') {
   const home = t.path
   const navItems: [string, string][] = [
     ['#demo', t.nav.demo],
+    ['#live', t.nav.live],
     ['#how', t.nav.how],
     ['#features', t.nav.features],
     ['#privacy', t.nav.privacy],
@@ -228,6 +230,54 @@ function demo(t: Dict, lang: 'en' | 'zh') {
 </section>`
 }
 
+/** A QR code as inline SVG, drawn at build time: dark modules on white. */
+function qr(text: string, label: string) {
+  const q = qrcode(0, 'M')
+  q.addData(text)
+  q.make()
+  const n = q.getModuleCount()
+  let d = ''
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`
+  return `<svg class="qr" viewBox="-3 -3 ${n + 6} ${n + 6}" shape-rendering="crispEdges" role="img" aria-label="${escapeHtml(label)}"><rect x="-3" y="-3" width="${n + 6}" height="${n + 6}" fill="#fff"/><path d="${d}" fill="#04060d"/></svg>`
+}
+
+/** The real thing: the public demo gateway. main.ts fills in today's key. */
+function live(t: Dict, lang: 'en' | 'zh') {
+  const l = t.live
+  const shop = `${S.DEMO}/?lang=${lang}`
+  const keyed = (html: string) => html.replace(/rwd_sk_live_…/g, '<span data-live-key>rwd_sk_live_…</span>')
+  const mcp = tabs('live', l.tabsLabel, [
+    { key: 'claude', title: 'Claude Code', body: keyed(code(S.liveClaudeSnippet(), 'sh', 'terminal')) },
+    { key: 'cursor', title: 'Cursor', body: keyed(code(S.liveCursorSnippet(), 'json', '.cursor/mcp.json')) },
+  ])
+  const prompt = `<div class="code code-prompt"><div class="code-head"><span class="code-label">${l.promptLabel}</span>${copyButton()}</div><pre tabindex="0"><code>${escapeHtml(l.prompt)}</code></pre></div>`
+  const visuals = [
+    `<div class="live-open">
+      <figure class="live-qr">${qr(shop, l.scan)}<figcaption>${l.scan}</figcaption></figure>
+      <a class="btn btn-primary" href="${shop}" target="_blank" rel="noopener">${icon('phone')}<span>${l.open}</span>${icon('arrow')}</a>
+    </div>`,
+    `${mcp}<p class="live-status" data-live-status data-ready="${escapeHtml(l.keyReady)}" data-failed="${escapeHtml(l.keyFailed)}" aria-live="polite"><span class="status-dot" aria-hidden="true"></span><span data-live-text>${l.keyLoading}</span></p>`,
+    `${prompt}<p class="live-note">${l.promptNote}</p>`,
+  ]
+  const steps = l.steps
+    .map(
+      (s, i) => `<li class="step live-step reveal">
+      <div class="live-text"><span class="step-num" aria-hidden="true">0${i + 1}</span><h3>${s.title}</h3><p>${s.body}</p></div>
+      <div class="live-visual">${visuals[i]}</div>
+    </li>`,
+    )
+    .join('')
+  return `<section id="live" class="section section-alt" aria-labelledby="live-title">
+  <div class="wrap">
+    ${sectionHead('02', l.kicker, l.title, l.lead, 'live-title')}
+    <div class="live" data-live="${S.DEMO}/demo/rwd-demo.json" data-live-state="loading">
+      <ol class="live-steps">${steps}</ol>
+      <div class="live-limits reveal"><h3>${icon('shield')}${l.limitsTitle}</h3><ul>${l.limits.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    </div>
+  </div>
+</section>`
+}
+
 function how(t: Dict, lang: 'en' | 'zh') {
   const h = t.how
   const visuals = [
@@ -255,7 +305,7 @@ function how(t: Dict, lang: 'en' | 'zh') {
   ])
   return `<section id="how" class="section" aria-labelledby="how-title">
   <div class="wrap">
-    ${sectionHead('02', h.kicker, h.title, undefined, 'how-title')}
+    ${sectionHead('03', h.kicker, h.title, undefined, 'how-title')}
     <ol class="steps">${steps}</ol>
     <div class="how-code">
       <div class="reveal">${code(S.h5Snippet(lang), 'html', 'index.html')}</div>
@@ -282,7 +332,7 @@ function features(t: Dict) {
   const tools = S.TOOLS.map(n => `<li><code>${n}</code></li>`).join('')
   return `<section id="features" class="section" aria-labelledby="features-title">
   <div class="wrap">
-    ${sectionHead('03', f.kicker, f.title, undefined, 'features-title')}
+    ${sectionHead('04', f.kicker, f.title, undefined, 'features-title')}
     <ul class="features">${cards}</ul>
     <div class="tools reveal"><span class="radar" aria-hidden="true"></span><h3>${f.toolsTitle} <span class="count">${S.TOOLS.length}</span></h3><ul>${tools}</ul></div>
   </div>
@@ -305,7 +355,7 @@ function privacy(t: Dict, lang: 'en' | 'zh') {
     .join('')
   return `<section id="privacy" class="section section-alt" aria-labelledby="privacy-title">
   <div class="wrap">
-    ${sectionHead('04', p.kicker, p.title, p.lead, 'privacy-title')}
+    ${sectionHead('05', p.kicker, p.title, p.lead, 'privacy-title')}
     <div class="privacy-grid">
       <ul class="privs">${items}</ul>
       <aside class="privacy-side">
@@ -326,7 +376,7 @@ function native(t: Dict, lang: 'en' | 'zh') {
   ])
   return `<section id="native" class="section" aria-labelledby="native-title">
   <div class="wrap split">
-    <div>${sectionHead('05', n.kicker, n.title, n.lead, 'native-title')}
+    <div>${sectionHead('06', n.kicker, n.title, n.lead, 'native-title')}
       <ul class="extras">${n.extras.map(e => `<li class="reveal">${icon('check')}<div><h3>${e.title}</h3><p>${e.body}</p></div></li>`).join('')}</ul>
     </div>
     <div class="reveal">${tb}</div>
@@ -340,7 +390,7 @@ function selfHost(t: Dict) {
   return `<section id="self-host" class="section section-alt" aria-labelledby="self-host-title">
   <div class="wrap split">
     <div>
-      ${sectionHead('06', s.kicker, s.title, s.lead, 'self-host-title')}
+      ${sectionHead('07', s.kicker, s.title, s.lead, 'self-host-title')}
       <ul class="host-points reveal">${pts}</ul>
       <p class="reveal"><a class="btn btn-link" href="${REPO}/tree/main/deploy/platform">${s.docsLink}${icon('arrow')}</a></p>
     </div>
@@ -358,7 +408,7 @@ function faq(t: Dict) {
     .join('')
   return `<section id="faq" class="section" aria-labelledby="faq-title">
   <div class="wrap">
-    ${sectionHead('07', f.kicker, f.title, undefined, 'faq-title')}
+    ${sectionHead('08', f.kicker, f.title, undefined, 'faq-title')}
     <div class="faq">${items}</div>
   </div>
 </section>`
@@ -403,6 +453,7 @@ ${header(t, lang)}
 <main id="main">
 ${hero(t)}
 ${demo(t, lang)}
+${live(t, lang)}
 ${how(t, lang)}
 ${features(t)}
 ${privacy(t, lang)}

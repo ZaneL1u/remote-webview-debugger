@@ -33,6 +33,22 @@ export function cursorSnippet() {
   )
 }
 
+// The public demo gateway (deploy/demo); main.ts fills in today's key.
+export const DEMO = 'https://demo.debugger.site'
+
+export function liveClaudeSnippet() {
+  return `claude mcp add --transport http rwd-demo ${DEMO}/v1/mcp \\
+  --header "Authorization: Bearer rwd_sk_live_…"`
+}
+
+export function liveCursorSnippet() {
+  return JSON.stringify(
+    { mcpServers: { 'rwd-demo': { url: `${DEMO}/v1/mcp`, headers: { Authorization: 'Bearer rwd_sk_live_…' } } } },
+    null,
+    2,
+  )
+}
+
 export function stdioSnippet(lang: L) {
   const c = lang === 'zh' ? '# 只支持 stdio 的客户端：本地桥接到同一个托管地址' : '# stdio-only clients: a local bridge to the same hosted endpoint'
   return `${c}

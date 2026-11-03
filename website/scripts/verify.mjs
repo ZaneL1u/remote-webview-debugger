@@ -7,10 +7,14 @@
 //    phone and takes over / hands back, the other lets the demo auto-approve),
 //    and fails on any console error or uncaught error from the website itself.
 //    (The demo shop's own errors are the bug under investigation and expected.)
-// 2. Screenshots desktop (1440) and mobile (390), both languages, both color
+// 2. Checks the "try it live" section: today's key from the public demo
+//    gateway (a fixture here) lands in the snippets, and a gateway that can't
+//    be reached says so.
+// 3. Screenshots desktop (1440) and mobile (390), both languages, both color
 //    schemes, into ./shots, and checks that nothing scrolls horizontally.
 //
-// ONLY=demo or ONLY=shots runs one half. SPEED=1 runs the demo at normal speed.
+// ONLY=demo, ONLY=live or ONLY=shots runs one part. SPEED=1 runs the demo at
+// normal speed.
 
 import { chromium } from '@playwright/test'
 import fs from 'node:fs'
@@ -24,6 +28,21 @@ const failures = []
 const fail = msg => {
   failures.push(msg)
   console.log('  FAIL', msg)
+}
+
+// The live section fetches today's keys from the public demo gateway; every
+// context gets a fixture instead, so nothing here depends on the real one.
+const LIVE_CONFIG = 'https://demo.debugger.site/demo/rwd-demo.json'
+const LIVE_KEY = 'rwd_sk_live_verify0000000000000000000000'
+
+async function newContext(browser, opts, liveUp = true) {
+  const ctx = await browser.newContext(opts)
+  await ctx.route(LIVE_CONFIG, route =>
+    liveUp
+      ? route.fulfill({ json: { apiKey: LIVE_KEY, appKey: 'rwd_pk_verify' }, headers: { 'Access-Control-Allow-Origin': '*' } })
+      : route.abort('connectionrefused'),
+  )
+  return ctx
 }
 
 function watch(page, label) {
@@ -105,7 +124,7 @@ async function tapInPhone(page, selector, timeout = 30000) {
 async function runDemo(browser, lang, mode) {
   const label = `demo-${lang}-${mode}`
   console.log(`\n${label}`)
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: lang === 'zh' ? 'zh-CN' : 'en-US' })
+  const ctx = await newContext(browser, { viewport: { width: 1440, height: 1000 }, locale: lang === 'zh' ? 'zh-CN' : 'en-US' })
   // An explicit language choice, so the zh browser locale doesn't redirect.
   await ctx.addInitScript(l => localStorage.setItem('rwd.lang', l), lang)
   const page = await ctx.newPage()
@@ -181,6 +200,46 @@ async function runDemo(browser, lang, mode) {
   await ctx.close()
 }
 
+async function checkLive(browser) {
+  for (const lang of ['en', 'zh']) {
+    const label = `live-${lang}`
+    const ctx = await newContext(browser, { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
+    await ctx.addInitScript(l => localStorage.setItem('rwd.lang', l), lang)
+    const page = await ctx.newPage()
+    const errors = watch(page, label)
+    await page.goto(`${BASE}${lang === 'zh' ? '/zh/' : '/'}#live`)
+    await page.locator('#live').scrollIntoViewIfNeeded()
+    try {
+      await page.waitForSelector('[data-live-state="ready"]', { timeout: 15000 })
+    } catch {
+      fail(`${label}: today's key was not filled in`)
+    }
+    const codes = await page.$$eval('#live [role="tabpanel"] code', els => els.map(e => e.textContent))
+    if (codes.length !== 2 || !codes.every(c => c.includes(`Bearer ${LIVE_KEY}`))) fail(`${label}: snippets without the key: ${JSON.stringify(codes)}`)
+    const shop = await page.getAttribute('#live .live-open a', 'href')
+    if (shop !== `https://demo.debugger.site/?lang=${lang}`) fail(`${label}: shop link ${shop}`)
+    if (!(await page.locator('#live svg.qr path').count())) fail(`${label}: no QR code`)
+    await page.screenshot({ path: `shots/${label}.png` })
+    for (const e of errors) fail(e)
+    console.log(`  ${label}: ok`)
+    await ctx.close()
+  }
+  // The gateway can't be reached: say so (the failed request is expected).
+  const ctx = await newContext(browser, { viewport: { width: 1440, height: 900 } }, false)
+  const page = await ctx.newPage()
+  const uncaught = []
+  page.on('pageerror', e => uncaught.push(e.message))
+  await page.goto(`${BASE}/#live`)
+  try {
+    await page.waitForSelector('[data-live-state="failed"]', { timeout: 15000 })
+  } catch {
+    fail('live-down: no failure shown')
+  }
+  if (uncaught.length) fail(`live-down: uncaught ${uncaught.join('; ')}`)
+  console.log('  live-down: ok')
+  await ctx.close()
+}
+
 async function shots(browser) {
   for (const lang of ['en', 'zh']) {
     for (const scheme of ['light', 'dark']) {
@@ -189,7 +248,7 @@ async function shots(browser) {
         ['mobile', { width: 390, height: 844 }, true],
       ]) {
         const label = `${lang}-${scheme}-${name}`
-        const ctx = await browser.newContext({ viewport, colorScheme: scheme, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: mobile ? 2 : 1, reducedMotion: 'no-preference' })
+        const ctx = await newContext(browser, { viewport, colorScheme: scheme, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: mobile ? 2 : 1, reducedMotion: 'no-preference' })
         // The site is dark unless the reader asks for the light theme, so the
         // light screenshots need that choice stored.
         await ctx.addInitScript(
@@ -220,7 +279,7 @@ async function shots(browser) {
     }
   }
   // 360px: no horizontal scroll.
-  const ctx = await browser.newContext({ viewport: { width: 360, height: 760 }, isMobile: true, hasTouch: true })
+  const ctx = await newContext(browser, { viewport: { width: 360, height: 760 }, isMobile: true, hasTouch: true })
   const page = await ctx.newPage()
   await page.goto(`${BASE}/`)
   await scrollThrough(page)
@@ -232,13 +291,17 @@ async function shots(browser) {
 
 const browser = await chromium.launch()
 try {
-  if (ONLY !== 'shots') {
+  if (!ONLY || ONLY === 'demo') {
     await runDemo(browser, 'en', 'interactive')
     await runDemo(browser, 'zh', 'auto')
     await runDemo(browser, 'en', 'deny')
     await runDemo(browser, 'zh', 'end')
   }
-  if (ONLY !== 'demo') {
+  if (!ONLY || ONLY === 'live') {
+    console.log('\ntry it live')
+    await checkLive(browser)
+  }
+  if (!ONLY || ONLY === 'shots') {
     console.log('\nscreenshots')
     await shots(browser)
   }

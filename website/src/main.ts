@@ -303,3 +303,40 @@ if (demoEl) {
     }),
   )
 }
+
+/* ---------------------------------- live --------------------------------- */
+
+// The public demo gateway publishes today's keys (deploy/demo/reset.sh);
+// fetch them once the section comes near and fill them into the snippets.
+const liveEl = document.querySelector<HTMLElement>('[data-live]')
+if (liveEl) {
+  const status = liveEl.querySelector<HTMLElement>('[data-live-status]')
+  const text = liveEl.querySelector<HTMLElement>('[data-live-text]')
+  const settle = (state: 'ready' | 'failed') => {
+    liveEl.dataset.liveState = state
+    if (text) text.textContent = status?.dataset[state] || ''
+  }
+  const load = () =>
+    fetch(liveEl.dataset.live || '', { cache: 'no-store', signal: AbortSignal.timeout?.(10000) })
+      .then(res => (res.ok ? (res.json() as Promise<{ apiKey?: string }>) : null))
+      .then(cfg => {
+        if (!cfg?.apiKey) return settle('failed')
+        liveEl.querySelectorAll('[data-live-key]').forEach(el => (el.textContent = cfg.apiKey!))
+        settle('ready')
+      })
+      .catch(() => settle('failed'))
+  if ('IntersectionObserver' in window) {
+    const near = new IntersectionObserver(
+      entries => {
+        if (entries.some(e => e.isIntersecting)) {
+          near.disconnect()
+          void load()
+        }
+      },
+      { rootMargin: '600px 0px' },
+    )
+    near.observe(liveEl)
+  } else {
+    void load()
+  }
+}
