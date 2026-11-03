@@ -61,7 +61,7 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 
 [`.github/workflows/release.yml`](../.github/workflows/release.yml)：
 
-- **`sdk-v*`：** 检查 `sdk/package.json` 的版本号与 tag 一致，构建，执行 `npm publish --provenance`（版本号带 `-` 的发到 `next` dist-tag），然后创建 GitHub Release，附上 `sdk.js`、`index.mjs`、`index.d.ts` 和 npm 包文件。SDK 的 Release 不会被标为仓库的最新版本。
+- **`sdk-v*`：** 检查 `sdk/package.json` 的版本号与 tag 一致，构建；如果这个版本还不在 npm 上，执行 `npm publish --provenance`（版本号带 `-` 的发到 `next` dist-tag），然后创建 GitHub Release，附上 `sdk.js`、`index.mjs`、`index.d.ts` 和 npm 包文件。SDK 的 Release 不会被标为仓库的最新版本。
 - **`gateway-v*`：** 构建 SDK 和控制台，再用 tag 里的版本号构建四个 `rwd` 二进制（用 `rwd version` 校验），把 linux/amd64 和 linux/arm64 镜像推到 GHCR，tag 为 `<版本号>`、`<主版本>.<次版本>` 和 `latest`（预发布版只有 `<版本号>`），最后创建 GitHub Release，附上压缩包和 `checksums.txt`。
 
 Release 正文是该版本的安装方式，加上英文和中文更新日志里对应的段落（[`scripts/release/notes.mjs`](../scripts/release/notes.mjs)）。
@@ -70,5 +70,5 @@ Release 正文是该版本的安装方式，加上英文和中文更新日志里
 
 ## 一次性设置
 
-- **npm。** 第一次发布需要 token：在 npmjs.com 创建一个能发布 `remote-webview-debugger` 的 granular access token，存为仓库 secret `NPM_TOKEN`。包创建之后，在 npmjs.com 给它添加 trusted publisher（包设置 → Trusted publishing → GitHub Actions，仓库 `ZaneL1u/remote-webview-debugger`，工作流 `release.yml`），然后删掉这个 secret，之后工作流就通过 OIDC 发布。
-- **GHCR。** 第一次网关发版后，镜像出现在仓库所有者的 packages 里，默认是私有的。到包设置里改成公开（Change visibility），只需一次。
+- **npm。** 工作流用 [trusted publishing](https://docs.npmjs.com/trusted-publishers)（OIDC，不需要 secret）发布：在 npmjs.com 的包设置 → Trusted publishing → GitHub Actions，填仓库 `ZaneL1u/remote-webview-debugger`、工作流 `release.yml`。用 token 发布时 npm 会要求一次性密码，所以工作流发不了的版本（比如包还不存在时的第一个版本）要在该 tag 的检出目录里手动发布：`npm login` 之后执行 `cd sdk && npm ci && npm run build && npm publish --access public`。然后重跑失败的那次工作流，它会跳过发布，只创建 GitHub Release。
+- **GHCR。** 第一次网关发版后，镜像出现在仓库所有者的 packages 里。它关联到公开的仓库，确认一次它是公开的即可（包设置 → Change visibility）。

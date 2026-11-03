@@ -61,7 +61,7 @@ To write or polish the Chinese entries at release time instead, use `--edit`.
 
 [`.github/workflows/release.yml`](../.github/workflows/release.yml):
 
-- **`sdk-v*`:** checks that `sdk/package.json` has the tag's version, builds, runs `npm publish --provenance` (a version with `-` goes to the `next` dist-tag), and creates a GitHub Release with `sdk.js`, `index.mjs`, `index.d.ts` and the npm tarball. SDK releases are not marked as the repository's latest release.
+- **`sdk-v*`:** checks that `sdk/package.json` has the tag's version, builds, runs `npm publish --provenance` unless that version is already on npm (a version with `-` goes to the `next` dist-tag), and creates a GitHub Release with `sdk.js`, `index.mjs`, `index.d.ts` and the npm tarball. SDK releases are not marked as the repository's latest release.
 - **`gateway-v*`:** builds the SDK and the console, the four `rwd` binaries with the version from the tag (checked with `rwd version`), pushes the image to GHCR for linux/amd64 and linux/arm64 as `<version>`, `<major>.<minor>` and `latest` (prereleases: `<version>` only), and creates a GitHub Release with the archives and `checksums.txt`.
 
 The Release body is the matching section of the English and the Chinese changelog ([`scripts/release/notes.mjs`](../scripts/release/notes.mjs)), after install instructions for that version.
@@ -70,5 +70,5 @@ If the workflow fails before publishing anything, delete the tag (`git push --de
 
 ## One-time setup
 
-- **npm.** The first publish needs a token: create a granular access token on npmjs.com that can publish `remote-webview-debugger` and save it as the repository secret `NPM_TOKEN`. Once the package exists, add a trusted publisher on npmjs.com (package settings → Trusted publishing → GitHub Actions, repository `ZaneL1u/remote-webview-debugger`, workflow `release.yml`) and delete the secret: the workflow then publishes over OIDC.
-- **GHCR.** The image appears under the repository owner's packages after the first gateway release, private by default. Make it public once (package settings → Change visibility).
+- **npm.** The workflow publishes with [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, no secret): on npmjs.com, package settings → Trusted publishing → GitHub Actions, repository `ZaneL1u/remote-webview-debugger`, workflow `release.yml`. npm asks a token for a one-time password, so a version the workflow can't publish (such as the first one, before the package exists) is published by hand from the tag's checkout: `cd sdk && npm ci && npm run build && npm publish --access public` after `npm login`. Re-run the failed workflow run afterwards; it skips the publish and creates the GitHub Release.
+- **GHCR.** The image appears under the repository owner's packages after the first gateway release. It is linked to the public repository; check once that it is public (package settings → Change visibility).
