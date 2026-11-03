@@ -1,4 +1,4 @@
-<!-- i18n-source: d2ea049794e5ac593bfdcf1034f0e136ddc5b83c -->
+<!-- i18n-source: ec9fb70e7671315e8d86c5f5ef155ba5953f8179 -->
 <div align="center">
 
 # Remote WebView Debugger

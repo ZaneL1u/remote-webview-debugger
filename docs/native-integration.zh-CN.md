@@ -1,4 +1,4 @@
-<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
+<!-- i18n-source: b356ba9005954ef85d8a12f95b7e8e136e054fd4 -->
 [English](native-integration.md) | 简体中文 | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # App 原生接入

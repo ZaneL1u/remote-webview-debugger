@@ -1,4 +1,4 @@
-<!-- i18n-source: d2ea049794e5ac593bfdcf1034f0e136ddc5b83c -->
+<!-- i18n-source: ec9fb70e7671315e8d86c5f5ef155ba5953f8179 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -67,11 +67,11 @@ Einstellungen, die Sie eventuell brauchen, übergeben mit `-e` ([alle Einstellun
 Legen Sie in der Konsole ein Projekt an, um einen App-Key zu erhalten, und binden Sie dann das SDK mit der Adresse Ihres Gateways ein:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
 
-Das SDK ist das npm-Paket [`remote-webview-debugger`](sdk/README.de.md): Laden Sie es wie oben von jsDelivr oder von unpkg (`https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js`), oder installieren Sie es mit `npm install remote-webview-debugger` und `import { run } from 'remote-webview-debugger'`. Ihr Gateway liefert außerdem die eingebettete Kopie unter `/v1/sdk.js` aus.
+Das SDK ist das npm-Paket [`remote-webview-debugger`](sdk/README.de.md): Laden Sie es wie oben von jsDelivr oder von unpkg (`https://unpkg.com/remote-webview-debugger@0.2.0/dist/sdk.js`), oder installieren Sie es mit `npm install remote-webview-debugger` und `import { run } from 'remote-webview-debugger'`. Ihr Gateway liefert außerdem die eingebettete Kopie unter `/v1/sdk.js` aus.
 
 In einer App injizieren Sie dasselbe Script bei Dokumentbeginn aus nativem Code (iOS `WKUserScript`, Android `addDocumentStartJavaScript`): siehe [native Integration](docs/native-integration.de.md) und die Anleitung in der Konsole.
 

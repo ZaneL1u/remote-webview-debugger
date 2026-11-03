@@ -1,4 +1,4 @@
-<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
+<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 페이지 SDK (`sdk/`)
@@ -6,7 +6,7 @@
 앱의 WebView나 H5 페이지가 불러오는 JS 파일 하나예요. 이 파일을 넣으면 AI 에이전트가 RWD 게이트웨이(`gateway/`)와 MCP를 거쳐 페이지를 살펴보고 조작할 수 있어요. 프로토콜: [`docs/protocol.ko.md`](../docs/protocol.ko.md), 아키텍처: [`docs/architecture.ko.md`](../docs/architecture.ko.md).
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 선택
@@ -24,7 +24,7 @@ npm에 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-
 
 | 사용 방식 | 위치 |
 |---|---|
-| CDN에서 `<script>`로 | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js` 또는 `https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js` (압축된 IIFE, 전역 `RemoteWebviewDebugger`. 버전을 고정하고, 원하면 `integrity`도 추가하세요) |
+| CDN에서 `<script>`로 | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js` 또는 `https://unpkg.com/remote-webview-debugger@0.2.0/dist/sdk.js` (압축된 IIFE, 전역 `RemoteWebviewDebugger`. 버전을 고정하고, 원하면 `integrity`도 추가하세요) |
 | 번들러 | `npm install remote-webview-debugger` 후 `import { run, status } from 'remote-webview-debugger'` (타입이 포함된 ES 모듈). 수집이 일찍 시작되도록 직접 작성한 코드보다 먼저 import하세요. 같은 페이지에서 `<script>` 버전을 함께 불러오지 마세요 |
 | 직접 운영하는 게이트웨이 | `https://<gateway>/v1/sdk.js`, 게이트웨이에 내장된 사본이에요 (SRI용 콘텐츠 주소 기반 URL도 있고, 콘솔에서 안내해요) |
 | 네이티브 앱 | 패키지의 `dist/sdk.js`를 앱에 포함하거나 위 경로 중 하나에서 내려받으세요. [네이티브 연동](../docs/native-integration.ko.md)을 참고하세요 |
@@ -72,7 +72,7 @@ npm에 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-
 
 **불러오기.** 영어와 중국어 간체는 `sdk.js`에 들어 있어요. 나머지 언어 팩은 페이지에서 처음 필요할 때 불러와요 (그 사이에는 UI가 대체 언어로 표시돼요):
 
-- `<script>` 빌드: `sdk.js` 옆의 `locales/<id>.js`에서 불러오고 (CDN 경로라면 `…/remote-webview-debugger@0.1.0/dist/locales/ja.js`, 게이트웨이라면 `/v1/locales/ja.js`), 실패하면 `run()`에 넘긴 게이트웨이에서 불러와요. 추가 요청을 피하려면 `sdk.js` 앞이나 뒤에서 언어 팩을 직접 불러오세요: `<script src="…/dist/locales/ja.js"></script>`.
+- `<script>` 빌드: `sdk.js` 옆의 `locales/<id>.js`에서 불러오고 (CDN 경로라면 `…/remote-webview-debugger@0.2.0/dist/locales/ja.js`, 게이트웨이라면 `/v1/locales/ja.js`), 실패하면 `run()`에 넘긴 게이트웨이에서 불러와요. 추가 요청을 피하려면 `sdk.js` 앞이나 뒤에서 언어 팩을 직접 불러오세요: `<script src="…/dist/locales/ja.js"></script>`.
 - ES 모듈 빌드: 동적 import를 쓰므로 번들러가 언어마다 별도 청크를 만들어요. 미리 번들에 넣으려면 `import ja from 'remote-webview-debugger/locales/ja'` 후 `run(url, key, { locales: [ja] })`로 넘기세요.
 
 **직접 만든 언어 팩과 문구.** 언어 팩은 `{ id, name, dir?, ui?, action?, agent? }`예요. 빠진 부분은 대체 언어에서 가져와요:

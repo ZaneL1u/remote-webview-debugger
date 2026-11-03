@@ -1,4 +1,4 @@
-<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
+<!-- i18n-source: b356ba9005954ef85d8a12f95b7e8e136e054fd4 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | Français | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Intégration dans une application native
@@ -15,7 +15,7 @@ Le guide intégré à la console web (**Docs → Integrate a native app**) montr
 ## Liste de contrôle
 
 1. **Demandez le consentement.** N'activez le débogage à distance qu'après l'accord de l'utilisateur (l'application de démonstration affiche d'abord une boîte de dialogue de consentement native). L'approbation du rattachement sur l'appareil s'applique toujours en plus.
-2. **Récupérez le SDK.** Embarquez `dist/sdk.js` du paquet npm [`remote-webview-debugger`](../sdk/README.fr.md) dans l'application, pour que ni la passerelle ni un CDN ne puisse jamais lui pousser de code ; ou téléchargez-le une fois à l'activation du débogage, depuis votre passerelle (`https://rwd.example.com/v1/sdk.js`) ou depuis une URL de CDN épinglée (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js`).
+2. **Récupérez le SDK.** Embarquez `dist/sdk.js` du paquet npm [`remote-webview-debugger`](../sdk/README.fr.md) dans l'application, pour que ni la passerelle ni un CDN ne puisse jamais lui pousser de code ; ou téléchargez-le une fois à l'activation du débogage, depuis votre passerelle (`https://rwd.example.com/v1/sdk.js`) ou depuis une URL de CDN épinglée (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js`).
 3. **Construisez le script d'amorçage :** le source du SDK, puis `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`, puis (facultatif) un minuteur qui remonte `status()` au code natif.
 4. **Injectez-le au début du document** dans le cadre principal de chaque WebView, avant le chargement de la première page, pour que la capture démarre avant l'exécution de tout script de la page.
 5. **Conservez `deviceId` et `deviceToken`** dans le stockage de l'application et transmettez-les tous les deux à chaque WebView.

@@ -1,4 +1,4 @@
-<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
+<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 页面 SDK（`sdk/`）

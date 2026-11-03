@@ -1,4 +1,4 @@
-<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
+<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -10,7 +10,7 @@
 <div dir="ltr">
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // اختياري
@@ -30,7 +30,7 @@
 
 | الاستخدام | المصدر |
 |---|---|
-| وسم `<script>` من CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js` أو `https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js` (IIFE مصغَّر، والمتغير العام `RemoteWebviewDebugger`؛ ثبّت رقم الإصدار، وأضف `integrity` إن شئت) |
+| وسم `<script>` من CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js` أو `https://unpkg.com/remote-webview-debugger@0.2.0/dist/sdk.js` (IIFE مصغَّر، والمتغير العام `RemoteWebviewDebugger`؛ ثبّت رقم الإصدار، وأضف `integrity` إن شئت) |
 | أداة تجميع (bundler) | `npm install remote-webview-debugger`، ثم `import { run, status } from 'remote-webview-debugger'` (وحدة ES مع الأنواع). استورده قبل شيفرتك ليبدأ الالتقاط مبكرًا. ولا تحمّل معه نسخة `<script>` في الصفحة نفسها |
 | بوابتك | `https://<gateway>/v1/sdk.js`، وهي النسخة المضمَّنة في البوابة (ومتاحة أيضًا على عنوان معنون بالمحتوى لـ SRI تقترحه لوحة التحكم) |
 | تطبيق أصلي | ضمّن `dist/sdk.js` من الحزمة في التطبيق، أو نزّله من أحد المصادر أعلاه؛ انظر [التكامل مع التطبيقات الأصلية](../docs/native-integration.ar.md) |
@@ -78,7 +78,7 @@
 
 **التحميل.** الإنجليزية والصينية المبسطة مضمَّنتان في `sdk.js`. أما بقية الحزم فتُحمَّل عند الحاجة، في أول مرة تحتاجها الصفحة (وتعرض الواجهة لغة الاحتياط في تلك اللحظة):
 
-- نسخة `<script>`: من `locales/<id>.js` بجوار `sdk.js` (مسار CDN، مثل `…/remote-webview-debugger@0.1.0/dist/locales/ja.js`، أو `/v1/locales/ja.js` على بوابتك)، ومن البوابة الممرَّرة إلى `run()` إن فشل ذلك. ولتجنّب الطلب الإضافي، حمّل الحزمة بنفسك، قبل `sdk.js` أو بعده: `<script src="…/dist/locales/ja.js"></script>`.
+- نسخة `<script>`: من `locales/<id>.js` بجوار `sdk.js` (مسار CDN، مثل `…/remote-webview-debugger@0.2.0/dist/locales/ja.js`، أو `/v1/locales/ja.js` على بوابتك)، ومن البوابة الممرَّرة إلى `run()` إن فشل ذلك. ولتجنّب الطلب الإضافي، حمّل الحزمة بنفسك، قبل `sdk.js` أو بعده: `<script src="…/dist/locales/ja.js"></script>`.
 - نسخة وحدة ES: استيراد ديناميكي، فتضع أداة التجميع كل لغة في جزء (chunk) مستقل. ولتجميع إحداها مسبقًا بدلًا من ذلك: `import ja from 'remote-webview-debugger/locales/ja'`، ثم `run(url, key, { locales: [ja] })`.
 
 **حزمك ونصوصك الخاصة.** الحزمة هي `{ id, name, dir?, ui?, action?, agent? }`؛ وكل ما يُترك منها يُؤخذ من لغات الاحتياط الخاصة بها:
