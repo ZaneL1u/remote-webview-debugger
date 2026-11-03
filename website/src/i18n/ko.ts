@@ -71,6 +71,12 @@ export const ko: Dict = {
     skinLabel: '에이전트 스타일',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: '데모 모드',
+    modeWatch: '에이전트의 버그 수정 보기',
+    modeWatchSub: '스크립트 재생 · 브라우저에서 실행',
+    modeTry: '내 에이전트로 해 보기',
+    modeTrySub: '실제 게이트웨이 · 내 키',
     phoneLabel: '고객의 휴대폰',
     play: '재생',
     pause: '일시정지',
@@ -104,7 +110,7 @@ export const ko: Dict = {
     kicker: '직접 체험',
     title: '이번엔 내 에이전트로 해 보세요',
     lead:
-      '위의 데모는 브라우저 안에서 돌아가지만, 이건 진짜예요. <code>demo.debugger.site</code>에 공개 데모 게이트웨이가 있고, 다른 모든 것과 분리되어 매일 초기화돼요. 오른쪽 쇼핑몰은 거기서 불러온 진짜 페이지예요. 키를 받아 에이전트를 연결하고, 이 페이지에서 작업하는 모습을 지켜보세요.',
+      '이건 진짜예요. <code>demo.debugger.site</code>에 공개 데모 게이트웨이가 있고, 다른 모든 것과 분리되어 매일 초기화돼요. 휴대폰 속 쇼핑몰은 거기서 불러온 페이지예요. 키를 받아 에이전트를 연결하고, 바로 여기서 작업하는 모습을 지켜보세요.',
     steps: [
       {
         title: '내 키 받기',
@@ -116,7 +122,7 @@ export const ko: Dict = {
       },
       {
         title: '에이전트에게 요청하기',
-        body: '오른쪽 쇼핑몰의 기기 코드가 프롬프트에 채워져 있어요. 에이전트가 접속을 요청하면 쇼핑몰에서 <em>허용</em>을 탭하고 작업하는 모습을 보세요. <em>직접 조작</em>이나 <em>종료</em>는 언제든 가능해요.',
+        body: '휴대폰 속 쇼핑몰의 기기 코드가 프롬프트에 채워져 있어요. 에이전트가 접속을 요청하면 쇼핑몰에서 <em>허용</em>을 탭하고 작업하는 모습을 보세요. <em>직접 조작</em>이나 <em>종료</em>는 언제든 가능해요.',
       },
     ],
     phoneTitle: '데모 쇼핑몰, 실시간',

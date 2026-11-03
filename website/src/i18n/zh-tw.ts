@@ -71,6 +71,12 @@ export const zhTW: Dict = {
     skinLabel: 'Agent 樣式',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: '示範模式',
+    modeWatch: '看 agent 修一個 bug',
+    modeWatchSub: '腳本示範 · 在你的瀏覽器裡執行',
+    modeTry: '用你的 agent 親手試',
+    modeTrySub: '真實閘道 · 你自己的金鑰',
     phoneLabel: '使用者的手機',
     play: '播放',
     pause: '暫停',
@@ -103,7 +109,7 @@ export const zhTW: Dict = {
     kicker: '親手體驗',
     title: '用你自己的 agent 來試一次',
     lead:
-      '上面的示範完全跑在瀏覽器裡，這裡的則是真的：<code>demo.debugger.site</code> 上有一個公開的示範閘道，和其他服務完全隔離，每天清空。右邊的商城就是從那裡載入的真實頁面——取得一把金鑰，把 agent 接上去，在這個頁面上看它做事。',
+      '這裡是真的：<code>demo.debugger.site</code> 上有一個公開的示範閘道，和其他服務完全隔離，每天清空。手機裡的商城就是從那裡載入的——取得一把金鑰，把 agent 接上去，就在這裡看它做事。',
     steps: [
       {
         title: '取得一把自己的金鑰',
@@ -115,7 +121,7 @@ export const zhTW: Dict = {
       },
       {
         title: '給 agent 下指令',
-        body: '右邊商城的裝置碼已經填進指令裡。agent 要求接入時，在商城裡點 <em>允許</em>，然後看它操作；隨時可以 <em>接管</em> 或 <em>結束</em>。',
+        body: '手機裡商城的裝置碼已經填進指令裡。agent 要求接入時，在商城裡點 <em>允許</em>，然後看它操作；隨時可以 <em>接管</em> 或 <em>結束</em>。',
       },
     ],
     phoneTitle: '示範商城，真實線上',

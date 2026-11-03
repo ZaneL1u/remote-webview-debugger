@@ -71,6 +71,12 @@ export const en = {
     skinLabel: 'Agent style',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: 'Demo mode',
+    modeWatch: 'Watch an agent fix a bug',
+    modeWatchSub: 'Scripted · runs in your browser',
+    modeTry: 'Try it with your agent',
+    modeTrySub: 'Real gateway · your own key',
     phoneLabel: 'Customer’s phone',
     play: 'Play',
     pause: 'Pause',
@@ -104,7 +110,7 @@ export const en = {
     kicker: 'Hands-on',
     title: 'Now try it with your own agent',
     lead:
-      'The demo above runs in your browser. This one is real: a public demo gateway at <code>demo.debugger.site</code>, kept apart from everything else and wiped every day. The shop on the right is the real thing, loaded from there — get a key, point your agent at it and watch it work on this page.',
+      'This one is real: a public demo gateway at <code>demo.debugger.site</code>, kept apart from everything else and wiped every day. The shop in the phone is loaded from there — get a key, point your agent at it and watch it work right here.',
     steps: [
       {
         title: 'Get a key of your own',
@@ -116,7 +122,7 @@ export const en = {
       },
       {
         title: 'Ask your agent',
-        body: 'The device code of the shop on the right is filled into the prompt. When the agent asks to connect, tap <em>Allow</em> in the shop and watch it work; <em>Take over</em> or <em>End</em> it at any time.',
+        body: 'The device code of the shop in the phone is filled into the prompt. When the agent asks to connect, tap <em>Allow</em> in the shop and watch it work; <em>Take over</em> or <em>End</em> it at any time.',
       },
     ],
     phoneTitle: 'The demo shop, live',

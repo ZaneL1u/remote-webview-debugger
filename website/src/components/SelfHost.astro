@@ -17,7 +17,7 @@ const icons = ['server', 'db', 'chart']
 <section id="self-host" class="section" aria-labelledby="self-host-title">
   <div class="wrap split">
     <div>
-      <SectionHead num="08" kicker={s.kicker} title={s.title} lead={s.lead} id="self-host-title" />
+      <SectionHead num="07" kicker={s.kicker} title={s.title} lead={s.lead} id="self-host-title" />
       <ul class="host-points reveal">{s.points.map((p, i) => <li><Icon name={icons[i]} /><div><h3>{p.title}</h3><p set:html={p.body} /></div></li>)}</ul>
       <p class="reveal"><a class="btn btn-link" href={`${REPO}/tree/main/deploy/platform`}>{s.docsLink}<Icon name="arrow" /></a></p>
     </div>

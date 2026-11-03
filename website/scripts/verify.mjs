@@ -171,6 +171,8 @@ async function runDemo(browser, lang, mode) {
   await page.evaluate(() => document.querySelector('[data-demo]').scrollIntoView())
   await page.waitForFunction(() => window.__rwdDemo && window.__rwdDemo.runs > 0, undefined, { timeout: 20000 })
   await page.click(`[data-speed="${SPEED}"]`)
+  // Only one shop at a time: the real one is not loaded in watch mode.
+  if (await page.$eval('[data-live-frame]', el => !!el.getAttribute('src'))) fail(`${label}: the live shop loaded in watch mode`)
   const phase = () => page.evaluate(() => window.__rwdDemo.phase)
   await page.waitForFunction(() => window.__rwdDemo.phase === 'waitApproval', undefined, { timeout: 60000 })
   if (mode === 'auto') {
@@ -221,6 +223,9 @@ async function checkLive(browser) {
     const errors = watch(page, label)
     await page.goto(`${BASE}${pathOf(lang)}#live`)
     await page.waitForSelector('[data-live]')
+    // #live opens the demo in "try" mode: one phone, the real shop in it.
+    if ((await page.$eval('#demo', el => el.dataset.mode)) !== 'try') fail(`${label}: #live did not open try mode`)
+    if (await page.$eval('[data-phone-frame]', el => el.offsetParent !== null)) fail(`${label}: the scripted shop is visible in try mode`)
     await page.waitForFunction(() => document.querySelector('[data-live]').dataset.liveState === 'idle')
     await page.click('[data-live-get]')
     await page.waitForFunction(() => document.querySelector('[data-live]').dataset.liveState === 'ready', undefined, { timeout: 10000 })
@@ -277,7 +282,7 @@ async function checkLangs(browser) {
     if (info.hreflangs.length !== LANGS.length + 1) fail(`${label}: ${info.hreflangs.length} hreflang links`)
     if (!info.ld.includes('FAQPage') || !info.ld.includes('SoftwareApplication')) fail(`${label}: JSON-LD ${info.ld}`)
     if (!info.title) fail(`${label}: no title`)
-    if (info.sections.length !== 9) fail(`${label}: ${info.sections.length} sections (${info.sections})`)
+    if (info.sections.length !== 8) fail(`${label}: ${info.sections.length} sections (${info.sections})`)
     await scrollThrough(page)
     const sw = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth])
     if (sw[0] > sw[1]) fail(`${label}: horizontal scroll ${sw[0]} > ${sw[1]}`)

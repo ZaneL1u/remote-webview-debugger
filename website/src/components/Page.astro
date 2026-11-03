@@ -5,7 +5,6 @@ import { dict } from '../i18n/index.ts'
 import Base from '../layouts/Base.astro'
 import Hero from './Hero.astro'
 import Demo from './Demo.astro'
-import Live from './Live.astro'
 import How from './How.astro'
 import Features from './Features.astro'
 import Highlights from './Highlights.astro'
@@ -24,7 +23,6 @@ const t = dict(locale.code)
 <Base t={t} locale={locale}>
   <Hero t={t} />
   <Demo t={t} locale={locale} />
-  <Live t={t} locale={locale} />
   <How t={t} locale={locale} />
   <Features t={t} />
   <Highlights t={t} />

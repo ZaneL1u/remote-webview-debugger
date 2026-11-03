@@ -44,7 +44,7 @@ The SDK looks for the browser's native `WebSocket` (a `[native code]` constructo
 
 ## Try it live
 
-The section embeds `https://demo.debugger.site/?lang=<en|zh>&ui=<lang>` in a phone frame (the real shop, the real SDK, the public demo gateway). The shop reports its device code to the page with `postMessage` (`examples/platform-demo/rwd-boot.js`, to the website's origins only), and the page fills it into the prompt. The visitor's API key comes from `POST /v1/demo/keys`, as before.
+The demo section has two modes on one phone: *watch* (the scripted agent above) and *try* (`#live`), which loads `https://demo.debugger.site/?lang=<en|zh>&ui=<lang>` into the same phone frame (the real shop, the real SDK, the public demo gateway) and shows the steps to connect your own agent. The real shop loads only when the visitor picks *try*, and the scripted run pauses meanwhile. The shop reports its device code to the page with `postMessage` (`examples/platform-demo/rwd-boot.js`, to the website's origins only), and the page fills it into the prompt. The visitor's API key comes from `POST /v1/demo/keys`, as before.
 
 ## Deploying
 

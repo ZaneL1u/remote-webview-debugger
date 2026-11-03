@@ -1,46 +1,202 @@
-/* ------------------------------ try it live ------------------------------ */
+/* ---------------------- the demo's two modes ---------------------- */
 
-.live {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
-  gap: clamp(24px, 4vw, 56px);
-  align-items: start;
+/* One section, one phone: [data-mode] on #demo picks what shows. */
+[data-mode='watch'] [data-show='try'],
+[data-mode='try'] [data-show='watch'] {
+  display: none !important;
 }
-.live > * {
+
+/* the two big mode cards above the panel */
+.modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: -8px 0 18px;
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+.mode {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   min-width: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-2);
+  text-align: start;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s, color 0.2s, transform 0.2s;
+}
+.mode:hover {
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+.mode:active {
+  transform: translateY(1px);
+}
+.mode[aria-selected='true'] {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent),
+    0 0 40px -18px color-mix(in srgb, var(--accent) 100%, transparent);
+}
+/* a light sweep across the selected card */
+.mode[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, color-mix(in srgb, var(--accent) 12%, transparent) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: mode-sweep 3.6s ease-in-out infinite;
+}
+@keyframes mode-sweep {
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+.mode-ic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  color: var(--accent-text);
+  transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+}
+.mode[aria-selected='true'] .mode-ic {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--accent) 100%, transparent);
+}
+.mode-text {
+  display: grid;
+  min-width: 0;
+}
+.mode-text b {
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.mode-text small {
+  margin-top: 2px;
+  font: 500 12px/1.4 var(--font-mono);
+  color: var(--ink-3);
+}
+.mode-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--green) 40%, transparent);
+  font: 500 10px/1.2 var(--font-hud);
+  letter-spacing: 0.12em;
+  color: var(--green);
+}
+.mode-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px 1px var(--green);
+  animation: live-blink 1.6s ease-in-out infinite;
+}
+@keyframes live-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* --------------------------- try: the bar --------------------------- */
+
+.try-status .status-dot {
+  background: var(--d-ink-3);
+  color: var(--d-ink-3);
+}
+.try-status.is-waiting .status-dot::after {
+  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.try-status.is-ready .status-dot {
+  background: #34d399;
+  color: #34d399;
+  box-shadow: 0 0 10px 1px rgba(52, 211, 153, 0.7);
+}
+.try-status.is-ready .status-dot::after {
+  animation: ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.try-host {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+  padding: 6px 10px;
+  border-radius: 9px;
+  color: var(--d-ink-2);
+  font-size: 12.5px;
+  transition: background 0.15s, color 0.15s;
+}
+.try-host:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--d-ink);
+}
+.try-host .ic {
+  width: 14px;
+  height: 14px;
+}
+[dir='rtl'] .try-host .ic {
+  transform: scaleX(-1);
+}
+
+/* --------------------------- try: the steps --------------------------- */
+
+.try {
+  padding: 20px;
+  display: grid;
+  gap: 14px;
 }
 .live-steps {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 .live-step {
   min-width: 0;
-  padding: 22px 24px 24px;
-  border-radius: var(--radius);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  transition: border-color 0.25s, box-shadow 0.25s;
-}
-.live-step:has([data-live-state='ready']),
-[data-live-state='ready'] .live-step.is-key {
-  border-color: color-mix(in srgb, var(--green) 45%, transparent);
+  padding: 18px 20px 20px;
+  border-radius: 14px;
+  background: var(--d-panel);
+  border: 1px solid var(--d-line);
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 .live-step h3 {
-  margin-top: 14px;
-  font-size: 1.15rem;
-  letter-spacing: -0.02em;
+  margin-top: 12px;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
   font-weight: 640;
+  color: var(--d-ink);
 }
 .live-step > p {
   margin-top: 6px;
-  color: var(--ink-2);
-  font-size: 15px;
+  color: var(--d-ink-2);
+  font-size: 14.5px;
+}
+[data-live-state='ready'] .live-step.is-key {
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow: 0 0 30px -18px rgba(52, 211, 153, 0.9);
 }
 .live-visual {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 .live-visual .tablist {
   margin-bottom: 10px;
@@ -64,7 +220,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: var(--ink-3);
+  color: var(--d-ink-3);
   font-size: 13.5px;
 }
 .live-get .live-status {
@@ -72,8 +228,8 @@
 }
 .live-status .status-dot {
   margin-top: 0.5em;
-  background: var(--ink-3);
-  color: var(--ink-3);
+  background: var(--d-ink-3);
+  color: var(--d-ink-3);
 }
 [data-live-state='ready'] [data-live-get] {
   display: none;
@@ -81,9 +237,12 @@
 [data-live-state='loading'] .live-status .status-dot::after {
   animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+[data-live-state='ready'] .live-status {
+  color: var(--d-ink-2);
+}
 [data-live-state='ready'] .live-status .status-dot {
-  background: var(--green);
-  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--green) 70%, transparent);
+  background: #34d399;
+  box-shadow: 0 0 10px 1px rgba(52, 211, 153, 0.7);
 }
 [data-live-state='failed'] .live-status .status-dot,
 [data-live-state='limited'] .live-status .status-dot {
@@ -91,7 +250,7 @@
 }
 [data-live-state='failed'] .live-status,
 [data-live-state='limited'] .live-status {
-  color: var(--amber);
+  color: #fbbf24;
 }
 .live-key-check {
   width: 26px;
@@ -102,36 +261,9 @@
   display: block;
   margin-top: 10px;
 }
-.live-device {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  font-size: 13.5px;
-  color: var(--ink-3);
-}
-.live-device .status-dot {
-  background: var(--ink-3);
-  color: var(--ink-3);
-}
-.live-device.is-ready {
-  color: var(--ink-2);
-}
-.live-device.is-ready .status-dot {
-  background: var(--green);
-  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--green) 70%, transparent);
-}
-.live-device.is-waiting .status-dot::after {
-  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-.live-device code {
-  font-family: var(--font-hud);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-}
 .code-prompt pre {
   white-space: pre-wrap;
-  font-size: 14.5px;
+  font-size: 14px;
   direction: inherit;
   text-align: start;
 }
@@ -142,34 +274,41 @@
   direction: rtl;
 }
 .code-prompt [data-live-device] {
-  color: #93b0ff;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(125, 151, 255, 0.16);
+  color: #b7c6ff;
   font-family: var(--font-mono);
+  transition: background 0.4s, color 0.4s;
+}
+.code-prompt [data-live-device].is-filled {
+  background: rgba(52, 211, 153, 0.16);
+  color: #8ff0b0;
 }
 .live-limits {
-  margin-top: 18px;
-  padding: 18px 22px;
-  border-radius: var(--radius);
-  border: 1px dashed var(--line-2);
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px dashed var(--d-line-2);
 }
 .live-limits h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 620;
+  color: var(--d-ink);
 }
 .live-limits h3 .ic {
-  width: 18px;
-  height: 18px;
-  color: var(--accent);
+  width: 17px;
+  height: 17px;
+  color: #7d97ff;
 }
 .live-limits ul {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 28px;
-  margin-top: 10px;
-  color: var(--ink-2);
-  font-size: 14px;
+  gap: 4px;
+  margin-top: 8px;
+  color: var(--d-ink-2);
+  font-size: 13.5px;
 }
 .live-limits li {
   position: relative;
@@ -183,47 +322,36 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent-2);
+  background: #22d3ee;
 }
 
-/* the real shop, in a phone */
-.live-phone {
-  position: sticky;
-  top: calc(var(--header-h) + 16px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+/* --------------------------- try: the phone --------------------------- */
+
+/* The scripted glow belongs to watch; in try the phone is calm, then green once the shop is online. */
+[data-mode='try'] .demo .phone::after {
+  opacity: 0;
+  animation: none;
 }
-.live-phone .phone-label {
-  color: var(--ink-2);
+[data-mode='try'] .demo.is-online .phone::after {
+  opacity: 0.85;
+  box-shadow:
+    0 0 0 1px rgba(52, 211, 153, 0.8),
+    0 0 18px 3px rgba(52, 211, 153, 0.45),
+    0 0 60px 10px rgba(52, 211, 153, 0.18);
 }
-.live-phone .phone-label .ic {
-  color: var(--ink-3);
-}
-.live-phone .phone-label code {
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--line-2);
-  color: var(--accent-text);
-}
-.live-phone .phone-stage {
-  height: 620px;
-}
-.live-phone .phone-stage::before {
-  background: color-mix(in srgb, var(--accent) 34%, transparent);
+[data-mode='try'] .demo .phone-stage::before {
   opacity: 0.6;
 }
-.live-phone .phone {
-  --d-glow: var(--glow);
+[data-mode='try'] .demo.is-online .phone-stage::before {
+  background: rgba(52, 211, 153, 0.3);
 }
-.live-phone.is-online .phone::after {
-  opacity: 0.8;
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--green) 80%, transparent),
-    0 0 18px 3px color-mix(in srgb, var(--green) 45%, transparent),
-    0 0 60px 10px color-mix(in srgb, var(--green) 18%, transparent);
+/* in try mode the phone stays in view while the visitor scrolls the steps */
+[data-mode='try'] .phone-col {
+  position: sticky;
+  top: calc(var(--header-h) + 12px);
+  align-self: start;
 }
-.live-phone .phone-screen iframe {
+.phone-screen iframe[data-live-frame] {
   background: #fff;
 }
 .phone-loading {
@@ -236,15 +364,14 @@
   font: 500 14px/1.4 var(--font-sans);
   text-align: center;
   padding: 24px;
-  transition: opacity 0.4s;
 }
 .phone-loading[hidden] {
-  display: none;
+  display: none !important;
 }
 .live-open {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -253,39 +380,63 @@
   align-items: center;
   gap: 12px;
   margin: 0;
-  color: var(--ink-3);
+  color: var(--d-ink-3);
   font-size: 12.5px;
 }
 .live-qr .qr {
-  width: 96px;
-  height: 96px;
+  width: 84px;
+  height: 84px;
   border-radius: 10px;
-  box-shadow: 0 0 0 1px var(--line-2), var(--shadow);
+  box-shadow: 0 0 0 1px var(--d-line-2);
 }
 .live-qr figcaption {
-  max-width: 9em;
+  max-width: 8em;
 }
 .live-phone-hint {
   max-width: 360px;
   text-align: center;
-  font-size: 13px;
-  color: var(--ink-3);
+  font-size: 12.5px;
+  color: var(--d-ink-3);
+}
+.live-phone-hint code {
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--d-ink-2);
+  box-shadow: none;
 }
 
 @media (max-width: 980px) {
-  .live {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .live-phone {
+  [data-mode='try'] .phone-col {
     position: relative;
     top: auto;
-    order: -1;
-  }
-  .live-limits ul {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 680px) {
+  .modes {
+    gap: 8px;
+  }
+  .mode {
+    padding: 12px;
+    gap: 10px;
+  }
+  .mode-ic {
+    width: 34px;
+    height: 34px;
+  }
+  .mode-text b {
+    font-size: 14px;
+  }
+  .mode-text small,
+  .mode-live {
+    display: none;
+  }
+  .try {
+    padding: 14px;
+  }
+  .live-step {
+    padding: 16px;
+  }
   /* On a phone the shop opens right here: a QR code would point at itself. */
   .live-qr {
     display: none;
@@ -295,7 +446,10 @@
     flex: 1 1 auto;
     justify-content: center;
   }
-  .live-phone .phone-stage {
-    height: 560px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mode[aria-selected='true']::after {
+    animation: none;
+    display: none;
   }
 }

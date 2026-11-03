@@ -157,18 +157,64 @@ document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach(btn => {
 mountMotion()
 if (!reduced) mountLottie()
 
+/* ------------------------------- demo modes ------------------------------ */
+
+// One phone, two modes on #demo: "watch" plays the scripted agent against a
+// mock gateway, "try" loads the real demo shop and the steps to connect your
+// own agent. #demo selects the first, #live the second.
+type Mode = 'watch' | 'try'
+const demoSection = document.getElementById('demo')
+const modeBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-mode-btn]')]
+const onMode: ((m: Mode) => void)[] = []
+const currentMode = (): Mode => (demoSection?.dataset.mode === 'try' ? 'try' : 'watch')
+function setMode(mode: Mode) {
+  if (!demoSection) return
+  demoSection.dataset.mode = mode
+  for (const b of modeBtns) {
+    const on = b.dataset.modeBtn === mode
+    b.setAttribute('aria-selected', String(on))
+    b.tabIndex = on ? 0 : -1
+  }
+  onMode.forEach(fn => fn(mode))
+}
+modeBtns.forEach((b, i) => {
+  b.addEventListener('click', () => {
+    const mode = b.dataset.modeBtn as Mode
+    setMode(mode)
+    // Keep the address in step, without jumping the page.
+    history.replaceState(null, '', mode === 'try' ? '#live' : '#demo')
+  })
+  b.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
+    e.preventDefault()
+    const next = modeBtns[(i + 1) % modeBtns.length]
+    next.focus()
+    next.click()
+  })
+})
+const fromHash = () => {
+  if (location.hash === '#live') setMode('try')
+  else if (location.hash === '#demo') setMode('watch')
+}
+window.addEventListener('hashchange', fromHash)
+// Links to #live / #demo pick the mode even when the hash doesn't change.
+document.querySelectorAll<HTMLAnchorElement>('a[href="#live"], a[href="#demo"]').forEach(a =>
+  a.addEventListener('click', () => setMode(a.getAttribute('href') === '#live' ? 'try' : 'watch')),
+)
+
 /* ---------------------------------- demo --------------------------------- */
 
 const demoEl = document.querySelector<HTMLElement>('[data-demo]')
 if (demoEl) {
-  let demo: { start(): void } | null = null
+  let demo: { start(): void; suspend(): void; resume(): void } | null = null
   let wantStart = false
   let loading: Promise<void> | null = null
   const load = () =>
     (loading ||= import('../demo/index.ts').then(m => {
       demo = m.mountDemo(demoEl)
+      if (currentMode() === 'try') demo.suspend()
     })).then(() => {
-      if (wantStart) demo?.start()
+      if (wantStart && currentMode() === 'watch') demo?.start()
     })
   const near = new IntersectionObserver(
     entries => {
@@ -193,20 +239,22 @@ if (demoEl) {
     )
     seen.observe(demoEl)
   }
-  document.querySelectorAll<HTMLAnchorElement>('a[href="#demo"]').forEach(a =>
-    a.addEventListener('click', () => {
+  onMode.push(mode => {
+    if (mode === 'try') demo?.suspend()
+    else {
       wantStart = true
-      void load()
-    }),
-  )
+      void load().then(() => demo?.resume())
+    }
+  })
 }
 
 /* ---------------------------------- live --------------------------------- */
 
-// The public demo gateway hands each visitor an API key of their own
-// (POST /v1/demo/keys), remembered in this browser until the demo starts
-// over (resetAt in rwd-demo.json). The real shop runs in the phone frame and
-// reports its device code, which goes into the prompt.
+// "Try" mode: the public demo gateway hands each visitor an API key of their
+// own (POST /v1/demo/keys), remembered in this browser until the demo starts
+// over (resetAt in rwd-demo.json). The real shop runs in the phone and
+// reports its device code (examples/platform-demo/rwd-boot.js), which goes
+// into the prompt.
 const liveEl = document.querySelector<HTMLElement>('[data-live]')
 if (liveEl) {
   type Stored = { key: string; issuedAt: number }
@@ -238,8 +286,9 @@ if (liveEl) {
       return null
     }
   }
+  let restoring: Promise<void> | null = null
   const restore = () =>
-    fetch(liveEl.dataset.live || '', { cache: 'no-store', signal: timeout() })
+    (restoring ||= fetch(liveEl.dataset.live || '', { cache: 'no-store', signal: timeout() })
       .then(res => (res.ok ? (res.json() as Promise<{ resetAt?: number }>) : null))
       .then(cfg => {
         if (liveEl.dataset.liveState !== 'idle') return
@@ -247,7 +296,9 @@ if (liveEl) {
         if (s?.key && cfg?.resetAt && s.issuedAt > cfg.resetAt) fill(s.key)
         else if (!cfg) show('failed')
       })
-      .catch(() => liveEl.dataset.liveState === 'idle' && show('failed'))
+      .catch(() => {
+        if (liveEl.dataset.liveState === 'idle') show('failed')
+      }))
   button?.addEventListener('click', () => {
     show('loading')
     button.disabled = true
@@ -267,66 +318,57 @@ if (liveEl) {
       .finally(() => (button.disabled = false))
   })
 
-  // The shop in the phone: loaded when the section comes near; its device
-  // code arrives by postMessage (examples/platform-demo/rwd-boot.js).
   const frame = liveEl.querySelector<HTMLIFrameElement>('[data-live-frame]')
-  const phone = liveEl.querySelector<HTMLElement>('[data-live-phone]')
-  const stage = liveEl.querySelector<HTMLElement>('[data-live-stage]')
   const loadingEl = liveEl.querySelector<HTMLElement>('[data-live-loading]')
-  const devStatus = liveEl.querySelector<HTMLElement>('[data-live-device-status]')
-  const devText = liveEl.querySelector<HTMLElement>('[data-live-device-text]')
+  const devStatus = [...liveEl.querySelectorAll<HTMLElement>('[data-live-device-status]')]
   const origin = liveEl.dataset.liveOrigin || ''
-  const PHONE_W = 399
-  const PHONE_H = 822
-  const fit = () => {
-    if (!stage) return
-    const w = stage.clientWidth || PHONE_W
-    const maxH = window.innerWidth < 720 ? 560 : 620
-    const s = Math.min(1, w / PHONE_W, maxH / PHONE_H)
-    stage.style.setProperty('--s', s.toFixed(4))
-    stage.style.height = `${Math.round(PHONE_H * s)}px`
-  }
-  if (stage) {
-    new ResizeObserver(fit).observe(stage)
-    fit()
-  }
   let codeShown = false
   const device = (code: string | null) => {
-    if (!devStatus) return
-    if (code) {
-      codeShown = true
-      devStatus.classList.remove('is-waiting')
-      devStatus.classList.add('is-ready')
-      if (devText) devText.textContent = (devStatus.dataset.readyTpl || '{code}').replace('{code}', code)
-      liveEl.querySelectorAll('[data-live-device]').forEach(el => (el.textContent = code))
-      liveEl.querySelectorAll('[data-live-phone-code]').forEach(el => (el.textContent = code))
-      phone?.classList.add('is-online')
-    } else if (!codeShown) {
-      devStatus.classList.remove('is-waiting')
-      if (devText) devText.textContent = devStatus.dataset.unavailable || ''
+    for (const st of devStatus) {
+      const t = st.querySelector<HTMLElement>('[data-live-device-text]')
+      st.classList.remove('is-waiting')
+      if (code) {
+        st.classList.add('is-ready')
+        if (t) t.textContent = (st.dataset.readyTpl || '{code}').replace('{code}', code)
+      } else if (!codeShown && t) t.textContent = st.dataset.unavailable || ''
     }
+    if (!code) return
+    codeShown = true
+    liveEl.querySelectorAll('[data-live-device]').forEach(el => {
+      el.textContent = code
+      el.classList.add('is-filled')
+    })
+    liveEl.querySelectorAll('[data-live-phone-code]').forEach(el => (el.textContent = code))
+    liveEl.classList.add('is-online')
   }
   window.addEventListener('message', e => {
     if (e.origin !== origin || !e.data || e.data.rwdDemo !== 'device') return
     const code = String(e.data.deviceCode || '')
     if (/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) device(code)
   })
+  // The real shop loads only when the visitor picks "try": one shop at a time.
   const loadShop = () => {
-    if (!frame || frame.src) return
+    if (!frame || frame.getAttribute('src')) return
     frame.addEventListener('load', () => {
       if (loadingEl) loadingEl.hidden = true
       // No code within a while: the shop may be an older build; say so.
-      setTimeout(() => device(null), 15000)
+      setTimeout(() => {
+        if (!codeShown) device(null)
+      }, 15000)
     })
     frame.src = frame.dataset.src || ''
   }
+  onMode.push(mode => {
+    if (mode !== 'try') return
+    void restore()
+    loadShop()
+  })
   if ('IntersectionObserver' in window) {
     const near = new IntersectionObserver(
       entries => {
         if (entries.some(e => e.isIntersecting)) {
           near.disconnect()
           void restore()
-          loadShop()
         }
       },
       { rootMargin: '600px 0px' },
@@ -334,6 +376,7 @@ if (liveEl) {
     near.observe(liveEl)
   } else {
     void restore()
-    loadShop()
   }
 }
+
+fromHash()

@@ -71,6 +71,12 @@ export const zh: Dict = {
     skinLabel: 'Agent 样式',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: '演示模式',
+    modeWatch: '看 agent 修一个 bug',
+    modeWatchSub: '脚本演示 · 在你的浏览器里运行',
+    modeTry: '用你的 agent 亲手试',
+    modeTrySub: '真实网关 · 你自己的 Key',
     phoneLabel: '用户的手机',
     play: '播放',
     pause: '暂停',
@@ -103,7 +109,7 @@ export const zh: Dict = {
     kicker: '亲手体验',
     title: '用你自己的 agent 来试一次',
     lead:
-      '上面的演示完全跑在浏览器里，这里的则是真的：<code>demo.debugger.site</code> 上有一个公开的演示网关，和其他服务完全隔离，每天清空。右边的商城就是从那里加载的真实页面——生成一把 Key，把 agent 接上去，在这个页面上看它干活。',
+      '这里是真的：<code>demo.debugger.site</code> 上有一个公开的演示网关，和其他服务完全隔离，每天清空。手机里的商城就是从那里加载的——生成一把 Key，把 agent 接上去，就在这里看它干活。',
     steps: [
       {
         title: '生成一把自己的 Key',
@@ -115,7 +121,7 @@ export const zh: Dict = {
       },
       {
         title: '给 agent 下指令',
-        body: '右边商城的设备码已经填进指令里。agent 请求接入时，在商城里点「允许」，然后看它操作；随时可以点「接管」或「结束」。',
+        body: '手机里商城的设备码已经填进指令里。agent 请求接入时，在商城里点「允许」，然后看它操作；随时可以点「接管」或「结束」。',
       },
     ],
     phoneTitle: '演示商城，真实在线',

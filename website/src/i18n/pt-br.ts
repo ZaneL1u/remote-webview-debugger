@@ -71,6 +71,12 @@ export const ptBR: Dict = {
     skinLabel: 'Estilo do agente',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: 'Modo da demo',
+    modeWatch: 'Veja um agente corrigir um bug',
+    modeWatchSub: 'Roteirizada · roda no seu navegador',
+    modeTry: 'Teste com o seu agente',
+    modeTrySub: 'Gateway real · sua própria chave',
     phoneLabel: 'Celular do cliente',
     play: 'Reproduzir',
     pause: 'Pausar',
@@ -104,7 +110,7 @@ export const ptBR: Dict = {
     kicker: 'Mão na massa',
     title: 'Agora teste com o seu próprio agente',
     lead:
-      'A demo acima roda no seu navegador. Esta aqui é real: um gateway de demonstração público em <code>demo.debugger.site</code>, separado de todo o resto e apagado todos os dias. A loja à direita é a de verdade, carregada de lá — pegue uma chave, aponte seu agente para ela e veja o agente trabalhar nesta página.',
+      'Esta aqui é real: um gateway de demonstração público em <code>demo.debugger.site</code>, separado de todo o resto e apagado todos os dias. A loja no celular é carregada de lá — pegue uma chave, aponte seu agente para ela e veja o agente trabalhar aqui mesmo.',
     steps: [
       {
         title: 'Pegue uma chave sua',
@@ -116,7 +122,7 @@ export const ptBR: Dict = {
       },
       {
         title: 'Peça ao seu agente',
-        body: 'O código do dispositivo da loja à direita já está no prompt. Quando o agente pedir para se conectar, toque em <em>Permitir</em> na loja e veja o agente trabalhar; você pode <em>Assumir</em> ou <em>Encerrar</em> a qualquer momento.',
+        body: 'O código do dispositivo da loja no celular já está no prompt. Quando o agente pedir para se conectar, toque em <em>Permitir</em> na loja e veja o agente trabalhar; você pode <em>Assumir</em> ou <em>Encerrar</em> a qualquer momento.',
       },
     ],
     phoneTitle: 'A loja de demonstração, ao vivo',

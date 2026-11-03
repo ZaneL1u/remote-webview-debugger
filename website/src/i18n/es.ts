@@ -71,6 +71,12 @@ export const es: Dict = {
     skinLabel: 'Estilo del agente',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: 'Modo de la demo',
+    modeWatch: 'Mira a un agente arreglar un bug',
+    modeWatchSub: 'Con guion · corre en tu navegador',
+    modeTry: 'Pruébalo con tu agente',
+    modeTrySub: 'Gateway real · tu propia clave',
     phoneLabel: 'Teléfono del cliente',
     play: 'Reproducir',
     pause: 'Pausar',
@@ -104,7 +110,7 @@ export const es: Dict = {
     kicker: 'Manos a la obra',
     title: 'Ahora pruébalo con tu propio agente',
     lead:
-      'La demo de arriba corre en tu navegador. Esta es de verdad: un gateway de demostración público en <code>demo.debugger.site</code>, aislado de todo lo demás y borrado cada día. La tienda de la derecha es la real, cargada desde ahí: consigue una clave, apunta tu agente a ella y míralo trabajar en esta página.',
+      'Esta es de verdad: un gateway de demostración público en <code>demo.debugger.site</code>, aislado de todo lo demás y borrado cada día. La tienda del teléfono se carga desde ahí: consigue una clave, apunta tu agente a ella y míralo trabajar aquí mismo.',
     steps: [
       {
         title: 'Consigue tu propia clave',
@@ -116,7 +122,7 @@ export const es: Dict = {
       },
       {
         title: 'Pídeselo a tu agente',
-        body: 'El código de dispositivo de la tienda de la derecha ya está en el prompt. Cuando el agente pida conectarse, toca <em>Permitir</em> en la tienda y míralo trabajar; puedes usar <em>Tomar control</em> o <em>Finalizar</em> en cualquier momento.',
+        body: 'El código de dispositivo de la tienda del teléfono ya está en el prompt. Cuando el agente pida conectarse, toca <em>Permitir</em> en la tienda y míralo trabajar; puedes usar <em>Tomar control</em> o <em>Finalizar</em> en cualquier momento.',
       },
     ],
     phoneTitle: 'La tienda de demostración, en vivo',

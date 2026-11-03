@@ -269,9 +269,24 @@ export function mountDemo(root: HTMLElement) {
   syncControls()
   phoneReady = freshPhone()
 
+  // The visitor switched to "try it with your agent": hold the scripted run
+  // where it is, and pick it up again when they come back.
+  let suspended = false
   return {
     start: () => {
       if (!running && debug.runs === 0) void start()
+    },
+    suspend: () => {
+      if (running && !player.paused) {
+        player.setPaused(true)
+        suspended = true
+      }
+    },
+    resume: () => {
+      if (suspended) {
+        suspended = false
+        player.setPaused(false)
+      }
     },
   }
 }

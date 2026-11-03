@@ -1,9 +1,14 @@
 ---
+// The demo: one phone, two modes. "Watch" plays a scripted agent against a
+// mock gateway in the browser; "Try" loads the real demo shop from the public
+// demo gateway into the same phone and walks the visitor through connecting
+// their own agent. #demo opens the first, #live the second.
 import type { Dict } from '../i18n/en.ts'
 import type { Locale } from '../i18n/locales.ts'
-import { escapeHtml } from '../lib/html.ts'
+import { code, copyButton, escapeHtml, qr, tabs } from '../lib/html.ts'
+import { DEMO } from '../lib/site.ts'
+import * as S from '../lib/snippets.ts'
 import Icon from './Icon.astro'
-import SectionHead from './SectionHead.astro'
 
 interface Props {
   t: Dict
@@ -11,17 +16,60 @@ interface Props {
 }
 const { t, locale } = Astro.props
 const d = t.demo
-const text = JSON.stringify({ guideTap: d.guideTap, guideAutoTpl: d.guideAuto(0).replace('0', '{s}') })
+const l = t.live
+const text = JSON.stringify({ guideTap: d.guideTap })
+
+// The real shop in the shop's language, the SDK's UI in the visitor's.
+const shop = `${DEMO}/?lang=${locale.shop}&ui=${encodeURIComponent(locale.code)}`
+const keyed = (html: string) => html.replace(/rwd_sk_live_…/g, '<span data-live-key>rwd_sk_live_…</span>')
+const mcp = tabs('live', l.tabsLabel, [
+  { key: 'claude', title: 'Claude Code', body: keyed(code(S.liveClaudeSnippet(), 'sh', 'terminal')) },
+  { key: 'codex', title: 'Codex', body: keyed(code(S.liveCodexSnippet(), 'sh', 'terminal')) },
+  { key: 'cursor', title: 'Cursor', body: keyed(code(S.liveCursorSnippet(), 'json', '.cursor/mcp.json')) },
+])
+const prompt = `<div class="code code-prompt"><div class="code-head"><span class="code-label">${escapeHtml(l.promptLabel)}</span>${copyButton()}</div><pre tabindex="0"><code>${escapeHtml(l.prompt).replace('XXXX-XXXX', '<span data-live-device>XXXX-XXXX</span>')}</code></pre></div>`
+const footnote = escapeHtml(d.footnote).replace(/&lt;(\/?code)&gt;/g, '<$1>')
 ---
 
-<section id="demo" class="demo-section" aria-labelledby="demo-title">
+<section id="demo" class="demo-section" aria-labelledby="demo-title" data-mode="watch">
   <div class="wrap">
-    <SectionHead num="01" kicker={d.kicker} title={d.title} lead={d.lead} id="demo-title" />
-    <div class="demo reveal" data-demo data-lang={locale.code} data-shop={locale.shop} data-skin="claude" data-text={text}>
+    <header class="section-head reveal">
+      <p class="kicker"><span class="sec-num">01</span><span data-show="watch">{d.kicker}</span><span data-show="try">{l.kicker}</span></p>
+      <h2 id="demo-title"><span data-show="watch" set:html={d.title} /><span data-show="try" set:html={l.title} /></h2>
+      <p class="lead" data-show="watch" set:html={d.lead} />
+      <p class="lead" data-show="try" set:html={l.lead} />
+    </header>
+
+    <div class="modes reveal" id="live" role="tablist" aria-label={d.modeLabel}>
+      <button class="mode" role="tab" type="button" data-mode-btn="watch" aria-selected="true" aria-controls="demo-panel">
+        <span class="mode-ic"><Icon name="play" /></span>
+        <span class="mode-text"><b>{d.modeWatch}</b><small>{d.modeWatchSub}</small></span>
+      </button>
+      <button class="mode" role="tab" type="button" data-mode-btn="try" aria-selected="false" aria-controls="demo-panel" tabindex="-1">
+        <span class="mode-ic"><Icon name="key" /></span>
+        <span class="mode-text"><b>{d.modeTry}</b><small>{d.modeTrySub}</small></span>
+        <span class="mode-live" aria-hidden="true"><i></i>LIVE</span>
+      </button>
+    </div>
+
+    <div
+      class="demo reveal"
+      id="demo-panel"
+      role="tabpanel"
+      data-demo
+      data-lang={locale.code}
+      data-shop={locale.shop}
+      data-skin="claude"
+      data-text={text}
+      data-live={`${DEMO}/demo/rwd-demo.json`}
+      data-live-keys={`${DEMO}/v1/demo/keys`}
+      data-live-origin={DEMO}
+      data-live-state="idle"
+    >
       <div class="demo-bar">
-        <div class="demo-status" aria-live="polite"><span class="status-dot" data-status-dot></span><span data-status>{d.stateIdle}</span></div>
-        <div class="demo-progress" aria-hidden="true"><span data-progress></span></div>
-        <div class="demo-controls">
+        <div class="demo-status" aria-live="polite" data-show="watch"><span class="status-dot" data-status-dot></span><span data-status>{d.stateIdle}</span></div>
+        <div class="demo-progress" aria-hidden="true" data-show="watch"><span data-progress></span></div>
+        <div class="demo-controls" data-show="watch">
           <button class="ctl ctl-play" type="button" data-play aria-label={d.play} title={d.play}><Icon name="play" class="ic i-play" /><Icon name="pause" class="ic i-pause" /></button>
           <button class="ctl" type="button" data-restart aria-label={d.restart} title={d.restart}><Icon name="restart" /></button>
           <div class="speed" role="group" aria-label={d.speed}>
@@ -29,10 +77,15 @@ const text = JSON.stringify({ guideTap: d.guideTap, guideAutoTpl: d.guideAuto(0)
             <button type="button" data-speed="2" aria-pressed="false">2×</button>
           </div>
         </div>
+        <div class="demo-status try-status is-waiting" data-show="try" data-live-device-status data-waiting={l.deviceWaiting} data-unavailable={l.deviceUnavailable} data-ready-tpl={l.deviceReady('{code}')} aria-live="polite">
+          <span class="status-dot"></span><span data-live-device-text>{l.deviceWaiting}</span>
+        </div>
+        <a class="try-host" data-show="try" href={shop} target="_blank" rel="noopener"><code>demo.debugger.site</code><Icon name="arrow" /></a>
       </div>
+
       <div class="demo-grid">
         <div class="agent">
-          <div class="agent-head">
+          <div class="agent-head" data-show="watch">
             <span class="agent-avatar" aria-hidden="true"><Icon name="bot" class="ic ic-bot" /><Icon name="claude" class="ic ic-skin ic-claude" /><Icon name="codex" class="ic ic-skin ic-codex" /></span>
             <div><p class="agent-title">{d.agentTitle}</p><p class="agent-sub"><span class="mcp-dot" aria-hidden="true"></span>{d.agentSub}</p></div>
             <div class="skin" role="group" aria-label={d.skinLabel}>
@@ -40,21 +93,57 @@ const text = JSON.stringify({ guideTap: d.guideTap, guideAutoTpl: d.guideAuto(0)
               <button type="button" data-skin="codex" aria-pressed="false"><Icon name="codex" /><span>{d.skinCodex}</span></button>
             </div>
           </div>
-          <div class="transcript" data-transcript role="log" aria-label={d.agentTitle} tabindex="0">
+          <div class="transcript" data-transcript role="log" aria-label={d.agentTitle} tabindex="0" data-show="watch">
             <div class="start-card" data-start-card>
               <p>{d.startHint}</p>
               <button class="btn btn-primary" type="button" data-start><Icon name="play" /><span>{d.start}</span></button>
             </div>
           </div>
+
+          <div class="try" data-show="try">
+            <ol class="live-steps">
+              <li class="live-step is-key">
+                <span class="step-num" aria-hidden="true">01</span>
+                <h3>{l.steps[0].title}</h3>
+                <p set:html={l.steps[0].body} />
+                <div class="live-visual live-get">
+                  <button class="btn btn-primary" type="button" data-live-get><Icon name="key" /><span>{l.getKey}</span></button>
+                  <p class="live-status" data-live-status data-loading={l.keyLoading} data-ready={l.keyReady} data-failed={l.keyFailed} data-limited={l.keyLimited} aria-live="polite">
+                    <span class="status-dot" aria-hidden="true"></span><span data-live-text>{l.keyIdle}</span>
+                  </p>
+                </div>
+              </li>
+              <li class="live-step">
+                <span class="step-num" aria-hidden="true">02</span>
+                <h3>{l.steps[1].title}</h3>
+                <p set:html={l.steps[1].body} />
+                <div class="live-visual" set:html={mcp} />
+              </li>
+              <li class="live-step">
+                <span class="step-num" aria-hidden="true">03</span>
+                <h3>{l.steps[2].title}</h3>
+                <p set:html={l.steps[2].body} />
+                <div class="live-visual">
+                  <Fragment set:html={prompt} />
+                  <p class="live-note" set:html={l.promptNote} />
+                </div>
+              </li>
+            </ol>
+            <div class="live-limits"><h3><Icon name="shield" />{l.limitsTitle}</h3><ul>{l.limits.map(x => <li set:html={x} />)}</ul></div>
+          </div>
         </div>
+
         <div class="phone-col">
-          <p class="phone-label"><Icon name="phone" /><span>{d.phoneLabel}</span><code data-phone-code>K7Q2-9M4X</code></p>
+          <p class="phone-label" data-show="watch"><Icon name="phone" /><span>{d.phoneLabel}</span><code data-phone-code>K7Q2-9M4X</code></p>
+          <p class="phone-label" data-show="try"><Icon name="phone" /><span>{l.phoneTitle}</span><code data-live-phone-code>····-····</code></p>
           <div class="phone-stage" data-phone-stage>
             <div class="phone" data-phone>
               <div class="phone-screen">
                 <div class="phone-status" aria-hidden="true"><span>9:41</span><span class="phone-island"></span><span class="phone-icons"><i class="sig"></i><i class="bat"></i></span></div>
-                <iframe data-phone-frame title={d.phoneLabel}></iframe>
-                <div class="guide" data-guide aria-hidden="true">
+                <iframe data-phone-frame title={d.phoneLabel} data-show="watch"></iframe>
+                <iframe data-live-frame title={l.phoneTitle} data-src={shop} referrerpolicy="no-referrer" data-show="try"></iframe>
+                <div class="phone-loading" data-live-loading data-show="try">{l.deviceWaiting}</div>
+                <div class="guide" data-guide aria-hidden="true" data-show="watch">
                   <div class="guide-tap" data-lottie="tap" data-lottie-lazy></div>
                   <div class="guide-hand"><Icon name="pointer" class="" /></div>
                   <div class="guide-label"><span data-guide-text>{d.guideTap}</span><small data-guide-count></small></div>
@@ -62,10 +151,15 @@ const text = JSON.stringify({ guideTap: d.guideTap, guideAutoTpl: d.guideAuto(0)
               </div>
             </div>
           </div>
-          <p class="phone-hint" data-hint aria-live="polite"></p>
+          <p class="phone-hint" data-hint aria-live="polite" data-show="watch"></p>
+          <div class="live-open" data-show="try">
+            <figure class="live-qr"><Fragment set:html={qr(shop, l.scan)} /><figcaption>{l.scan}</figcaption></figure>
+            <a class="btn btn-ghost" href={shop} target="_blank" rel="noopener"><Icon name="phone" /><span>{l.open}</span><Icon name="arrow" /></a>
+          </div>
+          <p class="live-phone-hint" data-show="try" set:html={l.phoneHint} />
         </div>
       </div>
-      <p class="demo-foot" set:html={escapeHtml(d.footnote).replace(/&lt;(\/?code)&gt;/g, '<$1>')} />
+      <p class="demo-foot" data-show="watch" set:html={footnote} />
     </div>
   </div>
 </section>

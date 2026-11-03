@@ -73,6 +73,12 @@ export const fr: Dict = {
     skinLabel: 'Style d’agent',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: 'Mode de la démo',
+    modeWatch: 'Regarder un agent corriger un bug',
+    modeWatchSub: 'Scénarisée · tourne dans votre navigateur',
+    modeTry: 'Essayer avec votre agent',
+    modeTrySub: 'Vraie passerelle · votre propre clé',
     phoneLabel: 'Téléphone du client',
     play: 'Lancer',
     pause: 'Pause',
@@ -106,7 +112,7 @@ export const fr: Dict = {
     kicker: 'En pratique',
     title: 'Maintenant, essayez avec votre propre agent',
     lead:
-      'La démo ci-dessus tourne dans votre navigateur. Celle-ci est réelle : une passerelle de démonstration publique sur <code>demo.debugger.site</code>, isolée de tout le reste et remise à zéro chaque jour. La boutique à droite est la vraie, chargée depuis cette passerelle — récupérez une clé, pointez votre agent dessus et regardez-le travailler sur cette page.',
+      'Celle-ci est réelle : une passerelle de démonstration publique sur <code>demo.debugger.site</code>, isolée de tout le reste et remise à zéro chaque jour. La boutique dans le téléphone est chargée depuis cette passerelle — récupérez une clé, pointez votre agent dessus et regardez-le travailler ici même.',
     steps: [
       {
         title: 'Récupérez votre propre clé',
@@ -118,7 +124,7 @@ export const fr: Dict = {
       },
       {
         title: 'Demandez à votre agent',
-        body: 'Le code d’appareil de la boutique à droite est déjà dans l’invite. Quand l’agent demande à se connecter, touchez <em>Autoriser</em> dans la boutique et regardez-le travailler ; vous pouvez <em>Reprendre</em> ou <em>Terminer</em> à tout moment.',
+        body: 'Le code d’appareil de la boutique dans le téléphone est déjà dans l’invite. Quand l’agent demande à se connecter, touchez <em>Autoriser</em> dans la boutique et regardez-le travailler ; vous pouvez <em>Reprendre</em> ou <em>Terminer</em> à tout moment.',
       },
     ],
     phoneTitle: 'La boutique de démonstration, en direct',

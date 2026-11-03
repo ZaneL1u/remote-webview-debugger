@@ -73,6 +73,12 @@ export const de: Dict = {
     skinLabel: 'Agent-Stil',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',
+    /** The two ways to use the demo: one phone, two modes. */
+    modeLabel: 'Demo-Modus',
+    modeWatch: 'Einem Agenten beim Bugfix zusehen',
+    modeWatchSub: 'Geskriptet · läuft in Ihrem Browser',
+    modeTry: 'Mit Ihrem Agenten ausprobieren',
+    modeTrySub: 'Echtes Gateway · Ihr eigener Key',
     phoneLabel: 'Smartphone des Kunden',
     play: 'Abspielen',
     pause: 'Pause',
@@ -107,7 +113,7 @@ export const de: Dict = {
     kicker: 'Selbst ausprobieren',
     title: 'Jetzt mit Ihrem eigenen Agenten',
     lead:
-      'Die Demo oben läuft in Ihrem Browser. Diese hier ist echt: ein öffentliches Demo-Gateway auf <code>demo.debugger.site</code>, von allem anderen getrennt und täglich geleert. Der Shop rechts ist das echte Ding, von dort geladen – holen Sie sich einen Key, richten Sie Ihren Agenten darauf und sehen Sie ihm auf dieser Seite bei der Arbeit zu.',
+      'Diese hier ist echt: ein öffentliches Demo-Gateway auf <code>demo.debugger.site</code>, von allem anderen getrennt und täglich geleert. Der Shop im Smartphone wird von dort geladen – holen Sie sich einen Key, richten Sie Ihren Agenten darauf und sehen Sie ihm direkt hier bei der Arbeit zu.',
     steps: [
       {
         title: 'Einen eigenen Key holen',
@@ -121,7 +127,7 @@ export const de: Dict = {
       {
         title: 'Fragen Sie Ihren Agenten',
         body:
-          'Der Gerätecode des Shops rechts steht schon im Prompt. Wenn der Agent um Zugriff bittet, tippen Sie im Shop auf <em>Zulassen</em> und sehen ihm zu; <em>Übernehmen</em> oder <em>Beenden</em> geht jederzeit.',
+          'Der Gerätecode des Shops im Smartphone steht schon im Prompt. Wenn der Agent um Zugriff bittet, tippen Sie im Shop auf <em>Zulassen</em> und sehen ihm zu; <em>Übernehmen</em> oder <em>Beenden</em> geht jederzeit.',
       },
     ],
     phoneTitle: 'Der Demo-Shop, live',
