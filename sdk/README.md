@@ -5,7 +5,7 @@ English | [简体中文](README.zh-CN.md)
 One JS file that an App WebView or H5 page loads, so an AI agent can inspect and operate the page through the RWD gateway (`gateway/`) and MCP. Protocol: [`docs/protocol.md`](../docs/protocol.md); architecture: [`docs/architecture.md`](../docs/architecture.md).
 
 ```html
-<script src="https://rwd.example.com/v1/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // optional
@@ -16,6 +16,19 @@ One JS file that an App WebView or H5 page loads, so an AI agent can inspect and
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
 </script>
 ```
+
+## Getting the SDK
+
+Published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger); versions and changes: [CHANGELOG](CHANGELOG.md).
+
+| Use | Where |
+|---|---|
+| `<script>` from a CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js` or `https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js` (minified IIFE, global `RemoteWebviewDebugger`; pin the version, and add `integrity` if you like) |
+| A bundler | `npm install remote-webview-debugger`, then `import { run, status } from 'remote-webview-debugger'` (ES module with types). Import it before your own code so capture starts early. Don't also load the `<script>` version on the same page |
+| Your gateway | `https://<gateway>/v1/sdk.js`, the copy the gateway embeds (also at a content-addressed URL for SRI, offered by the console) |
+| A native app | Bundle `dist/sdk.js` from the package, or download it from one of the above; see [native integration](../docs/native-integration.md) |
+
+## API
 
 | API | Description |
 |---|---|
@@ -92,7 +105,7 @@ Those buffers are one page's memory. In parallel the SDK writes a **session log*
 ```sh
 cd sdk
 npm ci
-npm run build        # dist/sdk.js (IIFE, global RemoteWebviewDebugger, ES2017)
+npm run build        # dist/sdk.js (IIFE, global RemoteWebviewDebugger, ES2017), dist/index.mjs + index.d.ts (ES module)
 npm run typecheck
 npm test             # Playwright: WebKit (iPhone 15) + Chromium (Pixel 7)
 npm run gateway      # local mock gateway: http://localhost:8787/demo/platform/?key=rwd_pk_demo

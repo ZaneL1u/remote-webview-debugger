@@ -136,6 +136,10 @@ docker run --rm -v "$PWD/data:/data" alpine:3.22 chown -R 10001 /data
 docker compose up -d --build
 ```
 
+### 使用发版镜像
+
+网关每次发版还会发布镜像 `ghcr.io/zanel1u/remote-webview-debugger`（linux/amd64 和 linux/arm64，内嵌控制台和 SDK），tag 有 `<版本号>`（如 `0.2.0`）、`<主版本>.<次版本>` 和 `latest`。想直接用它而不是自己构建：把 `compose.yml` 里的 `build: .` 和 `image: rwd-gateway:local` 换成 `image: ghcr.io/zanel1u/remote-webview-debugger:<版本号>`，不用复制二进制，然后 `docker compose up -d`。升级时改 tag，再 `docker compose pull && docker compose up -d`（先像 `deploy.sh` 那样备份 `data/`）。
+
 ## 升级
 
 用相同的主机、架构和目录再执行一次 `deploy.sh`。它会重新构建、复制新的二进制、备份 SQLite 数据库并重启服务，`.env` 保持不变。会有短暂中断。页面会自行重连：中断很短时几秒内就恢复；中断较长时，页面可能先退回轮询，几分钟内或者一有 agent 接入它就会回到 WebSocket。当时已接入的 agent 需要重新接入。

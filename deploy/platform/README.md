@@ -136,6 +136,10 @@ docker run --rm -v "$PWD/data:/data" alpine:3.22 chown -R 10001 /data
 docker compose up -d --build
 ```
 
+### With the release image
+
+Each gateway release also publishes the image `ghcr.io/zanel1u/remote-webview-debugger` for linux/amd64 and linux/arm64, tagged `<version>` (e.g. `0.2.0`), `<major>.<minor>` and `latest`, with the console and the SDK embedded. To run it instead of building one, replace `build: .` and `image: rwd-gateway:local` in `compose.yml` with `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, skip the binary, and start with `docker compose up -d`. Upgrade by changing the tag, then `docker compose pull && docker compose up -d` (back up `data/` first, as `deploy.sh` does).
+
 ## Upgrading
 
 Run `deploy.sh` again with the same host, architecture and directory. It rebuilds, copies the new binary, backs up the SQLite database and restarts the stack; `.env` is kept. Expect a short interruption. Pages reconnect by themselves: after a brief outage within seconds; after a longer one a page may first fall back to polling and return to the WebSocket within a few minutes, or as soon as an agent connects to it. Agents attached at that moment have to connect again.

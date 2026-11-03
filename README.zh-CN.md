@@ -41,9 +41,11 @@ RWD_ADMIN_EMAIL=you@example.com RWD_ADMIN_PASSWORD='change-me' \
 在控制台新建项目拿到接入 Key，然后在页面里加上 SDK：
 
 ```html
-<script src="https://rwd.example.com/v1/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
+
+SDK 发布为 npm 包 [`remote-webview-debugger`](sdk/README.zh-CN.md)：可以像上面这样从 jsDelivr 加载，也可以用 unpkg（`https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js`），或者 `npm install remote-webview-debugger` 后 `import { run } from 'remote-webview-debugger'`。网关自己也在 `/v1/sdk.js` 提供它内嵌的那一份。
 
 App 里的 WebView 需要在原生代码中于 document start 时注入同样的脚本（iOS 用 `WKUserScript`，Android 用 `addDocumentStartJavaScript`），详见[原生接入](docs/native-integration.zh-CN.md)和控制台内置的接入指南。
 
@@ -78,7 +80,11 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`website/`](website) | 官网 [debugger.site](https://debugger.site/zh/)，含交互式演示 |
 | [`examples/`](examples) | 多页面演示商城，以及一个像 iOS App 一样承载 WKWebView 的 macOS 应用 |
 | [`deploy/platform/`](deploy/platform) | Docker Compose 部署 |
-| [`docs/`](docs) | [架构](docs/architecture.zh-CN.md)、[协议](docs/protocol.zh-CN.md)、[原生接入](docs/native-integration.zh-CN.md) |
+| [`docs/`](docs) | [架构](docs/architecture.zh-CN.md)、[协议](docs/protocol.zh-CN.md)、[原生接入](docs/native-integration.zh-CN.md)、[发版流程](docs/releasing.zh-CN.md) |
+
+## 版本发布
+
+页面 SDK 和网关分开发版，各有自己的版本号、tag（`sdk-vX.Y.Z`、`gateway-vX.Y.Z`）和更新日志：[SDK](sdk/CHANGELOG.zh-CN.md)、[网关](gateway/CHANGELOG.zh-CN.md)。网关的每个版本都附带 Linux 和 macOS 的 `rwd` 二进制以及镜像 `ghcr.io/zanel1u/remote-webview-debugger`。见 [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases)；维护者请看[发版流程](docs/releasing.zh-CN.md)。
 
 ## 开发
 

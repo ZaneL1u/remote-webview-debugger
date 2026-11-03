@@ -41,9 +41,11 @@ Open http://localhost:8080 and sign in. For a server, use the Docker Compose set
 Create a project in the console to get an app key, then add the SDK:
 
 ```html
-<script src="https://rwd.example.com/v1/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
+
+The SDK is the npm package [`remote-webview-debugger`](sdk/README.md): load it from jsDelivr as above or from unpkg (`https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js`), or `npm install remote-webview-debugger` and `import { run } from 'remote-webview-debugger'`. Your gateway also serves the copy it embeds at `/v1/sdk.js`.
 
 In an app, inject the same script at document start from native code (iOS `WKUserScript`, Android `addDocumentStartJavaScript`): see [native integration](docs/native-integration.md) and the guide built into the console.
 
@@ -78,7 +80,11 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`website/`](website) | [debugger.site](https://debugger.site), with the interactive demo |
 | [`examples/`](examples) | A multi-page demo shop and a macOS app that hosts WKWebViews like an iOS app |
 | [`deploy/platform/`](deploy/platform) | Docker Compose deployment |
-| [`docs/`](docs) | [Architecture](docs/architecture.md), [protocol](docs/protocol.md), [native integration](docs/native-integration.md) |
+| [`docs/`](docs) | [Architecture](docs/architecture.md), [protocol](docs/protocol.md), [native integration](docs/native-integration.md), [releasing](docs/releasing.md) |
+
+## Releases
+
+The page SDK and the gateway are released separately, each with its own version, tag (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) and changelog: [SDK](sdk/CHANGELOG.md), [gateway](gateway/CHANGELOG.md). A gateway release comes with `rwd` binaries for Linux and macOS and the image `ghcr.io/zanel1u/remote-webview-debugger`. See [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) and, for maintainers, [releasing](docs/releasing.md).
 
 ## Development
 

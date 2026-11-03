@@ -5,7 +5,7 @@
 App WebView / H5 页面加载的一个 JS 文件，让 AI agent 通过 RWD 网关（`gateway/`）和 MCP 查看、操作页面。协议见 [`docs/protocol.zh-CN.md`](../docs/protocol.zh-CN.md)，架构见 [`docs/architecture.zh-CN.md`](../docs/architecture.zh-CN.md)。
 
 ```html
-<script src="https://rwd.example.com/v1/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 可选
@@ -16,6 +16,19 @@ App WebView / H5 页面加载的一个 JS 文件，让 AI agent 通过 RWD 网�
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
 </script>
 ```
+
+## 获取 SDK
+
+npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)，版本与变更见[更新日志](CHANGELOG.zh-CN.md)。
+
+| 用法 | 地址 |
+|---|---|
+| CDN `<script>` | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js` 或 `https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js`（压缩后的 IIFE，全局对象 `RemoteWebviewDebugger`；请固定版本号，需要的话加上 `integrity`） |
+| 打包工具 | `npm install remote-webview-debugger`，然后 `import { run, status } from 'remote-webview-debugger'`（ES module，带类型声明）。尽量在你自己的代码之前 import，好让记录尽早开始。同一个页面不要再加载 `<script>` 版本 |
+| 你的网关 | `https://<网关>/v1/sdk.js`，网关内嵌的那一份（控制台还提供带 SRI 的按内容寻址地址） |
+| 原生 App | 把包里的 `dist/sdk.js` 打包进 App，或从以上任一地址下载，见[原生接入](../docs/native-integration.zh-CN.md) |
+
+## API
 
 | API | 说明 |
 |---|---|
@@ -92,7 +105,7 @@ App WebView / H5 页面加载的一个 JS 文件，让 AI agent 通过 RWD 网�
 ```sh
 cd sdk
 npm ci
-npm run build        # dist/sdk.js（IIFE，全局 RemoteWebviewDebugger，ES2017）
+npm run build        # dist/sdk.js（IIFE，全局 RemoteWebviewDebugger，ES2017），dist/index.mjs + index.d.ts（ES module）
 npm run typecheck
 npm test             # Playwright：WebKit（iPhone 15）+ Chromium（Pixel 7）
 npm run gateway      # 本地 mock 网关：http://localhost:8787/demo/platform/?key=rwd_pk_demo
