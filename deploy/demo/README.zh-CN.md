@@ -10,6 +10,8 @@
 2. 一把自己的 API Key：官网通过 `POST https://<演示域名>/v1/demo/keys` 申请（网关开启了 `RWD_DEMO_KEYS=1`），填进 `claude mcp add` 命令和 MCP 客户端配置里。
 3. 访客的 agent 用设备码接入，访客在页面上点「允许」，看它复现商城的结算 bug。
 
+官网把商城内嵌在一个手机框里（访客不用离开页面就能试）；商城通过 `postMessage` 把设备码告诉官网，只发给官网自己的源（`rwd-boot.js`）。
+
 ## 限制
 
 任何人都能拿到 Key，所以演示网关被圈在一个小范围里：
@@ -48,7 +50,7 @@
 }
 ```
 
-入口页 `demo/index.html` 把访客送到 `platform-demo/?key=<appKey>`，并带上自己的查询参数（如 `?lang=zh`）。AppKey 放在地址里，而不是由商城去请求，这样 SDK 能随页面一起启动，记录下结算页加载时抛出的错误。
+入口页 `demo/index.html` 把访客送到 `platform-demo/?key=<appKey>`，并带上自己的查询参数（如 `?lang=zh`，以及指定 SDK 界面语言的 `?ui=<tag>`，官网会把它设成访客的语言）。AppKey 放在地址里，而不是由商城去请求，这样 SDK 能随页面一起启动，记录下结算页加载时抛出的错误。
 
 ## 部署
 

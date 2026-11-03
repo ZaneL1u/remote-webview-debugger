@@ -10,6 +10,8 @@ How [debugger.site](https://debugger.site/#live) lets anyone try the real thing:
 2. An API key of their own: the website gets one from `POST https://<demo-host>/v1/demo/keys` (the gateway runs with `RWD_DEMO_KEYS=1`) and fills it into a `claude mcp add` command and an MCP client config.
 3. Their agent connects to their device code; they approve on the page and watch it reproduce the shop's checkout bug.
 
+The website embeds the shop in a phone frame (so visitors try it without leaving the page); the shop tells the website its device code with `postMessage`, to the website's own origins only (`rwd-boot.js`).
+
 ## Limits
 
 Anyone can get a key, so the demo is fenced in:
@@ -48,7 +50,7 @@ An agent that knows another visitor's device code can still ask to attach; that 
 }
 ```
 
-The entrance `demo/index.html` sends visitors to `platform-demo/?key=<appKey>`, passing on its own query (`?lang=zh`). The AppKey goes in the address rather than being fetched by the shop, so the SDK starts with the page and records the checkout error that happens while it loads.
+The entrance `demo/index.html` sends visitors to `platform-demo/?key=<appKey>`, passing on its own query (`?lang=zh`, and `?ui=<tag>` for the SDK's UI language, which the website sets to the visitor's language). The AppKey goes in the address rather than being fetched by the shop, so the SDK starts with the page and records the checkout error that happens while it loads.
 
 ## Deploy
 
