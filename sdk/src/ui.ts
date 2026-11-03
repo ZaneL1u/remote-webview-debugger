@@ -170,7 +170,12 @@ ${CJK_FONTS}
   box-shadow: 0 12px 32px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(var(--ink), .06);
   -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
 }
-.win.glass, .dlg.glass, .task.glass { background: rgba(var(--paper), .96); }
+.win.glass, .dlg.glass { background: rgba(var(--paper), .96); }
+/* The bar and the task card float over the page the agent works on: frosted,
+   so the page shows through, and nearly clear while the agent's pointer or a
+   highlight is right under them (.see-through, set from pointer()). */
+.bar.glass, .task.glass { background: rgba(var(--paper), .74); transition-property: opacity, transform, visibility, background; }
+.bar.see-through, .task.see-through { opacity: .28 !important; }
 .pill, .bar, .btn { font: 500 12px/16px var(--font); }
 
 /* idle floating window: a translucent pill that expands into a card */
@@ -249,7 +254,7 @@ ${CJK_FONTS}
 .online .dot { background: rgb(var(--success-rgb)); }
 .observe .dot { background: var(--accent); }
 .agent .dot { background: var(--accent); }
-.observe .dot::after, .agent .dot::after, .task .now .mark::after {
+.observe .dot::after, .agent .dot::after {
   content: ""; position: absolute; inset: -4px; border-radius: 50%;
   border: 2px solid var(--accent); animation: rwd-ping 1.4s cubic-bezier(.2, .6, .3, 1) infinite;
 }
@@ -339,8 +344,8 @@ ${CJK_FONTS}
 .task .done .mark { background: var(--accent); box-shadow: none; color: #fff; }
 .task .done .mark svg { width: 16px; height: 16px; display: block; }
 .task .now { color: var(--fg); font-weight: 600; }
-.task .now .mark { box-shadow: inset 0 0 0 2px var(--accent); }
-.task .now .mark::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--accent); }
+.task .now .mark { box-shadow: inset 0 0 0 2px var(--accent); animation: rwd-breathe 2s ease-in-out infinite; }
+.task .now .mark::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--accent); animation: rwd-breathe-dot 2s ease-in-out infinite; }
 .task.min ol { display: none; }
 .task.min .title { font-size: 14px; line-height: 20px; }
 
@@ -363,7 +368,7 @@ ${CJK_FONTS}
 .user .glow { display: block; box-shadow: inset 0 0 0 3px rgba(var(--warning-rgb), .9), inset 0 0 18px 4px rgba(var(--warning-rgb), .3); }
 
 .cursor {
-  position: fixed; z-index: 3; top: 0; left: 0; width: 0; height: 0;
+  position: fixed; z-index: 2; top: 0; left: 0; width: 0; height: 0;
   pointer-events: none; opacity: 0; will-change: transform; transition: opacity .2s ease;
 }
 .cursor.on { opacity: 1; }
@@ -374,7 +379,7 @@ ${CJK_FONTS}
 }
 .cursor.press .arrow { transform: scale(.82); }
 .ripple {
-  position: fixed; z-index: 3; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%;
+  position: fixed; z-index: 2; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%;
   border: 2px solid var(--accent); background: rgba(var(--accent-rgb), .16); pointer-events: none;
   animation: rwd-ripple .45s cubic-bezier(.2, .7, .3, 1) forwards;
 }
@@ -424,6 +429,12 @@ ${CJK_FONTS}
 
 @keyframes rwd-ping { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes rwd-glow { 0%, 100% { opacity: .22; } 50% { opacity: 1; } }
+/* The current step breathes in place: no ring that grows past the list's edge. */
+@keyframes rwd-breathe {
+  0%, 100% { box-shadow: inset 0 0 0 2px var(--accent), 0 0 0 0 rgba(var(--accent-rgb), 0); }
+  50% { box-shadow: inset 0 0 0 2px var(--accent), 0 0 0 4px rgba(var(--accent-rgb), .2); }
+}
+@keyframes rwd-breathe-dot { 0%, 100% { transform: scale(.7); opacity: .75; } 50% { transform: scale(1); opacity: 1; } }
 @keyframes rwd-ripple { from { transform: scale(.25); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
 @keyframes rwd-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes rwd-fade-out { from { opacity: 1; } to { opacity: 0; } }
@@ -445,7 +456,7 @@ ${CJK_FONTS}
 .ltr { direction: ltr; unicode-bidi: isolate; }
 
 @media (prefers-reduced-motion: reduce) {
-  .observe .glow, .agent .glow, .observe .dot::after, .agent .dot::after, .task .now .mark::after { animation: none; }
+  .observe .glow, .agent .glow, .observe .dot::after, .agent .dot::after, .task .now .mark, .task .now .mark::before { animation: none; }
   .observe .glow, .agent .glow { opacity: .9; }
   .pill, .pill.snap, .hl, .win, .bar, .task, .scrim, .dlg { transition: none !important; animation: none !important; }
 }
@@ -769,7 +780,10 @@ export class Ui {
     this.setTicker(this.since != null)
     // The pointer stays on screen for as long as the agent operates.
     if (state === 'agent') this.showCursor()
-    else this.cursor.classList.remove('on')
+    else {
+      this.cursor.classList.remove('on')
+      this.seeThrough(null)
+    }
     if (state === 'none') this.task = null
     this.render()
   }
@@ -788,6 +802,7 @@ export class Ui {
   highlight(el: Element) {
     const r = el.getBoundingClientRect()
     if (!r.width && !r.height) return
+    this.seeThrough(r)
     const box = document.createElement('div')
     box.className = 'hl'
     box.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;`
@@ -815,12 +830,26 @@ export class Ui {
     c.style.transform = `translate3d(${x}px, ${y}px, 0)`
     c.classList.add('on')
     this.saveCursor(x, y)
+    this.seeThrough({ left: x - 6, top: y - 6, right: x + 26, bottom: y + 30 })
     return new Promise(resolve => {
       setTimeout(() => {
         if (kind === 'click' || kind === 'focus' || kind === 'select' || kind === 'drop') this.tap(x, y)
         resolve()
       }, ms)
     })
+  }
+
+  /**
+   * The bar and the task card turn nearly clear while the agent works right
+   * under them, so the user sees what is being done there; they come back
+   * once the pointer moves away (or the agent stops).
+   */
+  private seeThrough(r: { left: number; top: number; right: number; bottom: number } | null) {
+    for (const el of [this.bar, this.taskEl]) {
+      const b = el.getBoundingClientRect()
+      const over = !!r && b.width > 0 && r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top
+      el.classList.toggle('see-through', over)
+    }
   }
 
   private tap(x: number, y: number) {
@@ -944,7 +973,7 @@ export class Ui {
 
     // Bottom bar.
     const bar = this.bar
-    bar.className = 'bar glass'
+    bar.className = `bar glass${bar.classList.contains('see-through') ? ' see-through' : ''}`
     clear(bar)
     const status = make('span', 'status', '', bar)
     make('span', 'dot', '', status)
@@ -1024,7 +1053,7 @@ export class Ui {
     const task = this.task
     const show = !!task && this.control !== 'none'
     const min = read('sessionStorage', TASK_KEY) === '1'
-    el.className = `task glass${show ? ' on' : ''}${min ? ' min' : ''}`
+    el.className = `task glass${show ? ' on' : ''}${min ? ' min' : ''}${el.classList.contains('see-through') ? ' see-through' : ''}`
     // Keep the last content while it fades out.
     if (!task || !show) {
       this.taskKey = ''
