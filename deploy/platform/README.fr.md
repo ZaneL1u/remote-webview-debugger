@@ -1,4 +1,4 @@
-<!-- i18n-source: 13471b8c993b5e5c4b8a2e958fb22d65ba820dbf -->
+<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | Français | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Déploiement avec Docker Compose
@@ -48,6 +48,7 @@ Sur le serveur, `deploy.sh` produit :
 | `RWD_DATABASE_URL` | SQLite dans `./data` | `postgres://…` pour utiliser Postgres à la place |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Nombre de jours de conservation du journal d'audit |
 | `RWD_LANG` | `en` | Langue des textes destinés à l'agent : `en` ou `zh` |
+| `RWD_MCP_RATE_LIMIT` | — | Requêtes MCP par IP client et par minute (aucune limite si non défini) ; pour une démo publique, voir [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Plages d'adresses (CIDR séparés par des espaces, ou `private_ranges` de Caddy) du proxy placé devant Caddy ; voir plus bas |
 | `BIND` | `127.0.0.1` | Adresse sur laquelle Caddy est publié |
 | `PORT` | `18788` | Port sur lequel Caddy est publié |
@@ -139,7 +140,7 @@ docker compose up -d --build
 
 ### Avec l'image publiée
 
-Chaque version de la passerelle publie aussi l'image `ghcr.io/zanel1u/remote-webview-debugger` pour linux/amd64 et linux/arm64, avec les tags `<version>` (par exemple `0.2.0`), `<major>.<minor>` et `latest`, console web et SDK embarqués. Pour l'utiliser au lieu d'en construire une, remplacez `build: .` et `image: rwd-gateway:local` dans `compose.yml` par `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, laissez de côté le binaire et démarrez avec `docker compose up -d`. Pour mettre à jour, changez le tag puis lancez `docker compose pull && docker compose up -d` (sauvegardez d'abord `data/`, comme le fait `deploy.sh`).
+Chaque version de la passerelle publie aussi l'image `ghcr.io/zanel1u/remote-webview-debugger` pour linux/amd64 et linux/arm64, avec les tags `<version>` (par exemple `0.2.0`), `<major>.<minor>` et `latest`, console web et SDK embarqués. Pour l'utiliser au lieu d'en construire une, remplacez les lignes `build:` et `image:` de la passerelle dans `compose.yml` par `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, laissez de côté le binaire et démarrez avec `docker compose up -d`. Pour mettre à jour, changez le tag puis lancez `docker compose pull && docker compose up -d` (sauvegardez d'abord `data/`, comme le fait `deploy.sh`).
 
 Pour un essai rapide sans Compose, l'image fonctionne aussi seule : voir le [démarrage rapide](../../README.fr.md#1-lancer-la-passerelle). Seule, elle ne fait pas confiance à `X-Forwarded-*` ; si vous placez votre propre proxy devant, ajoutez `-e RWD_TRUST_PROXY=1`.
 

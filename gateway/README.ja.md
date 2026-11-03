@@ -1,4 +1,4 @@
-<!-- i18n-source: f03e81c3a9169e2ceffeb0d2771fad317c20c87d -->
+<!-- i18n-source: be98b789b938ca3d39ee71a64de14dee2afe6f79 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd ゲートウェイ
@@ -45,6 +45,7 @@ rwd version                             バージョンを表示
 | `--trust-proxy` / `RWD_TRUST_PROXY=1` | オフ | クライアント IP を `X-Forwarded-For` から、推定する公開 URL のスキームとホスト（および管理コンソールの cookie に `Secure` を付けるかどうか）を `X-Forwarded-Proto` / `X-Forwarded-Host` から取得。リバースプロキシの背後でのみ有効にすること。そうしないとクライアントがこれらのヘッダーを偽装でき、IP 許可リストやレート制限を回避されてしまう。無効のときは、プロキシが何を送ってきてもすべてのリクエストを平文 HTTP として扱うため、管理コンソールの cookie には `Secure` が付かず、推定した URL も `http://` で始まる（この場合は `--public-url` を設定） |
 | `--lang` / `RWD_LANG` | `en` | AI が読むすべてのテキストの言語。MCP の説明、ツールとパラメーターの説明、ツールの結果、`[Session changes]`、エラーが対象。`welcome.agentLang` としてページ SDK にも伝わり、ページ側で生成するエラーやイベントの要約も同じ言語になる。`en` または `zh`（`zh-CN`、`zh_CN` などの表記も可）。管理コンソールはリクエストごとに言語を選び（`?lang=` または `Accept-Language`）、どちらもなければこの値を使用 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | このディレクトリを `/demo/` で配信（任意。デモページ用） |
+| `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0`（制限なし） | クライアント IP ごとに 1 分間に許可する MCP リクエスト数。超えた分には `Retry-After: 60` 付きで `429` を返す。デモのように API キーを公開しているゲートウェイ向け（[deploy/demo](../deploy/demo/README.md)）。プロキシの背後ではクライアント IP を得るために `--trust-proxy` が必要 |
 | `RWD_ADMIN_EMAIL` | `admin` | owner アカウントのメールアドレス（ログイン名）。owner が作成されるのはデータベースに owner がまだいないとき（初回起動時）だけ。後から変更しても owner が 2 人目として作られることは**なく**、`RWD_ADMIN_PASSWORD` をどの owner に適用するかが変わるだけ |
 | `RWD_ADMIN_PASSWORD` | — | owner のパスワード。owner の作成時に使われるほか、その後も**起動のたび**に `RWD_ADMIN_EMAIL` が指す owner のパスワードを再設定するため、アカウントの復旧手段にもなる。そのメールアドレスが owner のものでない場合（別のメンバー、または該当なし）は無視され、ログにその旨と既存の owner が出力される。未設定でデータベースが空なら、ランダムなパスワードを生成してログに一度だけ出力 |
 | `RWD_METRICS_TOKEN` | — | 設定すると、`/v1/metrics` に `Authorization: Bearer <token>` が必要になる |

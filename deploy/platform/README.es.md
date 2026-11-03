@@ -1,4 +1,4 @@
-<!-- i18n-source: 13471b8c993b5e5c4b8a2e958fb22d65ba820dbf -->
+<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | Español | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Despliegue con Docker Compose
@@ -48,6 +48,7 @@ En el servidor, `deploy.sh` genera:
 | `RWD_DATABASE_URL` | SQLite en `./data` | `postgres://…` para usar Postgres en su lugar |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Días que se conserva el registro de auditoría |
 | `RWD_LANG` | `en` | Idioma de los textos dirigidos al agente: `en` o `zh` |
+| `RWD_MCP_RATE_LIMIT` | — | Solicitudes MCP por IP de cliente y minuto (sin límite si no está definida); para una demo pública, consulta [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Rangos de direcciones (CIDR separados por espacios, o el `private_ranges` de Caddy) del proxy que está delante de Caddy; ver más abajo |
 | `BIND` | `127.0.0.1` | Dirección en la que se publica Caddy |
 | `PORT` | `18788` | Puerto en el que se publica Caddy |
@@ -139,7 +140,7 @@ docker compose up -d --build
 
 ### Con la imagen publicada
 
-Cada versión del gateway publica también la imagen `ghcr.io/zanel1u/remote-webview-debugger` para linux/amd64 y linux/arm64, con los tags `<version>` (p. ej. `0.2.0`), `<major>.<minor>` y `latest`, y con la consola y el SDK integrados. Para usarla en lugar de construir una, sustituye `build: .` e `image: rwd-gateway:local` en `compose.yml` por `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, omite el binario y arranca con `docker compose up -d`. Para actualizar, cambia el tag y ejecuta `docker compose pull && docker compose up -d` (antes, haz una copia de seguridad de `data/`, como hace `deploy.sh`).
+Cada versión del gateway publica también la imagen `ghcr.io/zanel1u/remote-webview-debugger` para linux/amd64 y linux/arm64, con los tags `<version>` (p. ej. `0.2.0`), `<major>.<minor>` y `latest`, y con la consola y el SDK integrados. Para usarla en lugar de construir una, sustituye las líneas `build:` e `image:` del gateway en `compose.yml` por `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, omite el binario y arranca con `docker compose up -d`. Para actualizar, cambia el tag y ejecuta `docker compose pull && docker compose up -d` (antes, haz una copia de seguridad de `data/`, como hace `deploy.sh`).
 
 Para una prueba rápida sin Compose, la imagen también funciona por sí sola: consulta el [inicio rápido](../../README.es.md#1-ejecuta-el-gateway). Por sí sola no confía en `X-Forwarded-*`; si pones tu propio proxy delante, añade `-e RWD_TRUST_PROXY=1`.
 

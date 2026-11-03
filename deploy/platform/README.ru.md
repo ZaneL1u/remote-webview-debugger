@@ -1,4 +1,4 @@
-<!-- i18n-source: 13471b8c993b5e5c4b8a2e958fb22d65ba820dbf -->
+<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | Русский | [العربية](README.ar.md)
 
 # Развёртывание через Docker Compose
@@ -48,6 +48,7 @@
 | `RWD_DATABASE_URL` | SQLite в `./data` | `postgres://…`, чтобы использовать Postgres |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Сколько дней хранить журнал аудита |
 | `RWD_LANG` | `en` | Язык текстов для агента: `en` или `zh` |
+| `RWD_MCP_RATE_LIMIT` | — | MCP-запросов в минуту с одного IP клиента (если не задано — без ограничения); для публичного демо см. [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Диапазоны адресов (CIDR через пробел или `private_ranges` из Caddy) прокси, стоящего перед Caddy; см. ниже |
 | `BIND` | `127.0.0.1` | Адрес, на котором публикуется Caddy |
 | `PORT` | `18788` | Порт, на котором публикуется Caddy |
@@ -139,7 +140,7 @@ docker compose up -d --build
 
 ### С образом из релиза
 
-Каждый релиз шлюза также публикует образ `ghcr.io/zanel1u/remote-webview-debugger` для linux/amd64 и linux/arm64 с тегами `<version>` (например, `0.2.0`), `<major>.<minor>` и `latest`, со встроенными веб-консолью и SDK. Чтобы использовать его вместо локальной сборки, замените `build: .` и `image: rwd-gateway:local` в `compose.yml` на `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, пропустите бинарник и запустите `docker compose up -d`. Для обновления смените тег, затем выполните `docker compose pull && docker compose up -d` (предварительно сделайте резервную копию `data/`, как это делает `deploy.sh`).
+Каждый релиз шлюза также публикует образ `ghcr.io/zanel1u/remote-webview-debugger` для linux/amd64 и linux/arm64 с тегами `<version>` (например, `0.2.0`), `<major>.<minor>` и `latest`, со встроенными веб-консолью и SDK. Чтобы использовать его вместо локальной сборки, замените строки `build:` и `image:` шлюза в `compose.yml` на `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, пропустите бинарник и запустите `docker compose up -d`. Для обновления смените тег, затем выполните `docker compose pull && docker compose up -d` (предварительно сделайте резервную копию `data/`, как это делает `deploy.sh`).
 
 Чтобы быстро попробовать без Compose, образ можно запустить и самостоятельно: см. [быстрый старт](../../README.ru.md#1-запустите-шлюз). При самостоятельном запуске он не доверяет `X-Forwarded-*`; если вы ставите перед ним свой прокси, добавьте `-e RWD_TRUST_PROXY=1`.
 

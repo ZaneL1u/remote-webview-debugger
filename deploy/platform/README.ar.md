@@ -1,4 +1,4 @@
-<!-- i18n-source: 13471b8c993b5e5c4b8a2e958fb22d65ba820dbf -->
+<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -54,6 +54,7 @@
 | `RWD_DATABASE_URL` | SQLite في `./data` | `postgres://…` لاستخدام Postgres بدلًا منه |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | عدد أيام الاحتفاظ بسجل التدقيق |
 | `RWD_LANG` | `en` | لغة النصوص الموجّهة إلى الوكيل: `en` أو `zh` |
+| `RWD_MCP_RATE_LIMIT` | — | عدد طلبات MCP لكل عنوان IP للعميل في الدقيقة (بلا حد إن لم يُضبط)؛ للعرض التوضيحي العلني، راجع [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | نطاقات عناوين البروكسي الموجود أمام Caddy (نطاقات CIDR مفصولة بمسافات، أو `private_ranges` الخاصة بـ Caddy)؛ راجع ما يلي |
 | `BIND` | `127.0.0.1` | العنوان الذي يُتاح عليه Caddy |
 | `PORT` | `18788` | المنفذ الذي يُتاح عليه Caddy |
@@ -165,7 +166,7 @@ docker compose up -d --build
 
 ### باستخدام صورة الإصدار
 
-ينشر كل إصدار من البوابة أيضًا الصورة `ghcr.io/zanel1u/remote-webview-debugger` للمنصتين linux/amd64 وlinux/arm64، بالوسوم `<version>` (مثل `0.2.0`) و`<major>.<minor>` و`latest`، مع لوحة التحكم وSDK مضمَّنين. لتشغيلها بدلًا من بناء صورة، ضع `image: ghcr.io/zanel1u/remote-webview-debugger:<version>` مكان `build: .` و`image: rwd-gateway:local` في `compose.yml`، واستغنِ عن الملف التنفيذي، ثم ابدأ بـ `docker compose up -d`. للترقية غيّر الوسم ثم شغّل `docker compose pull && docker compose up -d` (خذ نسخة احتياطية من `data/` أولًا، كما يفعل `deploy.sh`).
+ينشر كل إصدار من البوابة أيضًا الصورة `ghcr.io/zanel1u/remote-webview-debugger` للمنصتين linux/amd64 وlinux/arm64، بالوسوم `<version>` (مثل `0.2.0`) و`<major>.<minor>` و`latest`، مع لوحة التحكم وSDK مضمَّنين. لتشغيلها بدلًا من بناء صورة، ضع `image: ghcr.io/zanel1u/remote-webview-debugger:<version>` مكان سطرَي `build:` و`image:` الخاصين بالبوابة في `compose.yml`، واستغنِ عن الملف التنفيذي، ثم ابدأ بـ `docker compose up -d`. للترقية غيّر الوسم ثم شغّل `docker compose pull && docker compose up -d` (خذ نسخة احتياطية من `data/` أولًا، كما يفعل `deploy.sh`).
 
 لتجربة سريعة من دون Compose، تعمل الصورة وحدها أيضًا: راجع [البدء السريع](../../README.ar.md#1-تشغيل-البوابة). وعند تشغيلها وحدها لا تثق بترويسات `X-Forwarded-*`؛ فإن وضعت بروكسي خاصًا بك أمامها، فأضف `-e RWD_TRUST_PROXY=1`.
 

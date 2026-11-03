@@ -1,4 +1,4 @@
-<!-- i18n-source: 13471b8c993b5e5c4b8a2e958fb22d65ba820dbf -->
+<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose 部署
@@ -48,6 +48,7 @@
 | `RWD_DATABASE_URL` | `./data` 裡的 SQLite | 設為 `postgres://…` 即改用 Postgres |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 稽核記錄保留天數 |
 | `RWD_LANG` | `en` | 給 agent 看的文字所用的語言：`en` 或 `zh` |
+| `RWD_MCP_RATE_LIMIT` | — | 每個用戶端 IP 每分鐘的 MCP 請求數（未設定則不限制）；公開示範的用法見 [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Caddy 前面那層代理的位址範圍（以空格分隔的 CIDR，或 Caddy 的 `private_ranges`），見下文 |
 | `BIND` | `127.0.0.1` | Caddy 公開在哪個位址 |
 | `PORT` | `18788` | Caddy 公開在哪個連接埠 |
@@ -139,7 +140,7 @@ docker compose up -d --build
 
 ### 使用正式版映像檔
 
-閘道每次發布新版時，也會發布映像檔 `ghcr.io/zanel1u/remote-webview-debugger`（linux/amd64 和 linux/arm64，內嵌主控台和 SDK），tag 有 `<版本號>`（例如 `0.2.0`）、`<主版本>.<次版本>` 和 `latest`。想直接使用它而不自行建置：把 `compose.yml` 裡的 `build: .` 和 `image: rwd-gateway:local` 換成 `image: ghcr.io/zanel1u/remote-webview-debugger:<版本號>`，不必複製二進位檔，然後執行 `docker compose up -d`。升級時改 tag，再執行 `docker compose pull && docker compose up -d`（記得先像 `deploy.sh` 那樣備份 `data/`）。
+閘道每次發布新版時，也會發布映像檔 `ghcr.io/zanel1u/remote-webview-debugger`（linux/amd64 和 linux/arm64，內嵌主控台和 SDK），tag 有 `<版本號>`（例如 `0.2.0`）、`<主版本>.<次版本>` 和 `latest`。想直接使用它而不自行建置：把 `compose.yml` 裡閘道的 `build:` 和 `image:` 兩行換成 `image: ghcr.io/zanel1u/remote-webview-debugger:<版本號>`，不必複製二進位檔，然後執行 `docker compose up -d`。升級時改 tag，再執行 `docker compose pull && docker compose up -d`（記得先像 `deploy.sh` 那樣備份 `data/`）。
 
 只想快速試用、不想用 Compose 的話，映像檔也可以單獨執行，見[快速入門](../../README.zh-TW.md#1-執行閘道)。單獨執行時它不信任 `X-Forwarded-*`；如果你在前面放了自己的代理，請加上 `-e RWD_TRUST_PROXY=1`。
 

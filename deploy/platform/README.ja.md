@@ -1,4 +1,4 @@
-<!-- i18n-source: 13471b8c993b5e5c4b8a2e958fb22d65ba820dbf -->
+<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose でのデプロイ
@@ -48,6 +48,7 @@ Docker ホスト上でゲートウェイを動かし、その前段に小さな 
 | `RWD_DATABASE_URL` | `./data` 内の SQLite | `postgres://…` を指定すると代わりに Postgres を使用 |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 監査ログの保持日数 |
 | `RWD_LANG` | `en` | エージェント向けテキストの言語: `en` または `zh` |
+| `RWD_MCP_RATE_LIMIT` | — | クライアント IP ごとの 1 分あたりの MCP リクエスト数（未設定なら制限なし）。公開デモについては [deploy/demo](../demo/README.md) を参照 |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Caddy の前段にあるプロキシのアドレス帯（スペース区切りの CIDR、または Caddy の `private_ranges`）。後述 |
 | `BIND` | `127.0.0.1` | Caddy を公開するアドレス |
 | `PORT` | `18788` | Caddy を公開するポート |
@@ -139,7 +140,7 @@ docker compose up -d --build
 
 ### リリースイメージを使う
 
-ゲートウェイの各リリースでは、linux/amd64 と linux/arm64 向けのイメージ `ghcr.io/zanel1u/remote-webview-debugger` も公開しています。タグは `<version>`（例: `0.2.0`）、`<major>.<minor>`、`latest` で、管理コンソールと SDK が組み込まれています。自分でビルドする代わりにこれを使うには、`compose.yml` の `build: .` と `image: rwd-gateway:local` を `image: ghcr.io/zanel1u/remote-webview-debugger:<version>` に置き換え、バイナリのコピーを省いて `docker compose up -d` で起動します。アップグレードはタグを変えてから `docker compose pull && docker compose up -d` を実行します（`deploy.sh` と同様に、先に `data/` をバックアップしてください）。
+ゲートウェイの各リリースでは、linux/amd64 と linux/arm64 向けのイメージ `ghcr.io/zanel1u/remote-webview-debugger` も公開しています。タグは `<version>`（例: `0.2.0`）、`<major>.<minor>`、`latest` で、管理コンソールと SDK が組み込まれています。自分でビルドする代わりにこれを使うには、`compose.yml` のゲートウェイの `build:` と `image:` の行を `image: ghcr.io/zanel1u/remote-webview-debugger:<version>` に置き換え、バイナリのコピーを省いて `docker compose up -d` で起動します。アップグレードはタグを変えてから `docker compose pull && docker compose up -d` を実行します（`deploy.sh` と同様に、先に `data/` をバックアップしてください）。
 
 Compose を使わずに手早く試すなら、イメージは単体でも動きます。[クイックスタート](../../README.ja.md#1-ゲートウェイを起動する)を参照してください。単体で動かす場合は `X-Forwarded-*` を信頼しないので、自前のプロキシを前段に置くなら `-e RWD_TRUST_PROXY=1` を追加してください。
 
