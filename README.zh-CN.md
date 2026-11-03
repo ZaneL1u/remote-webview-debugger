@@ -7,6 +7,8 @@
 [debugger.site](https://debugger.site/zh/) · [在线演示](https://debugger.site/zh/#demo) · [文档](docs/architecture.zh-CN.md) · [English](README.md) | 简体中文
 
 [![CI](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml)
+[![SDK on npm](https://img.shields.io/npm/v/remote-webview-debugger?label=sdk&color=cb3837)](https://www.npmjs.com/package/remote-webview-debugger)
+[![Gateway release](https://img.shields.io/github/v/release/ZaneL1u/remote-webview-debugger?filter=gateway-v*&label=gateway&color=2496ed)](https://github.com/ZaneL1u/remote-webview-debugger/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -26,19 +28,40 @@ Claude Code / Cursor ──MCP (HTTPS)──▶ 网关 ──WebSocket──▶ 
 
 ## 快速开始
 
+三步：运行网关，在页面里加上 SDK，把你的 agent 接到网关。
+
 ### 1. 运行网关
 
 ```bash
-make -j16                          # 构建 gateway/bin/rwd-<os>-<arch>（需要 Go 和 Node）
-RWD_ADMIN_EMAIL=you@example.com RWD_ADMIN_PASSWORD='change-me' \
-  gateway/bin/rwd-darwin-arm64 serve --addr :8080
+docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \
+  -e RWD_ADMIN_PASSWORD='change-me' \
+  ghcr.io/zanel1u/remote-webview-debugger:latest
 ```
 
-打开 http://localhost:8080 登录。部署到服务器请用 [`deploy/platform`](deploy/platform/README.zh-CN.md) 里的 Docker Compose 方案：可以放在你已有的 TLS 反向代理后面，也可以设置 `RWD_DOMAIN=<域名>` 让它自己提供 HTTPS。全部配置项见 [`gateway/README.zh-CN.md`](gateway/README.zh-CN.md)。如果希望 MCP 工具说明和返回结果使用中文，设置 `RWD_LANG=zh`。
+打开 `http://<你的主机>:8080`，用 **`admin`** 和上面的密码登录。不设 `RWD_ADMIN_PASSWORD` 的话，会生成一个随机密码，在 `docker logs rwd` 里打印一次。镜像基于 Alpine（linux/amd64 和 linux/arm64），内嵌控制台和 SDK，数据都在 `rwd-data` 卷里；升级时 `docker pull` 新的 tag，再重建容器即可。
+
+常用配置，用 `-e` 传入（[全部配置项](gateway/README.zh-CN.md)）：
+
+| 变量 | 作用 |
+|---|---|
+| `RWD_ADMIN_EMAIL` | 管理员登录名（默认 `admin`） |
+| `RWD_PUBLIC_URL` | 手机和 agent 访问网关用的地址，例如 `https://rwd.example.com/v1`，在它和你浏览器里的地址不一样时设置 |
+| `RWD_LANG=zh` | MCP 工具说明和返回结果使用中文 |
+| `RWD_DATABASE_URL` | 设为 `postgres://…` 时改用 Postgres，默认 SQLite |
+| `RWD_TRUST_PROXY=1` | 只在你自己的反向代理后面开启：从 `X-Forwarded-*` 取客户端 IP 和协议 |
+
+<details>
+<summary>其他运行方式：二进制、带 HTTPS 的 Docker Compose、从源码构建</summary>
+
+- **二进制。** [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) 上每个网关版本都有 Linux 和 macOS 的 `rwd_<版本>_<os>_<arch>.tar.gz`，解压后运行 `./rwd serve --addr :8080`。
+- **Docker Compose。** [`deploy/platform`](deploy/platform/README.zh-CN.md) 在前面加了一个 Caddy：可以放在你已有的 TLS 反向代理后面，也可以设置 `RWD_DOMAIN=<域名>`，自动申请 Let's Encrypt 证书直接提供 HTTPS。
+- **从源码构建。** `make -j16`（需要 Go 和 Node），然后运行 `gateway/bin/rwd-<os>-<arch> serve --addr :8080`。
+
+</details>
 
 ### 2. 让页面上线
 
-在控制台新建项目拿到接入 Key，然后在页面里加上 SDK：
+在控制台新建项目拿到接入 Key，然后在页面里加上 SDK，填上你的网关地址：
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
@@ -58,6 +81,18 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 ```
 
 接着直接问它：*「连接设备 K7Q2-9M4X，查一下为什么结算页的合计显示 `--`。」*
+
+### 用 HTTP 还是 HTTPS？
+
+网关本身只用明文 HTTP 也能正常工作：SDK 会根据网关地址自动选 `ws://` 或 `wss://`，控制台和 MCP 两种都能用。真正起决定作用的是**你要调试的页面**：浏览器和 WebView 不允许 `https://` 页面加载 `http://` 脚本或建立 `ws://` 连接（混合内容），哪怕 `sdk.js` 本身是从 HTTPS 的 CDN 加载的也一样。
+
+| 要调试的页面 | 网关只用 HTTP |
+|---|---|
+| `http://`：本地开发服务器、内网测试环境 | ✅ 可以 |
+| 浏览器或 iOS `WKWebView` 里的 `https://` 页面 | ❌ 会被当作混合内容拦截，网关需要 HTTPS |
+| Android WebView 里的 `https://` 页面 | ⚠️ 只有 App 调用了 `setMixedContentMode(MIXED_CONTENT_ALWAYS_ALLOW)` 才行，只建议在测试包里这样做 |
+
+走明文 HTTP 时，API Key 和控制台密码都不加密，只适合在可信的网络里使用。需要 HTTPS 时，用 [Compose 方案](deploy/platform/README.zh-CN.md)并设置 `RWD_DOMAIN=<域名>`（自动申请证书），或者把容器放在你自己的 TLS 反向代理后面，并加上 `-e RWD_TRUST_PROXY=1`。
 
 ## 功能
 

@@ -7,6 +7,8 @@
 [debugger.site](https://debugger.site) · [Live demo](https://debugger.site/#demo) · [Docs](docs/architecture.md) · English | [简体中文](README.zh-CN.md)
 
 [![CI](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml)
+[![SDK on npm](https://img.shields.io/npm/v/remote-webview-debugger?label=sdk&color=cb3837)](https://www.npmjs.com/package/remote-webview-debugger)
+[![Gateway release](https://img.shields.io/github/v/release/ZaneL1u/remote-webview-debugger?filter=gateway-v*&label=gateway&color=2496ed)](https://github.com/ZaneL1u/remote-webview-debugger/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -26,19 +28,40 @@ Claude Code / Cursor ──MCP (HTTPS)──▶ Gateway ──WebSocket──▶
 
 ## Quick start
 
+Three steps: run the gateway, add the SDK to a page, point your agent at the gateway.
+
 ### 1. Run the gateway
 
 ```bash
-make -j16                          # builds gateway/bin/rwd-<os>-<arch> (needs Go and Node)
-RWD_ADMIN_EMAIL=you@example.com RWD_ADMIN_PASSWORD='change-me' \
-  gateway/bin/rwd-darwin-arm64 serve --addr :8080
+docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \
+  -e RWD_ADMIN_PASSWORD='change-me' \
+  ghcr.io/zanel1u/remote-webview-debugger:latest
 ```
 
-Open http://localhost:8080 and sign in. For a server, use the Docker Compose setup in [`deploy/platform`](deploy/platform/README.md) — behind your own TLS proxy, or serving HTTPS itself with `RWD_DOMAIN=<host>`. All settings: [`gateway/README.md`](gateway/README.md).
+Open `http://<your-host>:8080` and sign in as **`admin`** with that password. Leave `RWD_ADMIN_PASSWORD` out and a random one is printed once in `docker logs rwd`. The image is Alpine-based (linux/amd64 and linux/arm64), embeds the console and the SDK, and keeps everything in the `rwd-data` volume; to upgrade, `docker pull` the new tag and recreate the container.
+
+Settings you may want, passed with `-e` ([all settings](gateway/README.md)):
+
+| Variable | Purpose |
+|---|---|
+| `RWD_ADMIN_EMAIL` | Owner login name (default `admin`) |
+| `RWD_PUBLIC_URL` | The address phones and agents use, e.g. `https://rwd.example.com/v1`, when it differs from the one in your browser |
+| `RWD_LANG=zh` | MCP tool descriptions and results in Chinese |
+| `RWD_DATABASE_URL` | `postgres://…` to use Postgres instead of SQLite |
+| `RWD_TRUST_PROXY=1` | Only behind your own reverse proxy: take the client IP and scheme from `X-Forwarded-*` |
+
+<details>
+<summary>Other ways to run it: binaries, Docker Compose with HTTPS, from source</summary>
+
+- **Binary.** Each gateway release on [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) has `rwd_<version>_<os>_<arch>.tar.gz` for Linux and macOS: unpack it and run `./rwd serve --addr :8080`.
+- **Docker Compose.** [`deploy/platform`](deploy/platform/README.md) adds a Caddy in front: behind your own TLS proxy, or serving HTTPS itself with a Let's Encrypt certificate (`RWD_DOMAIN=<host>`).
+- **From source.** `make -j16` (needs Go and Node), then `gateway/bin/rwd-<os>-<arch> serve --addr :8080`.
+
+</details>
 
 ### 2. Put a page online
 
-Create a project in the console to get an app key, then add the SDK:
+Create a project in the console to get an app key, then add the SDK with your gateway's address:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
@@ -58,6 +81,18 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 ```
 
 …and ask: *"Connect to device K7Q2-9M4X and find out why the checkout total shows `--`."*
+
+### HTTP or HTTPS?
+
+The gateway speaks plain HTTP and works fine that way: the SDK picks `ws://` or `wss://` from the gateway address, and the console and MCP work over either. What decides is **the page you debug**. Browsers and WebViews don't let an `https://` page load `http://` scripts or open `ws://` connections (mixed content), even when `sdk.js` itself comes from the HTTPS CDN.
+
+| The page you debug | Gateway over plain HTTP |
+|---|---|
+| `http://`: local dev server, intranet test environment | ✅ Works |
+| `https://` in a browser or an iOS `WKWebView` | ❌ Blocked as mixed content: give the gateway HTTPS |
+| `https://` in an Android WebView | ⚠️ Only if the app calls `setMixedContentMode(MIXED_CONTENT_ALWAYS_ALLOW)`, in debug builds only |
+
+Over plain HTTP, API keys and console passwords travel unencrypted, so keep it to a network you trust. To get HTTPS, run the [Compose stack](deploy/platform/README.md) with `RWD_DOMAIN=<host>` (automatic certificate), or put the container behind your own TLS proxy and add `-e RWD_TRUST_PROXY=1`.
 
 ## Features
 
