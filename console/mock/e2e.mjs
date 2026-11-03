@@ -39,15 +39,19 @@ const viewports = [
 const expectedFailures = [
   [401, /\/v1\/api\/me$/],
   [401, /\/v1\/api\/auth\/login$/],
-  // The gateway-status poll in flight while the user logs out.
+  // The gateway-status poll in flight whenever a session ends.
   [401, /\/v1\/api\/status$/],
   [503, /\/v1\/api\/stream(\?|$)/],
   [503, /\/v1\/api\/status$/],
   [400, /\/v1\/api\/me\/password$/],
   [404, /\/v1\/api\/invites\/[^/]+$/],
 ]
-function isExpected(msg) {
+// From logging out until the next login, any API call still in flight (such as the device and project
+// lists of the page just left) may come back 401.
+const loggedOut = new WeakSet()
+function isExpected(page, msg) {
   const url = msg.location()?.url ?? ''
+  if (loggedOut.has(page) && msg.text().includes('status of 401') && /\/v1\/api\//.test(url)) return true
   return expectedFailures.some(([status, re]) => msg.text().includes(`status of ${status}`) && re.test(url))
 }
 
@@ -66,7 +70,7 @@ async function newPage(vp, colorScheme = 'light', locale = 'zh-CN') {
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: base })
   const page = await ctx.newPage()
   page.on('console', (msg) => {
-    if (msg.type() === 'error' && !isExpected(msg)) problems.push(`[${vp.name}/${colorScheme}] console: ${msg.text()} @ ${msg.location()?.url}`)
+    if (msg.type() === 'error' && !isExpected(page, msg)) problems.push(`[${vp.name}/${colorScheme}] console: ${msg.text()} @ ${msg.location()?.url}`)
   })
   page.on('pageerror', (err) => problems.push(`[${vp.name}/${colorScheme}] pageerror: ${err.message}`))
   return { ctx, page }
@@ -81,6 +85,7 @@ async function shot(page, name, { fullPage = true } = {}) {
 }
 
 async function login(page, email = 'admin@example.com', password = 'admin') {
+  loggedOut.delete(page)
   await page.goto(`${base}/`)
   await page.waitForURL(/\/login/)
   await page.getByLabel('邮箱').fill(email)
@@ -92,6 +97,7 @@ async function login(page, email = 'admin@example.com', password = 'admin') {
 
 async function logout(page) {
   await page.getByRole('button', { name: '账号菜单' }).click()
+  loggedOut.add(page)
   await page.getByRole('menuitem', { name: '退出登录' }).click()
   await page.waitForURL(/\/login/)
 }
