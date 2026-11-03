@@ -7,14 +7,14 @@ H5 页面用一个 `<script>` 标签就能接入 SDK。在自己的 App 里还�
 - App 里的所有页面都能调试，包括第三方域名，H5 代码不用改；
 - 设备在所有 WebView、所有域名下**始终是同一个设备码**，因为 `deviceId` 由 App 提供，设备令牌也由 App 保存；
 - agent 能通过原生桥拿到**真实截图**（视频、canvas、原生视图都在内）；
-- 接入审批、操作确认以及「接管」「交还 AI」「结束」按钮都可以用**原生界面**，AI 操作期间还能锁住返回键。
+- 接入审批、操作确认以及「接管」「交还 AI」「结束」按钮都可以用**原生界面**，AI 接入期间还能锁住返回键。
 
 控制台自带的接入说明（**接入说明 → App 原生接入**）里有同样的代码，并且已经填好你的网关地址和接入 Key。完整、可运行的参考实现是 [`examples/mock-app/Sources/RWDMockApp/RWDNative.swift`](../examples/mock-app/Sources/RWDMockApp/RWDNative.swift)，[模拟 App](../examples/mock-app/README.md) 用的就是它。消息层面的细节见 [protocol.zh-CN.md](protocol.zh-CN.md)。
 
 ## 接入清单
 
 1. **征得用户同意。** 用户同意后才开启远程调试（模拟 App 会先弹一个原生的授权说明）。在此之上，设备上的接入审批照常生效。
-2. **获取 SDK。** 开启调试时下载一次 `https://rwd.example.com/v1/sdk.js`；也可以把 `sdk.js` 打包进 App，这样网关永远无法向 App 推送代码。
+2. **获取 SDK。** 把 npm 包 [`remote-webview-debugger`](../sdk/README.zh-CN.md) 里的 `dist/sdk.js` 打包进 App，这样网关和 CDN 都无法向 App 推送代码；或者在开启调试时下载一次，来源可以是你的网关（`https://rwd.example.com/v1/sdk.js`）或固定版本的 CDN 地址（`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js`）。
 3. **拼出启动脚本：** SDK 源码，接着 `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`，再加一个（可选的）定时器把 `status()` 报给原生代码。
 4. **在文档开始时注入**到每个 WebView 的主 frame，并且在加载第一个页面之前完成，这样记录能在任何页面脚本运行之前开始。
 5. **保存 `deviceId` 和 `deviceToken`**，并传给每个 WebView。
@@ -263,7 +263,7 @@ class Rwd(private val context: Context) {
 | `status()` 字段 | 用途 |
 |---|---|
 | `deviceCode`、`status` | 显示设备码，以及连接状态：`online`、`connecting`、`polling`、`rejected` 或 `quota` |
-| `control` | `observe`：显示「AI 正在查看」；`agent`：显示「AI 正在操作」，并禁用返回键和侧滑返回；`user`：显示「你已接管」 |
+| `control` | `observe`：显示「AI 正在查看」；`agent`：显示「AI 正在操作」；两者都禁用返回键和侧滑返回；`user`：显示「你已接管」 |
 | `level` | 已接入的 agent 获得的级别 |
 | `config.helpButton` | 项目策略是否为这个用户提供求助入口，据此显示或隐藏 App 自己的求助入口 |
 | `pending` | 需要用户回答的问题，见下文 |

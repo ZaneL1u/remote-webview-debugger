@@ -7,14 +7,14 @@ An H5 page can load the SDK with a `<script>` tag. Inside your own app you can d
 - every page in the app becomes debuggable, third-party domains included, with no change to the H5 code;
 - the device keeps **one device code** across WebViews and domains, because the app supplies the `deviceId` and keeps the device token;
 - the agent gets **real screenshots** (video, canvas, native overlays) through a native bridge;
-- approvals, confirmations and the take over / hand back / end buttons can be **native UI**, and the back button can be locked while the AI is in control.
+- approvals, confirmations and the take over / hand back / end buttons can be **native UI**, and the back button can be locked while an AI is connected.
 
 The console's built-in guide (**Docs → Integrate a native app**) shows the same code with your gateway URL and app key filled in. A complete, runnable reference is [`examples/mock-app/Sources/RWDMockApp/RWDNative.swift`](../examples/mock-app/Sources/RWDMockApp/RWDNative.swift), used by the [mock app](../examples/mock-app/README.md). Message-level details are in [protocol.md](protocol.md).
 
 ## Checklist
 
 1. **Ask for consent.** Turn remote debugging on only after the user agrees (the mock app shows a native consent dialog first). Attach approval on the device still applies on top of that.
-2. **Get the SDK.** Download `https://rwd.example.com/v1/sdk.js` once when debugging is enabled, or bundle `sdk.js` with the app so the gateway can never push code to it.
+2. **Get the SDK.** Bundle `dist/sdk.js` from the npm package [`remote-webview-debugger`](../sdk/README.md) with the app, so neither the gateway nor a CDN can ever push code to it; or download it once when debugging is enabled, from your gateway (`https://rwd.example.com/v1/sdk.js`) or a pinned CDN URL (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js`).
 3. **Build the boot script:** the SDK source, then `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`, then (optionally) a timer that reports `status()` to native code.
 4. **Inject it at document start** into the main frame of every WebView, before the first page loads, so capture starts before any page script runs.
 5. **Keep `deviceId` and `deviceToken`** in app storage and pass both to every WebView.
@@ -263,7 +263,7 @@ Poll `status()` (the sketches above post it every 500 ms; the reference only pos
 | `status()` field | Use |
 |---|---|
 | `deviceCode`, `status` | Show the device code and whether the link is `online`, `connecting`, `polling`, `rejected` or `quota` |
-| `control` | `observe`: "AI is viewing"; `agent`: "AI in control", and disable the back button and swipe-back; `user`: "You've taken over" |
+| `control` | `observe`: "AI is viewing"; `agent`: "AI in control"; in both, disable the back button and swipe-back; `user`: "You've taken over" |
 | `level` | The level granted to the attached agent |
 | `config.helpButton` | Whether the project's policy offers help to this user; show or hide your own help entry accordingly |
 | `pending` | A question for the user, see below |

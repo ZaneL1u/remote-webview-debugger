@@ -7,7 +7,8 @@ test('agent cursor: on screen while operating, glides quickly to each target and
 
   gw.setControl(s.deviceId!, 'observe')
   await expect(page.locator('#__rwd .bar')).toContainText('AI 查看中')
-  await expect(page.locator('#__rwd .glow')).toBeHidden()
+  // Attached: locked and glowing already, but no cursor until it acts.
+  await expect(page.locator('#__rwd .glow')).toBeVisible()
   await expect(cursor).not.toHaveClass(/\bon\b/)
 
   gw.setControl(s.deviceId!, 'agent')

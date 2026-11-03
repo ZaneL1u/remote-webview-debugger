@@ -46,8 +46,8 @@ This document explains the moving parts and the rules they follow. The exact mes
 
 1. **The page comes online.** The page loads `sdk.js` (or the app injects it). Console, error and network capture start immediately, in bounded buffers, so an agent that connects later still sees what happened before. `run()` opens a WebSocket to the gateway and sends `hello`; the gateway replies with the device's **device code** (e.g. `K7Q2-9M4X`) and the project's remote configuration. The pill on the page shows the code.
 2. **Someone points the agent at the device.** The user reads out the device code, taps **Get help** (the device shows up first in every list), or opens an **invite link** from support, which brings the device online already asking for help.
-3. **The agent connects.** It calls `connect_device` with the code. Unless the project says otherwise, the user sees *AI wants to join* on the phone, picks a level (view only, view and interact, advanced) or refuses. Nothing is readable before that.
-4. **The agent works.** It takes a snapshot to get element refs, then clicks, fills and scrolls by ref. The snapshot also lists the popups and backdrops that float over the page, each with a ref, and a click a layer blocks fails with the name and ref of what blocked it — so the agent can tap a backdrop to close its popup instead of guessing. Its first action switches the device from *observe* to *agent*: the screen locks against the user's input, the edges glow and an agent cursor shows where it acts. It can also read console, network, storage and screenshots, depending on its level.
+3. **The agent connects.** It calls `connect_device` with the code. Unless the project says otherwise, the user sees *AI wants to join* on the phone, picks a level (view only, view and interact, advanced) or refuses. Nothing is readable before that. Once the agent is in, the screen locks against the user's input, the edges glow and the bottom bar counts how long it has been connected.
+4. **The agent works.** It takes a snapshot to get element refs, then clicks, fills and scrolls by ref. The snapshot also lists the popups and backdrops that float over the page, each with a ref, and a click a layer blocks fails with the name and ref of what blocked it — so the agent can tap a backdrop to close its popup instead of guessing. Its first action switches the device from *observe* to *agent*, and an agent cursor shows where it acts. It can also read console, network, storage and screenshots, depending on its level.
 5. **The user stays in charge.** **Take over** returns the page to the user and pauses the agent (its actions fail with `takeover` until the user taps **Hand back**). **End** detaches the agent. Clicks on elements marked as sensitive (place order, pay, delete) need the user's OK on the phone.
 6. **The agent leaves** with `disconnect_device`, after two minutes without actions the device drops back to *observe*, and after the project's maximum attach time (60 minutes by default) the agent is detached.
 
@@ -56,7 +56,7 @@ One action, end to end:
 ```
 agent ─ click(ref=e12) ─▶ MCP handler
    gateway: API key valid? → attached? → level ≥ interact? → user hasn't taken over?
-            observe → agent (lock the screen) → RPC {"method":"rwd.click","params":{"ref":"e12"}}
+            observe (screen locked) → agent → RPC {"method":"rwd.click","params":{"ref":"e12"}}
    ─── WebSocket ──▶ SDK: level ≥ interact? not taken over? sensitive element → ask the user
                      engine: wait until visible, stable, enabled, hit-testable (≤ 5 s)
                              move the agent cursor, highlight, dispatch pointer/mouse/touch events
@@ -92,7 +92,7 @@ Each action is a single round trip: the actionability checks and event dispatch 
                                     └──────┘
 ```
 
-In `agent` the user's input is blocked (the user can turn the lock off in the floating window); in `user` the agent can still read but every interactive call fails with `takeover`, and the agent can call `wait_for_control` to wait for the hand-back.
+In `observe` and `agent` the user's input is blocked (the user can turn the lock off in the floating window); in `user` the agent can still read but every interactive call fails with `takeover`, and the agent can call `wait_for_control` to wait for the hand-back.
 
 ## Consent and privacy
 

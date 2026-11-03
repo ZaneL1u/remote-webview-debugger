@@ -144,6 +144,7 @@ type Device struct {
 	polledAt     time.Time
 	pollConnect  bool
 	onlineSince  time.Time // when the device last came online
+	attachedAt   time.Time // when the attached agent attached
 
 	pages     map[string]*Page
 	nextLabel int
@@ -379,7 +380,16 @@ func controlMsg(d *Device) map[string]any {
 		agent = map[string]string{"name": d.agent.Name}
 		level = d.Level
 	}
-	return map[string]any{"t": "control", "state": d.Control, "agent": agent, "level": level}
+	return map[string]any{"t": "control", "state": d.Control, "agent": agent, "level": level, "attachedMs": attachedMs(d)}
+}
+
+// attachedMs is how long the attached agent has been attached, as a duration
+// so the page needs no clock in common with us; nil without an agent.
+func attachedMs(d *Device) any {
+	if d.agent == nil {
+		return nil
+	}
+	return time.Since(d.attachedAt).Milliseconds()
 }
 
 func (h *Hub) setControl(d *Device, state string, reason i18n.Msg) {
@@ -717,6 +727,7 @@ func (h *Hub) detach(a *Agent, reason i18n.Msg) {
 	if d.agent == a {
 		d.agent = nil
 		d.Level = ""
+		d.attachedAt = time.Time{}
 		if d.Task != nil {
 			d.Task = nil
 			d.broadcast(taskMsg(nil))

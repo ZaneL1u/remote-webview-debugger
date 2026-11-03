@@ -93,7 +93,7 @@ function token(bytes = 32) {
 }
 
 export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}) {
-  const devices = new Map() // deviceId -> { id, code, control, agent, level, help, labels, nextLabel, connectNext, token, invited }
+  const devices = new Map() // deviceId -> { id, code, control, agent, level, attachedAt, help, labels, nextLabel, connectNext, token, invited }
   const pages = new Map() // pageId -> page record
   const received = [] // every message from pages: { pageId, label, msg, at }
   const presence = [] // presence request bodies
@@ -107,7 +107,7 @@ export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}
   function device(id) {
     let d = devices.get(id)
     if (!d) {
-      d = { id, code: newCode(), control: 'none', agent: null, level: null, help: false, labels: new Map(), nextLabel: 1, connectNext: false, token: null, invited: false }
+      d = { id, code: newCode(), control: 'none', agent: null, level: null, attachedAt: null, help: false, labels: new Map(), nextLabel: 1, connectNext: false, token: null, invited: false }
       devices.set(id, d)
     }
     return d
@@ -142,10 +142,15 @@ export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}
     if (page.ws && page.ws.readyState === 1) page.ws.send(JSON.stringify(msg))
   }
 
+  /** How long the agent has been attached, like the gateway's attachedMs; null without one. */
+  function attachedMs(d) {
+    return d.attachedAt == null ? null : Date.now() - d.attachedAt
+  }
+
   function broadcastControl(d) {
     for (const p of pages.values()) {
       if (p.deviceId === d.id && p.connected) {
-        sendTo(p, { t: 'control', state: d.control, agent: d.agent ? { name: d.agent } : null, level: d.level })
+        sendTo(p, { t: 'control', state: d.control, agent: d.agent ? { name: d.agent } : null, level: d.level, attachedMs: attachedMs(d) })
       }
     }
   }
@@ -156,14 +161,21 @@ export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}
     }
   }
 
-  /** level: undefined keeps the current one; null = not sent (phase 1 gateway). */
-  function setControl(deviceId, state, agent = '测试 Agent', level) {
+  /**
+   * level: undefined keeps the current one; null = not sent (phase 1 gateway).
+   * attachedMs: pretend the agent attached this long ago; undefined keeps the
+   * attach time (now, when one attaches).
+   */
+  function setControl(deviceId, state, agent = '测试 Agent', level, attachedMs) {
     const ids = deviceId ? [deviceId] : [...devices.keys()]
     for (const id of ids) {
       const d = device(id)
       d.control = state
       d.agent = state === 'none' ? null : agent
       d.level = state === 'none' ? null : level === undefined ? d.level : level
+      if (state === 'none') d.attachedAt = null
+      else if (attachedMs !== undefined) d.attachedAt = Date.now() - attachedMs
+      else if (d.attachedAt == null) d.attachedAt = Date.now()
       broadcastControl(d)
     }
   }
@@ -287,7 +299,7 @@ export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}
         t: 'welcome',
         deviceCode: d.code,
         label: page.label,
-        control: { state: d.control, agent: d.agent ? { name: d.agent } : null },
+        control: { state: d.control, agent: d.agent ? { name: d.agent } : null, attachedMs: attachedMs(d) },
         help: d.help,
         resume: page.resume,
         level: d.level,
@@ -323,6 +335,7 @@ export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}
           d.control = 'none'
           d.agent = null
           d.level = null
+          d.attachedAt = null
         }
         broadcastControl(d)
         break
@@ -388,8 +401,8 @@ export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}
       return res.end(JSON.stringify(reply, null, 2))
     }
     if (p === '/__test/control' && req.method === 'POST') {
-      const { deviceId, state, agent, level } = JSON.parse((await readBody(req)) || '{}')
-      setControl(deviceId, state, agent, level)
+      const { deviceId, state, agent, level, attachedMs } = JSON.parse((await readBody(req)) || '{}')
+      setControl(deviceId, state, agent, level, attachedMs)
       res.writeHead(200, { 'Content-Type': 'application/json' })
       return res.end('{"ok":true}')
     }

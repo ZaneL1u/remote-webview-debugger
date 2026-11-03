@@ -260,6 +260,9 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 	if f := d.focused(); f != nil {
 		a.pageID = f.ID
 	}
+	if d.agent != a {
+		d.attachedAt = time.Now()
+	}
 	d.agent = a
 	d.Level = level
 	d.idle = time.Duration(pol.AgentIdleMinutes) * time.Minute

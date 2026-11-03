@@ -121,7 +121,8 @@
 ```jsonc
 {"t":"welcome", …}                                            // §3.4
 {"t":"control","state":"none"|"observe"|"agent"|"user",
- "agent":{"name":"客服机器人"}|null,"level":"interact"|null}   // §4，发给设备的所有页面
+ "agent":{"name":"客服机器人"}|null,"level":"interact"|null,
+ "attachedMs":83000|null}                                     // §4，发给设备的所有页面
 {"t":"help","on":false}                                       // 求助被清除：agent 已接入、控制台成员结束了调试，或用户在设备上点了结束
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"客服机器人"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7，发给前台页面
@@ -140,7 +141,7 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
  "deviceCode":"K7Q2-9M4X",
  "label":"p1",
  "help":false,
- "control":{"state":"none","agent":null,"level":null},
+ "control":{"state":"none","agent":null,"level":null,"attachedMs":null},
  "level":null,                       // 与 control.level 相同
  "resume":"<新的恢复令牌>",
  "deviceToken":"<令牌>",             // 只有这次新签发时才有
@@ -183,8 +184,8 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
 | 状态 | 含义 | 页面界面 |
 |---|---|---|
 | `none` | 没有 agent 接入 | 胶囊收起，只显示设备码（开启时另有求助按钮） |
-| `observe` | agent 已接入，只在查看 | 「AI 正在查看这个页面」 |
-| `agent` | agent 正在操作 | 拦截用户输入（除非用户关掉了锁定），屏幕边缘有光圈，按钮「接管」「结束」 |
+| `observe` | agent 已接入，只在查看 | 「AI 查看中」，拦截用户输入（除非用户关掉了锁定），屏幕边缘有光圈，按钮「接管」「结束」 |
+| `agent` | agent 正在操作 | 「AI 操作中」，同样的锁定、光圈和按钮，另有 agent 的光标 |
 | `user` | 用户已接管 | 不锁定，边缘光圈静止，按钮「交还 AI」「结束」 |
 
 状态迁移：
@@ -199,7 +200,11 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
 | 页面发来 `control: end` | 断开 agent、清除求助 → `none` |
 | agent 断开或被替换、它的 Key 被吊销、达到 `policy.attachMaxMinutes`（默认 60），或控制台成员结束调试 | → `none` |
 
-用户接管期间，SDK 自己也会以 `takeover` 拒绝交互类 RPC，作为第二道检查。SDK 把状态在 localStorage `rwd:ctl` 里保留 2 分钟，页面跳转后新页面一加载就立即上锁，不用等 `welcome`。「接管」「交还 AI」「结束」只响应用户的真实点击，agent 点不到；原生宿主调用时必须出示 `nativeKey`（§10）。
+页面从 agent 接入（`observe`）的那一刻起就上锁，而不是等它开始操作；空闲后 `agent` → `observe` 也保持锁定，直到用户接管或状态回到 `none`。
+
+`attachedMs` 是网关发出这条消息时，当前 agent 已经接入的毫秒数（没有 agent 时为 `null`）。用时长而不是时间戳，页面就不需要和网关对时；底部控制条在 `observe`、`agent`、`user` 下把它显示成每秒走动的「已连接 · 01:23」，页面自己的连接断开时显示「连接中…」。网关没有这个字段时，SDK 从页面第一次看到 agent 时开始计时。
+
+用户接管期间，SDK 自己也会以 `takeover` 拒绝交互类 RPC，作为第二道检查。SDK 把状态（以及 agent 接入的时间）在 localStorage `rwd:ctl` 里保留 2 分钟，页面跳转后新页面一加载就立即上锁、计时接着走，不用等 `welcome`。「接管」「交还 AI」「结束」只响应用户的真实点击，agent 点不到；原生宿主调用时必须出示 `nativeKey`（§10）。
 
 ## 5. 页面 RPC
 
@@ -372,7 +377,7 @@ agent 调用 `connect_device` 时，网关先合并设备上已打开页面所�
 - SDK 的确认框在 Shadow DOM 里，只响应可信点击，并且出现 0.4 秒后才生效，agent 没法替用户点「允许」。同源的多个标签页通过 BroadcastChannel 共享决定。
 - 用户可以在 SDK 悬浮窗里开启「自动允许 AI 接入」并设定最高级别；之后 SDK 直接以不超过这个级别的最高可选级别答复，并弹出提示。
 - `run({ nativeApproval: true })` 时 SDK 不弹窗，而是让 `status().pending` 变成 `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`，由原生宿主调用 `nativeDecide(nativeKey, requestId, level | null)` 答复。
-- 批准后，网关让 agent 接入（顶替设备上的其他 agent），清除求助（`{"t":"help","on":false}`），并广播 `{"t":"control","state":"observe","agent":{…},"level":"interact"}`。
+- 批准后，网关让 agent 接入（顶替设备上的其他 agent），清除求助（`{"t":"help","on":false}`），并广播 `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`；页面随即上锁（§4）。
 
 `approval: none` 时，agent 直接按计算出的级别接入。
 
@@ -421,7 +426,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   app,                   // 宿主 App 的 { name, version }
   lang,                  // 'en' | 'zh'：手机用户看到的界面语言，默认取 navigator.language
   theme,                 // 'auto'（默认）| 'system' | 'light' | 'dark'
-  lockScreen,            // agent 操作时锁定页面（默认 true，用户可以在悬浮窗里改）
+  lockScreen,            // agent 接入期间锁定页面（默认 true，用户可以在悬浮窗里改）
   eruda,                 // true | { dock, load, src, name }：以 eruda 标签页的形式出现
   networkExclude,        // 不让 agent 看到的请求（§11）
   record,                // 是否记录会话日志（默认 true，项目策略可以关掉，§5.4）

@@ -5,9 +5,10 @@ test('agent state: overlay swallows real taps, rwd.click still works', async ({ 
   await expect(page.locator('#name')).toHaveText('无线降噪耳机 Pro')
   const pageId = s.pageId!
 
+  // Locked as soon as the agent attaches, before it acts.
   gw.setControl(s.deviceId!, 'observe')
   await expect(page.locator('#__rwd .bar')).toContainText('AI 查看中')
-  await expect(page.locator('#__rwd .overlay')).toBeHidden()
+  await expect(page.locator('#__rwd .overlay')).toBeVisible()
 
   gw.setControl(s.deviceId!, 'agent')
   await expect(page.locator('#__rwd .bar')).toContainText('AI 操作中')

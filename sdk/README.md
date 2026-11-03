@@ -37,7 +37,7 @@ One JS file that an App WebView or H5 page loads, so an AI agent can inspect and
 | `app` | `{ name, version }` of the host app |
 | `lang` | Language of everything the phone user sees (pill, floating window, bottom bar, dialogs, toasts, the eruda tab, and the "AI wants to …" description of a sensitive action): `'en'` or `'zh'`. Default: `'zh'` when `navigator.language` starts with `zh`, else `'en'`. |
 | `networkExclude` | Requests the agent should not have to wade through — fonts that always 404, analytics beacons: `['.ttf', 'WebTracks', '*beacon*', '/\\/track\\//']`. Each rule matches the URL as a case-insensitive substring, as a `*` wildcard pattern, or as a regex when written `/…/`. Added to the project policy's rules. Matching requests stay out of the network list and out of `net_fail` timeline events; the page still records them, so an agent can ask for them with `includeExcluded` |
-| `lockScreen` | `false`: don't lock the page while the agent operates (the user can still change it in the floating window). Default `true` |
+| `lockScreen` | `false`: don't lock the page while an agent is attached (the user can still change it in the floating window). Default `true` |
 | `theme` | `'auto'` (default, follows the page background), `'system'`, `'light'` or `'dark'` |
 | `eruda` | `true` or `{ dock, load, src, name }`: show Remote Debugger as a tab inside eruda; `load` loads the latest eruda when the page has none. Off by default; the project policy can turn it on remotely, local options win field by field |
 | `record` | `false`: this page writes no session log (and nothing already stored is deleted). Default `true`; the project policy can turn the log off for every page |
@@ -82,7 +82,7 @@ Those buffers are one page's memory. In parallel the SDK writes a **session log*
 - `src/ids.ts`: deviceId / pageId / openerId.
 - `src/launch.ts`: which launch of the app this page belongs to (`launchId`, `window.RWDLaunchId`, the `rwd_launch` cookie).
 - `src/pageWatch.ts`: `page` messages (url, title, visibility) and timeline events (in-page navigation, the user's taps).
-- `src/ui.ts`, `src/lock.ts`: the pill, help button, lock overlay, glow, action highlight and dialogs in a Shadow DOM; blocks the user's trusted input while the agent operates.
+- `src/ui.ts`, `src/lock.ts`: the pill, help button, lock overlay, glow, action highlight and dialogs in a Shadow DOM; blocks the user's trusted input while an agent is attached, and shows how long it has been connected.
 - `src/approval.ts`: attach approval and sensitive-action confirmation (page dialog, or the native host via `nativeDecide`).
 - `src/i18n.ts`: the user's UI text (en / zh).
 - The agent engine lives next to chobitsu in `packages/chobitsu/src/engine/rwd/`: snapshot, `rwd.query`, actionability checks, synthesized input, keyboard, console / network buffers, screenshots, `rwd.storage`, the session log in IndexedDB (`coldlog.ts`), overlay detection (`overlays.ts`), levels and confirmation rules (`policy.ts`), agent-facing text (`i18n.ts`). The Playwright sources used for snapshots are in `packages/chobitsu/src/engine/vendor/playwright/`. The build bundles them from source into `dist/sdk.js`.

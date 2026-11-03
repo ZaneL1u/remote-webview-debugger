@@ -29,6 +29,10 @@ test('attach dialog: agent, key hint, levels; untrusted clicks do nothing', asyn
   await expect.poll(async () => (await status(page)).level).toBe('interact')
   expect((await status(page)).control).toBe('observe')
   await expect(page.locator('#__rwd .bar')).toContainText('AI 查看中')
+  // Approved: locked and glowing right away, with the connected-for timer.
+  await expect(page.locator('#__rwd .overlay')).toBeVisible()
+  await expect(page.locator('#__rwd .glow')).toBeVisible()
+  await expect(page.locator('#__rwd .bar .since')).toHaveText(/^已连接 · 00:0\d$/)
 })
 
 test('attach dialog: refuse, cancelled by the gateway, local expiry', async ({ page, gw }) => {

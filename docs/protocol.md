@@ -121,7 +121,8 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
 ```jsonc
 {"t":"welcome", …}                                            // §3.4
 {"t":"control","state":"none"|"observe"|"agent"|"user",
- "agent":{"name":"Support Bot"}|null,"level":"interact"|null} // §4, to every page of the device
+ "agent":{"name":"Support Bot"}|null,"level":"interact"|null,
+ "attachedMs":83000|null}                                     // §4, to every page of the device
 {"t":"help","on":false}                                       // help cleared: an agent attached, a console member ended the session, or the user ended it on the device
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, to the foreground page
@@ -140,7 +141,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
  "deviceCode":"K7Q2-9M4X",
  "label":"p1",
  "help":false,
- "control":{"state":"none","agent":null,"level":null},
+ "control":{"state":"none","agent":null,"level":null,"attachedMs":null},
  "level":null,                       // same as control.level
  "resume":"<new resume token>",
  "deviceToken":"<token>",            // only when issued by this welcome
@@ -183,8 +184,8 @@ Each device has one control state, which the gateway decides and broadcasts to a
 | State | Meaning | Page UI |
 |---|---|---|
 | `none` | No agent attached | Collapsed pill with the device code (plus the help button when enabled) |
-| `observe` | An agent is attached and only looking | "AI is viewing this page" |
-| `agent` | The agent is operating the page | User input is blocked (unless the user turned the lock off), glowing screen edge, **Take over** and **End** buttons |
+| `observe` | An agent is attached and only looking | "AI is viewing", user input is blocked (unless the user turned the lock off), glowing screen edge, **Take over** and **End** buttons |
+| `agent` | The agent is operating the page | "AI working", the same lock, edge, and buttons, plus the agent's cursor |
 | `user` | The user took over | No lock, a static edge, **Hand back** and **End** buttons |
 
 Transitions:
@@ -199,7 +200,11 @@ Transitions:
 | The page sends `control: end` | The agent is detached and help is cleared → `none` |
 | The agent disconnects or is replaced, its key is revoked, `policy.attachMaxMinutes` (default 60) runs out, or a console member ends the session | → `none` |
 
-The SDK also refuses interactive RPCs with `takeover` while the user holds control, as a second check. It remembers the state for 2 minutes in localStorage `rwd:ctl`, so the next page after a navigation locks immediately instead of waiting for its `welcome`. Take over, hand back and end only respond to the user's trusted taps; an agent can't press them, and a native host must present the `nativeKey` ([§10](#10-javascript-api-for-hosts)).
+The page locks from the moment an agent attaches (`observe`), not only once it acts, and stays locked through `agent` → `observe` on idle until the user takes over or the state goes back to `none`.
+
+`attachedMs` is how long the attached agent has been attached, in milliseconds, at the moment the gateway sent the message (`null` without an agent). It is a duration so the page needs no clock in common with the gateway; the bottom bar shows it as a running "Connected · 01:23" timer in `observe`, `agent` and `user`, and "Connecting…" while the page's own link is down. A gateway without the field leaves the SDK counting from when the page first saw the agent.
+
+The SDK also refuses interactive RPCs with `takeover` while the user holds control, as a second check. It remembers the state (and when the agent attached) for 2 minutes in localStorage `rwd:ctl`, so the next page after a navigation locks immediately, with the timer running, instead of waiting for its `welcome`. Take over, hand back and end only respond to the user's trusted taps; an agent can't press them, and a native host must present the `nativeKey` ([§10](#10-javascript-api-for-hosts)).
 
 ## 5. Page RPC
 
@@ -372,7 +377,7 @@ When an agent calls `connect_device`, the gateway merges the policies of the pro
 - The SDK's dialog lives in a Shadow DOM, accepts trusted taps only and arms 0.4 s after it appears, so an agent can't approve itself. Same-origin tabs share the decision over BroadcastChannel.
 - The user can turn on **auto-allow** with a maximum level in the SDK's floating window; the SDK then answers at once with the highest offered level within it and shows a notice.
 - With `run({ nativeApproval: true })` the SDK shows no dialog. Instead `status().pending` becomes `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}` and the native host answers with `nativeDecide(nativeKey, requestId, level | null)`.
-- After approval the gateway attaches the agent (replacing any other agent on the device), clears help (`{"t":"help","on":false}`) and broadcasts `{"t":"control","state":"observe","agent":{…},"level":"interact"}`.
+- After approval the gateway attaches the agent (replacing any other agent on the device), clears help (`{"t":"help","on":false}`) and broadcasts `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`; the page locks right away ([§4](#4-control-state)).
 
 With `approval: none` the agent attaches right away at the computed level.
 
@@ -421,7 +426,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   app,                   // { name, version } of the host app
   lang,                  // 'en' | 'zh': the phone user's UI; default from navigator.language
   theme,                 // 'auto' (default) | 'system' | 'light' | 'dark'
-  lockScreen,            // block input while the agent operates (default true; the user can change it)
+  lockScreen,            // block input while an agent is attached (default true; the user can change it)
   eruda,                 // true | { dock, load, src, name }: show as a tab inside eruda
   networkExclude,        // requests to keep out of what the agent reads (§11)
   record,                // keep the session log (default true; the policy can turn it off, §5.4)

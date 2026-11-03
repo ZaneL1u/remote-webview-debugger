@@ -1,4 +1,4 @@
-// Input lock while the agent is in control (docs/platform.md A3): besides the
+// Input lock while an agent is attached (docs/platform.md A3): besides the
 // full-screen overlay, capture-phase listeners on window swallow every trusted
 // (real user) pointer, touch, mouse, keyboard and wheel event before the page
 // sees it. The agent's synthesized events are untrusted and pass. Events on

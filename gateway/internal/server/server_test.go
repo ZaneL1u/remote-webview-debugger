@@ -341,8 +341,13 @@ func TestAgentFlow(t *testing.T) {
 	if isErr || !strings.Contains(out, "interact") {
 		t.Fatalf("connect: %s", out)
 	}
-	if ctl := expectControl(t, p1, hub.ControlObserve); ctl["level"] != "interact" {
+	ctl := expectControl(t, p1, hub.ControlObserve)
+	if ctl["level"] != "interact" {
 		t.Fatalf("control level = %v", ctl["level"])
+	}
+	// The page shows how long the agent has been connected from attachedMs.
+	if ms, ok := ctl["attachedMs"].(float64); !ok || ms < 0 || ms > 5000 {
+		t.Fatalf("control attachedMs = %v", ctl["attachedMs"])
 	}
 
 	out, _ = callText(t, s, "take_snapshot", nil)
@@ -388,7 +393,10 @@ func TestAgentFlow(t *testing.T) {
 	}
 
 	p1.send(t, map[string]string{"t": "control", "action": "end"})
-	time.Sleep(100 * time.Millisecond)
+	expectControl(t, p1, hub.ControlAgent) // the handback
+	if ctl := expectControl(t, p1, hub.ControlNone); ctl["attachedMs"] != nil {
+		t.Fatalf("attachedMs after end = %v", ctl["attachedMs"])
+	}
 	out, isErr = callText(t, s, "take_snapshot", nil)
 	if !isErr || !strings.Contains(out, "用户结束了调试") {
 		t.Fatalf("after end: %s", out)

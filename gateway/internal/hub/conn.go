@@ -432,7 +432,7 @@ func (h *Hub) attach(ctx context.Context, projectID string, hello *Hello, c *Con
 	}
 	welcome := map[string]any{
 		"t": "welcome", "deviceCode": rec.Code, "label": p.Label, "help": d.Help,
-		"control": map[string]any{"state": d.Control, "agent": agent, "level": level},
+		"control": map[string]any{"state": d.Control, "agent": agent, "level": level, "attachedMs": attachedMs(d)},
 		"level":   level, "resume": resume, "config": pageConfig(project.Policy, rec.UserID),
 		"agentLang": h.lang, // the SDK words the errors it returns to agents in this language
 	}

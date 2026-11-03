@@ -88,7 +88,7 @@ export interface RunOptions {
    */
   eruda?: boolean | ErudaOptions
   /**
-   * Lock the page while the agent operates (default true). The user can
+   * Lock the page while an agent is attached (default true). The user can
    * still change it in the floating window.
    */
   lockScreen?: boolean
@@ -159,6 +159,8 @@ interface Session {
   deviceCode: string | null
   label: string | null
   control: ControlState
+  /** When the agent attached (local clock), for the connected-for timer; null: none. */
+  attachedAt: number | null
   /** Level of the attached agent as the gateway granted it; null: not sent. */
   level: Level | null
   help: boolean
@@ -268,14 +270,25 @@ function resolveWaiters() {
   for (const w of waiters) w(result())
 }
 
-function storedControl(): ControlState {
+function storedControl(): { state: ControlState; since: number | null } | null {
   try {
     const saved = JSON.parse(read('localStorage', CONTROL_KEY) || 'null')
-    if (saved && saved.s === 'agent' && Date.now() - saved.at < CONTROL_TTL) return 'agent'
+    if (saved && attached(saved.s) && Date.now() - saved.at < CONTROL_TTL) {
+      return { state: saved.s, since: typeof saved.since === 'number' ? saved.since : null }
+    }
   } catch (e) {
     // Ignore.
   }
-  return 'none'
+  return null
+}
+
+/** An agent is attached and the user has not taken over: the page locks. */
+function attached(state: unknown): state is ControlState {
+  return state === 'observe' || state === 'agent'
+}
+
+function applyLock(s: Session) {
+  lock().set(attached(s.control) && s.ui.lockScreen())
 }
 
 function setLevel(s: Session, level: unknown) {
@@ -286,15 +299,21 @@ function agentName(control: any): string | undefined {
   return control && control.agent && typeof control.agent.name === 'string' ? control.agent.name : undefined
 }
 
-function applyControl(s: Session, state: ControlState, agent?: string) {
+function applyControl(s: Session, state: ControlState, agent?: string, attachedMs?: unknown) {
   // The user took over or the agent left: nobody to ask on its behalf.
   if (state === 'user' || state === 'none') s.approvals.cancelConfirm()
   if (state === 'none') s.level = null
   if (state !== s.control) logRecord('control', { state, agent: agent || null }, true)
+  // When the agent attached: from the gateway's attachedMs (no clock in
+  // common needed), else from when this page first saw it.
+  if (state === 'none') s.attachedAt = null
+  else if (typeof attachedMs === 'number' && attachedMs >= 0) s.attachedAt = Date.now() - attachedMs
+  else if (s.attachedAt == null) s.attachedAt = Date.now()
   s.control = state
-  s.ui.setControl(state, agent)
-  lock().set(state === 'agent' && s.ui.lockScreen())
-  write('localStorage', CONTROL_KEY, JSON.stringify({ s: state, at: Date.now() }))
+  s.ui.setControl(state, agent, s.attachedAt)
+  // Locked from the moment the agent attaches, not only while it acts.
+  applyLock(s)
+  write('localStorage', CONTROL_KEY, JSON.stringify({ s: state, at: Date.now(), since: s.attachedAt }))
 }
 
 /** Level the page enforces: as granted; an agent without one (a phase 1 gateway) interacts. */
@@ -415,7 +434,7 @@ function onMessage(s: Session, msg: any) {
       s.label = msg.label || null
       s.ui.setLink('online', s.deviceCode || undefined)
       setLevel(s, msg.level != null ? msg.level : msg.control && msg.control.level)
-      applyControl(s, (msg.control && msg.control.state) || 'none', agentName(msg.control))
+      applyControl(s, (msg.control && msg.control.state) || 'none', agentName(msg.control), msg.control && msg.control.attachedMs)
       s.ui.setTask(msg.task || null)
       storeHelp(s, !!msg.help)
       resolveWaiters()
@@ -425,7 +444,7 @@ function onMessage(s: Session, msg: any) {
       break
     case 'control':
       setLevel(s, msg.level)
-      applyControl(s, msg.state || 'none', agentName(msg))
+      applyControl(s, msg.state || 'none', agentName(msg), msg.attachedMs)
       break
     case 'attach_request':
       s.approvals.onAttachRequest(msg)
@@ -470,7 +489,7 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
     lockScreen: opts.lockScreen !== false,
     theme: opts.theme,
     onSettings: () => {
-      if (session) lock().set(session.control === 'agent' && session.ui.lockScreen())
+      if (session) applyLock(session)
     },
     onHelp: on => setHelp(on),
     onControl: action => {
@@ -489,6 +508,7 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
     deviceCode: read('localStorage', CODE_KEY),
     label: null,
     control: 'none',
+    attachedAt: null,
     level: null,
     // Help is per device and survives navigation; the gateway has the last word.
     help: read('localStorage', HELP_KEY) === '1',
@@ -585,12 +605,14 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
   ui.setHelp(s.help)
   ui.mount()
   s.eruda.apply(resolveEruda(s.opts.eruda, s.config && s.config.eruda))
-  // The agent was in control a moment ago (we navigated): lock right away and
+  // An agent was attached a moment ago (we navigated): lock right away and
   // let the welcome confirm or release it.
-  if (storedControl() === 'agent') {
-    applyControl(s, 'agent')
+  const stored = storedControl()
+  if (stored) {
+    s.attachedAt = stored.since
+    applyControl(s, stored.state)
     setTimeout(() => {
-      if (session === s && s.control === 'agent' && !s.transport.isOnline()) applyControl(s, 'none')
+      if (session === s && attached(s.control) && !s.transport.isOnline()) applyControl(s, 'none')
     }, RUN_WAIT_MS)
   }
 

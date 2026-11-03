@@ -37,7 +37,7 @@ App WebView / H5 页面加载的一个 JS 文件，让 AI agent 通过 RWD 网�
 | `app` | 宿主 App 的 `{ name, version }` |
 | `lang` | 手机用户看到的界面语言（胶囊、悬浮窗、底部栏、对话框、提示、eruda 里的 tab，以及敏感操作确认里「AI 想要…」的描述）：`'en'` 或 `'zh'`。默认：`navigator.language` 以 `zh` 开头时为 `'zh'`，否则 `'en'` |
 | `networkExclude` | 不想让 agent 去翻的请求——一直 404 的字体、埋点上报等：`['.ttf', 'WebTracks', '*beacon*', '/\\/track\\//']`。每条规则按不区分大小写的 URL 子串、带 `*` 的通配符，或写成 `/…/` 的正则来匹配。与项目策略里的规则合并。命中的请求不出现在网络列表里，也不产生 `net_fail` 时间线事件；页面仍然记录，agent 需要时可以用 `includeExcluded` 看到 |
-| `lockScreen` | `false`：AI 操作时默认不锁屏（用户可在悬浮窗里改）。默认 `true` |
+| `lockScreen` | `false`：AI 接入期间默认不锁屏（用户可在悬浮窗里改）。默认 `true` |
 | `theme` | `'auto'`（默认，跟随页面背景）、`'system'`、`'light'` 或 `'dark'` |
 | `eruda` | `true` 或 `{ dock, load, src, name }`：收进 eruda 的「Remote Debugger」tab，`load` 在页面没有 eruda 时加载最新版。默认关闭，项目策略可远程打开，本地选项逐项优先 |
 | `record` | `false`：本页面不写会话日志（已经存下的也不删）。默认 `true`；项目策略可以对所有页面关掉 |
@@ -82,7 +82,7 @@ App WebView / H5 页面加载的一个 JS 文件，让 AI agent 通过 RWD 网�
 - `src/ids.ts`：deviceId / pageId / openerId。
 - `src/launch.ts`：判断本页面属于 App 的哪一次启动（`launchId`、`window.RWDLaunchId`、`rwd_launch` cookie）。
 - `src/pageWatch.ts`：`page` 消息（url、标题、可见性）和时间线事件（页面内跳转、用户点击摘要）。
-- `src/ui.ts`、`src/lock.ts`：Shadow DOM 里的胶囊、求助按钮、遮罩、光圈、操作高亮、确认对话框；agent 操作时拦截用户的可信输入。
+- `src/ui.ts`、`src/lock.ts`：Shadow DOM 里的胶囊、求助按钮、遮罩、光圈、操作高亮、确认对话框；agent 接入期间拦截用户的可信输入，并显示已连接时长。
 - `src/approval.ts`：接入审批、敏感操作确认（页面对话框或原生宿主 `nativeDecide`）。
 - `src/i18n.ts`：用户界面文案（中 / 英）。
 - agent 引擎在 chobitsu 旁边：`packages/chobitsu/src/engine/rwd/`（快照、`rwd.query`、可操作性检查、合成输入、键盘、console / 网络缓冲、截图、`rwd.storage`、IndexedDB 里的会话日志 `coldlog.ts`、浮层识别 `overlays.ts`、级别与确认规则 `policy.ts`、给 agent 的文案 `i18n.ts`），快照用的 Playwright 源码在 `packages/chobitsu/src/engine/vendor/playwright/`。构建时从源码打包进 `dist/sdk.js`。

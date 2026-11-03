@@ -8,10 +8,11 @@ import { uiText, type Lang, type UiText } from './i18n'
 //
 //   pill      idle: device code / help, translucent, draggable, snaps to the
 //             edges; hidden while docked into eruda
-//   bar       an agent is attached: bottom-center status + take over / hand back / end
+//   bar       an agent is attached: bottom-center status, connected-for timer
+//             + take over / hand back / end
 //   task      top-center: the agent's task name, progress and planned steps
-//   overlay   full-screen, transparent, swallows input in `agent` state
-//   glow      breathing blue edge halo, only while the agent operates
+//   overlay   full-screen, transparent, swallows input in `observe` / `agent`
+//   glow      breathing blue edge halo from the moment an agent attaches
 //   cursor    the agent's pointer, on screen for the whole operating session
 //   hl        brief outline around the element an agent action targets
 //   dialog    approval / confirmation (attach request, sensitive action);
@@ -34,7 +35,7 @@ export const BRAND = 'Remote Debugger'
 
 export interface UiOptions {
   helpButton: boolean
-  /** Lock the page while the agent operates, unless the user turned it off. */
+  /** Lock the page while an agent is attached, unless the user turned it off. */
   lockScreen: boolean
   /** auto: follow the page's background; system: prefers-color-scheme. */
   theme?: 'auto' | 'system' | 'light' | 'dark'
@@ -184,7 +185,7 @@ const CSS = `
 .online .dot { background: #22c55e; }
 .observe .dot { background: ${ACCENT}; }
 .agent .dot { background: ${ACCENT}; }
-.agent .dot::after, .task .now .mark::after {
+.observe .dot::after, .agent .dot::after, .task .now .mark::after {
   content: ""; position: absolute; inset: -4px; border-radius: 50%;
   border: 2px solid ${ACCENT}; animation: rwd-ping 1.4s cubic-bezier(.2, .6, .3, 1) infinite;
 }
@@ -218,6 +219,9 @@ const CSS = `
   transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1);
 }
 .bar .status { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 14px; font-weight: 650; letter-spacing: .3px; }
+.bar .text { display: flex; flex-direction: column; min-width: 0; }
+.bar .head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.bar .since { font-size: 12px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums; color: rgba(var(--ink), .55); }
 /* On a very narrow screen the label gives way, never the buttons. */
 .bar .label { overflow: hidden; text-overflow: ellipsis; }
 .bar .who { color: rgba(var(--ink), .5); font-weight: 500; overflow: hidden; text-overflow: ellipsis; max-width: 96px; }
@@ -276,10 +280,10 @@ const CSS = `
   display: none; background: transparent; pointer-events: auto; touch-action: none;
 }
 .glow { position: fixed; z-index: 2; pointer-events: none; display: none; top: 0; right: 0; bottom: 0; left: 0; }
-.agent.locked .overlay { display: block; }
-/* Only while the agent operates: a strong, wide breathing halo, so the user
-   sees at a glance that the AI is driving and their input is paused. */
-.agent .glow {
+.observe.locked .overlay, .agent.locked .overlay { display: block; }
+/* From the moment an agent attaches: a strong, wide breathing halo, so the
+   user sees at a glance that the AI is connected and their input is paused. */
+.observe .glow, .agent .glow {
   display: block;
   box-shadow:
     inset 0 0 0 5px rgba(59, 130, 246, .95),
@@ -357,8 +361,8 @@ const CSS = `
 @keyframes rwd-pop { from { opacity: 0; transform: translateY(10px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes rwd-pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(.97); } }
 @media (prefers-reduced-motion: reduce) {
-  .agent .glow, .agent .dot::after, .task .now .mark::after { animation: none; }
-  .agent .glow { opacity: .9; }
+  .observe .glow, .agent .glow, .observe .dot::after, .agent .dot::after, .task .now .mark::after { animation: none; }
+  .observe .glow, .agent .glow { opacity: .9; }
   .pill, .pill.snap, .hl, .win, .bar, .task, .scrim, .dlg { transition: none !important; animation: none !important; }
 }
 `
@@ -408,6 +412,10 @@ export class Ui {
   private cursorAt: { x: number; y: number } | null = null
   private panel: HTMLElement | null = null
   private control: ControlState = 'none'
+  /** When the agent attached (local clock); null: none attached. */
+  private since: number | null = null
+  private sinceEl: HTMLElement | null = null
+  private ticker: ReturnType<typeof setInterval> | null = null
   private link: LinkView = 'connecting'
   private code = ''
   private help = false
@@ -474,6 +482,7 @@ export class Ui {
 
   unmount() {
     this.host.remove()
+    this.setTicker(false)
   }
 
   /** Whether an event belongs to our own controls (they must keep working under the lock). */
@@ -641,9 +650,11 @@ export class Ui {
     this.render()
   }
 
-  setControl(state: ControlState, agent?: string) {
+  setControl(state: ControlState, agent?: string, since?: number | null) {
     if (agent) this.agent = agent
     this.control = state
+    this.since = state === 'none' ? null : since == null ? this.since || Date.now() : since
+    this.setTicker(this.since != null)
     // The pointer stays on screen for as long as the agent operates.
     if (state === 'agent') this.showCursor()
     else this.cursor.classList.remove('on')
@@ -822,29 +833,52 @@ export class Ui {
     clear(bar)
     const status = make('span', 'status', '', bar)
     make('span', 'dot', '', status)
+    const text = make('span', 'text', '', status)
+    const line = make('span', 'head', '', text)
     const acts = make('span', 'acts', '', bar)
     switch (this.control) {
       case 'observe':
-        make('span', 'label', t.barViewing, status)
-        make('span', 'who', this.agent, status)
+        make('span', 'label', t.barViewing, line)
+        make('span', 'who', this.agent, line)
+        // Locked already: the user needs a way back in before the agent acts.
+        make('button', 'btn light', t.takeover, acts, 'takeover')
         make('button', 'btn stop', t.end, acts, 'end')
         break
       case 'agent':
-        make('span', 'label', t.barAgent, status)
+        make('span', 'label', t.barAgent, line)
         make('button', 'btn light', t.takeover, acts, 'takeover')
         make('button', 'btn stop', t.end, acts, 'end')
         break
       case 'user':
-        make('span', 'label', t.barUser, status)
+        make('span', 'label', t.barUser, line)
         make('button', 'btn accent', t.handback, acts, 'handback')
         make('button', 'btn stop', t.end, acts, 'end')
         break
     }
+    this.sinceEl = this.control === 'none' ? null : make('span', 'since', '', text)
+    this.tick()
     bar.setAttribute('aria-label', bar.textContent || '')
 
     this.renderTask(make, clear)
     this.renderPanel(make, clear)
     this.place()
+  }
+
+  /** The connected-for timer, every second while an agent is attached. */
+  private setTicker(on: boolean) {
+    if (on && !this.ticker) this.ticker = setInterval(() => this.tick(), 1000)
+    if (!on && this.ticker) {
+      clearInterval(this.ticker)
+      this.ticker = null
+    }
+  }
+
+  private tick() {
+    const el = this.sinceEl
+    if (!el) return
+    // Not online: the gateway (and the agent behind it) can't reach us right now.
+    el.textContent =
+      this.link !== 'online' ? this.t.connecting : this.since == null ? '' : this.t.connectedFor(clock(Date.now() - this.since))
   }
 
   private renderOptions(
@@ -955,6 +989,7 @@ export class Ui {
       make('button', 'primary', t.handback, acts, 'handback')
       make('button', 'ghost', t.end, acts, 'end')
     } else if (this.control === 'observe') {
+      make('button', 'primary', t.takeover, acts, 'takeover')
       make('button', 'ghost', t.end, acts, 'end')
     }
     if (this.opts.helpButton && this.control === 'none') {
@@ -1122,6 +1157,14 @@ function pageTheme(): 'light' | 'dark' | null {
     return luminance > 0.5 ? 'light' : 'dark'
   }
   return null
+}
+
+/** 83_000 → "01:23"; from an hour on "1:02:03". */
+function clock(ms: number) {
+  const sec = Math.max(0, Math.floor(ms / 1000))
+  const two = (n: number) => (n < 10 ? '0' : '') + n
+  const h = Math.floor(sec / 3600)
+  return (h ? h + ':' : '') + two(Math.floor(sec / 60) % 60) + ':' + two(sec % 60)
 }
 
 function copyText(text: string) {

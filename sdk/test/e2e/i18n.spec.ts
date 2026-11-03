@@ -34,7 +34,7 @@ test.describe('browser in English', () => {
       'Share this device code with the developer. AI asks before joining, and you can take over or end anytime.'
     )
     await expect(win.locator('[data-action=auto] .t')).toContainText('Auto-allow AI')
-    await expect(win.locator('[data-action=lock] .t')).toContainText('Lock screen while AI works')
+    await expect(win.locator('[data-action=lock] .t')).toContainText('Lock screen while AI is connected')
     await expect(win.locator('.row .btn')).toHaveText(['Get help', 'Hide'])
     await expectFits(page, '#__rwd .win')
 
@@ -47,17 +47,18 @@ test.describe('browser in English', () => {
 
     const bar = page.locator('#__rwd .bar')
     gw.setControl(s.deviceId!, 'observe', 'Support bot', 'observe')
-    await expect(bar.locator('.status')).toHaveText('AI is viewingSupport bot')
-    await expect(bar.locator('.btn')).toHaveText(['End'])
+    await expect(bar.locator('.head')).toHaveText('AI is viewingSupport bot')
+    await expect(bar.locator('.since')).toHaveText(/^Connected · 00:0\d$/)
+    await expect(bar.locator('.btn')).toHaveText(['Take over', 'End'])
     await expectFits(page, '#__rwd .bar')
 
     gw.setControl(s.deviceId!, 'agent', 'Support bot', 'interact')
-    await expect(bar.locator('.status')).toHaveText('AI working')
+    await expect(bar.locator('.head')).toHaveText('AI working')
     await expect(bar.locator('.btn')).toHaveText(['Take over', 'End'])
     await expectFits(page, '#__rwd .bar')
 
     await bar.locator('[data-action=takeover]').tap()
-    await expect(bar.locator('.status')).toHaveText('Your turn')
+    await expect(bar.locator('.head')).toHaveText('Your turn')
     await expect(bar.locator('.btn')).toHaveText(['Hand back', 'End'])
     await expectFits(page, '#__rwd .bar')
     // One line each: the buttons keep their height.
