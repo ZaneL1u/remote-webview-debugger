@@ -85,7 +85,8 @@ jobs:
         working-directory: sdk
       - name: Size (gzip)
         working-directory: sdk
-        run: echo "sdk.js gzip: $(gzip -9c dist/sdk.js | wc -c) bytes"
+        run: |
+          echo "sdk.js gzip: $(gzip -9c dist/sdk.js | wc -c) bytes"
       - name: Package contents
         working-directory: sdk
         run: npm pack --dry-run
@@ -119,7 +120,7 @@ jobs:
       - name: e2e against the mock gateway
         run: |
           node mock/server.mjs &
-          for i in $(seq 30); do curl -fs http://127.0.0.1:4180/ >/dev/null && break; sleep 1; done
+          for _ in $(seq 30); do curl -fs http://127.0.0.1:4180/ >/dev/null && break; sleep 1; done
           npm run test:e2e
 
   website:
