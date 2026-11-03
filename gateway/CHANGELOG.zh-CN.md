@@ -4,6 +4,20 @@
 
 网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）。tag 形如 `gateway-vX.Y.Z`。
 
+## v0.3.0 (2026-11-04)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.2.0...gateway-v0.3.0)
+
+> 内嵌页面 SDK：v0.2.1
+
+### 🚀 新功能
+
+- **demo:** 演示商城支持 `?ui=<lang>` 指定 SDK 界面语言，并把设备码告诉官网 ([75138ad](https://github.com/ZaneL1u/remote-webview-debugger/commit/75138ad))
+
+### 🩹 修复
+
+- **deploy:** 公开 demo 放行 SDK 语言包，非中英文手机不再退回英文 ([b8c89ef](https://github.com/ZaneL1u/remote-webview-debugger/commit/b8c89ef))
+
 ## v0.2.0 (2026-11-03)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.1.1...gateway-v0.2.0)

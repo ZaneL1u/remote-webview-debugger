@@ -4,6 +4,20 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded). Tags: `gateway-vX.Y.Z`.
 
+## v0.3.0 (2026-11-04)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.2.0...gateway-v0.3.0)
+
+> Embedded page SDK: v0.2.1
+
+### 🚀 Enhancements
+
+- **demo:** the shop takes ?ui=<lang> for the SDK's UI language and tells the website its device code ([75138ad](https://github.com/ZaneL1u/remote-webview-debugger/commit/75138ad))
+
+### 🩹 Fixes
+
+- **deploy:** the public demo serves the SDK's language packs ([b8c89ef](https://github.com/ZaneL1u/remote-webview-debugger/commit/b8c89ef))
+
 ## v0.2.0 (2026-11-03)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.1.1...gateway-v0.2.0)
