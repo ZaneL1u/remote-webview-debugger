@@ -22,7 +22,7 @@ RWD_ADMIN_EMAIL=you@example.com RWD_ADMIN_PASSWORD='change-me' \
 
 Open http://localhost:8080 and sign in with that email and password. Pages and agents use the gateway URL `http://localhost:8080/v1` (in production: `https://rwd.example.com/v1`).
 
-`go build ./cmd/rwd` inside `gateway/` also works, but that binary only carries placeholders instead of the console and the SDK. `make` sets the version reported by `rwd version` and `/v1/healthz` from `RWD_VERSION` (default `0.1.0`).
+`go build ./cmd/rwd` inside `gateway/` also works, but that binary only carries placeholders instead of the console and the SDK. `make` sets the version reported by `rwd version` and `/v1/healthz` from the latest `gateway-vX.Y.Z` tag (`0.2.0` on the tag, `0.2.0-3-gabc1234` after it, `0.0.0-dev` without one); `RWD_VERSION=…` overrides it. Released binaries for Linux and macOS (amd64, arm64) are attached to each `gateway-v*` [GitHub Release](https://github.com/ZaneL1u/remote-webview-debugger/releases); changes: [CHANGELOG](CHANGELOG.md).
 
 ## Commands
 

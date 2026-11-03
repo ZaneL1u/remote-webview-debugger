@@ -25,7 +25,8 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-var version = "0.1.0-dev"
+// Set at build time from the gateway-vX.Y.Z tag (see the Makefile).
+var version = "dev"
 
 func env(key, def string) string {
 	if v := os.Getenv(key); v != "" {

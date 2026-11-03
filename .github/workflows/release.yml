@@ -1,0 +1,135 @@
+name: Release
+
+# Pushed by `make release-sdk` / `make release-gateway` (see docs/releasing.md):
+#   sdk-vX.Y.Z      npm package remote-webview-debugger + GitHub Release
+#   gateway-vX.Y.Z  rwd binaries (linux/darwin, amd64/arm64) + GHCR image + GitHub Release
+on:
+  push:
+    tags: ['sdk-v*', 'gateway-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sdk:
+    name: Page SDK to npm
+    if: startsWith(github.ref_name, 'sdk-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the GitHub Release
+      id-token: write # npm trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: sdk/package-lock.json
+      - name: Version and changelog match the tag
+        run: |
+          echo "VERSION=${GITHUB_REF_NAME#sdk-v}" >> "$GITHUB_ENV"
+          test "$(node -p 'require("./sdk/package.json").version')" = "${GITHUB_REF_NAME#sdk-v}"
+          node scripts/release/notes.mjs "$GITHUB_REF_NAME" > notes.md
+      - name: Build
+        working-directory: sdk
+        run: |
+          npm ci
+          npm run typecheck
+          npm run build
+      # Trusted publishing (OIDC) when it is set up for this workflow on
+      # npmjs.com; otherwise the NPM_TOKEN secret. A prerelease (X.Y.Z-rc.1)
+      # goes to the `next` dist-tag.
+      - name: npm publish
+        working-directory: sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          case "$VERSION" in *-*) dist=next ;; *) dist=latest ;; esac
+          npm publish --provenance --access public --tag "$dist"
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd sdk && npm pack --silent)
+          case "$VERSION" in *-*) pre=--prerelease ;; *) pre= ;; esac
+          # The repository's "latest release" stays a gateway release.
+          gh release create "$GITHUB_REF_NAME" --verify-tag --latest=false $pre \
+            --title "SDK v$VERSION" --notes-file notes.md \
+            sdk/dist/sdk.js sdk/dist/sdk.js.map sdk/dist/index.mjs sdk/dist/index.d.ts \
+            "sdk/remote-webview-debugger-$VERSION.tgz"
+
+  gateway:
+    name: Gateway binaries and image
+    if: startsWith(github.ref_name, 'gateway-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the GitHub Release
+      packages: write # ghcr.io
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: gateway/go.mod
+          cache-dependency-path: gateway/go.sum
+      - name: Changelog has this version
+        run: |
+          echo "VERSION=${GITHUB_REF_NAME#gateway-v}" >> "$GITHUB_ENV"
+          echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          node scripts/release/notes.mjs "$GITHUB_REF_NAME" > notes.md
+      - name: Build the SDK and the console
+        run: make -j16 sdk console
+      # One at a time: each build stages the console and the SDK into the
+      # Go embed directory.
+      - name: Build the binaries
+        run: |
+          mkdir -p dist
+          for os in linux darwin; do
+            for arch in amd64 arm64; do
+              make gateway GOOS=$os GOARCH=$arch RWD_VERSION="$VERSION"
+              name="rwd_${VERSION}_${os}_${arch}"
+              mkdir "dist/$name"
+              cp "gateway/bin/rwd-$os-$arch" "dist/$name/rwd"
+              cp LICENSE NOTICE "dist/$name/"
+              tar -C dist -czf "dist/$name.tar.gz" "$name"
+            done
+          done
+          (cd dist && sha256sum -- *.tar.gz > checksums.txt)
+          test "$(gateway/bin/rwd-linux-amd64 version)" = "$VERSION"
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      # deploy/platform/Dockerfile copies a prebuilt ./rwd: one image per
+      # architecture, then a multi-arch tag over both.
+      - name: Image
+        run: |
+          for arch in amd64 arm64; do
+            cp "gateway/bin/rwd-linux-$arch" deploy/platform/rwd
+            docker buildx build --platform "linux/$arch" --provenance=false --push \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.version=$VERSION" \
+              --label "org.opencontainers.image.licenses=MIT" \
+              -t "$IMAGE:$VERSION-$arch" deploy/platform
+          done
+          tags=(-t "$IMAGE:$VERSION")
+          case "$VERSION" in *-*) ;; *) tags+=(-t "$IMAGE:${VERSION%.*}" -t "$IMAGE:latest") ;; esac
+          docker buildx imagetools create "${tags[@]}" "$IMAGE:$VERSION-amd64" "$IMAGE:$VERSION-arm64"
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          case "$VERSION" in *-*) pre=--prerelease ;; *) pre= ;; esac
+          gh release create "$GITHUB_REF_NAME" --verify-tag $pre \
+            --title "Gateway v$VERSION" --notes-file notes.md \
+            dist/*.tar.gz dist/checksums.txt

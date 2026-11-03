@@ -1,14 +1,17 @@
 # Remote WebView Debugger: gateway (Go) + page SDK + console + website.
 # `make -j16` builds the gateway binary for this machine; GOOS / GOARCH
 # cross-compile it (e.g. `make -j16 GOOS=linux GOARCH=arm64`).
+# Releases: `make release-sdk` / `make release-gateway` (docs/releasing.md).
 
 .DEFAULT_GOAL := platform
 
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
-RWD_VERSION ?= 0.1.0
+# The gateway's version comes from its latest gateway-vX.Y.Z tag:
+# 0.2.0 on the tag, 0.2.0-3-gabc1234 after it, 0.0.0-dev without one.
+RWD_VERSION ?= $(shell v=$$(git describe --tags --match 'gateway-v*' --dirty 2>/dev/null) && echo $${v\#gateway-v} || echo 0.0.0-dev)
 
-.PHONY: platform sdk console gateway website check
+.PHONY: platform sdk console gateway website check release-sdk release-gateway
 platform: sdk console .WAIT gateway
 
 sdk:
@@ -33,3 +36,9 @@ check:
 	cd gateway && test -z "$$(gofmt -l .)" && go vet ./... && go test -race -count=1 ./...
 	cd sdk && npm run typecheck && npm run build && npm test
 	cd console && npm run typecheck && npm run build
+
+# Bump the version, prepend to both changelogs, commit and tag; nothing is
+# pushed. ARGS: --dry-run, --edit, --major / --minor / --patch, --version X.Y.Z.
+release-sdk release-gateway:
+	cd scripts/release && npm ci --no-audit --no-fund >/dev/null
+	node scripts/release/release.mjs $(@:release-%=%) $(ARGS)

@@ -22,7 +22,7 @@ RWD_ADMIN_EMAIL=you@example.com RWD_ADMIN_PASSWORD='change-me' \
 
 打开 http://localhost:8080，用上面的邮箱和密码登录。页面和 agent 使用的网关地址是 `http://localhost:8080/v1`（生产环境如 `https://rwd.example.com/v1`）。
 
-在 `gateway/` 目录下直接 `go build ./cmd/rwd` 也能编译，但这样得到的二进制里控制台和 SDK 只是占位文件。`make` 会用 `RWD_VERSION`（默认 `0.1.0`）设置 `rwd version` 和 `/v1/healthz` 报告的版本号。
+在 `gateway/` 目录下直接 `go build ./cmd/rwd` 也能编译，但这样得到的二进制里控制台和 SDK 只是占位文件。`rwd version` 和 `/v1/healthz` 报告的版本号由 `make` 从最近的 `gateway-vX.Y.Z` tag 得出（正好在 tag 上是 `0.2.0`，之后是 `0.2.0-3-gabc1234`，没有 tag 时是 `0.0.0-dev`），也可以用 `RWD_VERSION=…` 指定。每个 `gateway-v*` 的 [GitHub Release](https://github.com/ZaneL1u/remote-webview-debugger/releases) 都附带 Linux 和 macOS（amd64、arm64）的二进制；变更见[更新日志](CHANGELOG.zh-CN.md)。
 
 ## 命令
 

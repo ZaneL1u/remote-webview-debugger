@@ -1,0 +1,9 @@
+{
+  "name": "rwd-release",
+  "private": true,
+  "description": "Release tooling: version bump, bilingual changelogs and tags for the SDK and the gateway",
+  "type": "module",
+  "devDependencies": {
+    "changelogen": "0.6.2"
+  }
+}
