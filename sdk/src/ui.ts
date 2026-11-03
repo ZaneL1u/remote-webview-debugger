@@ -324,8 +324,8 @@ ${CJK_FONTS}
 .task .track { margin-top: 8px; height: 3px; border-radius: 3px; background: rgba(var(--ink), .1); overflow: hidden; }
 .task .fill { height: 100%; width: 0; background: var(--accent); box-shadow: 0 0 8px var(--accent); transition: width .35s cubic-bezier(.2, .9, .2, 1); }
 .task ol {
-  list-style: none; margin: 10px -6px 0 0; padding: 0 6px 0 0;
-  max-height: min(26vh, 134px); overflow-y: auto; overscroll-behavior: contain;
+  list-style: none; margin: 4px -6px -6px -8px; padding: 6px 6px 6px 8px;
+  max-height: min(26vh, 146px); overflow-y: auto; overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: thin;
 }
 .task ol.more { -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent); }
@@ -434,7 +434,7 @@ ${CJK_FONTS}
 :host([dir=rtl]) .pill { padding: 7px 9px 7px 12px; }
 :host([dir=rtl]) .win .link { margin-left: 0; margin-right: auto; }
 :host([dir=rtl]) .bar { padding: 7px 18px 7px 7px; }
-:host([dir=rtl]) .task ol { margin: 10px 0 0 -6px; padding: 0 0 0 6px; }
+:host([dir=rtl]) .task ol { margin: 4px -8px -6px -6px; padding: 6px 8px 6px 6px; }
 :host([dir=rtl]) .choice { text-align: right; }
 :host([dir=rtl]) .sw::after { left: auto; right: 2px; }
 :host([dir=rtl]) .sw.on::after { transform: translateX(-12px); }
