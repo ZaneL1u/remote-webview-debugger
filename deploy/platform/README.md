@@ -139,7 +139,7 @@ docker compose up -d --build
 
 ### With the release image
 
-Each gateway release also publishes the image `ghcr.io/zanel1u/remote-webview-debugger` for linux/amd64 and linux/arm64, tagged `<version>` (e.g. `0.2.0`), `<major>.<minor>` and `latest`, with the console and the SDK embedded. To run it instead of building one, replace `build: .` and `image: rwd-gateway:local` in `compose.yml` with `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, skip the binary, and start with `docker compose up -d`. Upgrade by changing the tag, then `docker compose pull && docker compose up -d` (back up `data/` first, as `deploy.sh` does).
+Each gateway release also publishes the image `ghcr.io/zanel1u/remote-webview-debugger` for linux/amd64 and linux/arm64, tagged `<version>` (e.g. `0.2.0`), `<major>.<minor>` and `latest`, with the console and the SDK embedded. To run it instead of building one, replace the `build:` and `image:` lines of the gateway in `compose.yml` with `image: ghcr.io/zanel1u/remote-webview-debugger:<version>`, skip the binary, and start with `docker compose up -d`. Upgrade by changing the tag, then `docker compose pull && docker compose up -d` (back up `data/` first, as `deploy.sh` does).
 
 For a quick try without Compose, the image also runs on its own: see the [quick start](../../README.md#1-run-the-gateway). On its own it does not trust `X-Forwarded-*`; if you put your own proxy in front, add `-e RWD_TRUST_PROXY=1`.
 

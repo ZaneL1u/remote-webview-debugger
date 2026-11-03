@@ -17,7 +17,8 @@
 services:
   gateway:
     build: .
-    image: rwd-gateway:local
+    # One image per stack, so two stacks on a host don't swap each other's.
+    image: rwd-gateway:${COMPOSE_PROJECT_NAME:-local}
     restart: unless-stopped
     environment:
       RWD_TRUST_PROXY: "1" # only `web` reaches it

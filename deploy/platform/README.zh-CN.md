@@ -1,4 +1,4 @@
-<!-- i18n-source: 89277de492b6bba568ab78bae628c2752fd39c71 -->
+<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose 部署
@@ -140,7 +140,7 @@ docker compose up -d --build
 
 ### 使用发版镜像
 
-网关每次发版还会发布镜像 `ghcr.io/zanel1u/remote-webview-debugger`（linux/amd64 和 linux/arm64，内嵌控制台和 SDK），tag 有 `<版本号>`（如 `0.2.0`）、`<主版本>.<次版本>` 和 `latest`。想直接用它而不是自己构建：把 `compose.yml` 里的 `build: .` 和 `image: rwd-gateway:local` 换成 `image: ghcr.io/zanel1u/remote-webview-debugger:<版本号>`，不用复制二进制，然后 `docker compose up -d`。升级时改 tag，再 `docker compose pull && docker compose up -d`（先像 `deploy.sh` 那样备份 `data/`）。
+网关每次发版还会发布镜像 `ghcr.io/zanel1u/remote-webview-debugger`（linux/amd64 和 linux/arm64，内嵌控制台和 SDK），tag 有 `<版本号>`（如 `0.2.0`）、`<主版本>.<次版本>` 和 `latest`。想直接用它而不是自己构建：把 `compose.yml` 里网关的 `build:` 和 `image:` 两行换成 `image: ghcr.io/zanel1u/remote-webview-debugger:<版本号>`，不用复制二进制，然后 `docker compose up -d`。升级时改 tag，再 `docker compose pull && docker compose up -d`（先像 `deploy.sh` 那样备份 `data/`）。
 
 只想快速试用、不用 Compose 的话，镜像也可以单独运行，见[快速开始](../../README.zh-CN.md#1-运行网关)。单独运行时它不信任 `X-Forwarded-*`；如果你在前面加了自己的反向代理，再加上 `-e RWD_TRUST_PROXY=1`。
 
