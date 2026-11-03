@@ -103,7 +103,7 @@ Over plain HTTP, API keys and console passwords travel unencrypted, so keep it t
 - **Consent and control.** On-device approval with levels (`observe` / `interact` / `advanced`), optional auto-approve, screen lock while the agent operates, take over / hand back / end, confirmation for sensitive actions (`data-rwd-confirm`).
 - **Privacy.** Password fields, `data-rwd-mask` and configurable selectors / patterns are masked in snapshots, screenshots, console and network data. The audit log records who did what, without page content.
 - **Operations.** Members and roles, API keys with level / expiry / IP allowlist, device tokens, invites by QR code, quotas, live console over SSE, Prometheus metrics.
-- **Bilingual.** Console, phone UI and agent-facing text in English and Chinese: the console follows the browser (with a switcher), the phone UI follows the phone or `run({ lang })`, and the agent side follows `RWD_LANG`.
+- **11 languages, your own styles.** Console, phone UI and agent-facing text in English, Simplified and Traditional Chinese, French, Spanish, Russian, Arabic (right to left), Japanese, Korean, German and Portuguese: the console follows the browser (with a switcher), the phone UI follows the phone or `run({ lang })`, and the agent side follows `RWD_LANG`. The page SDK takes your own language packs and wording, and restyles through CSS variables ([SDK languages and styling](sdk/README.md#languages)).
 - **Plays well with eruda.** Optional Remote Debugger tab inside eruda; can load eruda for developers on demand.
 
 ## Repository layout

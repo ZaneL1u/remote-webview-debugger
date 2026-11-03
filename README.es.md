@@ -1,4 +1,4 @@
-<!-- i18n-source: 8aea4dc120575de41a0827859bcf05eb445e030f -->
+<!-- i18n-source: 4c7f2c79aaa7a9d135f0f53019843c330a2e70d1 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -104,7 +104,7 @@ Por HTTP plano, las claves de API y las contraseñas de la consola web viajan si
 - **Consentimiento y control.** Aprobación en el dispositivo con niveles (`observe` / `interact` / `advanced`), opción de permitir automáticamente, bloqueo de pantalla mientras opera el agente, tomar el control / devolver el control / finalizar, y confirmación para acciones sensibles (`data-rwd-confirm`).
 - **Privacidad.** Los campos de contraseña, `data-rwd-mask` y los selectores y patrones configurables se enmascaran en instantáneas, capturas de pantalla, console y datos de red. El registro de auditoría guarda quién hizo qué, sin contenido de las páginas.
 - **Operación.** Miembros y roles, claves de API con nivel / caducidad / lista de IP permitidas, tokens de dispositivo, invitaciones por código QR, cuotas, consola web en vivo por SSE y métricas de Prometheus.
-- **Bilingüe.** La consola web, la interfaz del teléfono y los textos dirigidos al agente están en inglés y chino: la consola web sigue al navegador (con un selector), la interfaz del teléfono sigue al teléfono o a `run({ lang })`, y la parte del agente sigue a `RWD_LANG`.
+- **11 idiomas y tus propios estilos.** La consola web, la interfaz del teléfono y los textos dirigidos al agente están en inglés, chino simplificado y tradicional, francés, español, ruso, árabe (de derecha a izquierda), japonés, coreano, alemán y portugués: la consola web sigue al navegador (con un selector), la interfaz del teléfono sigue al teléfono o a `run({ lang })`, y la parte del agente sigue a `RWD_LANG`. El SDK de página acepta tus propios paquetes de idioma y textos, y se le puede cambiar el estilo con variables CSS ([idiomas y estilos del SDK](sdk/README.es.md#idiomas)).
 - **Se lleva bien con eruda.** Pestaña opcional de Remote Debugger dentro de eruda; puede cargar eruda bajo demanda para los desarrolladores.
 
 ## Estructura del repositorio

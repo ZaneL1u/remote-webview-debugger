@@ -1,4 +1,4 @@
-<!-- i18n-source: b852d212294c4dd63aad9e760443da91cb0ccaa0 -->
+<!-- i18n-source: 89ad71d08bfaa479122e8c83ed64f19a1a974d2c -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | Español | [Français](protocol.fr.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -39,6 +39,7 @@ Convenciones:
 |---|---|
 | `GET /v1/sdk.js` | SDK de página (una IIFE que expone el global `RemoteWebviewDebugger`). `Cache-Control: max-age=300`, `Access-Control-Allow-Origin: *` |
 | `GET /v1/sdk/<version>/sdk.js` | El mismo archivo en una URL inmutable, direccionada por contenido (en caché durante un año; se puede usar con SRI). Cualquier otro `<version>` da 404. Ver [§16](#16-operación) |
+| `GET /v1/locales/<id>.js`, `GET /v1/sdk/<version>/locales/<id>.js` | Los paquetes de idioma bajo demanda del SDK, que `sdk.js` carga desde su mismo directorio ([§15](#15-idiomas)). `Cache-Control: max-age=300` |
 | `GET /v1/healthz` | `{"ok":true,"version":"…","db":"sqlite"\|"postgres"}` |
 | `GET /v1/metrics` | Métricas de Prometheus ([§16](#16-operación)) |
 | `WS /v1/page?key=<appKey>` | Conexión de la página ([§3](#3-conexión-de-la-página-websocket)) |
@@ -149,7 +150,7 @@ El SDK entiende `reconnect`; el gateway no lo envía hoy en día.
  "config":{"helpButton":false,"maskSelectors":[],"maskPatterns":[],
            "confirmSelectors":[],"networkExclude":[],"sessionLog":true,
            "eruda":{"dock":false,"load":false}},   // o null, ver abajo
- "agentLang":"en",                   // "en" | "zh", §15
+ "agentLang":"en",                   // el idioma del gateway: "en", "zh", "zh-TW", "fr"…, §15
  "task":{…}}                         // solo mientras el agente vinculado haya definido una
 ```
 
@@ -425,8 +426,10 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: el usuario con sesión iniciada, visible para los agentes y la consola
   helpButton,            // mostrar el botón "Pedir ayuda" (OR con el helpButton de la política)
   app,                   // { name, version } de la app anfitriona
-  lang,                  // 'en' | 'zh': la interfaz del usuario del teléfono; por defecto según navigator.language
+  lang,                  // una etiqueta de idioma para la interfaz del usuario del teléfono; por defecto según navigator.languages (§15)
+  locales,               // paquetes de idioma adicionales; messages: textos sobrescritos por idioma (§15)
   theme,                 // 'auto' (por defecto) | 'system' | 'light' | 'dark'
+  style,                 // colores, fuentes, radios, z-index y posiciones como propiedades CSS --rwd-* (sdk/README.es.md)
   lockScreen,            // bloquear la entrada mientras haya un agente vinculado (por defecto true; el usuario puede cambiarlo)
   eruda,                 // true | { dock, load, src, name }: mostrarse como pestaña dentro de eruda
   networkExclude,        // peticiones que no deben aparecer en lo que lee el agente (§11)
@@ -687,7 +690,7 @@ Cada dispositivo guarda en memoria sus 300 últimos eventos de la línea de tiem
 
 ## 13. Actualizaciones en vivo (SSE)
 
-`GET /v1/api/stream[?project=<id>][&lang=en|zh]` (member, autenticación por cookie) emite un flujo `text/event-stream`:
+`GET /v1/api/stream[?project=<id>][&lang=<tag>]` (member, autenticación por cookie) emite un flujo `text/event-stream`:
 
 ```
 retry: 3000
@@ -773,14 +776,14 @@ Retransmite stdio al `/v1/mcp` alojado. `--gateway` también puede venir de `RWD
 
 ## 15. Idiomas
 
-Los idiomas admitidos son inglés (`en`) y chino simplificado (`zh`); se aceptan etiquetas como `en-US`, `zh-CN`, `zh_CN` y `zh-Hans`.
+Idiomas admitidos: inglés (`en`), chino simplificado (`zh`), chino tradicional (`zh-TW`), francés (`fr`), español (`es`), ruso (`ru`), árabe (`ar`, de derecha a izquierda), japonés (`ja`), coreano (`ko`), alemán (`de`) y portugués (`pt`). Se acepta cualquier etiqueta BCP 47, que se asigna a la más cercana: `en-US` → `en`; `zh-CN`, `zh_CN`, `zh-Hans` → `zh`; `zh-HK`, `zh-MO`, `zh-Hant` → `zh-TW`; `fr-CA` → `fr`; `pt-BR`, `pt-PT` → `pt`. `Accept-Language` elige el idioma admitido con mayor peso.
 
 | Destinatario | Qué | Lo elige |
 |---|---|---|
 | Agente | Instrucciones del servidor MCP, descripciones de herramientas y parámetros, resultados de herramientas, `[Session changes]`, errores | El `RWD_LANG` / `--lang` del gateway (por defecto `en`) |
 | Agente, desde la página | Mensajes de error de RPC y resúmenes de eventos que escribe el SDK | `welcome.agentLang`, que lleva el idioma del gateway. El SDK guarda el último valor en localStorage `rwd:alang` para los eventos generados antes del siguiente `welcome`, y usa inglés hasta que se le indique otra cosa |
 | Consola web | Mensajes de error, resúmenes de la línea de tiempo y etiquetas del sistema en las respuestas REST y SSE | `?lang=` en la petición, luego `Accept-Language` y luego el idioma del gateway |
-| Usuario del teléfono | La píldora, las barras, los diálogos y los avisos del SDK | `run({ lang })`, o si no `navigator.language` (`zh*` → `zh`, cualquier otro → `en`) |
+| Usuario del teléfono | La píldora, las barras, los diálogos y los avisos del SDK | `run({ lang })`; si no, el primero de `navigator.languages` para el que el SDK tenga paquete (integrado o registrado por la página); si no, inglés. Los paquetes distintos de `en` y `zh` se cargan bajo demanda desde `locales/<id>.js` junto a `sdk.js`, o desde el gateway (`/v1/locales/<id>.js`) |
 
 Así, un usuario que habla chino puede trabajar con un agente que habla inglés: el diálogo dice *AI 想要点击「提交订单」，允许吗？* y, si se rechaza, el agente lee *The user denied this action*.
 

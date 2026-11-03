@@ -38,6 +38,7 @@ Conventions:
 |---|---|
 | `GET /v1/sdk.js` | Page SDK (an IIFE exposing the global `RemoteWebviewDebugger`). `Cache-Control: max-age=300`, `Access-Control-Allow-Origin: *` |
 | `GET /v1/sdk/<version>/sdk.js` | The same file at an immutable, content-addressed URL (cached for a year; usable with SRI). Any other `<version>` is a 404. See [§16](#16-operations) |
+| `GET /v1/locales/<id>.js`, `GET /v1/sdk/<version>/locales/<id>.js` | The SDK's on-demand language packs, which `sdk.js` loads from next to itself ([§15](#15-languages)). `Cache-Control: max-age=300` |
 | `GET /v1/healthz` | `{"ok":true,"version":"…","db":"sqlite"\|"postgres"}` |
 | `GET /v1/metrics` | Prometheus metrics ([§16](#16-operations)) |
 | `WS /v1/page?key=<appKey>` | Page connection ([§3](#3-page-connection-websocket)) |
@@ -148,7 +149,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
  "config":{"helpButton":false,"maskSelectors":[],"maskPatterns":[],
            "confirmSelectors":[],"networkExclude":[],"sessionLog":true,
            "eruda":{"dock":false,"load":false}},   // or null, see below
- "agentLang":"en",                   // "en" | "zh", §15
+ "agentLang":"en",                   // the gateway's language: "en", "zh", "zh-TW", "fr"…, §15
  "task":{…}}                         // only while the attached agent has set one
 ```
 
@@ -424,8 +425,10 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: the signed-in user, shown to agents and the console
   helpButton,            // show the "Get help" button (OR-ed with the policy's helpButton)
   app,                   // { name, version } of the host app
-  lang,                  // 'en' | 'zh': the phone user's UI; default from navigator.language
+  lang,                  // a language tag for the phone user's UI; default from navigator.languages (§15)
+  locales,               // extra language packs; messages: per-language overrides (§15)
   theme,                 // 'auto' (default) | 'system' | 'light' | 'dark'
+  style,                 // colors, fonts, radii, z-index, positions as --rwd-* CSS properties (sdk/README.md)
   lockScreen,            // block input while an agent is attached (default true; the user can change it)
   eruda,                 // true | { dock, load, src, name }: show as a tab inside eruda
   networkExclude,        // requests to keep out of what the agent reads (§11)
@@ -686,7 +689,7 @@ Each device keeps its last 300 timeline events in memory; the console shows the 
 
 ## 13. Live updates (SSE)
 
-`GET /v1/api/stream[?project=<id>][&lang=en|zh]` (member, cookie auth) streams `text/event-stream`:
+`GET /v1/api/stream[?project=<id>][&lang=<tag>]` (member, cookie auth) streams `text/event-stream`:
 
 ```
 retry: 3000
@@ -772,14 +775,14 @@ It relays stdio to the hosted `/v1/mcp`. `--gateway` can also come from `RWD_GAT
 
 ## 15. Languages
 
-Supported languages are English (`en`) and Simplified Chinese (`zh`); tags such as `en-US`, `zh-CN`, `zh_CN` and `zh-Hans` are accepted.
+Supported languages: English (`en`), Simplified Chinese (`zh`), Traditional Chinese (`zh-TW`), French (`fr`), Spanish (`es`), Russian (`ru`), Arabic (`ar`, right to left), Japanese (`ja`), Korean (`ko`), German (`de`) and Portuguese (`pt`). Any BCP 47 tag is accepted and maps to the closest one: `en-US` → `en`; `zh-CN`, `zh_CN`, `zh-Hans` → `zh`; `zh-HK`, `zh-MO`, `zh-Hant` → `zh-TW`; `fr-CA` → `fr`; `pt-BR`, `pt-PT` → `pt`. `Accept-Language` picks the supported language with the highest weight.
 
 | Audience | What | Chosen by |
 |---|---|---|
 | Agent | MCP server instructions, tool and parameter descriptions, tool results, `[Session changes]`, errors | The gateway's `RWD_LANG` / `--lang` (default `en`) |
 | Agent, from the page | RPC error messages and event summaries written by the SDK | `welcome.agentLang`, which carries the gateway's language. The SDK keeps the last value in localStorage `rwd:alang` for events raised before the next `welcome`, and uses English until it hears otherwise |
 | Console | Error messages, timeline summaries and system labels in REST and SSE responses | `?lang=` on the request, then `Accept-Language`, then the gateway's language |
-| Phone user | The SDK's pill, bars, dialogs and notices | `run({ lang })`, else `navigator.language` (`zh*` → `zh`, anything else → `en`) |
+| Phone user | The SDK's pill, bars, dialogs and notices | `run({ lang })`, else the first of `navigator.languages` the SDK has a pack for (built-in or registered by the page), else English. Packs other than `en` and `zh` load on demand from `locales/<id>.js` next to `sdk.js`, or from the gateway (`/v1/locales/<id>.js`) |
 
 So a Chinese-speaking user can work with an English-speaking agent: the dialog says *AI 想要点击「提交订单」，允许吗？* and, if refused, the agent reads *The user denied this action*.
 

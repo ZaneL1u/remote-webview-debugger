@@ -1,4 +1,4 @@
-<!-- i18n-source: 576f0b6889d3f5665ef4e6d44a51a5d2289eebbd -->
+<!-- i18n-source: 3b2e4097b7707b70544438e01ec3bee6e95adbed -->
 [English](native-integration.md) | 简体中文 | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # App 原生接入
@@ -33,7 +33,7 @@ H5 页面用一个 `<script>` 标签就能接入 SDK。在自己的 App 里还�
 | `nativeKey` | 启动时生成的随机密钥（比如两个 UUID 拼起来），只写进注入脚本。`nativeControl()` 和 `nativeDecide()` 都要求出示它；页面脚本（包括 agent 的 `evaluate_script`）读不到 |
 | `nativeApproval` | 设为 `true` 时，接入审批和操作确认改用原生对话框，SDK 不再在页面里弹窗 |
 | `helpButton` | App 有自己的求助入口时设为 `false` |
-| `lang` | `'en'` 或 `'zh'`，与 App 的语言一致；默认跟随 `navigator.language` |
+| `lang` | 与 App 的语言一致的语言标签（`'en'`、`'zh'`、`'ja'`、`'pt-BR'`…，见 [SDK 多语言](../sdk/README.zh-CN.md#多语言)）；默认跟随 `navigator.languages` |
 | `lockScreen`、`theme`、`eruda` | 与 H5 页面相同，见 [protocol.zh-CN.md §10](protocol.zh-CN.md#10-宿主-javascript-接口) |
 
 ## iOS（WKWebView）

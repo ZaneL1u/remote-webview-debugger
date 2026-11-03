@@ -1,4 +1,4 @@
-<!-- i18n-source: 576f0b6889d3f5665ef4e6d44a51a5d2289eebbd -->
+<!-- i18n-source: 3b2e4097b7707b70544438e01ec3bee6e95adbed -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | 日本語 | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # ネイティブアプリへの組み込み
@@ -33,7 +33,7 @@ H5 ページなら `<script>` タグで SDK を読み込めます。自社アプ
 | `nativeKey` | 起動時に生成し（例：UUID を 2 つ連結）、注入するスクリプトにだけ書き込むランダムなシークレット。`nativeControl()` と `nativeDecide()` に必要です。ページのスクリプトからは、エージェントの `evaluate_script` も含めて読めません |
 | `nativeApproval` | `true` にすると、接続承認と操作の確認を SDK のページ内ダイアログではなくネイティブのダイアログで表示します |
 | `helpButton` | アプリ独自の「ヘルプを求める」入口がある場合は `false` |
-| `lang` | アプリの言語に合わせて `'en'` または `'zh'`。デフォルトは `navigator.language` に従います |
+| `lang` | アプリの言語を表す言語タグ（`'en'`、`'zh'`、`'ja'`、`'pt-BR'` など。[SDK の言語](../sdk/README.ja.md#言語)を参照）。デフォルトは `navigator.languages` に従います |
 | `lockScreen`、`theme`、`eruda` | H5 ページと同じです。[protocol.ja.md §10](protocol.ja.md#10-ホスト向け-javascript-api) を参照してください |
 
 ## iOS（WKWebView）

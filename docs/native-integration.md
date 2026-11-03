@@ -32,7 +32,7 @@ The console's built-in guide (**Docs → Integrate a native app**) shows the sam
 | `nativeKey` | A random secret generated at launch (e.g. two UUIDs) and written only into the injected script. Required by `nativeControl()` and `nativeDecide()`; page scripts, including the agent's `evaluate_script`, can't read it |
 | `nativeApproval` | `true` to show attach approvals and action confirmations as native dialogs instead of the SDK's in-page dialogs |
 | `helpButton` | `false` if the app has its own "Get help" entry |
-| `lang` | `'en'` or `'zh'` to match your app's language; default follows `navigator.language` |
+| `lang` | Your app's language as a tag (`'en'`, `'zh'`, `'ja'`, `'pt-BR'`…; see the [SDK languages](../sdk/README.md#languages)); default follows `navigator.languages` |
 | `lockScreen`, `theme`, `eruda` | As for H5 pages, see [protocol.md §10](protocol.md#10-javascript-api-for-hosts) |
 
 ## iOS (WKWebView)

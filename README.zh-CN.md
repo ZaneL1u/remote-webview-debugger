@@ -1,4 +1,4 @@
-<!-- i18n-source: 8aea4dc120575de41a0827859bcf05eb445e030f -->
+<!-- i18n-source: 4c7f2c79aaa7a9d135f0f53019843c330a2e70d1 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -104,7 +104,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 - **授权与控制。** 设备上审批，分 `observe` / `interact` / `advanced` 三个级别；可选自动同意；agent 操作时锁定屏幕；接管、交还 AI、结束；敏感操作二次确认（`data-rwd-confirm`）。
 - **隐私。** 密码框、`data-rwd-mask` 以及可配置的选择器和正则，在快照、截图、console 和网络数据里都会打码。审计日志记录谁做了什么，不含页面内容。
 - **运维。** 成员与角色；API Key 支持级别、过期时间和 IP 白名单；设备令牌；扫码邀请；配额；基于 SSE 的实时控制台；Prometheus 指标。
-- **中英双语。** 控制台、手机端界面和面向 agent 的文案都支持中英文：控制台跟随浏览器语言（可手动切换），手机端跟随系统语言或 `run({ lang })`，agent 端由 `RWD_LANG` 决定。
+- **11 种语言，样式可覆盖。** 控制台、手机端界面和面向 agent 的文案支持英语、简体中文、繁体中文、法语、西班牙语、俄语、阿拉伯语（从右到左）、日语、韩语、德语和葡萄牙语：控制台跟随浏览器语言（可手动切换），手机端跟随系统语言或 `run({ lang })`，agent 端由 `RWD_LANG` 决定。页面 SDK 可以加载自定义语言包、覆盖文案，并用 CSS 变量覆盖样式（[SDK 多语言与样式](sdk/README.zh-CN.md#多语言)）。
 - **兼容 eruda。** 可选在 eruda 里加一个 Remote Debugger 面板，也能按需为开发者加载 eruda。
 
 ## 目录结构

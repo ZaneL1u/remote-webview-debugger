@@ -1,4 +1,4 @@
-<!-- i18n-source: be98b789b938ca3d39ee71a64de14dee2afe6f79 -->
+<!-- i18n-source: ebfe7dc58ec09d70ae56a58cecd317e01f3ad104 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 閘道
@@ -43,7 +43,7 @@ rwd version                             顯示版本號
 | `--data` / `RWD_DATABASE_URL` / `RWD_DATA` | `rwd.db` | 資料庫。以 `postgres://` 或 `postgresql://` 開頭時使用 Postgres，否則視為 SQLite 檔案路徑。`RWD_DATABASE_URL` 優先於 `RWD_DATA`。啟動時會自動建立資料表並執行遷移 |
 | `--public-url` / `RWD_PUBLIC_URL` | 從每個請求推斷 | 對外的閘道網址，以 `/v1` 結尾，例如 `https://rwd.example.com/v1`。接入程式碼片段、邀請連結和 `/v1/api/config` 都會用到它。閘道推斷不出自己的對外網址時，請設定這一項 |
 | `--trust-proxy` / `RWD_TRUST_PROXY=1` | 關閉 | 從 `X-Forwarded-For` 取得用戶端 IP，從 `X-Forwarded-Proto` / `X-Forwarded-Host` 取得推斷出的對外網址的通訊協定和主機名稱（以及主控台 cookie 是否加上 `Secure`）。只能在反向代理後面開啟，否則用戶端可以偽造這些標頭，繞過 IP 白名單和速率限制。不開啟時，不管代理怎麼說，所有請求一律當成純 HTTP：主控台 cookie 不加 `Secure`，推斷出的網址也以 `http://` 開頭（這種情況請設定 `--public-url`） |
-| `--lang` / `RWD_LANG` | `en` | AI 讀到的所有內容的語言：MCP 說明、工具與參數描述、工具結果、`[Session changes]` 和錯誤訊息。這個值也會透過 `welcome.agentLang` 傳給頁面 SDK，讓頁面端產生的錯誤訊息和事件摘要使用同一種語言。可設為 `en` 或 `zh`（也接受 `zh-CN`、`zh_CN` 等寫法）。主控台依每個請求的 `?lang=` 或 `Accept-Language` 選擇語言，兩者都沒有時才使用這個值 |
+| `--lang` / `RWD_LANG` | `en` | AI 讀到的所有內容的語言：MCP 說明、工具與參數描述、工具結果、`[Session changes]` 和錯誤訊息。這個值也會透過 `welcome.agentLang` 傳給頁面 SDK，讓頁面端產生的錯誤訊息和事件摘要使用同一種語言。可設為 `en`、`zh`（簡體中文）、`zh-TW`（繁體中文）、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de` 或 `pt`；也接受帶地區的標記，並對應到最接近的語言（`zh-CN` → `zh`，`zh-HK` → `zh-TW`，`pt-BR` → `pt`）。主控台依每個請求的 `?lang=` 或 `Accept-Language` 選擇語言，兩者都沒有時才使用這個值 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | 在 `/demo/` 底下提供這個目錄（選用，用於示範頁面） |
 | `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0`（不限制） | 每個用戶端 IP 每分鐘允許的 MCP 請求數，超過的會收到 `429` 並帶有 `Retry-After: 60`。適用於 API 金鑰公開的閘道，例如示範用的閘道（[deploy/demo](../deploy/demo/README.md)）。放在代理後面時，需要 `--trust-proxy` 才看得到用戶端 IP |
 | `RWD_ADMIN_EMAIL` | `admin` | owner 帳號的電子郵件（登入名稱）。只有在資料庫裡還沒有 owner 時（第一次啟動）才會建立 owner；之後再改這個值**不會**多出第二個 owner，只決定 `RWD_ADMIN_PASSWORD` 套用到哪個 owner |

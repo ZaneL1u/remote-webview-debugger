@@ -1,4 +1,4 @@
-<!-- i18n-source: 576f0b6889d3f5665ef4e6d44a51a5d2289eebbd -->
+<!-- i18n-source: 3b2e4097b7707b70544438e01ec3bee6e95adbed -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [Español](native-integration.es.md) | Français | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Intégration dans une application native
@@ -33,7 +33,7 @@ Le guide intégré à la console web (**Docs → Integrate a native app**) montr
 | `nativeKey` | Un secret aléatoire généré au lancement (p. ex. deux UUID) et écrit uniquement dans le script injecté. Requis par `nativeControl()` et `nativeDecide()` ; les scripts de la page, y compris le `evaluate_script` de l'agent, ne peuvent pas le lire |
 | `nativeApproval` | `true` pour afficher les approbations de rattachement et les confirmations d'action dans des boîtes de dialogue natives plutôt que dans celles du SDK dans la page |
 | `helpButton` | `false` si l'application a sa propre entrée « Besoin d'aide » |
-| `lang` | `'en'` ou `'zh'` selon la langue de votre application ; par défaut, suit `navigator.language` |
+| `lang` | La langue de votre application, sous forme d'étiquette (`'en'`, `'zh'`, `'ja'`, `'pt-BR'`… ; voir les [langues du SDK](../sdk/README.fr.md#langues)) ; par défaut, suit `navigator.languages` |
 | `lockScreen`, `theme`, `eruda` | Comme pour les pages H5, voir [protocol.fr.md §10](protocol.fr.md#10-api-javascript-pour-les-hôtes) |
 
 ## iOS (WKWebView)

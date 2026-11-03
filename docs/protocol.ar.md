@@ -1,4 +1,4 @@
-<!-- i18n-source: b852d212294c4dd63aad9e760443da91cb0ccaa0 -->
+<!-- i18n-source: 89ad71d08bfaa479122e8c83ed64f19a1a974d2c -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Русский](protocol.ru.md) | العربية
 
 <div dir="rtl">
@@ -41,6 +41,7 @@
 |---|---|
 | `GET /v1/sdk.js` | SDK الصفحة (دالة IIFE تكشف الكائن العام `RemoteWebviewDebugger`). `Cache-Control: max-age=300`، `Access-Control-Allow-Origin: *` |
 | `GET /v1/sdk/<version>/sdk.js` | الملف نفسه على عنوان ثابت مبني على المحتوى (يُخزَّن مؤقتًا لمدة سنة؛ ويصلح للاستخدام مع SRI). أي قيمة أخرى لـ `<version>` تُرجع 404. راجع [§16](#16-التشغيل-والصيانة) |
+| `GET /v1/locales/<id>.js`، `GET /v1/sdk/<version>/locales/<id>.js` | حزم اللغات التي يحمّلها SDK عند الحاجة، ويجلبها `sdk.js` من المجلد الذي يوجد فيه ([§15](#15-اللغات)). `Cache-Control: max-age=300` |
 | `GET /v1/healthz` | `{"ok":true,"version":"…","db":"sqlite"\|"postgres"}` |
 | `GET /v1/metrics` | مقاييس Prometheus ([§16](#16-التشغيل-والصيانة)) |
 | `WS /v1/page?key=<appKey>` | اتصال الصفحة ([§3](#3-اتصال-الصفحة-websocket)) |
@@ -161,7 +162,7 @@
  "config":{"helpButton":false,"maskSelectors":[],"maskPatterns":[],
            "confirmSelectors":[],"networkExclude":[],"sessionLog":true,
            "eruda":{"dock":false,"load":false}},   // أو null، راجع ما يلي
- "agentLang":"en",                   // "en" | "zh"، §15
+ "agentLang":"en",                   // لغة البوابة: "en"، "zh"، "zh-TW"، "fr"…، §15
  "task":{…}}                         // فقط ما دام الوكيل المرتبط قد عيّن مهمة
 ```
 
@@ -457,8 +458,10 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: المستخدم المسجّل دخوله، يظهر للوكلاء وللوحة التحكم
   helpButton,            // إظهار زر «طلب المساعدة» (مع OR مع helpButton في السياسة)
   app,                   // { name, version } للتطبيق المضيف
-  lang,                  // 'en' | 'zh': واجهة مستخدم الهاتف؛ الافتراضي من navigator.language
+  lang,                  // وسم لغة لواجهة مستخدم الهاتف؛ الافتراضي من navigator.languages (§15)
+  locales,               // حزم لغات إضافية؛ messages: نصوص بديلة لكل لغة (§15)
   theme,                 // 'auto' (الافتراضي) | 'system' | 'light' | 'dark'
+  style,                 // الألوان والخطوط وأنصاف أقطار الزوايا و z-index والمواضع كخصائص CSS ‏--rwd-* (sdk/README.md)
   lockScreen,            // حجب الإدخال أثناء ارتباط وكيل (الافتراضي true؛ ويستطيع المستخدم تغييره)
   eruda,                 // true | { dock, load, src, name }: الظهور كتبويب داخل eruda
   networkExclude,        // طلبات تُستبعد مما يقرؤه الوكيل (§11)
@@ -729,7 +732,7 @@ type AuditEvent = {
 
 ## 13. التحديثات الحية (SSE)
 
-يبث `GET /v1/api/stream[?project=<id>][&lang=en|zh]` (member، مصادقة بملف تعريف الارتباط) `text/event-stream`:
+يبث `GET /v1/api/stream[?project=<id>][&lang=<tag>]` (member، مصادقة بملف تعريف الارتباط) `text/event-stream`:
 
 <div dir="ltr">
 
@@ -827,14 +830,14 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 
 ## 15. اللغات
 
-اللغات المدعومة هي الإنجليزية (`en`) والصينية المبسطة (`zh`)؛ وتُقبل وسوم مثل `en-US` و `zh-CN` و `zh_CN` و `zh-Hans`.
+اللغات المدعومة: الإنجليزية (`en`)، والصينية المبسطة (`zh`)، والصينية التقليدية (`zh-TW`)، والفرنسية (`fr`)، والإسبانية (`es`)، والروسية (`ru`)، والعربية (`ar`، من اليمين إلى اليسار)، واليابانية (`ja`)، والكورية (`ko`)، والألمانية (`de`)، والبرتغالية (`pt`). يُقبل أي وسم BCP 47 ويُطابَق مع أقرب لغة: `en-US` → `en`؛ و `zh-CN` و `zh_CN` و `zh-Hans` → `zh`؛ و `zh-HK` و `zh-MO` و `zh-Hant` → `zh-TW`؛ و `fr-CA` → `fr`؛ و `pt-BR` و `pt-PT` → `pt`. ويختار `Accept-Language` اللغة المدعومة ذات الوزن الأعلى.
 
 | الجمهور | ماذا | يُحدَّد بواسطة |
 |---|---|---|
 | الوكيل | تعليمات خادم MCP، وأوصاف الأدوات والمعاملات، ونتائج الأدوات، و `[Session changes]`، والأخطاء | `RWD_LANG` / `--lang` الخاص بالبوابة (الافتراضي `en`) |
 | الوكيل، من الصفحة | رسائل أخطاء RPC وملخصات الأحداث التي يكتبها SDK | `welcome.agentLang`، الذي يحمل لغة البوابة. يحتفظ SDK بآخر قيمة في `localStorage` تحت `rwd:alang` للأحداث التي تقع قبل `welcome` التالي، ويستخدم الإنجليزية إلى أن يعرف غير ذلك |
 | لوحة التحكم | رسائل الأخطاء، وملخصات الخط الزمني، وتسميات النظام في استجابات REST و SSE | `?lang=` في الطلب، ثم `Accept-Language`، ثم لغة البوابة |
-| مستخدم الهاتف | الشارة والأشرطة ومربعات الحوار والإشعارات الخاصة بـ SDK | `run({ lang })`، وإلا `navigator.language` (`zh*` → `zh`، وأي شيء آخر → `en`) |
+| مستخدم الهاتف | الشارة والأشرطة ومربعات الحوار والإشعارات الخاصة بـ SDK | `run({ lang })`، وإلا أول لغة في `navigator.languages` يملك SDK حزمة لها (مضمَّنة أو سجّلتها الصفحة)، وإلا الإنجليزية. الحزم غير `en` و `zh` تُحمَّل عند الحاجة من `locales/<id>.js` بجوار `sdk.js`، أو من البوابة (`/v1/locales/<id>.js`) |
 
 وهكذا يمكن لمستخدم يتحدث الصينية أن يعمل مع وكيل يتحدث الإنجليزية: يقول مربع الحوار *AI 想要点击「提交订单」，允许吗？*، وإذا رُفض، يقرأ الوكيل *The user denied this action*.
 

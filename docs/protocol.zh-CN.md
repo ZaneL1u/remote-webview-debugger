@@ -1,4 +1,4 @@
-<!-- i18n-source: b852d212294c4dd63aad9e760443da91cb0ccaa0 -->
+<!-- i18n-source: 89ad71d08bfaa479122e8c83ed64f19a1a974d2c -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -39,6 +39,7 @@
 |---|---|
 | `GET /v1/sdk.js` | 页面 SDK（IIFE，全局对象 `RemoteWebviewDebugger`）。`Cache-Control: max-age=300`，`Access-Control-Allow-Origin: *` |
 | `GET /v1/sdk/<version>/sdk.js` | 同一个文件，按内容寻址的固定地址（缓存一年，可配合 SRI）。`<version>` 不对时返回 404，见 §16 |
+| `GET /v1/locales/<id>.js`、`GET /v1/sdk/<version>/locales/<id>.js` | SDK 按需加载的语言包，`sdk.js` 从自己的同级目录加载（§15）。`Cache-Control: max-age=300` |
 | `GET /v1/healthz` | `{"ok":true,"version":"…","db":"sqlite"\|"postgres"}` |
 | `GET /v1/metrics` | Prometheus 指标（§16） |
 | `WS /v1/page?key=<appKey>` | 页面连接（§3） |
@@ -149,7 +150,7 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
  "config":{"helpButton":false,"maskSelectors":[],"maskPatterns":[],
            "confirmSelectors":[],"networkExclude":[],"sessionLog":true,
            "eruda":{"dock":false,"load":false}},   // 也可能是 null，见下
- "agentLang":"en",                   // "en" | "zh"，§15
+ "agentLang":"en",                   // 网关的语言："en"、"zh"、"zh-TW"、"fr"…，§15
  "task":{…}}                         // 只有已接入的 agent 设置了任务时才有
 ```
 
@@ -425,8 +426,10 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null：当前登录用户，agent 和控制台都能看到
   helpButton,            // 显示「求助」按钮（与策略的 helpButton 取或）
   app,                   // 宿主 App 的 { name, version }
-  lang,                  // 'en' | 'zh'：手机用户看到的界面语言，默认取 navigator.language
+  lang,                  // 语言标签：手机用户看到的界面语言，默认取 navigator.languages（§15）
+  locales,               // 额外的语言包；messages：按语言覆盖文案（§15）
   theme,                 // 'auto'（默认）| 'system' | 'light' | 'dark'
+  style,                 // 颜色、字体、圆角、z-index、位置，即 --rwd-* CSS 属性（见 sdk/README.zh-CN.md）
   lockScreen,            // agent 接入期间锁定页面（默认 true，用户可以在悬浮窗里改）
   eruda,                 // true | { dock, load, src, name }：以 eruda 标签页的形式出现
   networkExclude,        // 不让 agent 看到的请求（§11）
@@ -687,7 +690,7 @@ type AuditEvent = {
 
 ## 13. 实时推送 SSE
 
-`GET /v1/api/stream[?project=<id>][&lang=en|zh]`（member，cookie 鉴权），返回 `text/event-stream`：
+`GET /v1/api/stream[?project=<id>][&lang=<tag>]`（member，cookie 鉴权），返回 `text/event-stream`：
 
 ```
 retry: 3000
@@ -773,14 +776,14 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 
 ## 15. 语言
 
-支持英文（`en`）和简体中文（`zh`），也接受 `en-US`、`zh-CN`、`zh_CN`、`zh-Hans` 等写法。
+支持的语言：英语（`en`）、简体中文（`zh`）、繁体中文（`zh-TW`）、法语（`fr`）、西班牙语（`es`）、俄语（`ru`）、阿拉伯语（`ar`，从右到左）、日语（`ja`）、韩语（`ko`）、德语（`de`）和葡萄牙语（`pt`）。接受任意 BCP 47 语言标签，映射到最接近的语言：`en-US` → `en`；`zh-CN`、`zh_CN`、`zh-Hans` → `zh`；`zh-HK`、`zh-MO`、`zh-Hant` → `zh-TW`；`fr-CA` → `fr`；`pt-BR`、`pt-PT` → `pt`。`Accept-Language` 取权重最高的受支持语言。
 
 | 面向 | 内容 | 由谁决定 |
 |---|---|---|
 | agent | MCP 说明、工具与参数描述、工具结果、`[Session changes]` / `[会话变化]`、错误信息 | 网关的 `RWD_LANG` / `--lang`（默认 `en`） |
 | agent（页面侧） | SDK 写的 RPC 错误信息和事件摘要 | `welcome.agentLang`，即网关的语言。SDK 把最近一次的值存在 localStorage `rwd:alang`，下一个 `welcome` 到达前产生的事件也用它；没收到过时用英文 |
 | 控制台 | REST 和 SSE 响应里的错误信息、时间线摘要、系统描述 | 请求的 `?lang=`，其次 `Accept-Language`，最后是网关的语言 |
-| 手机用户 | SDK 的胶囊、状态条、对话框和提示 | `run({ lang })`，否则取 `navigator.language`（`zh` 开头 → `zh`，其他 → `en`） |
+| 手机用户 | SDK 的胶囊、状态条、对话框和提示 | `run({ lang })`，否则取 `navigator.languages` 里第一个有语言包的语言（内置或页面注册的），都没有时用英文。`en`、`zh` 以外的语言包从 `sdk.js` 同级的 `locales/<id>.js` 或网关的 `/v1/locales/<id>.js` 按需加载 |
 
 所以说中文的用户可以和说英文的 agent 配合：确认框显示 *AI 想要点击「提交订单」，允许吗？*，用户拒绝后 agent 读到的是 *The user denied this action*。
 

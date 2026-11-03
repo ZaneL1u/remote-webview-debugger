@@ -1,4 +1,4 @@
-<!-- i18n-source: a4e7bc52d91627a8d67fac32547089d8321a7d2e -->
+<!-- i18n-source: b73d0ad06824fa3a84be92cf17790d5fcb1194a5 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 頁面 SDK（`sdk/`）
@@ -13,7 +13,7 @@
     deviceId: "…",               // 選用；由注入 SDK 的原生宿主傳入
     helpButton: true,            // 選用；顯示「求助」按鈕
     app: { name: "Shop", version: "3.2.0" },
-    lang: "en",                  // 選用；'en' | 'zh'，預設依 navigator.language
+    lang: "en",                  // 選用；語言標記，預設依瀏覽器的語言
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
 </script>
 ```
@@ -40,6 +40,9 @@
 | `help(on)` | 求助 / 取消求助 |
 | `nativeControl(nativeKey, action)` | 從原生宿主自己的介面接管 / 交還 / 結束 |
 | `nativeDecide(nativeKey, requestId, value)` | 搭配 `nativeApproval` 時回答 `status().pending`：連線請求傳入等級或 `null`，敏感操作確認傳入 `'allow'` 或 `null` |
+| `setLang(lang?)` | 在執行期間切換介面語言（例如 App 自己的語言設定）；不帶參數則回到瀏覽器的語言。見[語言](#語言) |
+| `registerLocale(pack)` | 新增語言包，或取代 `id` 相同的語言包（也可以傳入陣列）。見[語言](#語言) |
+| `builtinLocales` | 內建語言包的 id 清單 |
 
 `run()` 選項：
 
@@ -49,10 +52,13 @@
 | `deviceId` | 原生宿主提供的固定裝置 id（未提供時會存在 localStorage） |
 | `helpButton` | 顯示「求助」按鈕（與專案策略取 OR） |
 | `app` | 宿主 App 的 `{ name, version }` |
-| `lang` | 手機使用者看到的所有內容的語言（膠囊、浮動視窗、底部控制列、對話框、提示訊息、eruda 分頁，以及敏感操作中「AI 想要…」的描述）：`'en'` 或 `'zh'`。預設：`navigator.language` 以 `zh` 開頭時為 `'zh'`，否則為 `'en'`。 |
+| `lang` | 手機使用者看到的所有內容的語言（膠囊、浮動視窗、底部控制列、對話框、提示訊息、eruda 分頁，以及敏感操作中「AI 想要…」的描述）：語言標記，例如 `'ja'` 或 `'pt-BR'`。預設：瀏覽器的語言。見[語言](#語言) |
+| `locales` | 額外的語言包，在決定語言之前註冊（與 `registerLocale` 相同） |
+| `messages` | 依語言覆寫的文字：`{ en: { ui: { help: 'Contact support' } }, 'zh-TW': { ui: { help: '聯絡客服' } } }` |
 | `networkExclude` | 不想讓 agent 費力翻找的請求——老是 404 的字型、分析用的 beacon：`['.ttf', 'WebTracks', '*beacon*', '/\\/track\\//']`。每條規則可以是不分大小寫的 URL 子字串、含 `*` 的萬用字元模式，或寫成 `/…/` 的規則運算式。會與專案策略中的規則合併。符合的請求不會出現在網路清單裡，也不會產生 `net_fail` 時間軸事件；頁面仍會記錄它們，所以 agent 可以用 `includeExcluded` 要求查看 |
 | `lockScreen` | `false`：agent 連線期間不鎖定頁面（使用者仍可在浮動視窗中變更）。預設為 `true` |
 | `theme` | `'auto'`（預設，跟隨頁面背景）、`'system'`、`'light'` 或 `'dark'` |
+| `style` | 介面的顏色、字型、圓角、z-index 和位置：`{ accent: '#e11d48', radius: 12, zIndex: 1000, pill: { side: 'left' } }`。見[樣式](#樣式) |
 | `eruda` | `true` 或 `{ dock, load, src, name }`：把 Remote Debugger 顯示為 eruda 中的一個分頁；頁面沒有 eruda 時，`load` 會載入最新版的 eruda。預設關閉；專案策略可以遠端開啟，本機選項逐欄位優先 |
 | `record` | `false`：這個頁面不寫入工作階段記錄（已儲存的內容不會刪除）。預設為 `true`；專案策略可以對所有頁面關閉記錄 |
 | `launchId` | 這個頁面屬於 App 的哪一次啟動，讓同一個 App 程序中的所有 WebView 把工作階段記錄歸到同一個工作階段。原生宿主在這裡傳入自己的 id（或把 `window.RWDLaunchId` 定義為字串，或回傳字串的函式）；否則 SDK 會以工作階段 cookie 加上心跳來推斷這次啟動 |
@@ -60,12 +66,60 @@
 
 ## 語言
 
-兩種讀者，兩個設定：
+內建語言：英文（`en`）、簡體中文（`zh`）、繁體中文（`zh-TW`，`zh-HK`、`zh-MO` 和 `zh-Hant` 也使用它）、法文（`fr`）、西班牙文（`es`）、俄文（`ru`）、阿拉伯文（`ar`，由右至左排版）、日文（`ja`）、韓文（`ko`）、德文（`de`）和葡萄牙文（`pt`，巴西葡萄牙文；`pt-PT` 也使用它）。
 
-- **手機使用者**：`run({ lang })`，否則依瀏覽器語言（見上文）。文字目錄：`src/i18n.ts`。
-- **agent**：RPC 錯誤訊息和時間軸摘要（點擊、頁面內跳轉、失敗的請求）跟隨閘道的 `welcome.agentLang`（`'en'` / `'zh'`）。在 welcome 指定之前一律使用英文；最近一次的值會存在 localStorage `rwd:alang`，因此下一個頁面在收到 welcome 之前產生的事件也會沿用它。文字目錄：`packages/chobitsu/src/engine/rwd/i18n.ts`。
+**如何決定語言。** 手機使用者的語言先看 `run({ lang })`，再依序看 `navigator.languages` 中的每一個。每個語言標記會先試它本身，再試更短的形式（`pt-BR` → `pt`，`zh-HK` → `zh-TW` → `zh`），採用第一個有語言包的語言，都沒有時使用英文。語言包中缺少的文字也以同樣的順序遞補，所以只寫一部分的語言包也沒問題。`setLang('ja')` 可在執行期間切換；`status().lang` 是目前使用的語言包。
+
+**如何載入。** 英文和簡體中文包含在 `sdk.js` 裡。其他語言包會在頁面第一次需要時才載入（在那一刻，介面先顯示遞補語言）：
+
+- `<script>` 版本：從 `sdk.js` 同一目錄下的 `locales/<id>.js` 載入（CDN 路徑如 `…/remote-webview-debugger@0.1.0/dist/locales/ja.js`，或你的閘道的 `/v1/locales/ja.js`），失敗時再從傳給 `run()` 的閘道載入。想省下這次請求，可以自己在 `sdk.js` 之前或之後載入語言包：`<script src="…/dist/locales/ja.js"></script>`。
+- ES module 版本：使用動態 import，所以打包工具會把每種語言拆成獨立的 chunk。若要一開始就打包進去：`import ja from 'remote-webview-debugger/locales/ja'`，然後 `run(url, key, { locales: [ja] })`。
+
+**自訂語言包和文字。** 語言包的格式是 `{ id, name, dir?, ui?, action?, agent? }`；沒寫的部分取自它的遞補語言：
+
+```js
+RemoteWebviewDebugger.registerLocale({
+  id: 'it',
+  name: 'Italiano',
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+})
+RemoteWebviewDebugger.run(url, key, {
+  messages: { 'zh-TW': { ui: { help: '聯絡客服' } } }, // 覆寫任何語言中的個別文字
+})
+```
+
+`ui` 是介面文字，`action` 用來補完確認對話框中的「AI 想要…」，`agent` 是回傳給 agent 的文字。TypeScript 型別（`LocalePack`、`Messages`、`UiMessages`、`ActionMessages`、`AgentMessages`）列出了所有鍵；以 `src/locales/en.ts` 為準。
+
+**兩種讀者。** 手機使用者使用上面決定的語言。agent 讀到的 RPC 錯誤訊息和時間軸摘要（點擊、頁面內跳轉、失敗的請求）使用閘道的語言 `welcome.agentLang`（`RWD_LANG`），語言包也以同樣方式載入。在 welcome 指定之前一律使用英文；最近一次的值會存在 localStorage `rwd:alang`，因此下一個頁面在收到 welcome 之前產生的事件也會沿用它。
 
 因此說中文的使用者可以和說英文的 agent 搭配：對話框問的是 `AI 想要点击「提交订单」，允许吗？`，使用者拒絕時，agent 讀到的是 `The user denied this action`。
+
+## 樣式
+
+介面位於 `#__rwd`（在 `<body>` 之外）的 Shadow DOM 中，頁面的 CSS 只能透過下列入口影響它：
+
+- **CSS 自訂屬性**：寫在 `:root` 或 `#__rwd` 上，例如 `:root { --rwd-accent-rgb: 225, 29, 72; --rwd-radius: 12px; }`。
+- **`run({ style })`**：把同樣的屬性設定在 `#__rwd` 上；這裡的顏色可以使用任何 CSS 顏色寫法。
+- **`::part()`**：其他樣式用 `#__rwd::part(bar) { … }`。可用的 part：`pill`、`window`、`bar`、`task`、`dialog`、`toast`、`button`、`cursor`、`glow`、`overlay`。內部的 class 名稱不是穩定的 API。
+- **`theme`**：淺色或深色玻璃（預設跟隨頁面背景）。
+
+| 屬性 | `style` 欄位 | 預設值 | 作用對象 |
+|---|---|---|---|
+| `--rwd-accent-rgb` | `accent` | `59, 130, 246` | 按鈕、開關、agent 的指標、醒目標示和邊緣光暈 |
+| `--rwd-danger-rgb` | `danger` | `239, 68, 68` | 「結束」按鈕 |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 求助；使用者接管的狀態 |
+| `--rwd-success-rgb` | `success` | `34, 197, 94` | 線上指示點；「已複製」 |
+| `--rwd-font` | `font` | 系統介面字型（中文、日文、韓文依語言選擇字型） | 所有文字 |
+| `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | 裝置碼和標籤 |
+| `--rwd-radius` | `radius` | `18px` | 浮動視窗；對話框比它大 2px，任務卡片和膠囊小 2px，對話框按鈕小 6px |
+| `--rwd-button-radius` | `buttonRadius` | `999px` | 按鈕、底部控制列和提示訊息 |
+| `--rwd-z-index` | `zIndex` | `2147483647` | 整個介面 |
+| `--rwd-bar-bottom` | `barBottom` | `14px` | 底部控制列與底部安全區域的距離 |
+| `--rwd-task-top` | `taskTop` | `10px` | 任務卡片與頂部安全區域的距離 |
+| `--rwd-toast-bottom` | `toastBottom` | `84px` | 提示訊息與底部安全區域的距離 |
+| — | `pill: { side, top }` | 右側邊緣（由右至左的語言為左側），`0.62` | 閒置膠囊在使用者拖動之前的起始位置；`top` 從 0（頂部）到 1（底部） |
+
+顏色寫成 `r, g, b` 三元組，半透明的色調才會跟著改變（與 Bootstrap 的 `--bs-*-rgb` 慣例相同）。
 
 ## 頁面內的行為（協定 §6–§8、§11）
 
@@ -98,7 +152,7 @@
 - `src/pageWatch.ts`：`page` 訊息（url、標題、可見性）和時間軸事件（頁面內跳轉、使用者的點擊）。
 - `src/ui.ts`、`src/lock.ts`：Shadow DOM 中的膠囊、求助按鈕、鎖定覆蓋層、光暈、操作醒目標示和對話框；agent 連線期間擋下使用者受信任的輸入，並顯示已連線的時間。
 - `src/approval.ts`：連線核准和敏感操作確認（頁面對話框，或透過 `nativeDecide` 交給原生宿主）。
-- `src/i18n.ts`：使用者介面文字（en / zh）。
+- `src/i18n.ts`、`src/locales/`、`src/localeLoader*.ts`：語言包（每種語言的介面、操作描述和 agent 文字）、語言的決定與遞補、按需載入；`scripts/locales.mjs` 產生 `dist/locales/<id>.js`。
 - agent 引擎位於 chobitsu 旁的 `packages/chobitsu/src/engine/rwd/`：快照、`rwd.query`、可操作性檢查、合成輸入、鍵盤、console / 網路緩衝區、截圖、`rwd.storage`、IndexedDB 中的工作階段記錄（`coldlog.ts`）、覆蓋層偵測（`overlays.ts`）、等級與確認規則（`policy.ts`）、給 agent 的文字（`i18n.ts`）。快照所用的 Playwright 原始碼位於 `packages/chobitsu/src/engine/vendor/playwright/`。建置時會從原始碼把它們打包進 `dist/sdk.js`。
 
 ## 建置與測試
@@ -112,4 +166,4 @@ npm test             # Playwright：WebKit（iPhone 15）+ Chromium（Pixel 7）
 npm run gateway      # 本機模擬閘道：http://localhost:8787/demo/platform/?key=rwd_pk_demo
 ```
 
-測試使用 `test/mock-gateway.mjs`，它實作了協定的頁面端（welcome、控制狀態、RPC、presence；權杖、關閉碼、等級、遠端設定、`agentLang`、連線核准），並提供 `/v1/sdk.js` 和展示商店。它本身不檢查等級，好讓測試驗證頁面自己的強制檢查。`test/e2e/` 中的測試規格預設以 `zh-CN` 瀏覽器和 `agentLang: 'zh'` 執行，除非個別測試另有指定；英文由 `i18n.spec.ts` 涵蓋。共存測試會從 jsdelivr 載入 eruda 3.4.3 和 PageSpy 2.4.0，因此需要能連上網際網路。
+測試使用 `test/mock-gateway.mjs`，它實作了協定的頁面端（welcome、控制狀態、RPC、presence；權杖、關閉碼、等級、遠端設定、`agentLang`、連線核准），並提供 `/v1/sdk.js`、`/v1/locales/` 下的語言包和展示商店。它本身不檢查等級，好讓測試驗證頁面自己的強制檢查。`test/e2e/` 中的測試規格預設以 `zh-CN` 瀏覽器和 `agentLang: 'zh'` 執行，除非個別測試另有指定；英文由 `i18n.spec.ts` 涵蓋，其他語言包、遞補、自訂語言包、樣式和由右至左的版面由 `locales.spec.ts` 涵蓋。共存測試會從 jsdelivr 載入 eruda 3.4.3 和 PageSpy 2.4.0，因此需要能連上網際網路。

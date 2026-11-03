@@ -1,4 +1,4 @@
-<!-- i18n-source: b852d212294c4dd63aad9e760443da91cb0ccaa0 -->
+<!-- i18n-source: 89ad71d08bfaa479122e8c83ed64f19a1a974d2c -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -39,6 +39,7 @@
 |---|---|
 | `GET /v1/sdk.js` | ページ SDK（グローバル変数 `RemoteWebviewDebugger` を公開する IIFE）。`Cache-Control: max-age=300`、`Access-Control-Allow-Origin: *` |
 | `GET /v1/sdk/<version>/sdk.js` | 同じファイルを、内容に応じて決まる不変の URL で配信（1 年間キャッシュ、SRI に対応）。それ以外の `<version>` は 404。[§16](#16-運用) を参照 |
+| `GET /v1/locales/<id>.js`、`GET /v1/sdk/<version>/locales/<id>.js` | SDK のオンデマンドの言語パック。`sdk.js` が自身と同じ場所から読み込みます（[§15](#15-言語)）。`Cache-Control: max-age=300` |
 | `GET /v1/healthz` | `{"ok":true,"version":"…","db":"sqlite"\|"postgres"}` |
 | `GET /v1/metrics` | Prometheus メトリクス（[§16](#16-運用)） |
 | `WS /v1/page?key=<appKey>` | ページ接続（[§3](#3-ページ接続websocket)） |
@@ -149,7 +150,7 @@
  "config":{"helpButton":false,"maskSelectors":[],"maskPatterns":[],
            "confirmSelectors":[],"networkExclude":[],"sessionLog":true,
            "eruda":{"dock":false,"load":false}},   // または null。下記を参照
- "agentLang":"en",                   // "en" | "zh"、§15
+ "agentLang":"en",                   // ゲートウェイの言語："en"、"zh"、"zh-TW"、"fr"…、§15
  "task":{…}}                         // アタッチ中のエージェントがタスクを設定している間のみ
 ```
 
@@ -425,8 +426,10 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: ログイン中のユーザー。エージェントと管理コンソールに表示される
   helpButton,            // 「ヘルプを求める」ボタンを表示する（ポリシーの helpButton と OR を取る）
   app,                   // ホストアプリの { name, version }
-  lang,                  // 'en' | 'zh': 端末のユーザー向け UI の言語。デフォルトは navigator.language から
+  lang,                  // 端末のユーザー向け UI の言語タグ。デフォルトは navigator.languages から（§15）
+  locales,               // 追加の言語パック。messages：言語ごとの上書き（§15）
   theme,                 // 'auto'（デフォルト）| 'system' | 'light' | 'dark'
+  style,                 // 色、フォント、角丸、z-index、位置を --rwd-* CSS プロパティとして指定（sdk/README.ja.md を参照）
   lockScreen,            // エージェントのアタッチ中は入力をブロックする（デフォルト true。ユーザーが変更可能）
   eruda,                 // true | { dock, load, src, name }: eruda 内のタブとして表示する
   networkExclude,        // エージェントが読む内容から除外するリクエスト（§11）
@@ -687,7 +690,7 @@ type AuditEvent = {
 
 ## 13. ライブ更新（SSE）
 
-`GET /v1/api/stream[?project=<id>][&lang=en|zh]`（member、Cookie 認証）は `text/event-stream` をストリーミングします。
+`GET /v1/api/stream[?project=<id>][&lang=<tag>]`（member、Cookie 認証）は `text/event-stream` をストリーミングします。
 
 ```
 retry: 3000
@@ -773,14 +776,14 @@ stdio をホスト型の `/v1/mcp` に中継します。`--gateway` は `RWD_GAT
 
 ## 15. 言語
 
-対応言語は英語（`en`）と簡体字中国語（`zh`）です。`en-US`、`zh-CN`、`zh_CN`、`zh-Hans` などのタグも受け付けます。
+対応言語：英語（`en`）、簡体字中国語（`zh`）、繁体字中国語（`zh-TW`）、フランス語（`fr`）、スペイン語（`es`）、ロシア語（`ru`）、アラビア語（`ar`、右から左）、日本語（`ja`）、韓国語（`ko`）、ドイツ語（`de`）、ポルトガル語（`pt`）。どの BCP 47 タグも受け付け、最も近い言語に対応付けます：`en-US` → `en`、`zh-CN`、`zh_CN`、`zh-Hans` → `zh`、`zh-HK`、`zh-MO`、`zh-Hant` → `zh-TW`、`fr-CA` → `fr`、`pt-BR`、`pt-PT` → `pt`。`Accept-Language` では、対応言語のうち重みが最も大きいものを選びます。
 
 | 対象 | 内容 | 決め方 |
 |---|---|---|
 | エージェント | MCP サーバーの instructions、ツールとパラメーターの説明、ツールの結果、`[Session changes]`、エラー | ゲートウェイの `RWD_LANG` / `--lang`（デフォルト `en`） |
 | エージェント（ページから） | SDK が書く RPC エラーメッセージとイベントの要約 | ゲートウェイの言語を伝える `welcome.agentLang`。SDK は最後の値を localStorage の `rwd:alang` に保存し、次の `welcome` より前に発生したイベントに使う。値を受け取るまでは英語を使う |
 | 管理コンソール | REST と SSE のレスポンスに含まれるエラーメッセージ、タイムラインの要約、システムラベル | リクエストの `?lang=`、次に `Accept-Language`、最後にゲートウェイの言語 |
-| 端末のユーザー | SDK のピル、バー、ダイアログ、通知 | `run({ lang })`、なければ `navigator.language`（`zh*` → `zh`、それ以外 → `en`） |
+| 端末のユーザー | SDK のピル、バー、ダイアログ、通知 | `run({ lang })`、なければ `navigator.languages` のうち SDK に言語パックがある（組み込み、またはページが登録した）最初の言語、それもなければ英語。`en` と `zh` 以外の言語パックは、`sdk.js` と同じ場所の `locales/<id>.js` またはゲートウェイ（`/v1/locales/<id>.js`）からオンデマンドで読み込む |
 
 これにより、中国語を話すユーザーと英語で動くエージェントが一緒に作業できます。ダイアログには *AI 想要点击「提交订单」，允许吗？* と表示され、拒否された場合、エージェントは *The user denied this action* を受け取ります。
 

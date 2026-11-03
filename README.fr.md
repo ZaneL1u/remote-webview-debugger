@@ -1,4 +1,4 @@
-<!-- i18n-source: 8aea4dc120575de41a0827859bcf05eb445e030f -->
+<!-- i18n-source: 4c7f2c79aaa7a9d135f0f53019843c330a2e70d1 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -104,7 +104,7 @@ En HTTP simple, les clés d'API et les mots de passe de la console web circulent
 - **Consentement et contrôle.** Approbation sur l'appareil avec des niveaux (`observe` / `interact` / `advanced`), autorisation automatique facultative, verrouillage de l'écran pendant que l'agent agit, reprendre la main / rendre la main / terminer, confirmation des actions sensibles (`data-rwd-confirm`).
 - **Confidentialité.** Les champs de mot de passe, `data-rwd-mask` et des sélecteurs / motifs configurables sont masqués dans les instantanés, les captures d'écran, la console et les données réseau. Le journal d'audit enregistre qui a fait quoi, sans le contenu des pages.
 - **Exploitation.** Membres et rôles, clés d'API avec niveau / expiration / liste d'IP autorisées, jetons d'appareil, invitations par QR code, quotas, console web en direct via SSE, métriques Prometheus.
-- **Bilingue.** Console web, interface du téléphone et textes destinés à l'agent en anglais et en chinois : la console web suit le navigateur (avec un sélecteur), l'interface du téléphone suit le téléphone ou `run({ lang })`, et le côté agent suit `RWD_LANG`.
+- **11 langues, vos propres styles.** Console web, interface du téléphone et textes destinés à l'agent en anglais, chinois simplifié et traditionnel, français, espagnol, russe, arabe (de droite à gauche), japonais, coréen, allemand et portugais : la console web suit le navigateur (avec un sélecteur), l'interface du téléphone suit le téléphone ou `run({ lang })`, et le côté agent suit `RWD_LANG`. Le SDK de page accepte vos propres packs de langue et formulations, et se personnalise par des variables CSS ([langues et apparence du SDK](sdk/README.fr.md#langues)).
 - **Fait bon ménage avec eruda.** Onglet Remote Debugger facultatif dans eruda ; peut charger eruda à la demande pour les développeurs.
 
 ## Organisation du dépôt

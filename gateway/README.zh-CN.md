@@ -1,4 +1,4 @@
-<!-- i18n-source: be98b789b938ca3d39ee71a64de14dee2afe6f79 -->
+<!-- i18n-source: ebfe7dc58ec09d70ae56a58cecd317e01f3ad104 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
@@ -43,7 +43,7 @@ rwd version                             打印版本号
 | `--data` / `RWD_DATABASE_URL` / `RWD_DATA` | `rwd.db` | 数据库。`postgres://` 或 `postgresql://` 开头时使用 Postgres，否则是 SQLite 文件路径。`RWD_DATABASE_URL` 优先于 `RWD_DATA`。启动时自动建表和迁移 |
 | `--public-url` / `RWD_PUBLIC_URL` | 从每个请求推断 | 对外的网关地址，以 `/v1` 结尾，如 `https://rwd.example.com/v1`。接入代码、邀请链接和 `/v1/api/config` 都用它。网关推断不出自己的对外地址时请设置 |
 | `--trust-proxy` / `RWD_TRUST_PROXY=1` | 关闭 | 从 `X-Forwarded-For` 取客户端 IP，从 `X-Forwarded-Proto` / `X-Forwarded-Host` 取推断出的对外地址的协议和域名（以及控制台 cookie 是否带 `Secure`）。只在反向代理后面开启，否则客户端可以伪造这些请求头，绕过 IP 白名单和限流。不开启时，不管代理怎么说，所有请求都按明文 HTTP 处理：控制台 cookie 不带 `Secure`，推断出的地址也以 `http://` 开头（这种情况请设置 `--public-url`） |
-| `--lang` / `RWD_LANG` | `en` | AI 读到的所有内容的语言：MCP 说明、工具与参数描述、工具结果、`[会话变化]` 和错误信息。它还会通过 `welcome.agentLang` 告诉页面 SDK，让页面里生成的错误信息和事件摘要使用同一种语言。取 `en` 或 `zh`（也接受 `zh-CN`、`zh_CN` 等写法）。控制台按每个请求的 `?lang=` 或 `Accept-Language` 选择语言，都没有时才用它 |
+| `--lang` / `RWD_LANG` | `en` | AI 读到的所有内容的语言：MCP 说明、工具与参数描述、工具结果、`[会话变化]` 和错误信息。它还会通过 `welcome.agentLang` 告诉页面 SDK，让页面里生成的错误信息和事件摘要使用同一种语言。取 `en`、`zh`（简体中文）、`zh-TW`（繁体中文）、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de`、`pt` 之一；也接受带地区的写法，映射到最接近的语言（`zh-CN` → `zh`，`zh-HK` → `zh-TW`，`pt-BR` → `pt`）。控制台按每个请求的 `?lang=` 或 `Accept-Language` 选择语言，都没有时才用它 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | 在 `/demo/` 下提供这个目录（可选，用于演示页面） |
 | `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0`（不限） | 每个客户端 IP 每分钟允许的 MCP 请求数，超出的返回 `429` 并带 `Retry-After: 60`。用于 API Key 公开的网关，比如演示网关（[deploy/demo](../deploy/demo/README.zh-CN.md)）。放在代理后面时需要 `--trust-proxy` 才能拿到客户端 IP |
 | `RWD_ADMIN_EMAIL` | `admin` | owner 账号的邮箱（登录名）。只有数据库里还没有 owner 时（首次启动）才会创建 owner；之后再改这个值**不会**多出一个 owner，只决定 `RWD_ADMIN_PASSWORD` 作用于哪个 owner |

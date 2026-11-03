@@ -1,4 +1,4 @@
-<!-- i18n-source: 576f0b6889d3f5665ef4e6d44a51a5d2289eebbd -->
+<!-- i18n-source: 3b2e4097b7707b70544438e01ec3bee6e95adbed -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Русский](native-integration.ru.md) | العربية
 
 <div dir="rtl">
@@ -35,7 +35,7 @@
 | `nativeKey` | سرّ عشوائي يُولَّد عند التشغيل (مثل UUID مرتين متتاليتين) ولا يُكتب إلا في السكربت المحقون. يستلزمه `nativeControl()` و `nativeDecide()`؛ ولا تستطيع سكربتات الصفحة قراءته، بما فيها `evaluate_script` الخاص بالوكيل |
 | `nativeApproval` | `true` لعرض الموافقات على الربط وتأكيدات الإجراءات كمربعات حوار أصلية بدلًا من مربعات الحوار التي يعرضها SDK داخل الصفحة |
 | `helpButton` | `false` إن كان للتطبيق مدخل "Get help" خاص به |
-| `lang` | `'en'` أو `'zh'` لمطابقة لغة تطبيقك؛ والافتراضي يتبع `navigator.language` |
+| `lang` | لغة تطبيقك كوسم لغة (`'en'`، `'zh'`، `'ja'`، `'pt-BR'`…؛ انظر [لغات SDK](../sdk/README.ar.md#اللغات))؛ والافتراضي يتبع `navigator.languages` |
 | `lockScreen`، `theme`، `eruda` | كما في صفحات H5، انظر [protocol.ar.md §10](protocol.ar.md#10-واجهة-javascript-للتطبيق-المضيف) |
 
 ## iOS (WKWebView)

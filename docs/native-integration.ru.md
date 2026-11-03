@@ -1,4 +1,4 @@
-<!-- i18n-source: 576f0b6889d3f5665ef4e6d44a51a5d2289eebbd -->
+<!-- i18n-source: 3b2e4097b7707b70544438e01ec3bee6e95adbed -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | Русский | [العربية](native-integration.ar.md)
 
 # Интеграция с нативным приложением
@@ -33,7 +33,7 @@ H5-страница может загрузить SDK тегом `<script>`. В 
 | `nativeKey` | Случайный секрет, сгенерированный при запуске (например, два UUID) и записанный только во внедряемый скрипт. Нужен для `nativeControl()` и `nativeDecide()`; скрипты страницы, включая `evaluate_script` агента, прочитать его не могут |
 | `nativeApproval` | `true`, чтобы показывать одобрения подключения и подтверждения действий нативными диалогами вместо диалогов SDK на странице |
 | `helpButton` | `false`, если в приложении есть собственный пункт «Попросить помощь» |
-| `lang` | `'en'` или `'zh'` в соответствии с языком приложения; по умолчанию следует `navigator.language` |
+| `lang` | Язык вашего приложения в виде тега (`'en'`, `'zh'`, `'ja'`, `'pt-BR'`…; см. [языки SDK](../sdk/README.ru.md#языки)); по умолчанию следует `navigator.languages` |
 | `lockScreen`, `theme`, `eruda` | Как для H5-страниц, см. [protocol.ru.md §10](protocol.ru.md#10-javascript-api-для-хостов) |
 
 ## iOS (WKWebView)
