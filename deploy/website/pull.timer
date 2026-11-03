@@ -1,0 +1,12 @@
+# systemd: run debugger-site-pull every 5 minutes (and 2 minutes after boot).
+[Unit]
+Description=Keep the website in step with the gh-pages branch
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Unit=debugger-site-pull.service
+
+[Install]
+WantedBy=timers.target

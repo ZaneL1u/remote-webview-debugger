@@ -1,0 +1,14 @@
+# systemd: one run of pull.sh (started by pull.timer). Install as
+# /etc/systemd/system/debugger-site-pull.service with pull.sh at
+# /usr/local/bin/debugger-site-pull, then: systemctl enable --now debugger-site-pull.timer
+[Unit]
+Description=Pull the website published by CI (gh-pages) into the web root
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Environment=REPO=https://github.com/ZaneL1u/remote-webview-debugger
+# Environment=BRANCH=gh-pages
+# Environment=TARGET=/srv/debugger.site
+ExecStart=/usr/local/bin/debugger-site-pull

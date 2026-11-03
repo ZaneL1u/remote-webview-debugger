@@ -48,22 +48,4 @@ The section embeds `https://demo.debugger.site/?lang=<en|zh>&ui=<lang>` in a pho
 
 ## Deploying
 
-Serve `dist/` as static files. With Caddy:
-
-```caddy
-debugger.site {
-	root * /srv/debugger.site
-	encode zstd gzip
-	header /_astro/* Cache-Control "public, max-age=31536000, immutable"
-	file_server
-	handle_errors {
-		@404 expression {err.status_code} == 404
-		handle @404 {
-			rewrite * /404.html
-			file_server
-		}
-	}
-}
-```
-
-No SPA fallback: unknown paths must 404 (the demo shop expects `api/coupon` and `api/recommend.json` to be missing). `file_server` already redirects `/zh` to `/zh/` and so on for every language.
+CI publishes `dist/` to the `gh-pages` branch on every push to `main`, and the host of debugger.site pulls that branch every five minutes: see [`deploy/website`](../deploy/website/README.md) for the pull script, the systemd units and the Caddy block. For any other static host, serve `dist/` as files with a real 404 (no SPA fallback: the demo shop expects some requests to fail).

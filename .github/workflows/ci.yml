@@ -126,6 +126,13 @@ jobs:
   website:
     name: Website
     runs-on: ubuntu-latest
+    # On main, the built site is published to the gh-pages branch; the host
+    # of debugger.site follows that branch (deploy/website).
+    permissions:
+      contents: write
+    concurrency:
+      group: website-publish
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
@@ -133,6 +140,15 @@ jobs:
           node-version: '24'
       - name: Build the SDK the demo runs, then the site
         run: make website
+      - name: Publish the site to the gh-pages branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./website/dist
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: 'website: ${{ github.sha }}'
 
   image:
     name: Docker image
