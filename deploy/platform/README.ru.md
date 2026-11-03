@@ -1,5 +1,5 @@
-<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | Русский | [العربية](README.ar.md)
+<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # Развёртывание через Docker Compose
 
@@ -47,7 +47,7 @@
 | `RWD_METRICS_TOKEN` | генерируется `deploy.sh` | Bearer-токен для `/v1/metrics` |
 | `RWD_DATABASE_URL` | SQLite в `./data` | `postgres://…`, чтобы использовать Postgres |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Сколько дней хранить журнал аудита |
-| `RWD_LANG` | `en` | Язык текстов для агента: `en` или `zh` |
+| `RWD_LANG` | `en` | Язык текстов для агента: `en`, `zh`, `zh-TW`, `fr`, `es`, `ru`, `ar`, `ja`, `ko`, `de` или `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | MCP-запросов в минуту с одного IP клиента (если не задано — без ограничения); для публичного демо см. [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Диапазоны адресов (CIDR через пробел или `private_ranges` из Caddy) прокси, стоящего перед Caddy; см. ниже |
 | `BIND` | `127.0.0.1` | Адрес, на котором публикуется Caddy |

@@ -1,5 +1,5 @@
-<!-- i18n-source: 89ad71d08bfaa479122e8c83ed64f19a1a974d2c -->
-[English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | Русский | [العربية](protocol.ar.md)
+<!-- i18n-source: f8d7479861527272991767e64a8c5860621d75ed -->
+[English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | Русский | [العربية](protocol.ar.md)
 
 # Протокол RWD (v1)
 

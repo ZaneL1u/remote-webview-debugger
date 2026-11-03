@@ -1,5 +1,5 @@
-<!-- i18n-source: b5b0ed9ac18878e35bf16c58582f6e92dd72b172 -->
-[English](architecture.md) | [简体中文](architecture.zh-CN.md) | [繁體中文](architecture.zh-TW.md) | 日本語 | [Español](architecture.es.md) | [Français](architecture.fr.md) | [Русский](architecture.ru.md) | [العربية](architecture.ar.md)
+<!-- i18n-source: d934f42720a324baf4b96476e25654bb4b719a5f -->
+[English](architecture.md) | [简体中文](architecture.zh-CN.md) | [繁體中文](architecture.zh-TW.md) | 日本語 | [한국어](architecture.ko.md) | [Español](architecture.es.md) | [Français](architecture.fr.md) | [Deutsch](architecture.de.md) | [Português (Brasil)](architecture.pt-BR.md) | [Русский](architecture.ru.md) | [العربية](architecture.ar.md)
 
 # アーキテクチャ
 

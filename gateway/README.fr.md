@@ -1,5 +1,5 @@
-<!-- i18n-source: ebfe7dc58ec09d70ae56a58cecd317e01f3ad104 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | Français | [Русский](README.ru.md) | [العربية](README.ar.md)
+<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Passerelle rwd
 
@@ -91,7 +91,7 @@ internal/hub/       état en direct : appareils, pages, machine à états du co
                     métriques
 internal/server/    HTTP : WebSocket des pages, interrogation de présence, REST avec connexion et rôles,
                     outils MCP, SSE, /v1/metrics, fichiers statiques
-internal/i18n/      textes en anglais et en chinois pour les agents et la console web
+internal/i18n/      textes pour les agents et la console web, en 11 langues
 internal/ids/       clés d'application, clés d'API, codes d'appareil, secrets
 internal/web/       console web et SDK embarqués (mis en place par `make gateway`, sinon fichiers de
                     substitution)

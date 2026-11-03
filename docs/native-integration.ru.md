@@ -1,5 +1,5 @@
-<!-- i18n-source: 3b2e4097b7707b70544438e01ec3bee6e95adbed -->
-[English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | Русский | [العربية](native-integration.ar.md)
+<!-- i18n-source: 9df5f749e07f20a0f47dbc50ab37d0c462f2092e -->
+[English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | Русский | [العربية](native-integration.ar.md)
 
 # Интеграция с нативным приложением
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c7f2c79aaa7a9d135f0f53019843c330a2e70d1 -->
+<!-- i18n-source: 9d368db4a362be21a3c387a4cc6eee7935f0427d -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -7,7 +7,7 @@
 
 [debugger.site](https://debugger.site) · [Онлайн-демо](https://debugger.site/#demo) · [Документация](docs/architecture.ru.md)
 
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | Русский | [العربية](README.ar.md)
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 [![CI](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/ZaneL1u/remote-webview-debugger/actions/workflows/ci.yml)
 [![SDK on npm](https://img.shields.io/npm/v/remote-webview-debugger?label=sdk&color=cb3837)](https://www.npmjs.com/package/remote-webview-debugger)

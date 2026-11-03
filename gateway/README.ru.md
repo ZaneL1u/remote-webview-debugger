@@ -1,5 +1,5 @@
-<!-- i18n-source: ebfe7dc58ec09d70ae56a58cecd317e01f3ad104 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | Русский | [العربية](README.ar.md)
+<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # Шлюз rwd
 
@@ -89,7 +89,7 @@ internal/hub/       живое состояние: устройства, стр�
                     проверки уровня, хронология, маршрутизация RPC, подписки SSE, метрики
 internal/server/    HTTP: WebSocket страниц, опрос присутствия, REST со входом и ролями, MCP-инструменты,
                     SSE, /v1/metrics, статические файлы
-internal/i18n/      английские и китайские тексты для агентов и веб-консоли
+internal/i18n/      тексты для агентов и веб-консоли на 11 языках
 internal/ids/       ключи приложений, API-ключи, коды устройств, секреты
 internal/web/       встроенные веб-консоль и SDK (их кладёт `make gateway`, иначе здесь заглушки)
 scripts/embed.sh    кладёт console/dist и sdk.js в internal/web для go:embed

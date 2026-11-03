@@ -1,5 +1,5 @@
-<!-- i18n-source: ebfe7dc58ec09d70ae56a58cecd317e01f3ad104 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd ゲートウェイ
 
@@ -89,7 +89,7 @@ internal/hub/       ライブ状態: デバイス、ページ、制御状態マ�
                     タイムライン、RPC のルーティング、SSE の購読、メトリクス
 internal/server/    HTTP: ページの WebSocket、オンライン状態のポーリング、REST（サインインとロール）、MCP ツール、
                     SSE、/v1/metrics、静的ファイル
-internal/i18n/      エージェントと管理コンソール向けの英語・中国語テキスト
+internal/i18n/      エージェントと管理コンソール向けのテキスト（11 言語）
 internal/ids/       アプリキー、API キー、デバイスコード、シークレット
 internal/web/       組み込みの管理コンソールと SDK（`make gateway` が配置。それ以外はプレースホルダー）
 scripts/embed.sh    console/dist と sdk.js を go:embed 用に internal/web へ配置

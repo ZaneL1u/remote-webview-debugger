@@ -1,5 +1,5 @@
-<!-- i18n-source: ebfe7dc58ec09d70ae56a58cecd317e01f3ad104 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | Español | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | Español | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Gateway rwd
 
@@ -91,7 +91,7 @@ internal/hub/       estado en vivo: dispositivos, páginas, máquina de estados 
                     suscripciones SSE, métricas
 internal/server/    HTTP: WebSocket de páginas, sondeo de presencia, REST con inicio de sesión y
                     roles, herramientas MCP, SSE, /v1/metrics, archivos estáticos
-internal/i18n/      textos en inglés y chino para agentes y para la consola
+internal/i18n/      textos para agentes y para la consola, en 11 idiomas
 internal/ids/       claves de app, claves de API, códigos de dispositivo, secretos
 internal/web/       la consola y el SDK integrados (los coloca `make gateway`; si no, marcadores de posición)
 scripts/embed.sh    coloca console/dist y sdk.js en internal/web para go:embed

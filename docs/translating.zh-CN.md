@@ -1,9 +1,9 @@
-<!-- i18n-source: 06e0ec95125ff3b75eba28c600e7a94e88fe2da9 -->
+<!-- i18n-source: 4df46330acce1d5c0fe4225a5eebd050afe7c954 -->
 [English](translating.md) | 简体中文
 
 # 文档翻译
 
-README 和文档以英文撰写，并翻译成简体中文、繁体中文、日语、西班牙语、法语、俄语和阿拉伯语。英文是原文：先改英文，再同步译文。更新日志由发版脚本生成，只有英文和简体中文两版。
+README 和文档以英文撰写，并翻译成简体中文、繁体中文、日语、韩语、西班牙语、法语、德语、巴西葡萄牙语、俄语和阿拉伯语，与控制台和手机端界面支持的语言一致。英文是原文：先改英文，再同步译文。更新日志由发版脚本生成，只有英文和简体中文两版。
 
 ## 文件组织
 
@@ -15,8 +15,11 @@ README 和文档以英文撰写，并翻译成简体中文、繁体中文、日�
 | 简体中文 | `.zh-CN` | `docs/protocol.zh-CN.md` |
 | 繁體中文 | `.zh-TW` | `docs/protocol.zh-TW.md` |
 | 日本語 | `.ja` | `docs/protocol.ja.md` |
+| 한국어 | `.ko` | `docs/protocol.ko.md` |
 | Español | `.es` | `docs/protocol.es.md` |
 | Français | `.fr` | `docs/protocol.fr.md` |
+| Deutsch | `.de` | `docs/protocol.de.md` |
+| Português (Brasil) | `.pt-BR` | `docs/protocol.pt-BR.md` |
 | Русский | `.ru` | `docs/protocol.ru.md` |
 | العربية | `.ar` | `docs/protocol.ar.md` |
 
@@ -54,4 +57,4 @@ README 和文档以英文撰写，并翻译成简体中文、繁体中文、日�
 ## 新增文档或语言
 
 - **新增文档：** 把英文路径加进 `scripts/docs/i18n.mjs` 的 `DOCS`，写好各语言译文并打上标记。
-- **新增语言：** 加进 `LANGS`（顺序就是切换行里的顺序），翻译所有文档，再更新现有每种语言的切换行；检查脚本会打印每个文件应有的那一行。
+- **新增语言：** 加进 `LANGS`（顺序就是切换行里的顺序），翻译所有文档，再更新现有每种语言的切换行；检查脚本会打印每个文件应有的那一行。新的切换行会改动每个英文文件，所以之后要给现有译文全部重新打标记。

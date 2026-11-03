@@ -1,4 +1,4 @@
-English | [简体中文](architecture.zh-CN.md) | [繁體中文](architecture.zh-TW.md) | [日本語](architecture.ja.md) | [Español](architecture.es.md) | [Français](architecture.fr.md) | [Русский](architecture.ru.md) | [العربية](architecture.ar.md)
+English | [简体中文](architecture.zh-CN.md) | [繁體中文](architecture.zh-TW.md) | [日本語](architecture.ja.md) | [한국어](architecture.ko.md) | [Español](architecture.es.md) | [Français](architecture.fr.md) | [Deutsch](architecture.de.md) | [Português (Brasil)](architecture.pt-BR.md) | [Русский](architecture.ru.md) | [العربية](architecture.ar.md)
 
 # Architecture
 

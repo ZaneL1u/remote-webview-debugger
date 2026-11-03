@@ -1,5 +1,5 @@
-<!-- i18n-source: b73d0ad06824fa3a84be92cf17790d5fcb1194a5 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | العربية
+<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
 

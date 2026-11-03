@@ -1,4 +1,4 @@
-English | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
+English | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [한국어](releasing.ko.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | [Português (Brasil)](releasing.pt-BR.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # Releasing
 

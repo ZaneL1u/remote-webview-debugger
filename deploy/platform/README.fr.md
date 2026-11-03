@@ -1,5 +1,5 @@
-<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | Français | [Русский](README.ru.md) | [العربية](README.ar.md)
+<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Déploiement avec Docker Compose
 
@@ -47,7 +47,7 @@ Sur le serveur, `deploy.sh` produit :
 | `RWD_METRICS_TOKEN` | générée par `deploy.sh` | Jeton Bearer pour `/v1/metrics` |
 | `RWD_DATABASE_URL` | SQLite dans `./data` | `postgres://…` pour utiliser Postgres à la place |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Nombre de jours de conservation du journal d'audit |
-| `RWD_LANG` | `en` | Langue des textes destinés à l'agent : `en` ou `zh` |
+| `RWD_LANG` | `en` | Langue des textes destinés à l'agent : `en`, `zh`, `zh-TW`, `fr`, `es`, `ru`, `ar`, `ja`, `ko`, `de` ou `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | Requêtes MCP par IP client et par minute (aucune limite si non défini) ; pour une démo publique, voir [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Plages d'adresses (CIDR séparés par des espaces, ou `private_ranges` de Caddy) du proxy placé devant Caddy ; voir plus bas |
 | `BIND` | `127.0.0.1` | Adresse sur laquelle Caddy est publié |

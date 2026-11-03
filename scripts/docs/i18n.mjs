@@ -24,8 +24,11 @@ export const LANGS = [
   { code: 'zh-CN', name: '简体中文' },
   { code: 'zh-TW', name: '繁體中文' },
   { code: 'ja', name: '日本語' },
+  { code: 'ko', name: '한국어' },
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'pt-BR', name: 'Português (Brasil)' },
   { code: 'ru', name: 'Русский' },
   { code: 'ar', name: 'العربية' },
 ]

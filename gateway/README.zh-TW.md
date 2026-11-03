@@ -1,5 +1,5 @@
-<!-- i18n-source: ebfe7dc58ec09d70ae56a58cecd317e01f3ad104 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+[English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 閘道
 
@@ -89,7 +89,7 @@ internal/hub/       即時狀態：裝置、頁面、控制狀態機、接入核
                     SSE 訂閱、指標
 internal/server/    HTTP：頁面 WebSocket、上線狀態輪詢、REST（含登入與角色）、MCP 工具、SSE、
                     /v1/metrics、靜態檔案
-internal/i18n/      給 agent 和主控台的英文與中文文案
+internal/i18n/      給 agent 和主控台的文案，共 11 種語言
 internal/ids/       接入金鑰、API 金鑰、裝置碼、機密值的產生
 internal/web/       內嵌的主控台和 SDK（由 `make gateway` 放入，否則是預留位置的檔案）
 scripts/embed.sh    把 console/dist 和 sdk.js 放進 internal/web，供 go:embed 使用

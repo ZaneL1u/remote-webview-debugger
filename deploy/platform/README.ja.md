@@ -1,5 +1,5 @@
-<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+[English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose でのデプロイ
 
@@ -47,7 +47,7 @@ Docker ホスト上でゲートウェイを動かし、その前段に小さな 
 | `RWD_METRICS_TOKEN` | `deploy.sh` が生成 | `/v1/metrics` 用の Bearer トークン |
 | `RWD_DATABASE_URL` | `./data` 内の SQLite | `postgres://…` を指定すると代わりに Postgres を使用 |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 監査ログの保持日数 |
-| `RWD_LANG` | `en` | エージェント向けテキストの言語: `en` または `zh` |
+| `RWD_LANG` | `en` | エージェント向けテキストの言語: `en`、`zh`、`zh-TW`、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de` または `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | クライアント IP ごとの 1 分あたりの MCP リクエスト数（未設定なら制限なし）。公開デモについては [deploy/demo](../demo/README.md) を参照 |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Caddy の前段にあるプロキシのアドレス帯（スペース区切りの CIDR、または Caddy の `private_ranges`）。後述 |
 | `BIND` | `127.0.0.1` | Caddy を公開するアドレス |

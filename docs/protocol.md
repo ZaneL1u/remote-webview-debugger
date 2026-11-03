@@ -1,4 +1,4 @@
-English | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
+English | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD protocol (v1)
 

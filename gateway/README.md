@@ -1,4 +1,4 @@
-English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd gateway
 
@@ -88,7 +88,7 @@ internal/hub/       live state: devices, pages, control state machine, attach ap
                     timelines, RPC routing, SSE subscriptions, metrics
 internal/server/    HTTP: page WebSocket, presence polling, REST with sign-in and roles, MCP tools,
                     SSE, /v1/metrics, static files
-internal/i18n/      English and Chinese text for agents and the console
+internal/i18n/      text for agents and the console, in 11 languages
 internal/ids/       app keys, API keys, device codes, secrets
 internal/web/       the embedded console and SDK (staged by `make gateway`, placeholders otherwise)
 scripts/embed.sh    stages console/dist and sdk.js into internal/web for go:embed

@@ -1,5 +1,5 @@
-<!-- i18n-source: 0090b628f2344af41c62d2d405db66f0e1084f33 -->
-[English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
+<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+[English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose 部署
 
@@ -47,7 +47,7 @@
 | `RWD_METRICS_TOKEN` | 由 `deploy.sh` 產生 | 存取 `/v1/metrics` 用的 Bearer 權杖 |
 | `RWD_DATABASE_URL` | `./data` 裡的 SQLite | 設為 `postgres://…` 即改用 Postgres |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 稽核記錄保留天數 |
-| `RWD_LANG` | `en` | 給 agent 看的文字所用的語言：`en` 或 `zh` |
+| `RWD_LANG` | `en` | 給 agent 看的文字所用的語言：`en`、`zh`、`zh-TW`、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de` 或 `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | 每個用戶端 IP 每分鐘的 MCP 請求數（未設定則不限制）；公開示範的用法見 [deploy/demo](../demo/README.md) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Caddy 前面那層代理的位址範圍（以空格分隔的 CIDR，或 Caddy 的 `private_ranges`），見下文 |
 | `BIND` | `127.0.0.1` | Caddy 公開在哪個位址 |

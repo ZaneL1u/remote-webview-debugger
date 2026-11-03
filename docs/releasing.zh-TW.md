@@ -1,5 +1,5 @@
-<!-- i18n-source: 9be9df7e70f41a674848b25979f1ef7cb1f96f33 -->
-[English](releasing.md) | [简体中文](releasing.zh-CN.md) | 繁體中文 | [日本語](releasing.ja.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
+<!-- i18n-source: e110292ad2a3dca0ad4fca78a52a79f08f95af0b -->
+[English](releasing.md) | [简体中文](releasing.zh-CN.md) | 繁體中文 | [日本語](releasing.ja.md) | [한국어](releasing.ko.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | [Português (Brasil)](releasing.pt-BR.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # 發布流程
 
