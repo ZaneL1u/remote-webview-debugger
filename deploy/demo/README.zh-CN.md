@@ -17,7 +17,7 @@
 | 项目 | 设置 |
 |---|---|
 | 隔离 | 独立的部署目录、数据库和 Key，不和任何其他网关共享 |
-| 对外暴露 | 只有 `/v1/sdk.js`、`/v1/sdk/*`、`/v1/page`、`/v1/presence`、`/v1/mcp`、`/v1/demo/keys`、`/v1/healthz` 和 `/demo/*`（`Caddyfile.site`）。控制台及其 API 只在 `127.0.0.1` 上 |
+| 对外暴露 | 只有 `/v1/sdk.js`、`/v1/sdk/*`、`/v1/locales/*`、`/v1/page`、`/v1/presence`、`/v1/mcp`、`/v1/demo/keys`、`/v1/healthz` 和 `/demo/*`（`Caddyfile.site`）。控制台及其 API 只在 `127.0.0.1` 上 |
 | 页面 | 项目的 AppKey 只能在演示自己的源上使用（`allowedOrigins`），不能被别的网站拿去当免费中转；在线设备最多 300 台 |
 | API Key | 每位访客一把，访客之间不会共用一个 agent：审批、10 分钟免审批重连窗口和设备码输错封禁都按 Key 计。权限级别 `interact`（不能用 `evaluate_script`，不能读请求体和存储），24 小时有效，每个 IP 每小时最多 5 把，全部访客每小时最多 500 把 |
 | 设备 | `list_devices` 必须带 `deviceCode`：agent 只能找到访客告诉它设备码的那台设备 |

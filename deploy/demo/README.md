@@ -17,7 +17,7 @@ Anyone can get a key, so the demo is fenced in:
 | What | Setting |
 |---|---|
 | Isolation | Its own deploy directory, database and keys; nothing is shared with any other gateway |
-| Public surface | Only `/v1/sdk.js`, `/v1/sdk/*`, `/v1/page`, `/v1/presence`, `/v1/mcp`, `/v1/demo/keys`, `/v1/healthz` and `/demo/*` (`Caddyfile.site`). The console and its API stay on `127.0.0.1` |
+| Public surface | Only `/v1/sdk.js`, `/v1/sdk/*`, `/v1/locales/*`, `/v1/page`, `/v1/presence`, `/v1/mcp`, `/v1/demo/keys`, `/v1/healthz` and `/demo/*` (`Caddyfile.site`). The console and its API stay on `127.0.0.1` |
 | Pages | The project's AppKey only works from the demo's own origin (`allowedOrigins`), so it can't be used as a free relay for other sites; at most 300 devices online |
 | API keys | One per visitor, so visitors never share an agent: approvals, the 10-minute reattach window and device code lockouts are per key. Level `interact` (no `evaluate_script`, request bodies or storage), valid 24 hours, at most 5 per IP per hour and 500 per hour in all |
 | Devices | `list_devices` needs a `deviceCode`: agents only find the device whose code their visitor gave them |
