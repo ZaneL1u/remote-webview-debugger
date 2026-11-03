@@ -74,7 +74,8 @@ export function getProperties(
 let isAsyncSupported = true
 
 try {
-  eval('async () => {}')
+  // Indirect: a direct eval would keep the minifier from renaming anything in the bundle.
+  ;(0, eval)('async () => {}')
 } catch (e) {
   isAsyncSupported = false
 }

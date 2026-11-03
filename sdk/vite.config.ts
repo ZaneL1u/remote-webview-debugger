@@ -7,6 +7,23 @@ const pkg = JSON.parse(readFileSync(here('./package.json'), 'utf8'))
 // Language packs that load on demand (en and zh are bundled); see src/i18n.ts.
 const LOCALES = ['zh-TW', 'fr', 'es', 'ru', 'ar', 'ja', 'ko', 'de', 'pt']
 
+// The UI's stylesheets are template literals in src/ui.ts: the JS minifier
+// keeps strings as they are, so drop their comments and spacing here.
+const UI_CSS = /(const (?:CSS|PANEL_CSS|VARS|CJK_FONTS) = `)([^`]*)(`)/g
+const minifyCss = (css: string) =>
+  css
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([{};])\s*/g, '$1')
+    .replace(/;}/g, '}')
+const uiCss = {
+  name: 'rwd-ui-css',
+  transform(code: string, id: string) {
+    if (!/[\\/]src[\\/]ui\.ts$/.test(id)) return null
+    return { code: code.replace(UI_CSS, (_m, open: string, css: string, close: string) => open + minifyCss(css) + close), map: null }
+  },
+}
+
 // dist/sdk.js: one minified IIFE, global `RemoteWebviewDebugger`, for a
 // <script> tag (CDN or the gateway's /v1/sdk.js). `vite build --mode esm` adds
 // dist/index.mjs, the same SDK as an ES module for bundlers, with each
@@ -17,6 +34,7 @@ const LOCALES = ['zh-TW', 'fr', 'es', 'ru', 'ar', 'ja', 'ko', 'de', 'pt']
 // from source; its third-party imports resolve to this package's node_modules
 // so `npm ci` here is all a build needs.
 export default defineConfig(({ mode }) => ({
+  plugins: [uiCss],
   define: {
     __RWD_VERSION__: JSON.stringify(pkg.version),
   },
