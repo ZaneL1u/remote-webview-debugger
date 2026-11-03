@@ -260,7 +260,16 @@ test.describe('Arabic (right to left)', () => {
     const [takeover, end] = await bar.locator('.btn').all()
     expect((await takeover.boundingBox())!.x).toBeGreaterThan((await end.boundingBox())!.x)
     const label = (await bar.locator('.status').boundingBox())!
-    expect(label.x).toBeGreaterThan((await takeover.boundingBox())!.x)
+    const tb = (await takeover.boundingBox())!
+    if (await bar.evaluate(el => el.classList.contains('stack'))) {
+      // The label didn't fit next to the buttons (font metrics differ by platform): it takes the first
+      // row, still starting from the right, and the buttons go below it.
+      expect(label.y + label.height).toBeLessThanOrEqual(tb.y + 1)
+      expect(label.x + label.width).toBeGreaterThan(tb.x + tb.width - 4)
+    } else {
+      // On one row the label sits to the right of the buttons.
+      expect(label.x).toBeGreaterThan(tb.x)
+    }
     await expectFits(page, '#__rwd .bar')
     gw.setControl(s.deviceId!, 'none')
 
