@@ -10,9 +10,11 @@ import { nativeFetch, nativeWebSocket } from './native'
 //   every 60 s; back to the WebSocket when it answers `connect: true` (and, as
 //   a safety net, every 5th poll).
 // - Close codes (§3.6): 4401 bad deviceToken → retry at once if the token
-//   changed meanwhile (a sibling tab just got it), else `rejected` and retry
-//   every ~10 min; 4409 resume mismatch → new pageId, reconnect; 4429 over
-//   the online-device quota → `quota`, retry every ~5 min.
+//   changed meanwhile (a sibling tab just got it), or after a moment as a
+//   new device when this browser never got a token (onRejected decides),
+//   else `rejected` and retry every ~10 min; 4409 resume mismatch → new
+//   pageId, reconnect; 4429 over the online-device quota → `quota`, retry
+//   every ~5 min.
 
 export type LinkState = 'connecting' | 'online' | 'polling' | 'stopped' | 'rejected' | 'quota'
 
@@ -24,8 +26,8 @@ export interface TransportOptions {
   onMessage(msg: any): void
   onState(state: LinkState): void
   onPresence(res: { deviceCode?: string; connect?: boolean }): void
-  /** Close 4401. True: the token changed since the hello, retry right away. */
-  onRejected(): boolean
+  /** Close 4401: reconnect after this many ms (the next hello may differ), or false: `rejected`. */
+  onRejected(): number | false
   /** Close 4409: take a new pageId before the next hello. */
   onConflict(): void
 }
@@ -206,7 +208,8 @@ export class Transport {
       if (this.stopped) return
       const code = event && event.code
       if (code === 4401) {
-        if (this.opts.onRejected()) this.timer = setTimeout(() => this.connect(), 0)
+        const retryMs = this.opts.onRejected()
+        if (retryMs !== false) this.timer = setTimeout(() => this.connect(), retryMs)
         else this.backOff('rejected', REJECTED_RETRY_MS)
         return
       }

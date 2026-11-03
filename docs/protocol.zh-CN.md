@@ -1,4 +1,4 @@
-<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
+<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -175,7 +175,7 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
 |---|---|---|
 | `1008` | `hello` 格式不对 | 按退避重连 |
 | `1013` | 页面消费太慢，发送队列满了 | 按退避重连 |
-| `4401` | 设备令牌缺失或不匹配 | 如果本地令牌在此期间变了（同设备的另一个标签页刚拿到），立即重试；否则状态变为 `rejected`，约 10 分钟后再试 |
+| `4401` | 设备令牌缺失或不匹配 | 如果本地令牌在此期间变了（同设备的另一个标签页刚拿到），立即重试。如果根本没有令牌，且 `deviceId` 是 SDK 自己生成的（不是宿主传入的），说明携带令牌的 welcome 丢了（第一个页面在握手中途离开）：约 1.5 秒后，除非另一个标签页已经存好令牌，换一个新的 `deviceId` 从头开始（每个页面最多两次）。否则状态变为 `rejected`，约 10 分钟后再试 |
 | `4409` | 恢复令牌不匹配 | 换新的 `pageId` 重连 |
 | `4429` | 项目在线设备数达到上限（`maxOnlineDevices`） | 状态变为 `quota`，约 5 分钟后再试 |
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
+<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | Français | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocole RWD (v1)
@@ -175,7 +175,7 @@ Si une demande de rattachement est en attente et que la page qui se reconnecte e
 |---|---|---|
 | `1008` | `hello` malformé | Reconnexion avec backoff |
 | `1013` | La page n'a pas réussi à suivre sa file d'envoi | Reconnexion avec backoff |
-| `4401` | Jeton d'appareil absent ou erroné | Si le jeton stocké a changé entre-temps (un autre onglet vient de le recevoir), nouvel essai immédiat ; sinon état `rejected`, nouvel essai dans 10 minutes environ |
+| `4401` | Jeton d'appareil absent ou erroné | Si le jeton stocké a changé entre-temps (un autre onglet vient de le recevoir), nouvel essai immédiat. S'il n'y a aucun jeton et que le `deviceId` est celui du SDK (pas transmis par un hôte), le welcome qui portait le jeton a été perdu (la première page est partie en pleine poignée de main) : au bout d'environ 1,5 s, sauf si un autre onglet a stocké un jeton entre-temps, repartir de zéro avec un nouveau `deviceId` (au plus deux fois par page). Sinon état `rejected`, nouvel essai dans 10 minutes environ |
 | `4409` | Jeton de reprise non concordant | Nouveau `pageId`, reconnexion |
 | `4429` | Le quota d'appareils en ligne du projet (`maxOnlineDevices`) est atteint | État `quota`, nouvel essai dans 5 minutes environ |
 

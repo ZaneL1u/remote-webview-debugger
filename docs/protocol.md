@@ -174,7 +174,7 @@ If an attach request is pending and the reconnecting page is the device's foregr
 |---|---|---|
 | `1008` | Malformed `hello` | Reconnect with backoff |
 | `1013` | The page couldn't keep up with its send queue | Reconnect with backoff |
-| `4401` | Device token missing or wrong | If the stored token changed meanwhile (another tab just received it), retry at once; else state `rejected`, retry in about 10 minutes |
+| `4401` | Device token missing or wrong | If the stored token changed meanwhile (another tab just received it), retry at once. If there is no token at all and the `deviceId` is the SDK's own (not passed in by a host), the welcome that carried the token was lost (the first page went away mid-handshake): after about 1.5 s, unless another tab stored a token by then, start over with a new `deviceId` (at most twice per page). Else state `rejected`, retry in about 10 minutes |
 | `4409` | Resume token mismatch | New `pageId`, reconnect |
 | `4429` | The project's online device quota (`maxOnlineDevices`) is reached | State `quota`, retry in about 5 minutes |
 

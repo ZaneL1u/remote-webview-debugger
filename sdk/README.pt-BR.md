@@ -1,4 +1,4 @@
-<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
+<!-- i18n-source: 01d1f8a551ff976520e185700fb811f2c8fdcf56 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # SDK da página do RWD (`sdk/`)
@@ -124,7 +124,7 @@ As cores são trios `r, g, b` para que os tons translúcidos acompanhem (a mesma
 ## Comportamento na página (protocolo §6–§8, §11)
 
 - Níveis: as RPCs são verificadas contra `welcome.level` / `control.level` (`forbidden`, "Requer o nível …"). Um agente sem nível (um gateway mais antigo) recebe `interact`; sem agente conectado, nada extra é aplicado.
-- O token do dispositivo fica no localStorage `rwd:dtoken`, o token de retomada no sessionStorage `rwd:resume` (vinculado ao pageId). Código de fechamento 4401: se o token mudou nesse meio-tempo (outra aba do dispositivo acabou de recebê-lo), tenta de novo uma vez na hora; senão, `rejected` e nova tentativa depois de uns 10 minutos; 4409: reconecta com um novo pageId; 4429: `quota`, nova tentativa depois de uns 5 minutos.
+- O token do dispositivo fica no localStorage `rwd:dtoken`, o token de retomada no sessionStorage `rwd:resume` (vinculado ao pageId). Código de fechamento 4401: se o token mudou nesse meio-tempo (outra aba do dispositivo acabou de recebê-lo), tenta de novo uma vez na hora; se não há token nenhum e o deviceId é o próprio do SDK, o welcome com o token se perdeu, então depois de uns 1,5 s recomeça como um novo dispositivo; senão, `rejected` e nova tentativa depois de uns 10 minutos; 4409: reconecta com um novo pageId; 4429: `quota`, nova tentativa depois de uns 5 minutos.
 - `rwd_invite` na barra de endereço é retirado em `run()` (`history.replaceState`) e enviado com o hello até chegar um welcome.
 - `welcome.config`: `helpButton` (combinado com OR com a opção de `run()`), `maskSelectors`, `maskPatterns` (snapshot, console, URLs de rede, valores de armazenamento, resumos da linha do tempo), `confirmSelectors`, `networkExclude` (somado às regras da opção de `run()`), `sessionLog`. A última config é guardada no localStorage `rwd:cfg` e usada até o welcome chegar — assim, um projeto que desligou o log da sessão o mantém desligado desde o primeiro instante da próxima página, antes de qualquer welcome.
 - Os snapshots terminam com uma seção `[Overlays]` que lista o que flutua sobre a página — o fundo de um pop-up, um modal, um bottom sheet — com a tag, um trecho curto de texto, quanto da viewport cobre e uma ref. Um fundo é um elemento vazio que não tem nó no snapshot ARIA, então recebe uma ref `oN` em vez de `eN`; é isso que permite a um agente tocar nele para fechar o pop-up.

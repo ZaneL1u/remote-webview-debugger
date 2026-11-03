@@ -1,4 +1,4 @@
-<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
+<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | Português (Brasil) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -175,7 +175,7 @@ Se houver um pedido de conexão pendente e a página que se reconecta for a pág
 |---|---|---|
 | `1008` | `hello` malformado | Reconecta com backoff |
 | `1013` | A página não deu conta da fila de envio | Reconecta com backoff |
-| `4401` | Token do dispositivo ausente ou errado | Se o token armazenado mudou nesse meio-tempo (outra aba acabou de recebê-lo), tenta de novo na hora; senão, estado `rejected` e nova tentativa em cerca de 10 minutos |
+| `4401` | Token do dispositivo ausente ou errado | Se o token armazenado mudou nesse meio-tempo (outra aba acabou de recebê-lo), tenta de novo na hora. Se não há token nenhum e o `deviceId` é o próprio do SDK (não foi passado por um host), o welcome que trazia o token se perdeu (a primeira página saiu no meio do handshake): depois de cerca de 1,5 s, a menos que outra aba já tenha guardado um token, recomeça do zero com um novo `deviceId` (no máximo duas vezes por página). Senão, estado `rejected` e nova tentativa em cerca de 10 minutos |
 | `4409` | Token de retomada não confere | `pageId` novo e reconecta |
 | `4429` | A cota de dispositivos online do projeto (`maxOnlineDevices`) foi atingida | Estado `quota` e nova tentativa em cerca de 5 minutos |
 

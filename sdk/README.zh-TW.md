@@ -1,4 +1,4 @@
-<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
+<!-- i18n-source: 01d1f8a551ff976520e185700fb811f2c8fdcf56 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 頁面 SDK（`sdk/`）
@@ -124,7 +124,7 @@ RemoteWebviewDebugger.run(url, key, {
 ## 頁面內的行為（協定 §6–§8、§11）
 
 - 等級：RPC 會依 `welcome.level` / `control.level` 檢查（`forbidden`，「需要 … 等級」）。沒有等級的 agent（較舊的閘道）以 `interact` 處理；沒有 agent 連線時，不額外施加限制。
-- 裝置權杖存在 localStorage `rwd:dtoken`，恢復權杖存在 sessionStorage `rwd:resume`（綁定 pageId）。關閉碼 4401：若權杖在此期間已改變（同一台裝置的另一個分頁剛取得它），立即重試一次，否則進入 `rejected`，約 10 分鐘後再試；4409：換新的 pageId 重新連線；4429：`quota`，約 5 分鐘後再試。
+- 裝置權杖存在 localStorage `rwd:dtoken`，恢復權杖存在 sessionStorage `rwd:resume`（綁定 pageId）。關閉碼 4401：若權杖在此期間已改變（同一台裝置的另一個分頁剛取得它），立即重試一次；若根本沒有權杖且 deviceId 是 SDK 自己產生的，表示帶有權杖的 welcome 遺失了，約 1.5 秒後會以新裝置的身分從頭開始；否則進入 `rejected`，約 10 分鐘後再試；4409：換新的 pageId 重新連線；4429：`quota`，約 5 分鐘後再試。
 - 網址列中的 `rwd_invite` 會在 `run()` 時移除（`history.replaceState`），並隨 hello 一起送出，直到收到 welcome。
 - `welcome.config`：`helpButton`（與 `run()` 選項取 OR）、`maskSelectors`、`maskPatterns`（快照、console、網路 URL、儲存空間的值、時間軸摘要）、`confirmSelectors`、`networkExclude`（與 `run()` 選項中的規則合併）、`sessionLog`。最近一次的設定會存在 localStorage `rwd:cfg`，在收到 welcome 之前先沿用——所以關閉了工作階段記錄的專案，下一個頁面從第一刻起就不會記錄，不必等 welcome。
 - 快照最後會附上一段 `[Overlays]`，列出浮在頁面上的東西——彈出視窗的遮罩、強制回應視窗、底部滑出面板——包含它的標籤、一小段文字、覆蓋了多少可視區域，以及一個 ref。遮罩是 aria snapshot 中沒有對應節點的空元素，所以它拿到的是 `oN` 而不是 `eN` 形式的 ref；agent 正是靠它點擊遮罩來關閉彈出視窗。

@@ -1,4 +1,4 @@
-<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
+<!-- i18n-source: 01d1f8a551ff976520e185700fb811f2c8fdcf56 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD ページ SDK（`sdk/`）
@@ -124,7 +124,7 @@ UI は `#__rwd`（`<body>` の外）の Shadow DOM 内にあるため、ペー�
 ## ページ内での動作（プロトコル §6–§8、§11）
 
 - レベル：RPC は `welcome.level` / `control.level` に照らしてチェックされます（`forbidden`、「… レベルが必要です」）。レベルを持たないエージェント（古いゲートウェイ）は `interact` として扱われます。エージェントが接続していないときは、追加の制限は何もかかりません。
-- デバイストークンは localStorage の `rwd:dtoken` に、再開トークンは sessionStorage の `rwd:resume`（pageId に紐付く）に保持されます。クローズコード 4401：その間にトークンが変わっていれば（同じデバイスの別のタブがちょうど取得した場合）すぐに一度再試行し、そうでなければ `rejected` となり約 10 分後に再試行します。4409：新しい pageId で再接続します。4429：`quota`、約 5 分後に再試行します。
+- デバイストークンは localStorage の `rwd:dtoken` に、再開トークンは sessionStorage の `rwd:resume`（pageId に紐付く）に保持されます。クローズコード 4401：その間にトークンが変わっていれば（同じデバイスの別のタブがちょうど取得した場合）すぐに一度再試行し、トークンがまったくなく deviceId が SDK 自身のものなら、トークン付きの welcome が失われたので約 1.5 秒後に新しいデバイスとして最初からやり直し、それ以外は `rejected` となり約 10 分後に再試行します。4409：新しい pageId で再接続します。4429：`quota`、約 5 分後に再試行します。
 - アドレスバーの `rwd_invite` は `run()` の時点で取り除かれ（`history.replaceState`）、welcome が届くまで hello と一緒に送られます。
 - `welcome.config`：`helpButton`（`run()` のオプションと OR を取る）、`maskSelectors`、`maskPatterns`（スナップショット、console、ネットワークの URL、ストレージの値、タイムラインの要約）、`confirmSelectors`、`networkExclude`（`run()` のオプションのルールに追加）、`sessionLog`。最後の設定は localStorage の `rwd:cfg` に保持され、welcome が届くまで使われます。そのため、セッションログをオフにしたプロジェクトでは、次のページでも welcome が届く前の最初の瞬間からオフのままです。
 - スナップショットの末尾には `[Overlays]` セクションがあり、ページの上に浮かぶもの（ポップアップの背景幕、モーダル、ボトムシート）を、タグ、短いテキスト、ビューポートを覆う割合、ref とともに列挙します。背景幕は aria snapshot にノードのない空の要素なので、`eN` ではなく `oN` の ref が付きます。これにより、エージェントは背景幕をタップしてポップアップを閉じられます。

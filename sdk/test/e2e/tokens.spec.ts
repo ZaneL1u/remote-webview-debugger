@@ -73,6 +73,43 @@ test('4401: retried once when a sibling tab just stored the token, else rejected
   expect(gw.messages('hello', s.pageId!).at(-1).deviceToken).toBe('not-the-token')
 })
 
+test('4401 with no token here: the welcome was lost, the page starts over as a new device', async ({ page, gw, browser }) => {
+  // The first page of this device said hello and went away before the
+  // welcome (and its token) arrived: the gateway has a token, the browser not.
+  const s = await openFixture(page, gw)
+  const lost = s.deviceId!
+  await page.evaluate(() => {
+    localStorage.removeItem('rwd:dtoken')
+    localStorage.removeItem('rwd:code')
+  })
+  await page.reload()
+  const again = await waitOnline(page, gw)
+  expect(again.deviceId).not.toBe(lost)
+  expect(again.deviceToken).toBe(gw.devices.get(again.deviceId).token)
+  expect(await page.evaluate(() => localStorage.getItem('rwd:device'))).toBe(again.deviceId)
+  expect(await page.evaluate(() => localStorage.getItem('rwd:dtoken'))).toBe(again.deviceToken)
+  // run() reported the page online, not the refusal on the way.
+  expect((await page.evaluate(() => (window as any).runResult)).status).toBe('online')
+  const hellos = gw.messages('hello', again.pageId!)
+  expect(hellos.at(-2)).toMatchObject({ deviceId: lost, deviceToken: null })
+  expect(hellos.at(-1)).toMatchObject({ deviceId: again.deviceId, deviceToken: null })
+  expect(gw.devices.get(again.deviceId).code).not.toBe(gw.devices.get(lost).code)
+
+  // A deviceId the host chose can't be replaced: that stays rejected, quietly.
+  const other = await browser.newContext()
+  const p2 = await other.newPage()
+  await p2.addInitScript((deviceId: string) => {
+    ;(window as any).__rwdOpts = { deviceId }
+  }, lost)
+  await p2.goto('/test/host.html')
+  await expect.poll(async () => (await status(p2)).status).toBe('rejected')
+  const s2 = await status(p2)
+  expect(s2.deviceId).toBe(lost)
+  await p2.waitForTimeout(2500)
+  expect(gw.messages('hello', s2.pageId!)).toHaveLength(1)
+  await other.close()
+})
+
 test('4409: a stale resume makes the page start over with a new pageId', async ({ page, gw }) => {
   const s = await openFixture(page, gw)
   const id = s.pageId!

@@ -1,4 +1,4 @@
-<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
+<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -175,7 +175,7 @@ SDK 能處理 `reconnect`，但閘道目前不會送出它。
 |---|---|---|
 | `1008` | `hello` 格式錯誤 | 依退避策略重新連線 |
 | `1013` | 頁面消化太慢，傳送佇列滿了 | 依退避策略重新連線 |
-| `4401` | 裝置權杖缺少或不符 | 如果本機權杖在此期間變了（同裝置的另一個分頁剛拿到），立即重試；否則狀態變為 `rejected`，約 10 分鐘後再試 |
+| `4401` | 裝置權杖缺少或不符 | 如果本機權杖在此期間變了（同裝置的另一個分頁剛拿到），立即重試。如果根本沒有權杖，且 `deviceId` 是 SDK 自己產生的（不是宿主傳入的），表示攜帶權杖的 welcome 遺失了（第一個頁面在交握途中離開）：約 1.5 秒後，除非另一個分頁已經存好權杖，就換一個新的 `deviceId` 從頭開始（每個頁面最多兩次）。否則狀態變為 `rejected`，約 10 分鐘後再試 |
 | `4409` | 恢復權杖不符 | 改用新的 `pageId` 重新連線 |
 | `4429` | 專案的在線裝置數已達上限（`maxOnlineDevices`） | 狀態變為 `quota`，約 5 分鐘後再試 |
 

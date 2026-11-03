@@ -1,4 +1,4 @@
-<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
+<!-- i18n-source: 01d1f8a551ff976520e185700fb811f2c8fdcf56 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 页面 SDK（`sdk/`）
@@ -124,7 +124,7 @@ RemoteWebviewDebugger.run(url, key, {
 ## 页面内的行为（协议 §6–§8、§11）
 
 - 权限级别：按 `welcome.level` / `control.level` 拦截 RPC（`forbidden`「需要 … 权限」）；有 agent 但网关没给级别时按 `interact`，没有 agent 时不额外限制。
-- 设备令牌存 localStorage `rwd:dtoken`，resume 存 sessionStorage `rwd:resume`（绑定 pageId）。关闭码 4401：令牌在此期间变了（同设备另一个标签页刚拿到）就立即重试一次，否则 `rejected`，约 10 分钟后再试；4409：换新 pageId 重连；4429：`quota`，约 5 分钟后再试。
+- 设备令牌存 localStorage `rwd:dtoken`，resume 存 sessionStorage `rwd:resume`（绑定 pageId）。关闭码 4401：令牌在此期间变了（同设备另一个标签页刚拿到）就立即重试一次；如果根本没有令牌且 deviceId 是 SDK 自己生成的，说明带令牌的 welcome 丢了，约 1.5 秒后作为新设备从头开始；否则 `rejected`，约 10 分钟后再试；4409：换新 pageId 重连；4429：`quota`，约 5 分钟后再试。
 - 地址栏 `rwd_invite` 在 `run()` 时移出（`history.replaceState`），随 hello 发送直到收到 welcome。
 - `welcome.config`：`helpButton`（与 `run()` 的选项取或）、`maskSelectors`、`maskPatterns`（快照、console、网络 URL、存储值、时间线摘要）、`confirmSelectors`、`networkExclude`（与 `run()` 选项里的规则合并）、`sessionLog`；上一次的配置记在 localStorage `rwd:cfg`，welcome 之前先用——所以项目关掉了会话日志，下一个页面从第一刻起就不会记录，不用等 welcome。
 - 快照末尾会附一段 `[浮层]` 清单，列出盖在页面上的东西——弹窗遮罩、模态框、底部弹出层——带上标签、一小段文字、覆盖视口的比例和 ref。遮罩往往是个空元素，无障碍快照里没有它的节点，所以给的是 `oN` 而不是 `eN` 形式的 ref；agent 正是靠它点遮罩关掉弹窗。

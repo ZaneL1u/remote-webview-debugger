@@ -28,6 +28,7 @@ import {
   noteTap,
   read,
   readResume,
+  recoverDeviceId,
   renewPageId,
   resolveIdentity,
   takeInvite,
@@ -164,6 +165,8 @@ export interface RunResult {
 }
 
 const CODE_KEY = 'rwd:code'
+/** After a 4401 with no token here, how long to wait for a sibling tab to store one. */
+const RECOVER_DELAY_MS = 1500
 const HELP_KEY = 'rwd:help'
 const CONTROL_KEY = 'rwd:ctl'
 const CONFIG_KEY = 'rwd:cfg'
@@ -191,6 +194,10 @@ interface Session {
   deviceToken: string | null
   /** The token the last hello carried (a 4401 retry needs a different one). */
   sentToken: string | null
+  /** A 4401 without any token here: the next hello starts over as a new device. */
+  recoverDevice: boolean
+  /** How often this page did that (bounded, so a gateway that keeps refusing can't loop). */
+  recoveries: number
   invite: string | null
   config: RemoteConfig | null
   approvals: Approvals
@@ -561,6 +568,8 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
     help: read('localStorage', HELP_KEY) === '1',
     deviceToken: null,
     sentToken: null,
+    recoverDevice: false,
+    recoveries: 0,
     invite,
     config: null,
     waiters: [],
@@ -594,6 +603,15 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
     wsUrl: urls.wsUrl,
     presenceUrl: urls.presenceUrl,
     hello: () => {
+      if (s.recoverDevice) {
+        s.recoverDevice = false
+        // Still no token (no sibling tab stored one meanwhile): a new device.
+        if (!currentToken(s)) {
+          recoverDeviceId(s.identity)
+          s.deviceCode = null
+          write('localStorage', CODE_KEY, null)
+        }
+      }
       s.sentToken = s.deviceToken = currentToken(s)
       return {
         t: 'hello',
@@ -634,7 +652,19 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
     },
     onRejected: () => {
       const token = currentToken(s)
-      return !!token && token !== s.sentToken
+      // A sibling tab just stored the token: retry with it.
+      if (token && token !== s.sentToken) return 0
+      // The gateway issued this device a token that never reached us (the
+      // welcome was lost) and will refuse it forever. If the deviceId is ours
+      // to choose, give a sibling tab a moment to store the token, then start
+      // over as a new device. A host-provided deviceId, or a token that is
+      // simply wrong, stays rejected.
+      if (!token && !s.opts.deviceId && s.recoveries < 2) {
+        s.recoveries++
+        s.recoverDevice = true
+        return RECOVER_DELAY_MS
+      }
+      return false
     },
     onConflict: () => renewPageId(s.identity),
     onPresence: res => {

@@ -1,4 +1,4 @@
-<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
+<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -175,7 +175,7 @@
 |---|---|---|
 | `1008` | 형식이 잘못된 `hello` | 백오프하며 다시 연결 |
 | `1013` | 페이지가 전송 큐를 따라오지 못함 | 백오프하며 다시 연결 |
-| `4401` | 기기 토큰이 없거나 틀림 | 그사이 저장된 토큰이 바뀌었으면(다른 탭이 방금 받은 경우) 즉시 재시도. 아니면 상태를 `rejected`로 두고 약 10분 뒤 재시도 |
+| `4401` | 기기 토큰이 없거나 틀림 | 그사이 저장된 토큰이 바뀌었으면(다른 탭이 방금 받은 경우) 즉시 재시도. 토큰이 아예 없고 `deviceId`가 SDK 자체의 것(호스트가 넘겨준 것이 아님)이면 토큰을 실은 welcome이 유실된 것(첫 페이지가 핸드셰이크 도중에 사라짐)이므로, 약 1.5초 뒤 그때까지 다른 탭이 토큰을 저장하지 않았다면 새 `deviceId`로 처음부터 다시 시작(페이지당 최대 두 번). 그 밖에는 상태를 `rejected`로 두고 약 10분 뒤 재시도 |
 | `4409` | 재개 토큰 불일치 | 새 `pageId`로 다시 연결 |
 | `4429` | 프로젝트의 온라인 기기 한도(`maxOnlineDevices`)에 도달 | 상태를 `quota`로 두고 약 5분 뒤 재시도 |
 

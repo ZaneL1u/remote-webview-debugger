@@ -1,4 +1,4 @@
-<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
+<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | Deutsch | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD-Protokoll (v1)
@@ -175,7 +175,7 @@ Ist eine Verbindungsanfrage offen und ist die sich neu verbindende Seite die Vor
 |---|---|---|
 | `1008` | Fehlerhaftes `hello` | Neu verbinden mit Backoff |
 | `1013` | Die Seite kam mit ihrer Sendewarteschlange nicht hinterher | Neu verbinden mit Backoff |
-| `4401` | Geräte-Token fehlt oder ist falsch | Hat sich das gespeicherte Token inzwischen geändert (ein anderer Tab hat es gerade erhalten), sofort erneut versuchen; sonst Zustand `rejected`, neuer Versuch nach etwa 10 Minuten |
+| `4401` | Geräte-Token fehlt oder ist falsch | Hat sich das gespeicherte Token inzwischen geändert (ein anderer Tab hat es gerade erhalten), sofort erneut versuchen. Gibt es gar kein Token und ist die `deviceId` die eigene des SDK (nicht von einem Host übergeben), ist das welcome mit dem Token verloren gegangen (die erste Seite ist mitten im Handshake verschwunden): nach etwa 1,5 s, sofern bis dahin kein anderer Tab ein Token gespeichert hat, mit einer neuen `deviceId` von vorn beginnen (höchstens zweimal pro Seite). Sonst Zustand `rejected`, neuer Versuch nach etwa 10 Minuten |
 | `4409` | Resume-Token stimmt nicht überein | Neue `pageId`, neu verbinden |
 | `4429` | Das Kontingent des Projekts für Online-Geräte (`maxOnlineDevices`) ist erreicht | Zustand `quota`, neuer Versuch nach etwa 5 Minuten |
 

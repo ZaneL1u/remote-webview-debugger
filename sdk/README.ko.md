@@ -1,4 +1,4 @@
-<!-- i18n-source: 1c026017b4d185523c9ea373eb979d1cbd58bff0 -->
+<!-- i18n-source: 01d1f8a551ff976520e185700fb811f2c8fdcf56 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 페이지 SDK (`sdk/`)
@@ -124,7 +124,7 @@ UI는 `#__rwd`(`<body>` 바깥)의 shadow root 안에 있어서, 페이지 CSS�
 ## 페이지에서의 동작 (프로토콜 §6–§8, §11)
 
 - 권한 수준: RPC는 `welcome.level` / `control.level`에 따라 검사돼요 (`forbidden`, "Requires the … level"). 권한 수준이 없는 에이전트(구버전 게이트웨이)는 `interact`로 취급하고, 접속한 에이전트가 없으면 추가로 강제하는 것은 없어요.
-- 기기 토큰은 localStorage `rwd:dtoken`에, 재개 토큰은 sessionStorage `rwd:resume`(pageId에 묶임)에 보관해요. 종료 코드 4401: 그 사이에 토큰이 바뀌었으면(같은 기기의 다른 탭이 방금 받아 왔으면) 바로 한 번 재시도하고, 아니면 `rejected`가 되고 약 10분 뒤에 재시도해요. 4409: 새 pageId로 다시 연결해요. 4429: `quota`가 되고 약 5분 뒤에 재시도해요.
+- 기기 토큰은 localStorage `rwd:dtoken`에, 재개 토큰은 sessionStorage `rwd:resume`(pageId에 묶임)에 보관해요. 종료 코드 4401: 그 사이에 토큰이 바뀌었으면(같은 기기의 다른 탭이 방금 받아 왔으면) 바로 한 번 재시도하고, 토큰이 아예 없고 deviceId가 SDK 자체의 것이면 토큰을 실은 welcome이 유실된 것이므로 약 1.5초 뒤 새 기기로 처음부터 다시 시작하고, 그 밖에는 `rejected`가 되고 약 10분 뒤에 재시도해요. 4409: 새 pageId로 다시 연결해요. 4429: `quota`가 되고 약 5분 뒤에 재시도해요.
 - 주소창의 `rwd_invite`는 `run()` 때 제거되고(`history.replaceState`) welcome이 올 때까지 hello와 함께 전송돼요.
 - `welcome.config`: `helpButton`(`run()` 옵션과 OR), `maskSelectors`, `maskPatterns`(스냅샷, console, 네트워크 URL, 저장소 값, 타임라인 요약), `confirmSelectors`, `networkExclude`(`run()` 옵션의 규칙에 더해짐), `sessionLog`. 마지막 config는 localStorage `rwd:cfg`에 보관돼 welcome이 올 때까지 쓰여요. 그래서 세션 로그를 끈 프로젝트는 다음 페이지에서도 welcome이 오기 전 첫 순간부터 로그가 꺼져 있어요.
 - 스냅샷은 마지막에 `[Overlays]` 섹션이 붙어서 팝업의 배경, 모달, 바텀 시트처럼 페이지 위에 떠 있는 것을 나열해요. 각 항목에는 태그, 짧은 텍스트, 뷰포트를 덮는 비율, ref가 있어요. 배경은 aria 스냅샷에 노드가 없는 빈 요소라서 `eN` 대신 `oN` ref를 받아요. 덕분에 에이전트가 배경을 탭해서 팝업을 닫을 수 있어요.

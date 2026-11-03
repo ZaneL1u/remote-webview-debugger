@@ -192,6 +192,23 @@ export function ensureUniquePage(identity: Identity): Promise<void> {
   )
 }
 
+/**
+ * The gateway holds a token for our deviceId that never reached this browser
+ * (the welcome that carried it was lost: the first page went away mid-hello).
+ * Every later hello would be refused, so start over as a new device — or
+ * take the one a sibling tab already started over as.
+ */
+export function recoverDeviceId(identity: Identity) {
+  const stored = read('localStorage', DEVICE_KEY)
+  if (stored && stored !== identity.deviceId) {
+    identity.deviceId = stored
+    return
+  }
+  identity.deviceId = uuid()
+  write('localStorage', DEVICE_KEY, identity.deviceId)
+  write('localStorage', TOKEN_KEY, null)
+}
+
 /** The resume value of the last welcome, if it was issued to this pageId. */
 export function readResume(pageId: string): string | null {
   try {
