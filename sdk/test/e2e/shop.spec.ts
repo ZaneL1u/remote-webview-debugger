@@ -44,7 +44,10 @@ test('shop flow across pages: click, select, the cross-page bug in console', asy
 })
 
 test('checkout form: fill, type, press, select, masking and the order request', async ({ page, gw }) => {
-  await page.goto('/demo/platform/index.html?key=rwd_pk_test0000000000000000000')
+  // Wait until the first page is online: it must have stored the device token
+  // the gateway issued before the next page says hello, or that hello is
+  // turned away (4401) and the test would wait out the 10-minute retry.
+  await openDemo(page, gw)
   await page.evaluate(() =>
     sessionStorage.setItem('demo:order', JSON.stringify({ id: 1, name: '无线降噪耳机 Pro', spec: '标准装', qty: 1, price: 899 }))
   )
