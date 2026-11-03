@@ -1,4 +1,4 @@
-<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
@@ -46,6 +46,7 @@ rwd version                             打印版本号
 | `--lang` / `RWD_LANG` | `en` | AI 读到的所有内容的语言：MCP 说明、工具与参数描述、工具结果、`[会话变化]` 和错误信息。它还会通过 `welcome.agentLang` 告诉页面 SDK，让页面里生成的错误信息和事件摘要使用同一种语言。取 `en`、`zh`（简体中文）、`zh-TW`（繁体中文）、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de`、`pt` 之一；也接受带地区的写法，映射到最接近的语言（`zh-CN` → `zh`，`zh-HK` → `zh-TW`，`pt-BR` → `pt`）。控制台按每个请求的 `?lang=` 或 `Accept-Language` 选择语言，都没有时才用它 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | 在 `/demo/` 下提供这个目录（可选，用于演示页面） |
 | `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0`（不限） | 每个客户端 IP 每分钟允许的 MCP 请求数，超出的返回 `429` 并带 `Retry-After: 60`。用于 API Key 公开的网关，比如演示网关（[deploy/demo](../deploy/demo/README.zh-CN.md)）。放在代理后面时需要 `--trust-proxy` 才能拿到客户端 IP |
+| `--demo-keys` / `RWD_DEMO_KEYS=1` | 关闭 | 运行公开演示：`POST /v1/demo/keys`（无需登录，允许跨域）给每位访客签发一把自己的 API Key（`interact` 级别，24 小时有效，每个 IP 每小时 5 把），访客之间不会共用一个 agent；`list_devices` 必须带 `deviceCode`，谁也列不出别人的设备。见 [deploy/demo](../deploy/demo/README.zh-CN.md) |
 | `RWD_ADMIN_EMAIL` | `admin` | owner 账号的邮箱（登录名）。只有数据库里还没有 owner 时（首次启动）才会创建 owner；之后再改这个值**不会**多出一个 owner，只决定 `RWD_ADMIN_PASSWORD` 作用于哪个 owner |
 | `RWD_ADMIN_PASSWORD` | — | owner 密码。创建 owner 时使用；之后**每次启动**都会重设 `RWD_ADMIN_EMAIL` 所指 owner 的密码，所以也能用来找回账号。如果这个邮箱不是 owner 的（是别的成员，或者不存在），则忽略并在日志里说明，同时列出现有 owner。没有设置且数据库为空时，会随机生成一个密码，并在日志里打印一次 |
 | `RWD_METRICS_TOKEN` | — | 设置后，访问 `/v1/metrics` 需要 `Authorization: Bearer <token>` |

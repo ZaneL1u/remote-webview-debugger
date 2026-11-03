@@ -113,6 +113,7 @@ var ko = map[Key]string{
 	ErrTakeover:           "사용자가 직접 조작으로 전환해 작업이 일시 중지되었습니다. wait_for_control을 호출해 사용자가 다시 AI에 맡길 때까지 기다리세요",
 	ErrRPCTimeout:         "페이지가 제때 응답하지 않았습니다",
 	ErrTooManyLookups:     "기기 코드 시도 횟수가 너무 많습니다. 1분 후 다시 시도하세요",
+	ErrDemoNeedsCode:      "공개 데모 게이트웨이라서 기기 목록을 보여 주지 않습니다. deviceCode(사용자 페이지에 표시된 기기 코드)를 지정하거나, 그 코드로 connect_device를 호출하세요",
 	ErrDeviceNotFoundHint: "기기를 찾을 수 없습니다: %q(기기 코드를 확인하거나 list_devices로 온라인 기기를 확인하세요)",
 	ErrDeviceNotFound:     "기기를 찾을 수 없습니다: %q",
 	ErrDeviceOffline:      "%s 기기가 오프라인입니다. wait_for_device로 온라인이 될 때까지 기다리세요",

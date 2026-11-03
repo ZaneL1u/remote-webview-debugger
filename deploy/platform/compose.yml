@@ -11,6 +11,7 @@
 #   RWD_TRUSTED_PROXIES=<ranges of the proxy in front> (default: private_ranges)
 #   RWD_LANG=en|zh                                     (agent-facing language, default en)
 #   RWD_MCP_RATE_LIMIT=<MCP requests per IP per minute> (default: no limit)
+#   RWD_DEMO_KEYS=1                                    (public demo: a key per visitor)
 #   BIND=<address to publish on>   (default 127.0.0.1)
 #   PORT=<published port>          (default 18788)
 #   RWD_DOMAIN=<public host name>  (compose.tls.yml only)
@@ -30,6 +31,7 @@ services:
       RWD_AUDIT_RETENTION_DAYS: ${RWD_AUDIT_RETENTION_DAYS:-}
       RWD_LANG: ${RWD_LANG:-}
       RWD_MCP_RATE_LIMIT: ${RWD_MCP_RATE_LIMIT:-}
+      RWD_DEMO_KEYS: ${RWD_DEMO_KEYS:-}
     volumes:
       - ./data:/data
 

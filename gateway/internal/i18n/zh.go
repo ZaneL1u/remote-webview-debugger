@@ -113,6 +113,7 @@ var zh = map[Key]string{
 	ErrTakeover:           "用户已接管控制，操作暂停。可以调用 wait_for_control 等待用户交还",
 	ErrRPCTimeout:         "页面没有及时响应",
 	ErrTooManyLookups:     "设备码尝试次数过多，请 1 分钟后再试",
+	ErrDemoNeedsCode:      "这是公开的演示网关，不会列出设备：请传入 deviceCode（用户页面上显示的设备码），或直接用它调用 connect_device",
 	ErrDeviceNotFoundHint: "找不到设备 %q（请确认设备码，或用 list_devices 查看在线设备）",
 	ErrDeviceNotFound:     "找不到设备 %q",
 	ErrDeviceOffline:      "设备 %s 当前不在线。可以用 wait_for_device 等它上线",

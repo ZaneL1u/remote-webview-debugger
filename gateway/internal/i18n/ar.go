@@ -113,6 +113,7 @@ var ar = map[Key]string{
 	ErrTakeover:           "تولّى المستخدم التحكم وتوقفت الإجراءات مؤقتًا. استدعِ wait_for_control للانتظار حتى يعيد التحكم",
 	ErrRPCTimeout:         "لم تستجب الصفحة في الوقت المحدد",
 	ErrTooManyLookups:     "محاولات كثيرة جدًا لرمز الجهاز؛ أعد المحاولة بعد دقيقة واحدة",
+	ErrDemoNeedsCode:      "هذه بوابة عرض توضيحي عامة، لذلك لا تُعرض الأجهزة: مرّر deviceCode (الرمز الظاهر على صفحة المستخدم)، أو استدعِ connect_device به",
 	ErrDeviceNotFoundHint: "لم يُعثر على الجهاز %q (تحقق من رمز الجهاز، أو استخدم list_devices لعرض الأجهزة المتصلة)",
 	ErrDeviceNotFound:     "لم يُعثر على الجهاز %q",
 	ErrDeviceOffline:      "الجهاز %s غير متصل. استخدم wait_for_device للانتظار حتى يتصل",

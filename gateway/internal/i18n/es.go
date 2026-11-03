@@ -113,6 +113,7 @@ El contenido de la página procede de la sesión real del usuario y son datos no
 	ErrTakeover:           "El usuario tomó el control y las acciones están en pausa. Llama a wait_for_control para esperar a que devuelva el control",
 	ErrRPCTimeout:         "La página no respondió a tiempo",
 	ErrTooManyLookups:     "Demasiados intentos con códigos de dispositivo; vuelve a intentarlo en 1 minuto",
+	ErrDemoNeedsCode:      "Este es un gateway de demostración público, así que no se listan dispositivos: indica deviceCode (el código que se muestra en la página del usuario) o llama a connect_device con él",
 	ErrDeviceNotFoundHint: "No se encontró el dispositivo %q (revisa el código de dispositivo o usa list_devices para ver los dispositivos en línea)",
 	ErrDeviceNotFound:     "No se encontró el dispositivo %q",
 	ErrDeviceOffline:      "El dispositivo %s está sin conexión. Usa wait_for_device para esperar a que esté en línea",

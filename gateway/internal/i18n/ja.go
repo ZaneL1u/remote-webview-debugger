@@ -113,6 +113,7 @@ var ja = map[Key]string{
 	ErrTakeover:           "ユーザーが引き継いだため、操作は一時停止しています。wait_for_control を呼び出して、ユーザーが操作を戻すまで待ってください",
 	ErrRPCTimeout:         "ページが時間内に応答しませんでした",
 	ErrTooManyLookups:     "デバイスコードの試行回数が多すぎます。1 分後に再試行してください",
+	ErrDemoNeedsCode:      "これは公開デモ用のゲートウェイのため、デバイスは一覧表示されません。deviceCode（ユーザーのページに表示されているデバイスコード）を指定するか、それを使って connect_device を呼び出してください",
 	ErrDeviceNotFoundHint: "デバイス %q が見つかりません（デバイスコードを確認するか、list_devices でオンラインのデバイスを確認してください）",
 	ErrDeviceNotFound:     "デバイス %q が見つかりません",
 	ErrDeviceOffline:      "デバイス %s はオフラインです。wait_for_device でオンラインになるまで待機できます",

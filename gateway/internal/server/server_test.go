@@ -79,10 +79,17 @@ func setup(t *testing.T, policy string) *fixture {
 
 func setupLang(t *testing.T, policy string, lang i18n.Lang) *fixture {
 	t.Helper()
+	return setupConfig(t, policy, Config{Lang: lang})
+}
+
+// setupConfig starts a gateway with cfg (owner and version filled in).
+func setupConfig(t *testing.T, policy string, cfg Config) *fixture {
+	t.Helper()
 	ctx := context.Background()
 	st := openStore(t)
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s, err := New(ctx, Config{AdminEmail: "owner@test", AdminPassword: "password1", Lang: lang, Version: "test"}, st, log)
+	cfg.AdminEmail, cfg.AdminPassword, cfg.Version = "owner@test", "password1", "test"
+	s, err := New(ctx, cfg, st, log)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1209,5 +1216,75 @@ func TestMCPRateLimit(t *testing.T) {
 	}
 	if _, err := f.mcpWith(f.apiKey); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// --demo-keys: every visitor gets a key of their own, so one visitor's agent
+// can't act on the device another visitor attached to; list_devices needs a
+// device code; keys are rate limited per IP.
+func TestDemoKeys(t *testing.T) {
+	post := func(url string) (int, map[string]any) {
+		res, err := http.Post(url+"/v1/demo/keys", "", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
+		var body map[string]any
+		json.NewDecoder(res.Body).Decode(&body)
+		return res.StatusCode, body
+	}
+	if code, _ := post(setup(t, "").srv.URL); code != 404 {
+		t.Fatalf("demo keys off: %d", code)
+	}
+
+	f := setupConfig(t, "", Config{Lang: i18n.EN, DemoKeys: true})
+	keys := []string{}
+	for range 2 {
+		code, body := post(f.srv.URL)
+		key, _ := body["key"].(string)
+		if code != 200 || !strings.HasPrefix(key, "rwd_sk_") || body["mcp"] != f.srv.URL+"/v1/mcp" {
+			t.Fatalf("demo key: %d %v", code, body)
+		}
+		keys = append(keys, key)
+	}
+	a, err := f.mcpWith(keys[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := f.mcpWith(keys[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	p := f.page(pageOpts{pageID: "page1", decide: approveAs("advanced")})
+	code := p.welcome["deviceCode"].(string)
+	if out, isErr := callText(t, b, "list_devices", nil); !isErr || !strings.Contains(out, "deviceCode") {
+		t.Fatalf("list_devices without a code: %s", out)
+	}
+	if out, _ := callText(t, b, "list_devices", map[string]any{"deviceCode": code}); !strings.Contains(out, code) {
+		t.Fatalf("list_devices with the code: %s", out)
+	}
+	out, isErr := callText(t, a, "connect_device", map[string]any{"device": code})
+	if isErr || !strings.Contains(out, "interact") { // demo keys stop at interact
+		t.Fatalf("connect: %s", out)
+	}
+	if out, isErr := callText(t, b, "take_snapshot", nil); !isErr {
+		t.Fatalf("another visitor's agent reached the device: %s", out)
+	}
+	if out, isErr := callText(t, a, "take_snapshot", nil); isErr || !strings.Contains(out, "[ref=e1]") {
+		t.Fatalf("snapshot: %s", out)
+	}
+	// After A lets go, B still has to ask (A's approval was for A's key).
+	callText(t, a, "disconnect_device", nil)
+	p.decide = func(map[string]any) any { return nil }
+	if out, isErr := callText(t, b, "connect_device", map[string]any{"device": code}); !isErr {
+		t.Fatalf("B attached on A's approval: %s", out)
+	}
+
+	for range 3 {
+		post(f.srv.URL)
+	}
+	if code, _ := post(f.srv.URL); code != 429 {
+		t.Fatalf("sixth key in an hour: %d", code)
 	}
 }

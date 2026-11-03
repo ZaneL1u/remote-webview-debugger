@@ -116,6 +116,7 @@ const (
 	ErrTakeover           Key = "err.takeover"
 	ErrRPCTimeout         Key = "err.rpc_timeout"
 	ErrTooManyLookups     Key = "err.too_many_lookups"
+	ErrDemoNeedsCode      Key = "err.demo_needs_code"
 	ErrDeviceNotFoundHint Key = "err.device_not_found_hint"
 	ErrDeviceNotFound     Key = "err.device_not_found"
 	ErrDeviceOffline      Key = "err.device_offline"

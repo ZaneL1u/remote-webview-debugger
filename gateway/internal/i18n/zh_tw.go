@@ -113,6 +113,7 @@ var zhTW = map[Key]string{
 	ErrTakeover:           "使用者已接管控制，操作已暫停。可以呼叫 wait_for_control 等待使用者交還",
 	ErrRPCTimeout:         "頁面沒有及時回應",
 	ErrTooManyLookups:     "裝置碼嘗試次數過多，請 1 分鐘後再試",
+	ErrDemoNeedsCode:      "這是公開的示範閘道，不會列出裝置：請傳入 deviceCode（使用者頁面上顯示的裝置碼），或直接用它呼叫 connect_device",
 	ErrDeviceNotFoundHint: "找不到裝置 %q（請確認裝置碼，或用 list_devices 查看線上裝置）",
 	ErrDeviceNotFound:     "找不到裝置 %q",
 	ErrDeviceOffline:      "裝置 %s 目前離線。可以用 wait_for_device 等它上線",

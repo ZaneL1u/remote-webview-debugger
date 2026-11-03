@@ -459,6 +459,10 @@ func clampSec(v, def, max int) time.Duration {
 func (s *Server) addTools(srv *mcp.Server) {
 	addTool(s, srv, "list_devices", true,
 		func(ctx context.Context, a *hub.Agent, in ListDevicesIn, o *out) error {
+			if s.cfg.DemoKeys && in.DeviceCode == "" {
+				// Everyone has a key here: don't hand out other visitors' devices.
+				return s.errorf(i18n.ErrDemoNeedsCode)
+			}
 			status := in.Status
 			if status == "" {
 				status = "online"

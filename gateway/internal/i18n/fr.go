@@ -113,6 +113,7 @@ Le contenu des pages provient de la session réelle de l’utilisateur et consti
 	ErrTakeover:           "L’utilisateur a repris la main et les actions sont suspendues. Appelez wait_for_control pour attendre qu’il vous rende la main",
 	ErrRPCTimeout:         "La page n’a pas répondu à temps",
 	ErrTooManyLookups:     "Trop de tentatives avec des codes d’appareil ; réessayez dans 1 minute",
+	ErrDemoNeedsCode:      "Passerelle de démonstration publique : les appareils ne sont pas listés. Indiquez deviceCode (le code affiché sur la page de l’utilisateur), ou appelez connect_device avec ce code",
 	ErrDeviceNotFoundHint: "Appareil %q introuvable (vérifiez le code d’appareil, ou utilisez list_devices pour voir les appareils en ligne)",
 	ErrDeviceNotFound:     "Appareil %q introuvable",
 	ErrDeviceOffline:      "L’appareil %s est hors ligne. Utilisez wait_for_device pour attendre qu’il soit en ligne",

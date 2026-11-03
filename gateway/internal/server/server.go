@@ -45,6 +45,9 @@ type Config struct {
 	// MCPRateLimit, if positive, caps MCP requests per client IP per minute
 	// (for a gateway whose API key is public, like a demo).
 	MCPRateLimit int
+	// DemoKeys runs a public demo: anyone can get a short-lived interact key
+	// of their own (POST /v1/demo/keys), and list_devices needs a device code.
+	DemoKeys bool
 	// Lang is the language of agent-facing text (MCP, page SDK errors) and
 	// the console's fallback (RWD_LANG; default English).
 	Lang    i18n.Lang
@@ -63,6 +66,8 @@ type Server struct {
 	loginLimit *limiter
 	pageLimit  *limiter
 	mcpLimit   *limiter // nil: unlimited
+	demoLimit  *limiter // demo keys per client IP
+	demoTotal  *limiter // demo keys in all
 	mcp        http.Handler
 	audit      chan store.AuditEvent
 	httpCodes  httpCounter
@@ -95,6 +100,9 @@ func New(ctx context.Context, cfg Config, st *store.Store, log *slog.Logger) (*S
 	if cfg.MCPRateLimit > 0 {
 		s.mcpLimit = newLimiter(cfg.MCPRateLimit, time.Minute)
 	}
+	if cfg.DemoKeys {
+		s.demoLimit, s.demoTotal = newLimiter(5, time.Hour), newLimiter(500, time.Hour)
+	}
 	s.mcp = s.mcpHandler()
 	return s, nil
 }
@@ -118,6 +126,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("OPTIONS /v1/presence", s.presence)
 	mux.Handle("/v1/mcp", s.mcp)
 	s.routes(mux)
+	if s.cfg.DemoKeys {
+		mux.HandleFunc("POST /v1/demo/keys", s.demoKey)
+		mux.HandleFunc("OPTIONS /v1/demo/keys", s.demoKey)
+	}
 	if s.cfg.DemoDir != "" {
 		mux.Handle("/demo/", http.StripPrefix("/demo/", http.FileServer(http.Dir(s.cfg.DemoDir))))
 	}
@@ -309,6 +321,34 @@ func (s *Server) presence(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, map[string]any{"deviceCode": code, "connect": connect})
+}
+
+// demoKey hands a visitor of a public demo an API key of their own, so every
+// visitor is a separate agent: approvals, reattach grants and device code
+// lockouts are per key. Interact level, valid for a day.
+func (s *Server) demoKey(w http.ResponseWriter, r *http.Request) {
+	h := w.Header()
+	h.Set("Access-Control-Allow-Origin", "*")
+	h.Set("Access-Control-Allow-Methods", "POST")
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	ip := s.clientIP(r)
+	if !s.demoLimit.allow(ip) || !s.demoTotal.allow("") {
+		h.Set("Retry-After", "3600")
+		s.fail(w, r, http.StatusTooManyRequests, "rate_limited", i18n.APITooManyRequests)
+		return
+	}
+	exp := time.Now().Add(24 * time.Hour).UnixMilli()
+	k, plain, err := s.store.CreateAPIKey(r.Context(), s.pepper, store.NewKey{Name: "Demo visitor", MaxLevel: store.LevelInteract, ExpiresAt: &exp})
+	if err != nil {
+		s.storeErr(w, r, err)
+		return
+	}
+	s.recordEvent(store.AuditEvent{ActorType: "visitor", ActorID: ip, ActorName: ip, Action: "key.create", Target: k.Prefix,
+		Result: "ok", Detail: map[string]any{"demo": true}})
+	writeJSON(w, map[string]any{"key": plain, "mcp": s.GatewayURL(r) + "/mcp", "expiresAt": exp})
 }
 
 // --- console SPA ---

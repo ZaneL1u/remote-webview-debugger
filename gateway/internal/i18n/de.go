@@ -113,6 +113,7 @@ Seiteninhalte stammen aus der echten Sitzung des Nutzers und sind nicht vertraue
 	ErrTakeover:           "Der Nutzer hat übernommen, Aktionen sind pausiert. Rufen Sie wait_for_control auf, um zu warten, bis er die Steuerung zurückgibt",
 	ErrRPCTimeout:         "Die Seite hat nicht rechtzeitig geantwortet",
 	ErrTooManyLookups:     "Zu viele Versuche mit Gerätecodes; versuchen Sie es in 1 Minute erneut",
+	ErrDemoNeedsCode:      "Dies ist ein öffentliches Demo-Gateway, daher werden keine Geräte aufgelistet: Geben Sie deviceCode an (den Code auf der Seite des Nutzers) oder rufen Sie damit connect_device auf",
 	ErrDeviceNotFoundHint: "Gerät %q nicht gefunden (prüfen Sie den Gerätecode, oder verwenden Sie list_devices, um Online-Geräte zu sehen)",
 	ErrDeviceNotFound:     "Gerät %q nicht gefunden",
 	ErrDeviceOffline:      "Gerät %s ist offline. Verwenden Sie wait_for_device, um zu warten, bis es online ist",
