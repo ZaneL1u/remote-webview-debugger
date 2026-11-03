@@ -355,6 +355,8 @@ export async function startGateway({ port = 0, hbMs = 25_000, log = false } = {}
     const url = new URL(req.url, 'http://localhost')
     const p = url.pathname
     if (p === '/v1/sdk.js' || p === '/v1/sdk.js.map') return sendFile(res, path.join(SDK_DIST, path.basename(p)))
+    // On-demand language packs, next to sdk.js like the real gateway's.
+    if (/^\/v1\/locales\/[A-Za-z-]+\.js$/.test(p)) return sendFile(res, path.join(SDK_DIST, 'locales', path.basename(p)))
     if (p === '/v1/healthz') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       return res.end(JSON.stringify({ ok: true, version: 'mock' }))

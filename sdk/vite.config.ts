@@ -4,10 +4,15 @@ import { defineConfig } from 'vite'
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 const pkg = JSON.parse(readFileSync(here('./package.json'), 'utf8'))
+// Language packs that load on demand (en and zh are bundled); see src/i18n.ts.
+const LOCALES = ['zh-TW', 'fr', 'es', 'ru', 'ar', 'ja', 'ko', 'de', 'pt']
 
 // dist/sdk.js: one minified IIFE, global `RemoteWebviewDebugger`, for a
 // <script> tag (CDN or the gateway's /v1/sdk.js). `vite build --mode esm` adds
-// dist/index.mjs, the same SDK as an ES module for bundlers. The agent engine
+// dist/index.mjs, the same SDK as an ES module for bundlers, with each
+// on-demand language pack as its own entry (dist/locales/<id>.mjs) that
+// index.mjs imports dynamically. scripts/locales.mjs adds the packs for the
+// <script> build (dist/locales/<id>.js). The agent engine
 // lives next to the vendored chobitsu (packages/chobitsu/src/engine) and is bundled
 // from source; its third-party imports resolve to this package's node_modules
 // so `npm ci` here is all a build needs.
@@ -18,6 +23,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@chobitsu': here('../packages/chobitsu/src'),
+      'rwd:locale-loader': here(mode === 'esm' ? './src/localeLoader.esm.ts' : './src/localeLoader.ts'),
       licia: here('./node_modules/licia'),
       'modern-screenshot': here('./node_modules/modern-screenshot'),
       axios: here('./src/stubs/axios.ts'),
@@ -30,10 +36,13 @@ export default defineConfig(({ mode }) => ({
     sourcemap: true,
     reportCompressedSize: true,
     lib: {
-      entry: here('./src/index.ts'),
+      entry:
+        mode === 'esm'
+          ? Object.fromEntries([['index', here('./src/index.ts')]].concat(LOCALES.map(id => [`locales/${id}`, here(`./src/locales/${id}.ts`)])))
+          : here('./src/index.ts'),
       name: 'RemoteWebviewDebugger',
       formats: mode === 'esm' ? ['es'] : ['iife'],
-      fileName: () => (mode === 'esm' ? 'index.mjs' : 'sdk.js'),
+      fileName: (_format, entry) => (mode === 'esm' ? `${entry}.mjs` : 'sdk.js'),
     },
     rolldownOptions: {
       // licia is CommonJS, one function per file; unused helpers pulled in by

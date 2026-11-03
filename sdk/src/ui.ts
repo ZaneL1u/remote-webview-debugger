@@ -1,5 +1,5 @@
 import { read, write } from './ids'
-import { uiText, type Lang, type UiText } from './i18n'
+import { htmlLang, type UiMessages } from './i18n'
 
 // The SDK's on-page UI, all inside one shadow root whose host is
 // `.__chobitsu-hide__` + aria-hidden and sits outside <body>: invisible to the
@@ -18,6 +18,13 @@ import { uiText, type Lang, type UiText } from './i18n'
 //   dialog    approval / confirmation (attach request, sensitive action);
 //             only trusted taps count, buttons arm after a short delay
 //   panel     the Remote Debugger tab inside eruda (its own shadow root; opt-in)
+//
+// Pages restyle it with the --rwd-* custom properties (VARS below; they
+// inherit into the shadow root from :root or #__rwd), run({ style }) which
+// sets the same properties on #__rwd, or #__rwd::part(...) for the parts
+// named in the markup (pill, window, bar, task, dialog, toast, button…).
+// Text comes from the language packs (i18n.ts); rtl languages mirror the
+// layout through :host([dir=rtl]).
 
 export type ControlState = 'none' | 'observe' | 'agent' | 'user'
 export type LinkView = 'connecting' | 'online' | 'offline'
@@ -39,12 +46,48 @@ export interface UiOptions {
   lockScreen: boolean
   /** auto: follow the page's background; system: prefers-color-scheme. */
   theme?: 'auto' | 'system' | 'light' | 'dark'
-  /** Language of all of our text. */
-  lang: Lang
+  /** Language of all of our text (a language pack id) and its direction. */
+  lang: string
+  dir: 'ltr' | 'rtl'
+  text: UiMessages
+  style?: StyleOptions
   onHelp(on: boolean): void
   onControl(action: 'takeover' | 'handback' | 'end'): void
   /** The user changed a setting in our window (auto-approve, lock). */
   onSettings(): void
+}
+
+/**
+ * run({ style }): each field sets one --rwd-* custom property on #__rwd (see
+ * VARS). Colors take any CSS color; lengths a number of px or a CSS length.
+ */
+export interface StyleOptions {
+  /** --rwd-accent-rgb: buttons, switches, the agent's pointer and the edge glow. */
+  accent?: string
+  /** --rwd-danger-rgb: the End button. */
+  danger?: string
+  /** --rwd-warning-rgb: help, the user-in-control state. */
+  warning?: string
+  /** --rwd-success-rgb: online dot, copied. */
+  success?: string
+  /** --rwd-font */
+  font?: string
+  /** --rwd-font-mono: device code, tags. */
+  monoFont?: string
+  /** --rwd-radius: floating window (dialog +2px, task card −2px, smaller parts follow). */
+  radius?: number | string
+  /** --rwd-button-radius: pill-shaped buttons and toasts. */
+  buttonRadius?: number | string
+  /** --rwd-z-index of the whole UI (default 2147483647). */
+  zIndex?: number
+  /** --rwd-bar-bottom: bottom bar distance from the bottom safe area (default 14px). */
+  barBottom?: number | string
+  /** --rwd-task-top: task card distance from the top safe area (default 10px). */
+  taskTop?: number | string
+  /** --rwd-toast-bottom: toast distance from the bottom safe area (default 84px). */
+  toastBottom?: number | string
+  /** Where the idle pill starts until the user drags it: the screen edge and the height (0 top … 1 bottom). */
+  pill?: { side?: 'left' | 'right'; top?: number }
 }
 
 export type AutoLevel = 'observe' | 'interact' | 'advanced'
@@ -78,7 +121,26 @@ const EDGE = 8
 const ARM_MS = 400
 const FONT = `-apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif`
 const MONO = `ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace`
-const ACCENT = '#3b82f6'
+
+// The public custom properties and their defaults, mapped onto the names the
+// stylesheets use. Colors are r, g, b triplets so translucent shades follow.
+const VARS = `
+  --accent-rgb: var(--rwd-accent-rgb, 59, 130, 246); --accent: rgb(var(--accent-rgb));
+  --danger-rgb: var(--rwd-danger-rgb, 239, 68, 68);
+  --warning-rgb: var(--rwd-warning-rgb, 245, 158, 11);
+  --success-rgb: var(--rwd-success-rgb, 34, 197, 94);
+  --font: var(--rwd-font, ${FONT}); --mono: var(--rwd-font-mono, ${MONO});
+  --radius: var(--rwd-radius, 18px); --button-radius: var(--rwd-button-radius, 999px);
+`
+
+// Han characters take their shapes from the first CJK font that has them: one
+// per language, so Japanese and Traditional Chinese don't render in a
+// Simplified Chinese font.
+const CJK_FONTS = `
+:host(:lang(zh-TW)) { --font: var(--rwd-font, -apple-system, BlinkMacSystemFont, "PingFang TC", "Helvetica Neue", "Microsoft JhengHei", sans-serif); }
+:host(:lang(ja)) { --font: var(--rwd-font, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Helvetica Neue", "Yu Gothic UI", Meiryo, sans-serif); }
+:host(:lang(ko)) { --font: var(--rwd-font, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Helvetica Neue", "Malgun Gothic", sans-serif); }
+`
 
 // The agent's pointer: a rounded navigation arrow, black with a white rim,
 // tip at (0, 0).
@@ -93,9 +155,10 @@ const CHECK = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8.4 6.8 1
 
 const CSS = `
 :host {
-  all: initial;
+  all: initial;${VARS}
   --ink: 255, 255, 255; --paper: 12, 14, 20; --fg: #fff; --solid-bg: #fff; --solid-fg: #0b0d12; --track: rgba(var(--ink), .2);
 }
+${CJK_FONTS}
 /* Light pages get light glass (data-theme is set from the page, see Ui.theme). */
 :host([data-theme=light]) {
   --ink: 11, 13, 18; --paper: 255, 255, 255; --fg: #0b0d12; --solid-bg: #0b0d12; --solid-fg: #fff; --track: rgba(11, 13, 18, .16);
@@ -108,7 +171,7 @@ const CSS = `
   -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
 }
 .win.glass, .dlg.glass, .task.glass { background: rgba(var(--paper), .96); }
-.pill, .bar, .btn { font: 500 12px/16px ${FONT}; }
+.pill, .bar, .btn { font: 500 12px/16px var(--font); }
 
 /* idle floating window: a translucent pill that expands into a card */
 .pill {
@@ -130,8 +193,8 @@ const CSS = `
 .logo .dot { position: absolute; left: 5px; top: 5px; }
 .brand { font-weight: 650; letter-spacing: .2px; }
 .win {
-  position: fixed; z-index: 3; width: min(calc(100vw - ${EDGE * 2}px), 300px); padding: 14px; border-radius: 18px;
-  font: 13px/18px ${FONT}; pointer-events: auto;
+  position: fixed; z-index: 3; width: min(calc(100vw - ${EDGE * 2}px), 300px); padding: 14px; border-radius: var(--radius);
+  font: 13px/18px var(--font); pointer-events: auto;
   opacity: 0; visibility: hidden; transform: scale(.92) translateY(6px);
   transition: opacity .2s ease, transform .24s cubic-bezier(.2, .9, .2, 1), visibility 0s linear .24s;
 }
@@ -139,25 +202,25 @@ const CSS = `
 .win .head { display: flex; align-items: center; gap: 8px; }
 .win .name { font-weight: 700; font-size: 14px; }
 .win .link { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(var(--ink), .6); }
-.win .k { margin-top: 14px; font: 600 10px/14px ${MONO}; letter-spacing: 1px; color: rgba(var(--ink), .45); }
+.win .k { margin-top: 14px; font: 600 10px/14px var(--mono); letter-spacing: 1px; text-transform: uppercase; color: rgba(var(--ink), .45); }
 .win .codebox { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.win .big { font: 700 24px/30px ${MONO}; letter-spacing: 1.5px; }
+.win .big { font: 700 24px/30px var(--mono); letter-spacing: 1.5px; }
 .win .note { margin-top: 10px; font-size: 12px; line-height: 17px; color: rgba(var(--ink), .55); }
 .win .row { display: flex; gap: 8px; margin-top: 14px; }
 .win .row .btn { flex: 1; text-align: center; }
-.code { font: 500 12px/16px ${MONO}; letter-spacing: .5px; color: rgba(var(--ink), .7); }
-.pill { border-radius: 16px; padding: 7px 12px 7px 9px; gap: 9px; }
+.code { font: 500 12px/16px var(--mono); letter-spacing: .5px; color: rgba(var(--ink), .7); }
+.pill { border-radius: calc(var(--radius) - 2px); padding: 7px 12px 7px 9px; gap: 9px; }
 .pill .lines { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .pill .brand { font-size: 12px; line-height: 16px; cursor: pointer; }
 .pill .copy, .pill .logo { cursor: pointer; }
 .pill .copy {
   display: inline-flex; align-items: center; gap: 5px; margin: 0 -4px; padding: 1px 4px; border-radius: 6px;
-  font: 600 12px/16px ${MONO}; letter-spacing: .6px; color: rgba(var(--ink), .78); transition: background .15s ease, color .15s ease;
+  font: 600 12px/16px var(--mono); letter-spacing: .6px; color: rgba(var(--ink), .78); transition: background .15s ease, color .15s ease;
 }
 .pill .copy:active { background: rgba(var(--ink), .14); }
 .pill .copy svg { width: 12px; height: 12px; opacity: .7; }
-.pill .copy.done { color: #4ade80; }
-.win .opts { margin-top: 12px; border-radius: 10px; background: rgba(var(--ink), .05); box-shadow: inset 0 0 0 1px rgba(var(--ink), .08); }
+.pill .copy.done { color: rgb(var(--success-rgb)); }
+.win .opts { margin-top: 12px; border-radius: calc(var(--radius) - 8px); background: rgba(var(--ink), .05); box-shadow: inset 0 0 0 1px rgba(var(--ink), .08); }
 .win .opt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .win .opt + .opt { border-top: 1px solid rgba(var(--ink), .08); }
 .win .opt .t { flex: 1; min-width: 0; font-size: 12px; line-height: 16px; font-weight: 600; }
@@ -167,11 +230,11 @@ const CSS = `
   content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .22s cubic-bezier(.2, .9, .2, 1);
 }
-.sw.on { background: ${ACCENT}; }
+.sw.on { background: var(--accent); }
 .sw.on::after { transform: translateX(12px); }
 .toast {
-  position: fixed; z-index: 4; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
-  max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 999px; font: 600 13px/18px ${FONT};
+  position: fixed; z-index: 4; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + var(--rwd-toast-bottom, 84px));
+  max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: var(--button-radius); font: 600 13px/18px var(--font);
   pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   animation: rwd-toast 3.2s cubic-bezier(.2, .9, .2, 1) both;
 }
@@ -182,33 +245,33 @@ const CSS = `
 }
 
 .dot { position: relative; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #6b7280; }
-.online .dot { background: #22c55e; }
-.observe .dot { background: ${ACCENT}; }
-.agent .dot { background: ${ACCENT}; }
+.online .dot { background: rgb(var(--success-rgb)); }
+.observe .dot { background: var(--accent); }
+.agent .dot { background: var(--accent); }
 .observe .dot::after, .agent .dot::after, .task .now .mark::after {
   content: ""; position: absolute; inset: -4px; border-radius: 50%;
-  border: 2px solid ${ACCENT}; animation: rwd-ping 1.4s cubic-bezier(.2, .6, .3, 1) infinite;
+  border: 2px solid var(--accent); animation: rwd-ping 1.4s cubic-bezier(.2, .6, .3, 1) infinite;
 }
-.user .dot { background: #f59e0b; }
+.user .dot { background: rgb(var(--warning-rgb)); }
 
 .btn {
-  flex: none; margin: 0; padding: 7px 14px; border: 0; border-radius: 999px;
+  flex: none; margin: 0; padding: 7px 14px; border: 0; border-radius: var(--button-radius);
   font-weight: 600; letter-spacing: .2px; cursor: pointer; pointer-events: auto;
   -webkit-tap-highlight-color: transparent; transition: transform .12s ease, background .15s ease;
 }
 .btn:active { transform: scale(.96); }
 .btn.light { background: var(--solid-bg); color: var(--solid-fg); }
-.btn.accent { background: ${ACCENT}; color: #fff; }
+.btn.accent { background: var(--accent); color: #fff; }
 .btn.ghost { background: rgba(var(--ink), .08); color: rgba(var(--ink), .9); box-shadow: inset 0 0 0 1px rgba(var(--ink), .14); }
-.btn.stop { background: #ef4444; color: #fff; box-shadow: 0 6px 16px rgba(239, 68, 68, .35); }
-.btn.help { background: #f59e0b; color: #0b0d12; padding: 4px 10px; }
-.btn.help.on { background: rgba(245, 158, 11, .18); color: #fcd34d; }
+.btn.stop { background: rgb(var(--danger-rgb)); color: #fff; box-shadow: 0 6px 16px rgba(var(--danger-rgb), .35); }
+.btn.help { background: rgb(var(--warning-rgb)); color: #0b0d12; padding: 4px 10px; }
+.btn.help.on { background: rgba(var(--warning-rgb), .18); color: #fcd34d; }
 
 /* bottom bar while an agent is attached */
 .bar {
   position: fixed; z-index: 3; left: 50%; transform: translateX(-50%);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
-  display: flex; align-items: center; gap: 12px; padding: 7px 7px 7px 18px; border-radius: 999px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--rwd-bar-bottom, 14px));
+  display: flex; align-items: center; gap: 12px; padding: 7px 7px 7px 18px; border-radius: var(--button-radius);
   white-space: nowrap; pointer-events: none; max-width: calc(100vw - 24px);
   user-select: none; -webkit-user-select: none;
   opacity: 0; visibility: hidden; transform: translate(-50%, 18px) scale(.96);
@@ -219,11 +282,16 @@ const CSS = `
   transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1);
 }
 .bar .status { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 14px; font-weight: 650; letter-spacing: .3px; }
-.bar .text { display: flex; flex-direction: column; min-width: 0; }
+.bar .text { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .bar .head { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-.bar .since { font-size: 12px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums; color: rgba(var(--ink), .55); }
-/* On a very narrow screen the label gives way, never the buttons. */
-.bar .label { overflow: hidden; text-overflow: ellipsis; }
+.bar .since { overflow: hidden; text-overflow: ellipsis; font-size: 12px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums; color: rgba(var(--ink), .55); }
+/* The label stays whole (the agent's name gives way); when it can't fit next to
+   the buttons (a long language, a narrow phone) the buttons move below it. */
+.bar .label { flex: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.bar.stack { flex-wrap: wrap; justify-content: center; row-gap: 8px; width: calc(100vw - 24px); padding: 10px 7px 7px; border-radius: min(var(--button-radius), 26px); }
+.bar.stack .status { flex: 1 0 100%; justify-content: center; }
+.bar.stack .acts { flex: 1 0 100%; }
+.bar.stack .acts .btn { flex: 1; }
 .bar .who { color: rgba(var(--ink), .5); font-weight: 500; overflow: hidden; text-overflow: ellipsis; max-width: 96px; }
 .bar .acts { display: flex; gap: 8px; }
 .bar .btn { min-width: 78px; min-height: 46px; padding: 12px 22px; font-size: 15px; line-height: 20px; font-weight: 700; text-align: center; }
@@ -231,9 +299,9 @@ const CSS = `
 /* task card */
 .task {
   position: fixed; z-index: 3; left: 50%; transform: translateX(-50%);
-  top: calc(env(safe-area-inset-top, 0px) + 10px);
-  width: min(calc(100vw - 24px), 380px); padding: 12px 14px 12px; border-radius: 16px;
-  pointer-events: none; cursor: pointer; font: 13px/18px ${FONT};
+  top: calc(env(safe-area-inset-top, 0px) + var(--rwd-task-top, 10px));
+  width: min(calc(100vw - 24px), 380px); padding: 12px 14px 12px; border-radius: calc(var(--radius) - 2px);
+  pointer-events: none; cursor: pointer; font: 13px/18px var(--font);
   user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
   opacity: 0; visibility: hidden; transform: translate(-50%, -14px) scale(.97);
   transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1), visibility 0s linear .3s;
@@ -246,14 +314,14 @@ const CSS = `
 .task .mark { transition: background .25s ease, box-shadow .25s ease; }
 .task .top { display: flex; align-items: center; gap: 8px; }
 .task .tag {
-  flex: none; padding: 2px 6px; border-radius: 5px; font: 600 10px/14px ${MONO}; letter-spacing: 1px;
-  color: ${ACCENT}; background: rgba(59, 130, 246, .14); box-shadow: inset 0 0 0 1px rgba(59, 130, 246, .35);
+  flex: none; padding: 2px 6px; border-radius: 5px; font: 600 10px/14px var(--mono); letter-spacing: 1px;
+  color: var(--accent); background: rgba(var(--accent-rgb), .14); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), .35);
 }
 .task .agent { flex: 1; min-width: 0; color: rgba(var(--ink), .5); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.task .count { flex: none; font: 600 12px/16px ${MONO}; color: rgba(var(--ink), .6); }
+.task .count { flex: none; font: 600 12px/16px var(--mono); color: rgba(var(--ink), .6); }
 .task .title { margin-top: 8px; font-size: 16px; line-height: 22px; font-weight: 700; letter-spacing: .2px; }
 .task .track { margin-top: 8px; height: 3px; border-radius: 3px; background: rgba(var(--ink), .1); overflow: hidden; }
-.task .fill { height: 100%; width: 0; background: ${ACCENT}; box-shadow: 0 0 8px ${ACCENT}; transition: width .35s cubic-bezier(.2, .9, .2, 1); }
+.task .fill { height: 100%; width: 0; background: var(--accent); box-shadow: 0 0 8px var(--accent); transition: width .35s cubic-bezier(.2, .9, .2, 1); }
 .task ol {
   list-style: none; margin: 10px -6px 0 0; padding: 0 6px 0 0;
   max-height: min(26vh, 134px); overflow-y: auto; overscroll-behavior: contain;
@@ -267,11 +335,11 @@ const CSS = `
   box-shadow: inset 0 0 0 1.5px rgba(var(--ink), .25);
 }
 .task .done { color: rgba(var(--ink), .62); }
-.task .done .mark { background: ${ACCENT}; box-shadow: none; color: #fff; }
+.task .done .mark { background: var(--accent); box-shadow: none; color: #fff; }
 .task .done .mark svg { width: 16px; height: 16px; display: block; }
 .task .now { color: var(--fg); font-weight: 600; }
-.task .now .mark { box-shadow: inset 0 0 0 2px ${ACCENT}; }
-.task .now .mark::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: ${ACCENT}; }
+.task .now .mark { box-shadow: inset 0 0 0 2px var(--accent); }
+.task .now .mark::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--accent); }
 .task.min ol { display: none; }
 .task.min .title { font-size: 14px; line-height: 20px; }
 
@@ -286,12 +354,12 @@ const CSS = `
 .observe .glow, .agent .glow {
   display: block;
   box-shadow:
-    inset 0 0 0 5px rgba(59, 130, 246, .95),
-    inset 0 0 36px 14px rgba(59, 130, 246, .8),
-    inset 0 0 140px 56px rgba(59, 130, 246, .42);
+    inset 0 0 0 5px rgba(var(--accent-rgb), .95),
+    inset 0 0 36px 14px rgba(var(--accent-rgb), .8),
+    inset 0 0 140px 56px rgba(var(--accent-rgb), .42);
   animation: rwd-glow 1.9s ease-in-out infinite;
 }
-.user .glow { display: block; box-shadow: inset 0 0 0 3px rgba(245, 158, 11, .9), inset 0 0 18px 4px rgba(245, 158, 11, .3); }
+.user .glow { display: block; box-shadow: inset 0 0 0 3px rgba(var(--warning-rgb), .9), inset 0 0 18px 4px rgba(var(--warning-rgb), .3); }
 
 .cursor {
   position: fixed; z-index: 3; top: 0; left: 0; width: 0; height: 0;
@@ -300,18 +368,18 @@ const CSS = `
 .cursor.on { opacity: 1; }
 .cursor .arrow {
   position: absolute; left: -2px; top: -2px; width: 26px; height: 26px; overflow: visible;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)) drop-shadow(0 0 12px rgba(59, 130, 246, .45));
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)) drop-shadow(0 0 12px rgba(var(--accent-rgb), .45));
   transform-origin: 2px 2px; transition: transform .09s ease-out;
 }
 .cursor.press .arrow { transform: scale(.82); }
 .ripple {
   position: fixed; z-index: 3; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%;
-  border: 2px solid ${ACCENT}; background: rgba(59, 130, 246, .16); pointer-events: none;
+  border: 2px solid var(--accent); background: rgba(var(--accent-rgb), .16); pointer-events: none;
   animation: rwd-ripple .45s cubic-bezier(.2, .7, .3, 1) forwards;
 }
 .hl {
   position: fixed; z-index: 2; pointer-events: none; border-radius: 6px;
-  outline: 2px solid rgba(59, 130, 246, .9); outline-offset: 2px; background: rgba(59, 130, 246, .08);
+  outline: 2px solid rgba(var(--accent-rgb), .9); outline-offset: 2px; background: rgba(var(--accent-rgb), .08);
   transition: opacity .25s ease;
 }
 
@@ -324,14 +392,14 @@ const CSS = `
 }
 .scrim.out { animation: rwd-fade-out .18s ease both; pointer-events: none; }
 .dlg {
-  width: 100%; max-width: 330px; padding: 18px 16px 14px; border-radius: 20px;
-  font: 14px/20px ${FONT}; user-select: none; -webkit-user-select: none;
+  width: 100%; max-width: 330px; padding: 18px 16px 14px; border-radius: calc(var(--radius) + 2px);
+  font: 14px/20px var(--font); user-select: none; -webkit-user-select: none;
   animation: rwd-pop .26s cubic-bezier(.2, .9, .2, 1) both;
 }
 .scrim.out .dlg { animation: rwd-pop-out .18s ease both; }
 .dlg .tag {
-  display: inline-block; padding: 2px 6px; border-radius: 5px; font: 600 10px/14px ${MONO}; letter-spacing: 1px;
-  color: ${ACCENT}; background: rgba(59, 130, 246, .14); box-shadow: inset 0 0 0 1px rgba(59, 130, 246, .35);
+  display: inline-block; padding: 2px 6px; border-radius: 5px; font: 600 10px/14px var(--mono); letter-spacing: 1px;
+  color: var(--accent); background: rgba(var(--accent-rgb), .14); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), .35);
 }
 .dlg h3 { margin: 10px 0 6px; font-size: 17px; line-height: 24px; font-weight: 700; }
 .dlg p { margin: 0; word-break: break-word; color: rgba(var(--ink), .78); }
@@ -343,14 +411,14 @@ const CSS = `
 }
 .dlg button:active { transform: scale(.97); }
 .choice {
-  padding: 10px 12px; border: 0; border-radius: 12px; text-align: left; color: rgba(var(--ink), .85);
+  padding: 10px 12px; border: 0; border-radius: calc(var(--radius) - 6px); text-align: left; color: rgba(var(--ink), .85);
   background: rgba(var(--ink), .06); box-shadow: inset 0 0 0 1px rgba(var(--ink), .12);
 }
-.choice.on { color: var(--fg); background: rgba(59, 130, 246, .16); box-shadow: inset 0 0 0 1.5px ${ACCENT}; }
+.choice.on { color: var(--fg); background: rgba(var(--accent-rgb), .16); box-shadow: inset 0 0 0 1.5px var(--accent); }
 .dlg .acts { display: flex; gap: 8px; margin-top: 16px; }
-.dlg .acts button { flex: 1; padding: 11px; border: 0; border-radius: 12px; font-weight: 650; }
+.dlg .acts button { flex: 1; padding: 11px; border: 0; border-radius: calc(var(--radius) - 6px); font-weight: 650; }
 .dlg .acts .deny { background: rgba(var(--ink), .08); color: rgba(var(--ink), .9); box-shadow: inset 0 0 0 1px rgba(var(--ink), .14); }
-.dlg .acts .allow { background: ${ACCENT}; color: #fff; box-shadow: 0 6px 18px rgba(59, 130, 246, .4); }
+.dlg .acts .allow { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(var(--accent-rgb), .4); }
 .dlg button[disabled] { opacity: .45; }
 
 @keyframes rwd-ping { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
@@ -360,6 +428,21 @@ const CSS = `
 @keyframes rwd-fade-out { from { opacity: 1; } to { opacity: 0; } }
 @keyframes rwd-pop { from { opacity: 0; transform: translateY(10px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes rwd-pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(.97); } }
+/* Right-to-left languages: mirror what is not symmetric. The pill and the
+   window stay where the user put them (they are placed in JS). */
+:host([dir=rtl]) .pill { padding: 7px 9px 7px 12px; }
+:host([dir=rtl]) .win .link { margin-left: 0; margin-right: auto; }
+:host([dir=rtl]) .bar { padding: 7px 18px 7px 7px; }
+:host([dir=rtl]) .task ol { margin: 10px 0 0 -6px; padding: 0 0 0 6px; }
+:host([dir=rtl]) .choice { text-align: right; }
+:host([dir=rtl]) .sw::after { left: auto; right: 2px; }
+:host([dir=rtl]) .sw.on::after { transform: translateX(-12px); }
+/* Arabic script joins its letters: no letter spacing, and no monospace font for the label. */
+:host([dir=rtl]) .win .k { font-family: var(--font); letter-spacing: 0; }
+:host([dir=rtl]) .btn, :host([dir=rtl]) .bar .status { letter-spacing: 0; }
+/* Device codes read left to right in any language. */
+.ltr { direction: ltr; unicode-bidi: isolate; }
+
 @media (prefers-reduced-motion: reduce) {
   .observe .glow, .agent .glow, .observe .dot::after, .agent .dot::after, .task .now .mark::after { animation: none; }
   .observe .glow, .agent .glow { opacity: .9; }
@@ -369,38 +452,41 @@ const CSS = `
 
 // The eruda tab. Colors follow eruda's light / dark theme through currentColor.
 const PANEL_CSS = `
-:host { all: initial; display: block; color: inherit; }
+:host { all: initial; display: block; color: inherit;${VARS}}
 * { box-sizing: border-box; }
-.panel { padding: 14px; font: 13px/18px ${FONT}; color: inherit; }
+.panel { padding: 14px; font: 13px/18px var(--font); color: inherit; }
 .head { display: flex; align-items: center; gap: 8px; }
 .logo { position: relative; width: 22px; height: 22px; border-radius: 6px; flex: none; background: #0b0d12; }
-.logo::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: ${ACCENT}; }
+.logo::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--accent); }
 .name { font-weight: 600; font-size: 14px; }
 .status { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; opacity: .8; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: #8e8e93; }
-.online .dot { background: #22c55e; }
-.observe .dot, .agent .dot { background: ${ACCENT}; }
-.user .dot { background: #f59e0b; }
+.online .dot { background: rgb(var(--success-rgb)); }
+.observe .dot, .agent .dot { background: var(--accent); }
+.user .dot { background: rgb(var(--warning-rgb)); }
 .card { margin-top: 12px; padding: 12px; border-radius: 10px;
   border: 1px solid rgba(127, 127, 127, .25); background: rgba(127, 127, 127, .08); }
 .k { font-size: 12px; opacity: .65; }
 .code { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.code b { font: 600 22px/28px ${MONO}; letter-spacing: 1px; }
+.code b { font: 600 22px/28px var(--mono); letter-spacing: 1px; }
 .state { margin-top: 10px; font-size: 13px; }
 .hint { margin-top: 8px; font-size: 12px; opacity: .65; }
 .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-button { margin: 0; padding: 7px 14px; border: 0; border-radius: 8px; font: 600 13px/18px ${FONT};
+button { margin: 0; padding: 7px 14px; border: 0; border-radius: 8px; font: 600 13px/18px var(--font);
   cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.primary { background: ${ACCENT}; color: #fff; }
+.primary { background: var(--accent); color: #fff; }
 .ghost { background: rgba(127, 127, 127, .16); color: inherit; }
-.warn { background: #f59e0b; color: #0b0d12; }
+.warn { background: rgb(var(--warning-rgb)); color: #0b0d12; }
 .small { padding: 4px 10px; font-size: 12px; }
+${CJK_FONTS}
+:host([dir=rtl]) .status { margin-left: 0; margin-right: auto; }
+.ltr { direction: ltr; unicode-bidi: isolate; }
 `
 
 export class Ui {
   readonly host: HTMLElement
   /** Our text, in the user's language. */
-  readonly t: UiText
+  t: UiMessages
   private root: ShadowRoot | HTMLElement
   private frame: HTMLElement
   private pill: HTMLElement
@@ -428,14 +514,16 @@ export class Ui {
   private dialogs: HTMLElement[] = []
 
   constructor(private opts: UiOptions) {
-    this.t = uiText(opts.lang)
+    this.t = opts.text
     const host = document.createElement('div')
     host.id = '__rwd'
     host.className = '__chobitsu-hide__'
     host.setAttribute('aria-hidden', 'true')
-    host.setAttribute('lang', opts.lang === 'zh' ? 'zh-CN' : 'en')
+    host.setAttribute('lang', htmlLang(opts.lang))
+    host.setAttribute('dir', opts.dir)
     host.style.cssText =
-      'all:initial;position:fixed;top:0;left:0;width:0;height:0;overflow:visible;z-index:2147483647;pointer-events:none;'
+      'all:initial;position:fixed;top:0;left:0;width:0;height:0;overflow:visible;z-index:var(--rwd-z-index,2147483647);pointer-events:none;'
+    applyStyle(host, opts.style)
     this.host = host
     this.root = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host
 
@@ -443,11 +531,11 @@ export class Ui {
     style.textContent = CSS
     this.frame = document.createElement('div')
     this.frame.innerHTML =
-      '<div class="overlay"></div><div class="glow"></div>' +
-      '<div class="pill" data-action="toggle" role="status"></div><div class="win glass" role="dialog"></div>' +
-      '<div class="bar glass" role="status"></div>' +
-      '<div class="task glass" data-action="task" role="status"></div>' +
-      `<div class="cursor">${ARROW}</div>`
+      '<div class="overlay" part="overlay"></div><div class="glow" part="glow"></div>' +
+      '<div class="pill" part="pill" data-action="toggle" role="status"></div><div class="win glass" part="window" role="dialog"></div>' +
+      '<div class="bar glass" part="bar" role="status"></div>' +
+      '<div class="task glass" part="task" data-action="task" role="status"></div>' +
+      `<div class="cursor" part="cursor">${ARROW}</div>`
     this.pill = this.frame.querySelector('.pill') as HTMLElement
     this.win = this.frame.querySelector('.win') as HTMLElement
     this.bar = this.frame.querySelector('.bar') as HTMLElement
@@ -470,6 +558,23 @@ export class Ui {
     this.pill.addEventListener('click', e => this.onClick(e))
     this.bindDrag()
     window.addEventListener('resize', () => this.place())
+    this.render()
+  }
+
+  /** Switch language: the next render uses the new text and direction. */
+  setText(text: UiMessages, lang: string, dir: 'ltr' | 'rtl') {
+    this.t = text
+    this.opts.lang = lang
+    this.opts.dir = dir
+    this.host.setAttribute('lang', htmlLang(lang))
+    this.host.setAttribute('dir', dir)
+    if (this.panel) {
+      const host = (this.panel.getRootNode() as ShadowRoot).host
+      if (host) {
+        host.setAttribute('lang', htmlLang(lang))
+        host.setAttribute('dir', dir)
+      }
+    }
     this.render()
   }
 
@@ -519,6 +624,7 @@ export class Ui {
   toast(text: string) {
     const t = document.createElement('div')
     t.className = 'toast glass'
+    t.setAttribute('part', 'toast')
     t.textContent = text
     this.frame.appendChild(t)
     setTimeout(() => t.remove(), 3300)
@@ -538,6 +644,9 @@ export class Ui {
   dock(container: HTMLElement) {
     const host = document.createElement('div')
     host.className = '__chobitsu-hide__'
+    host.setAttribute('lang', htmlLang(this.opts.lang))
+    host.setAttribute('dir', this.opts.dir)
+    applyStyle(host, this.opts.style)
     const root = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host
     const style = document.createElement('style')
     style.textContent = PANEL_CSS
@@ -567,6 +676,7 @@ export class Ui {
     const box = document.createElement('div')
     box.className = 'dlg glass'
     box.setAttribute('role', 'dialog')
+    box.setAttribute('part', 'dialog')
     scrim.appendChild(box)
     const el = (tag: string, cls: string, text: string, parent: HTMLElement = box) => {
       const node = document.createElement(tag)
@@ -597,6 +707,7 @@ export class Ui {
     const buttons = [deny, allow].concat(choiceButtons as HTMLButtonElement[])
     for (const b of buttons) {
       b.type = 'button'
+      b.setAttribute('part', 'button')
       b.disabled = true
     }
     const paint = () => {
@@ -767,6 +878,7 @@ export class Ui {
       if (action) {
         el.setAttribute('data-action', action)
         ;(el as HTMLButtonElement).type = 'button'
+        if (tag === 'button') el.setAttribute('part', 'button')
         // A listener on the element itself: touch target adjustment (Android)
         // and iOS click synthesis only treat such elements as tap targets.
         el.addEventListener('click', this.onClickBound)
@@ -795,7 +907,9 @@ export class Ui {
     make('span', 'brand', BRAND, lines, 'toggle')
     if (this.code) {
       // Tap the code to copy it; anywhere else on the pill opens the card.
-      const copy = make('span', 'copy', this.help ? `${this.code} · ${t.helpPending}` : this.code, lines, 'copy')
+      const copy = make('span', 'copy', '', lines, 'copy')
+      make('span', 'ltr', this.code, copy)
+      if (this.help) copy.appendChild(document.createTextNode(` · ${t.helpPending}`))
       copy.insertAdjacentHTML('beforeend', COPY_ICON)
     } else {
       make('span', 'code', this.link === 'online' ? '' : t.connecting, lines)
@@ -812,9 +926,9 @@ export class Ui {
     const link = make('span', 'link', '', head)
     make('span', 'dot', '', link)
     make('span', '', t.link[this.link], link)
-    make('div', 'k', 'DEVICE CODE', win)
+    make('div', 'k', t.deviceCode, win)
     const codebox = make('div', 'codebox', '', win)
-    make('span', 'big', this.code || '—', codebox)
+    make('span', 'big ltr', this.code || '—', codebox)
     if (this.code) make('button', 'btn ghost', t.copy, codebox, 'copy')
     make(
       'div',
@@ -953,7 +1067,7 @@ export class Ui {
         edge()
         list.addEventListener('scroll', edge, { passive: true })
       }
-      if (min && current < total) make('div', 'agent', `→ ${task.steps[current]}`, el)
+      if (min && current < total) make('div', 'agent', `${this.opts.dir === 'rtl' ? '←' : '→'} ${task.steps[current]}`, el)
     }
   }
 
@@ -976,7 +1090,7 @@ export class Ui {
     const card = make('div', 'card', '', panel)
     make('div', 'k', t.deviceCode, card)
     const code = make('div', 'code', '', card)
-    make('b', '', this.code || '—', code)
+    make('b', 'ltr', this.code || '—', code)
     if (this.code) make('button', 'ghost small', t.copy, code, 'copy')
     make('div', 'state', this.task && this.control !== 'none' ? `${t.state[this.control]} · ${this.task.title}` : t.state[this.control], card)
     make('div', 'hint', t.noteShare, card)
@@ -1066,6 +1180,14 @@ export class Ui {
     })
   }
 
+  /** Bottom bar: stack the buttons below the status when its label would be cut off. */
+  private fitBar() {
+    const bar = this.bar
+    bar.classList.remove('stack')
+    const label = bar.querySelector('.label') as HTMLElement | null
+    if (label && label.scrollWidth > label.clientWidth + 1) bar.classList.add('stack')
+  }
+
   private savedPosition(): { side: 'left' | 'right'; top: number } {
     try {
       const saved = JSON.parse(read('localStorage', POS_KEY) || 'null')
@@ -1075,12 +1197,16 @@ export class Ui {
     } catch (e) {
       // Ignore.
     }
-    return { side: 'right', top: 0.62 }
+    const pill = this.opts.style && this.opts.style.pill
+    const side = pill && (pill.side === 'left' || pill.side === 'right') ? pill.side : this.opts.dir === 'rtl' ? 'left' : 'right'
+    const top = pill && typeof pill.top === 'number' && pill.top >= 0 && pill.top <= 1 ? pill.top : 0.62
+    return { side, top }
   }
 
-  /** Put the idle pill at its saved edge and height, kept inside the viewport. */
+  /** Put the idle pill at its saved edge and height, kept inside the viewport; fit the bottom bar. */
   private place() {
     if (!this.host.isConnected) return
+    this.fitBar()
     const { side, top } = this.savedPosition()
     const w = this.pill.offsetWidth
     const h = this.pill.offsetHeight
@@ -1193,4 +1319,59 @@ function copyFallback(text: string) {
     // Nothing more to try.
   }
   area.remove()
+}
+
+/** r, g, b of any CSS color ('#e11d48', 'tomato', 'rgb(…)', '225, 29, 72'); null if it isn't one. */
+function rgbTriplet(color: string): string | null {
+  const v = color.trim()
+  if (/^\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}$/.test(v)) return v
+  try {
+    const ctx = document.createElement('canvas').getContext('2d')
+    if (!ctx) return null
+    // The canvas keeps its previous color for an invalid one: try two.
+    ctx.fillStyle = '#000'
+    ctx.fillStyle = v
+    const a = String(ctx.fillStyle)
+    ctx.fillStyle = '#fff'
+    ctx.fillStyle = v
+    if (String(ctx.fillStyle) !== a) return null
+    const hex = a.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
+    if (hex) return [hex[1], hex[2], hex[3]].map(h => parseInt(h, 16)).join(', ')
+    const rgb = a.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    return rgb ? `${rgb[1]}, ${rgb[2]}, ${rgb[3]}` : null
+  } catch (e) {
+    return null
+  }
+}
+
+function length(v: number | string) {
+  return typeof v === 'number' ? `${v}px` : v
+}
+
+/** run({ style }) as --rwd-* properties on a host element. */
+function applyStyle(host: HTMLElement, style: StyleOptions | undefined) {
+  if (!style) return
+  const set = (name: string, value: string | null) => {
+    if (value) host.style.setProperty(name, value)
+  }
+  const color = (name: string, v: unknown) => {
+    if (typeof v === 'string') set(name, rgbTriplet(v))
+  }
+  color('--rwd-accent-rgb', style.accent)
+  color('--rwd-danger-rgb', style.danger)
+  color('--rwd-warning-rgb', style.warning)
+  color('--rwd-success-rgb', style.success)
+  if (typeof style.font === 'string') set('--rwd-font', style.font)
+  if (typeof style.monoFont === 'string') set('--rwd-font-mono', style.monoFont)
+  for (const [key, name] of [
+    ['radius', '--rwd-radius'],
+    ['buttonRadius', '--rwd-button-radius'],
+    ['barBottom', '--rwd-bar-bottom'],
+    ['taskTop', '--rwd-task-top'],
+    ['toastBottom', '--rwd-toast-bottom'],
+  ] as const) {
+    const v = style[key]
+    if (typeof v === 'number' || typeof v === 'string') set(name, length(v))
+  }
+  if (typeof style.zIndex === 'number') set('--rwd-z-index', String(Math.round(style.zIndex)))
 }

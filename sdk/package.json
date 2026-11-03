@@ -29,6 +29,11 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     },
+    "./locales/*": {
+      "types": "./dist/locales/*.d.ts",
+      "import": "./dist/locales/*.mjs",
+      "default": "./dist/locales/*.js"
+    },
     "./sdk.js": "./dist/sdk.js",
     "./package.json": "./package.json"
   },
@@ -40,6 +45,7 @@
     "dist/index.mjs",
     "dist/index.mjs.map",
     "dist/index.d.ts",
+    "dist/locales",
     "README.zh-CN.md",
     "CHANGELOG.md",
     "CHANGELOG.zh-CN.md",
@@ -49,7 +55,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vite build && vite build --mode esm && node scripts/dts.mjs",
+    "build": "vite build && vite build --mode esm && node scripts/dts.mjs && node scripts/locales.mjs",
     "typecheck": "tsc --noEmit -p .",
     "test": "playwright test -c test/playwright.config.ts",
     "gateway": "node test/mock-gateway.mjs",

@@ -48,7 +48,7 @@ export interface Status {
   pageId: string | null
   deviceToken: string | null
   level: string | null
-  lang: 'en' | 'zh' | null
+  lang: string | null
   config: any
   pending: any
 }

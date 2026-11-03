@@ -2,7 +2,7 @@
 //
 //   startObserving(emit)        console / errors / network collection, from load
 //   callMethod(method, params)  the rwd.* RPC methods of docs/protocol.md §5, §6
-//   setAgentLang / setUserLang  language of agent-facing / user-facing text (./i18n.ts)
+//   setAgentText / setUserText  agent-facing / user-facing text in the current languages (./i18n.ts)
 //
 // Importing this module installs chobitsu's console and network hooks.
 
@@ -13,8 +13,8 @@ export type { EmitEvent, EventKind } from './observe'
 export { callMethod, hasMethod, INTERACTIVE_METHODS } from './actions'
 export type { ActionHooks, PointerKind } from './actions'
 export { toRpcError, RwdError } from './errors'
-export { agentText, getAgentLang, getUserLang, setAgentLang, setUserLang, toLang, userText } from './i18n'
-export type { Lang } from './i18n'
+export { AGENT_EN, agentText, setAgentText, setUserText, USER_EN, userText } from './i18n'
+export type { AgentText, UserText } from './i18n'
 export { describeForAgent } from './dom'
 export { isMasked, isDebugUi, MASK } from '../privacy'
 export { tagOf } from './dom'

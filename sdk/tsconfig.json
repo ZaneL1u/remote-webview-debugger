@@ -14,6 +14,7 @@
     "baseUrl": ".",
     "paths": {
       "@chobitsu/*": ["../packages/chobitsu/src/*"],
+      "rwd:locale-loader": ["./src/localeLoader.ts"],
       "licia/*": ["./node_modules/licia/*"],
       "modern-screenshot": ["./node_modules/modern-screenshot"],
       "devtools-protocol": ["./node_modules/devtools-protocol"],

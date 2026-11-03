@@ -83,12 +83,12 @@ jobs:
         working-directory: sdk
       - run: npm run build
         working-directory: sdk
-      - name: Size budget (gzip < 80 KB)
+      - name: Size budget (gzip < 88 KB; language packs other than en / zh load on demand)
         working-directory: sdk
         run: |
           size=$(gzip -9c dist/sdk.js | wc -c)
           echo "sdk.js gzip: $size bytes"
-          test "$size" -lt 81920
+          test "$size" -lt 90112
       - name: Package contents
         working-directory: sdk
         run: npm pack --dry-run

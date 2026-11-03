@@ -13,11 +13,9 @@ import {
   requiredLevel,
   RwdError,
   scrub,
-  setAgentLang,
   setConfirmSelectors,
   setMaskRules,
   setNetworkExclude,
-  setUserLang,
   startObserving,
   toLevel,
   toRpcError,
@@ -41,10 +39,24 @@ import {
 import { Approvals } from './approval'
 import { Transport, type LinkState } from './transport'
 import { currentPage, watchPage } from './pageWatch'
-import { Ui, type ControlState } from './ui'
+import { Ui, type ControlState, type StyleOptions } from './ui'
 import { ErudaBridge, resolveEruda, type ErudaOptions, type ErudaRemote } from './eruda'
 import { createLock } from './lock'
-import { resolveLang, type Lang } from './i18n'
+import {
+  BUILTIN_LOCALES,
+  browserLangs,
+  dirOf,
+  ensureLocale,
+  messagesOf,
+  onLocalesChange,
+  overrideMessages,
+  pickLocale,
+  registerLocale,
+  setActionLang,
+  setAgentLang,
+  type LocalePack,
+  type MessageOverrides,
+} from './i18n'
 import { rememberLaunch, resolveLaunch } from './launch'
 
 // remote-webview-debugger page SDK.
@@ -95,11 +107,23 @@ export interface RunOptions {
   /** Our UI's look: 'auto' (default) follows the page background, 'system' the OS, or fixed 'light' / 'dark'. */
   theme?: 'auto' | 'system' | 'light' | 'dark'
   /**
-   * Language of the UI the phone user sees (pill, bottom bar, dialogs…):
-   * 'en' or 'zh'. Default: 'zh' when navigator.language starts with "zh",
-   * else 'en'. What the agent reads follows the gateway (welcome.agentLang).
+   * Colors, fonts, radii, z-index and positions of our UI, as --rwd-* CSS
+   * custom properties (pages can also set those in their own CSS).
    */
-  lang?: Lang
+  style?: StyleOptions
+  /**
+   * Language of the UI the phone user sees (pill, bottom bar, dialogs…): a
+   * language tag such as 'ja' or 'pt-BR'. Default: the browser's languages.
+   * Either way the first one with a pack wins, falling back tag by tag
+   * (zh-HK → zh-TW → zh) and finally to English. Built in: en, zh, zh-TW,
+   * fr, es, ru, ar, ja, ko, de, pt. What the agent reads follows the gateway
+   * (welcome.agentLang).
+   */
+  lang?: string
+  /** Extra language packs, registered before the language is picked (see registerLocale). */
+  locales?: LocalePack[]
+  /** Messages to override per language: { en: { ui: { help: 'Contact support' } } }. */
+  messages?: MessageOverrides
   /**
    * Requests left out of what the agent sees in the network list and the
    * timeline (still recorded): URL substrings, `*` wildcards or /regex/,
@@ -152,8 +176,8 @@ interface Session {
   appKey: string
   opts: RunOptions
   identity: Identity
-  /** Language of the user's UI. */
-  lang: Lang
+  /** Language of the user's UI: the id of the pack in use. */
+  lang: string
   transport: Transport
   ui: Ui
   deviceCode: string | null
@@ -200,6 +224,24 @@ function emit(kind: EventKind, summary: string) {
 // page's welcome (load errors, failed requests) are already in it.
 setAgentLang(read('localStorage', AGENT_LANG_KEY))
 startObserving(emit)
+
+/** The UI language for run({ lang }) / setLang(), else the browser's. */
+function uiLang(s: Session) {
+  return pickLocale([s.opts.lang].concat(browserLangs()))
+}
+
+/** Show the session's UI in its language, loading the pack if it isn't here yet. */
+function applyLang(s: Session) {
+  s.lang = uiLang(s)
+  setActionLang(s.lang)
+  s.ui.setText(messagesOf(s.lang).ui, s.lang, dirOf(s.lang))
+  void ensureLocale(s.lang, s.gatewayUrl)
+}
+
+// A pack arrived (or an override): the chosen language may change or get its text.
+onLocalesChange(() => {
+  if (session) applyLang(session)
+})
 
 let lockApi: ReturnType<typeof createLock> | null = null
 let uiRef: Ui | null = null
@@ -415,7 +457,7 @@ function onMessage(s: Session, msg: any) {
       writeResume(s.identity.pageId, typeof msg.resume === 'string' ? msg.resume : null)
       // Language of what we send the agent; a gateway without it gets English.
       if (typeof msg.agentLang === 'string') {
-        setAgentLang(msg.agentLang)
+        setAgentLang(msg.agentLang, s.gatewayUrl)
         write('localStorage', AGENT_LANG_KEY, msg.agentLang)
       }
       if (s.invite) {
@@ -480,11 +522,16 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
   const invite = takeInvite()
   watch()
   const identity = resolveIdentity(opts.deviceId)
-  const lang = resolveLang(opts.lang)
+  if (opts.locales) registerLocale(opts.locales)
+  if (opts.messages) overrideMessages(opts.messages)
+  const lang = pickLocale([opts.lang].concat(browserLangs()))
   // Sensitive-action descriptions ("AI wants to …") come from the engine.
-  setUserLang(lang)
+  setActionLang(lang)
   const ui = new Ui({
     lang,
+    dir: dirOf(lang),
+    text: messagesOf(lang).ui,
+    style: opts.style,
     helpButton: !!opts.helpButton,
     lockScreen: opts.lockScreen !== false,
     theme: opts.theme,
@@ -604,6 +651,8 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
   ui.setLink('connecting', s.deviceCode || undefined)
   ui.setHelp(s.help)
   ui.mount()
+  // Not bundled (only en and zh are): shown in its fallback until it loads.
+  void ensureLocale(lang, gatewayUrl)
   s.eruda.apply(resolveEruda(s.opts.eruda, s.config && s.config.eruda))
   // An agent was attached a moment ago (we navigated): lock right away and
   // let the welcome confirm or release it.
@@ -686,6 +735,35 @@ function resolveWaitersOf(s: Session) {
   s.waiters = []
   for (const w of waiters) w({ deviceCode: s.deviceCode, status: 'stopped' })
 }
+
+/**
+ * Change the UI language at runtime (an app's own language switch): a tag
+ * like run({ lang }), or nothing to follow the browser again.
+ */
+export function setLang(lang?: string | null) {
+  const s = session
+  if (!s) return
+  s.opts.lang = lang || undefined
+  applyLang(s)
+}
+
+/** Add language packs, or replace one with the same id: RemoteWebviewDebugger.registerLocale({ id: 'it', name: 'Italiano', ui: { … } }). */
+export { registerLocale }
+
+/** The languages that ship with the SDK (all but en and zh load on demand). */
+export const builtinLocales: string[] = BUILTIN_LOCALES.slice()
+
+export type {
+  ActionMessages,
+  AgentMessages,
+  DeepPartial,
+  Locale,
+  LocalePack,
+  MessageOverrides,
+  Messages,
+  UiMessages,
+} from './i18n'
+export type { StyleOptions } from './ui'
 
 /** Set or change the signed-in user. The gateway learns it through a new hello. */
 export function setUser(userId: string | null) {
