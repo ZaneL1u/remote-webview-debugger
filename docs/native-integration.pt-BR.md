@@ -1,4 +1,4 @@
-<!-- i18n-source: 9df5f749e07f20a0f47dbc50ab37d0c462f2092e -->
+<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | Português (Brasil) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Integração com apps nativos
@@ -32,7 +32,7 @@ O guia embutido no console (**Documentação → Integrar um app nativo**) mostr
 | `app` | `{ name, version }` do seu app, mostrado aos agentes e no console |
 | `nativeKey` | Um segredo aleatório gerado na inicialização (por exemplo, dois UUIDs) e escrito apenas no script injetado. Exigido por `nativeControl()` e `nativeDecide()`; os scripts da página, inclusive o `evaluate_script` do agente, não conseguem lê-lo |
 | `nativeApproval` | `true` para mostrar as aprovações de conexão e as confirmações de ação como diálogos nativos, em vez dos diálogos do SDK dentro da página |
-| `helpButton` | `false` se o app tiver a própria entrada de “Pedir ajuda” |
+| `helpButton` | `false` se o app tiver a própria entrada de “Solicitar assistência” |
 | `lang` | O idioma do seu app como tag (`'en'`, `'zh'`, `'ja'`, `'pt-BR'`…; veja os [idiomas do SDK](../sdk/README.pt-BR.md#idiomas)); o padrão segue `navigator.languages` |
 | `lockScreen`, `theme`, `eruda` | Como nas páginas H5, veja [protocol.pt-BR.md §10](protocol.pt-BR.md#10-api-javascript-para-hosts) |
 
@@ -97,7 +97,7 @@ final class RWD: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithRep
             "deviceToken": deviceToken as Any,
             "userId": userId as Any,
             "app": ["name": "My App", "version": "5.12.0"],
-            "helpButton": false,          // o app tem a própria entrada de ajuda
+            "helpButton": false,          // o app tem a própria entrada de assistência
             "nativeKey": nativeKey,
             "nativeApproval": true,       // diálogos nativos para aprovações e confirmações
             "lang": "en",
@@ -266,12 +266,12 @@ Consulte `status()` periodicamente (os esboços acima o enviam a cada 500 ms; a 
 | `deviceCode`, `status` | Mostre o código do dispositivo e se a conexão está `online`, `connecting`, `polling`, `rejected` ou `quota` |
 | `control` | `observe`: “IA observando”; `agent`: “IA no controle”; nos dois casos, desative o botão voltar e o gesto de voltar; `user`: “Você assumiu o controle” |
 | `level` | O nível concedido ao agente conectado |
-| `config.helpButton` | Se a política do projeto oferece ajuda a este usuário; mostre ou esconda a sua própria entrada de ajuda de acordo |
+| `config.helpButton` | Se a política do projeto oferece assistência a este usuário; mostre ou esconda a sua própria entrada de assistência de acordo |
 | `pending` | Uma pergunta para o usuário, veja abaixo |
 | `deviceToken` | Salve-o quando ele aparecer pela primeira vez ou mudar |
 
 - **Assumir / devolver à IA / encerrar:** `nativeControl(nativeKey, 'takeover' | 'handback' | 'end')`; retorna `false` se a chave estiver errada.
-- **Pedir ajuda:** `help(true)` (e `help(false)` para cancelar).
+- **Solicitar assistência:** `help(true)` (e `help(false)` para cancelar).
 - **Aprovação de conexão** (`pending.kind === 'attach'`): mostre `pending.agent.name` e `pending.agent.keyHint`, ofereça `pending.levels` (o último é o que o agente pediu) e depois chame `nativeDecide(nativeKey, pending.requestId, level)`, ou passe `null` para recusar. Responda antes de `pending.expiresAt` (30 segundos).
 - **Confirmação de ação** (`pending.kind === 'confirm'`): mostre `pending.action` (por exemplo `click "Place order"`) e depois chame `nativeDecide(nativeKey, requestId, 'allow')` ou passe `null`.
 - Execute `nativeDecide` na WebView cujo status informou a solicitação: o gateway pergunta à página em primeiro plano.
@@ -285,7 +285,7 @@ Consulte `status()` periodicamente (os esboços acima o enviam a cada 500 ms; a 
 
 ## Abrindo páginas a partir de links de convite
 
-O suporte pode criar um **convite** no console (aba **Convites** de um projeto) com uma observação, como o número de um chamado. O link é a URL de convite do projeto (ou uma definida para aquele convite) mais `?rwd_invite=<token>`; ele funciona uma vez e expira em 30 minutos por padrão. Quando uma página com o SDK o abre, o SDK tira o token da barra de endereço e o envia com o `hello`; o dispositivo fica online já pedindo ajuda e aparece como convidado no console, então ninguém precisa ler um código do dispositivo em voz alta.
+O suporte pode criar um **convite** no console (aba **Convites** de um projeto) com uma observação, como o número de um chamado. O link é a URL de convite do projeto (ou uma definida para aquele convite) mais `?rwd_invite=<token>`; ele funciona uma vez e expira em 30 minutos por padrão. Quando uma página com o SDK o abre, o SDK tira o token da barra de endereço e o envia com o `hello`; o dispositivo fica online com a assistência já solicitada e aparece como convidado no console, então ninguém precisa ler um código do dispositivo em voz alta.
 
 Para um app:
 

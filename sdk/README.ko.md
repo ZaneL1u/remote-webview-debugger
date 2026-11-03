@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 페이지 SDK (`sdk/`)
@@ -11,7 +11,7 @@
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 선택
     deviceId: "…",               // 선택. SDK를 주입하는 네이티브 호스트가 넘겨 줌
-    helpButton: true,            // 선택. “도움 요청” 버튼 표시
+    helpButton: true,            // 선택. “지원 요청” 버튼 표시
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // 선택. 언어 태그. 기본값은 브라우저의 언어 설정
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@ npm에 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`. `status`는 `idle / connecting / online / polling / stopped / rejected / quota` 중 하나, `lang`은 UI 언어 (`run()` 전에는 `null`), `logSession`은 이 페이지가 기록 중인 세션 로그 (기록하지 않을 때는 `null`) |
 | `stop()` | 연결을 끊고 UI를 제거해요 (console / 네트워크 수집은 상한 안에서 계속돼요) |
 | `setUser(userId)` | 사용자를 바꿔요. 새 `hello`로 한 번 다시 연결해요 |
-| `help(on)` | 도움 요청 / 도움 요청 취소 |
+| `help(on)` | 지원 요청 / 요청 취소 |
 | `nativeControl(nativeKey, action)` | 네이티브 호스트의 자체 UI에서 직접 조작 / AI에 맡기기 / 종료 |
 | `nativeDecide(nativeKey, requestId, value)` | `nativeApproval`을 쓸 때 `status().pending`에 응답해요. 접속 요청에는 권한 수준 또는 `null`, 민감한 작업 확인에는 `'allow'` 또는 `null` |
 | `setLang(lang?)` | 실행 중에 UI 언어를 바꿔요 (앱 자체의 언어 설정 등). 인자 없이 호출하면 브라우저의 언어 설정으로 돌아가요. [언어](#언어)를 참고하세요 |
@@ -50,7 +50,7 @@ npm에 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-
 |---|---|
 | `userId` | 로그인한 사용자. `hello`와 함께 전송돼요 |
 | `deviceId` | 네이티브 호스트가 주는 고정 기기 id (없으면 localStorage에 하나를 만들어 보관해요) |
-| `helpButton` | “도움 요청” 버튼 표시 (프로젝트 정책과 OR로 합쳐져요) |
+| `helpButton` | “지원 요청” 버튼 표시 (프로젝트 정책과 OR로 합쳐져요) |
 | `app` | 호스트 앱의 `{ name, version }` |
 | `lang` | 휴대폰 사용자가 보는 모든 것(배지, 플로팅 창, 하단 바, 대화 상자, 토스트, eruda 탭, 민감한 작업의 “AI가 …을(를) 요청했어요” 설명)의 언어. `'ja'`나 `'pt-BR'` 같은 언어 태그예요. 기본값은 브라우저의 언어 설정이에요. [언어](#언어)를 참고하세요 |
 | `locales` | 추가 언어 팩. 언어를 고르기 전에 등록돼요 (`registerLocale`과 같아요) |
@@ -81,7 +81,7 @@ npm에 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { en: { ui: { help: 'Contact support' } } }, // 어떤 언어든 개별 메시지만 바꾸기
@@ -107,7 +107,7 @@ UI는 `#__rwd`(`<body>` 바깥)의 shadow root 안에 있어서, 페이지 CSS�
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | 버튼, 스위치, 에이전트의 포인터, 강조 표시, 가장자리 글로우 |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | 종료 버튼 |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 도움 요청, 사용자 직접 조작 중 상태 |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 지원 요청과 지원 중, 사용자 직접 조작 중 상태 |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | 온라인 표시 점, “복사됨” |
 | `--rwd-font` | `font` | 시스템 UI 폰트 (중국어, 일본어, 한국어는 언어별) | 모든 텍스트 |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | 기기 코드와 태그 |
@@ -150,7 +150,7 @@ UI는 `#__rwd`(`<body>` 바깥)의 shadow root 안에 있어서, 페이지 CSS�
 - `src/ids.ts`: deviceId / pageId / openerId.
 - `src/launch.ts`: 이 페이지가 앱의 어느 실행에 속하는지 (`launchId`, `window.RWDLaunchId`, `rwd_launch` 쿠키).
 - `src/pageWatch.ts`: `page` 메시지(url, title, visibility)와 타임라인 이벤트(페이지 내 이동, 사용자의 탭).
-- `src/ui.ts`, `src/lock.ts`: Shadow DOM 안의 배지, 도움 요청 버튼, 잠금 오버레이, 글로우, 동작 강조 표시, 대화 상자. 에이전트가 접속해 있는 동안 사용자의 신뢰할 수 있는 입력을 막고, 연결된 지 얼마나 됐는지 보여 줘요.
+- `src/ui.ts`, `src/lock.ts`: Shadow DOM 안의 배지, 지원 요청 버튼, 잠금 오버레이, 글로우, 동작 강조 표시, 대화 상자. 에이전트가 접속해 있는 동안 사용자의 신뢰할 수 있는 입력을 막고, 연결된 지 얼마나 됐는지 보여 줘요.
 - `src/approval.ts`: 접속 승인과 민감한 작업 확인 (페이지 대화 상자, 또는 `nativeDecide`를 통한 네이티브 호스트).
 - `src/i18n.ts`, `src/locales/`, `src/localeLoader*.ts`: 언어 팩(언어별 UI, action, agent 문구), 선택과 대체, 필요할 때 불러오기. `scripts/locales.mjs`가 `dist/locales/<id>.js`를 빌드해요.
 - 에이전트 엔진은 chobitsu 옆의 `packages/chobitsu/src/engine/rwd/`에 있어요: 스냅샷, `rwd.query`, 조작 가능 여부 검사, 합성 입력, 키보드, console / 네트워크 버퍼, 스크린샷, `rwd.storage`, IndexedDB 세션 로그(`coldlog.ts`), 오버레이 감지(`overlays.ts`), 권한 수준과 확인 규칙(`policy.ts`), 에이전트용 문구(`i18n.ts`). 스냅샷에 쓰는 Playwright 소스는 `packages/chobitsu/src/engine/vendor/playwright/`에 있어요. 빌드할 때 이것들을 소스에서 바로 `dist/sdk.js`로 번들링해요.

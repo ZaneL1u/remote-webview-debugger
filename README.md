@@ -17,7 +17,7 @@ English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [�
 
 A bug that only happens on one user's phone, inside a WeChat-style super app or your own app's WebView, is the hardest kind to debug: no USB cable, no remote-debugging port, no way to reproduce it on your machine. Remote WebView Debugger puts that page in front of your AI agent instead.
 
-- **One script tag** (or a native injection) puts a page online. The user sees a small pill with a device code, and can tap *Ask for help*.
+- **One script tag** (or a native injection) puts a page online. The user sees a small pill with a device code, and can tap *Request assistance*.
 - **Your agent connects through MCP** — Claude Code, Cursor or any MCP client — after the user approves on the device. It reads accessibility snapshots, console, network and screenshots, and clicks, types and scrolls like a person, across every page and WebView of that device.
 - **The user stays in control.** They see what the AI is doing (agent cursor, a task card with the planned steps, a glowing edge) and can take over or end the session at any time. Passwords, phone and card numbers are masked before anything leaves the phone.
 - **Self-hosted.** One Go binary with the console and the SDK embedded; SQLite or Postgres.

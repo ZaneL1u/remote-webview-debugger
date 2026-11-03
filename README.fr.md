@@ -1,4 +1,4 @@
-<!-- i18n-source: 9d368db4a362be21a3c387a4cc6eee7935f0427d -->
+<!-- i18n-source: d2ea049794e5ac593bfdcf1034f0e136ddc5b83c -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -18,7 +18,7 @@
 
 Un bug qui ne survient que sur le téléphone d'un seul utilisateur, dans une super-app à la WeChat ou dans la WebView de votre propre application, est le plus difficile à déboguer : pas de câble USB, pas de port de débogage distant, aucun moyen de le reproduire sur votre machine. Remote WebView Debugger met plutôt cette page entre les mains de votre agent IA.
 
-- **Une seule balise script** (ou une injection native) met une page en ligne. L'utilisateur voit une petite pastille avec un code d'appareil et peut toucher *Besoin d'aide*.
+- **Une seule balise script** (ou une injection native) met une page en ligne. L'utilisateur voit une petite pastille avec un code d'appareil et peut toucher *Demander une assistance*.
 - **Votre agent se connecte via MCP** — Claude Code, Cursor ou n'importe quel client MCP — une fois que l'utilisateur a donné son accord sur l'appareil. Il lit des instantanés d'accessibilité, la console, le réseau et des captures d'écran, et il clique, saisit du texte et fait défiler la page comme une personne, sur toutes les pages et WebViews de cet appareil.
 - **L'utilisateur garde la main.** Il voit ce que fait l'IA (curseur de l'agent, carte de tâche avec les étapes prévues, bordure lumineuse) et peut reprendre la main ou terminer la session à tout moment. Les mots de passe, numéros de téléphone et de carte sont masqués avant que quoi que ce soit ne quitte le téléphone.
 - **Auto-hébergé.** Un seul binaire Go qui embarque la console web et le SDK ; SQLite ou Postgres.

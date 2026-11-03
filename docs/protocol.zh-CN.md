@@ -1,4 +1,4 @@
-<!-- i18n-source: f8d7479861527272991767e64a8c5860621d75ed -->
+<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -106,7 +106,7 @@
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // 有变化时发
 {"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
-{"t":"help","on":true}                                              // 用户点求助 / 取消求助
+{"t":"help","on":true}                                              // 用户请求协助 / 取消请求
 {"t":"control","action":"takeover"|"handback"|"end"}                // 用户的按钮，§4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
 {"id":17,"result":{…}}                                              // RPC 成功，§5
@@ -125,7 +125,7 @@
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"客服机器人"}|null,"level":"interact"|null,
  "attachedMs":83000|null}                                     // §4，发给设备的所有页面
-{"t":"help","on":false}                                       // 求助被清除：agent 已接入、控制台成员结束了调试，或用户在设备上点了结束
+{"t":"help","on":false}                                       // 协助请求被清除：agent 已接入、控制台成员结束了调试，或用户在设备上点了结束
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"客服机器人"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7，发给前台页面
 {"t":"attach_cancel","requestId":"…"}                         // §7，发给所有页面
@@ -167,7 +167,7 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
 
 **恢复令牌。** 每个 `welcome` 都会签发一个绑定 `pageId` 的新 `resume`。已知的 `pageId` 重连时，`hello.resume` 必须等于上一次签发的值，否则以 **4409** 关闭，SDK 换一个新的 `pageId` 重新开始。所以只知道 `pageId`，冒充不了页面。
 
-**邀请。** 页面地址带 `?rwd_invite=<令牌>` 时，SDK 立即把这个参数从地址栏去掉（`history.replaceState`），令牌暂存在 sessionStorage，并在收到 `welcome` 之前一直随 `hello.invite` 发送。邀请属于同一个项目、未使用且未过期时，网关接受它：设备被标记为「通过邀请接入」并进入求助状态，时间线记录来自哪个邀请，邀请随即作废。无效的邀请会被静默忽略。见 §12.6。
+**邀请。** 页面地址带 `?rwd_invite=<令牌>` 时，SDK 立即把这个参数从地址栏去掉（`history.replaceState`），令牌暂存在 sessionStorage，并在收到 `welcome` 之前一直随 `hello.invite` 发送。邀请属于同一个项目、未使用且未过期时，网关接受它：设备被标记为「通过邀请接入」并进入「协助中」状态，时间线记录来自哪个邀请，邀请随即作废。无效的邀请会被静默忽略。见 §12.6。
 
 ### 3.6 关闭码
 
@@ -185,7 +185,7 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
 
 | 状态 | 含义 | 页面界面 |
 |---|---|---|
-| `none` | 没有 agent 接入 | 胶囊收起，只显示设备码（开启时另有求助按钮） |
+| `none` | 没有 agent 接入 | 胶囊收起，只显示设备码（开启时另有「请求协助」按钮） |
 | `observe` | agent 已接入，只在查看 | 「AI 查看中」，拦截用户输入（除非用户关掉了锁定），屏幕边缘有光圈，按钮「接管」「结束」 |
 | `agent` | agent 正在操作 | 「AI 操作中」，同样的锁定、光圈和按钮，另有 agent 的光标 |
 | `user` | 用户已接管 | 不锁定，边缘光圈静止，按钮「交还 AI」「结束」 |
@@ -199,7 +199,7 @@ SDK 能处理 `reconnect`，但网关目前不会发送它。
 | 超过 `policy.agentIdleMinutes`（默认 2，每 10 秒检查一次）没有交互 | `agent` → `observe` |
 | 页面发来 `control: takeover` | `observe` / `agent` → `user` |
 | 页面发来 `control: handback` | `user` → `agent`（没有 agent 时回到 `none`） |
-| 页面发来 `control: end` | 断开 agent、清除求助 → `none` |
+| 页面发来 `control: end` | 断开 agent、清除协助请求 → `none` |
 | agent 断开或被替换、它的 Key 被吊销、达到 `policy.attachMaxMinutes`（默认 60），或控制台成员结束调试 | → `none` |
 
 页面从 agent 接入（`observe`）的那一刻起就上锁，而不是等它开始操作；空闲后 `agent` → `observe` 也保持锁定，直到用户接管或状态回到 `none`。
@@ -379,7 +379,7 @@ agent 调用 `connect_device` 时，网关先合并设备上已打开页面所�
 - SDK 的确认框在 Shadow DOM 里，只响应可信点击，并且出现 0.4 秒后才生效，agent 没法替用户点「允许」。同源的多个标签页通过 BroadcastChannel 共享决定。
 - 用户可以在 SDK 悬浮窗里开启「自动允许 AI 接入」并设定最高级别；之后 SDK 直接以不超过这个级别的最高可选级别答复，并弹出提示。
 - `run({ nativeApproval: true })` 时 SDK 不弹窗，而是让 `status().pending` 变成 `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`，由原生宿主调用 `nativeDecide(nativeKey, requestId, level | null)` 答复。
-- 批准后，网关让 agent 接入（顶替设备上的其他 agent），清除求助（`{"t":"help","on":false}`），并广播 `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`；页面随即上锁（§4）。
+- 批准后，网关让 agent 接入（顶替设备上的其他 agent），清除协助请求（`{"t":"help","on":false}`），并广播 `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`；页面随即上锁（§4）。
 
 `approval: none` 时，agent 直接按计算出的级别接入。
 
@@ -412,7 +412,7 @@ WebSocket 连续失败 3 次后，SDK 改为每 60 秒调用一次 `POST /v1/pre
 
 - 网关使用 `key`、`deviceId`、`userId`、`device.{ua, platform, app}`、`deviceToken` 和 `help`；`pageId` 和 `page` 仅供参考。接入 Key 和来源的校验与 WebSocket 相同，限流也共用。
 - 已经拿到设备令牌（[§3.5](#35-设备令牌恢复令牌与邀请)）的设备，轮询时也必须带上它；否则返回 `401 bad_token`，设备的任何信息都不会被更新。没有令牌的设备（旧版 SDK）可以继续不带令牌轮询。
-- `help: true` 会把设备标记为求助中，作用和 `hello.help` 一样；已有 agent 接入时不生效。
+- `help: true` 会把设备标记为「协助中」，作用和 `hello.help` 一样；已有 agent 接入时不生效。
 - 每次轮询后，设备在 90 秒内都算在线。
 - `connect: true` 表示页面应立即连 WebSocket。agent 对这台设备调用 `connect_device` 或 `wait_for_device` 时，网关会设置它。
 - 作为保险，SDK 每第 5 次轮询也会主动重试一次 WebSocket。
@@ -424,7 +424,7 @@ SDK 暴露全局对象 `window.RemoteWebviewDebugger`。H5 页面直接调用 `r
 ```js
 RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null：当前登录用户，agent 和控制台都能看到
-  helpButton,            // 显示「求助」按钮（与策略的 helpButton 取或）
+  helpButton,            // 显示「请求协助」按钮（与策略的 helpButton 取或）
   app,                   // 宿主 App 的 { name, version }
   lang,                  // 语言标签：手机用户看到的界面语言，默认取 navigator.languages（§15）
   locales,               // 额外的语言包；messages：按语言覆盖文案（§15）
@@ -447,7 +447,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
 |---|---|
 | `run(gatewayUrl, appKey, options?)` | 让页面上线。网关答复后 resolve，最迟 8 秒后按已知信息 resolve。重复调用返回同一个 Promise |
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`。`status` 取 `idle`、`connecting`、`online`、`polling`、`rejected`、`quota`、`stopped`；`logSession` 是本页面正在写入的会话日志 id，不在记录时为 `null`（§5.4） |
-| `help(on = true)` | 求助，或取消求助 |
+| `help(on = true)` | 请求协助，或取消请求 |
 | `setUser(userId)` | 切换当前登录用户（SDK 用新的 `hello` 重连） |
 | `stop()` | 断开并移除界面；console 和网络记录继续在有上限的缓冲里进行 |
 | `nativeControl(nativeKey, 'takeover' \| 'handback' \| 'end')` | 原生的「接管」「交还 AI」「结束」按钮。密钥不对时返回 `false` |
@@ -478,7 +478,7 @@ type Policy = {
   confirmSelectors: string[]       // 点击这些元素前需要用户确认（在 [data-rwd-confirm] 之外）
   networkExclude: string[]         // 不出现在 agent 看到的网络列表里的请求（§5.2）
   sessionLog: boolean              // 页面是否记录会话日志（默认 true，§5.4）
-  helpButton: 'off' | 'all' | 'listed'   // 谁能看到「求助」按钮（默认 off）
+  helpButton: 'off' | 'all' | 'listed'   // 谁能看到「请求协助」按钮（默认 off）
   helpUsers: string[]              // helpButton = listed 时的 userId 名单
   agentIdleMinutes: number         // AI 操作中无动作多久回到仅查看（默认 2，最大 120）
   attachMaxMinutes: number         // 一次接入的最长时长（默认 60，最大 1440）
@@ -492,7 +492,7 @@ type Policy = {
 - 保存时会规范化：`approval` 不是 `none` 的一律当作 `prompt`，无效的 `maxLevel` 当作 `interact`，数值会被限制在范围内。`maskPatterns` 必须能编译，否则返回 `400 bad_policy`。`maskSelectors`、`confirmSelectors`、`networkExclude`、`helpUsers` 会去掉空白项，各最多 50 条，`maskPatterns` 最多 20 条。
 - **`networkExclude`** 用来挡掉 agent 不必去翻的噪音：一直 404 的字体、埋点上报等。每条规则按下面的方式与请求 URL 比较：不区分大小写的子串；带 `*` 的通配符（`*/404/*`）；写成 `/…/` 的正则（可带 flag，默认 `i`）。编译不过的规则什么都不匹配。命中的请求不出现在网络列表里，也不产生 `net_fail` 时间线事件，但页面仍然记录，agent 需要时可以用 `includeExcluded` 看到（§5.2、§14.3）。它只是图个清爽，不是隐私手段——不该离开页面的数据要用 `maskSelectors` / `maskPatterns`。
 - **`sessionLog`** 不显式设为 `false` 就是开启，包括这个字段出现之前保存的老项目。关掉后，项目下所有页面停止记录，并删除这些设备上该来源已经存下的日志；单个页面也可以用 `run({ record: false })` 自行退出（§5.4）。
-- 遮盖、确认、网络排除、会话日志、求助和 eruda 相关字段通过 `welcome.config` 下发给页面（§3.4）；页面自己在 `run({ networkExclude })` 里传的规则与项目的规则合并。
+- 遮盖、确认、网络排除、会话日志、协助入口和 eruda 相关字段通过 `welcome.config` 下发给页面（§3.4）；页面自己在 `run({ networkExclude })` 里传的规则与项目的规则合并。
 - **一台设备上有多个项目的页面。** 设备按 `deviceId` 区分，不分项目：同一台手机用不同接入 Key 打开的页面，都是同一台设备的页面。agent 接入时，网关合并已连接页面所属各项目的策略，每项取最严格的值：任一项目要求审批就需要审批；`maxLevel`、`agentIdleMinutes`、`attachMaxMinutes` 取最小值；`maxAgents` 取最小的非零值。
 
 ## 12. 控制台 REST API
@@ -555,15 +555,15 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 | 方法 | 路径 | 角色 | 响应 |
 |---|---|---|---|
 | GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}`（`pageSize` 最大 100）。`online`（默认）：在线设备，按本次上线时间倒序。`all`：所有出现过的设备，按首次出现时间倒序。两种模式下 `q` 都匹配设备 ID、设备码（`-` 可省略）、userId、UA、系统描述（中英文均可）和项目名 |
-| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`：最近一个页面来自该项目的设备（默认 `all`，最多 500 台）。求助中的在前，其次在线，再按最近在线时间。`waiting` 指求助中 |
+| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`：最近一个页面来自该项目的设备（默认 `all`，最多 500 台）。请求协助的在前，其次在线，再按最近在线时间。`waiting` 指请求协助（界面上显示为「协助中」） |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 始终返回 `200`：`{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<前 4000 个字符>","error"?:{"code","message"}}`。错误码：`device_offline`、`no_page`（页面正在重连）、`timeout`、`takeover`、`internal`，以及 §5.1 的 RPC 错误码 |
-| POST | `/devices/:id/end` | member | `{"ok":true}`：断开 agent，清除求助，控制状态回到 `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`：断开 agent，清除协助请求，控制状态回到 `none` |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 设备邀请
 
-用户打开邀请链接，设备就会上线并直接处于求助状态，不用再口头报设备码。
+用户打开邀请链接，设备就会上线并直接请求协助，不用再口头报设备码。
 
 | 方法 | 路径 | 角色 | 请求 | 响应 |
 |---|---|---|---|---|
@@ -683,7 +683,7 @@ type AuditEvent = {
 | `navigated` / `reloaded` | 页面跳转到新地址 / 在原地址重新连接 |
 | `focus` | 页面回到前台 |
 | `error` / `console_error` / `net_fail` / `user_tap` | 页面上报的事件（§3.2） |
-| `help` | 用户求助或取消求助，或者通过邀请接入 |
+| `help` | 用户请求协助或取消请求，或者通过邀请接入 |
 | `agent` | 接入请求、拒绝、超时、接入成功、任务变化 |
 | `control` | 控制状态变化，摘要里说明原因（用户接管、AI 空闲、用户结束等） |
 | `offline` | 有 agent 接入时，设备的最后一个页面断开了 |
@@ -695,7 +695,7 @@ type AuditEvent = {
 ```
 retry: 3000
 
-event: device     data: Device                               设备状态变化（上线、求助、控制状态、审批、任务等）
+event: device     data: Device                               设备状态变化（上线、协助请求、控制状态、审批、任务等）
 event: timeline   data: {"deviceId", "event": TimelineEvent}
 event: ping       data: {}                                   每 25 秒一次
 ```
@@ -727,7 +727,7 @@ event: ping       data: {}                                   每 25 秒一次
 
 | 工具 | 级别 | 参数 | 说明 |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all`（默认 `online`）、`userId?`、`deviceCode?`（大小写、有无连字符都可以） | 最多 50 台，求助中的排在最前 |
+| `list_devices` | — | `status?: online\|waiting\|all`（默认 `online`）、`userId?`、`deviceCode?`（大小写、有无连字符都可以） | 最多 50 台，请求协助的排在最前 |
 | `connect_device` | — | `device`（设备码或 deviceId）、`level?: Level`（默认 `interact`）、`follow?: true` | 接入设备，需要时先请用户审批（§7）；自己放开设备后 10 分钟内，同一把 Key 再接入不用重新审批，级别不超过上次授予的。接入后选中前台页面。设备没有已连接的页面时失败（并让轮询中的设备尽快重连） |
 | `disconnect_device` | — | — | 离开设备 |
 | `wait_for_device` | — | `device`、`timeoutSec?: 60`（最大 300） | 等待设备有页面连上；轮询中的设备会被通知立即重连 |

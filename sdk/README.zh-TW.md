@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 頁面 SDK（`sdk/`）
@@ -11,7 +11,7 @@
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 選用
     deviceId: "…",               // 選用；由注入 SDK 的原生宿主傳入
-    helpButton: true,            // 選用；顯示「求助」按鈕
+    helpButton: true,            // 選用；顯示「請求協助」按鈕
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // 選用；語言標記，預設依瀏覽器的語言
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`；`status` 為 `idle / connecting / online / polling / stopped / rejected / quota`，`lang` 是介面語言（`run()` 之前為 `null`），`logSession` 是這個頁面正在寫入的工作階段記錄（未記錄時為 `null`） |
 | `stop()` | 斷線並移除介面（console / 網路的收集會繼續，有容量上限） |
 | `setUser(userId)` | 變更使用者；會以新的 `hello` 重新連線一次 |
-| `help(on)` | 求助 / 取消求助 |
+| `help(on)` | 請求協助 / 取消請求 |
 | `nativeControl(nativeKey, action)` | 從原生宿主自己的介面接管 / 交還 / 結束 |
 | `nativeDecide(nativeKey, requestId, value)` | 搭配 `nativeApproval` 時回答 `status().pending`：連線請求傳入等級或 `null`，敏感操作確認傳入 `'allow'` 或 `null` |
 | `setLang(lang?)` | 在執行期間切換介面語言（例如 App 自己的語言設定）；不帶參數則回到瀏覽器的語言。見[語言](#語言) |
@@ -50,7 +50,7 @@
 |---|---|
 | `userId` | 目前登入的使用者，隨 `hello` 送出 |
 | `deviceId` | 原生宿主提供的固定裝置 id（未提供時會存在 localStorage） |
-| `helpButton` | 顯示「求助」按鈕（與專案策略取 OR） |
+| `helpButton` | 顯示「請求協助」按鈕（與專案策略取 OR） |
 | `app` | 宿主 App 的 `{ name, version }` |
 | `lang` | 手機使用者看到的所有內容的語言（膠囊、浮動視窗、底部控制列、對話框、提示訊息、eruda 分頁，以及敏感操作中「AI 想要…」的描述）：語言標記，例如 `'ja'` 或 `'pt-BR'`。預設：瀏覽器的語言。見[語言](#語言) |
 | `locales` | 額外的語言包，在決定語言之前註冊（與 `registerLocale` 相同） |
@@ -81,7 +81,7 @@
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { 'zh-TW': { ui: { help: '聯絡客服' } } }, // 覆寫任何語言中的個別文字
@@ -107,7 +107,7 @@ RemoteWebviewDebugger.run(url, key, {
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | 按鈕、開關、agent 的指標、醒目標示和邊緣光暈 |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | 「結束」按鈕 |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 求助；使用者接管的狀態 |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 「請求協助」按鈕和「協助中」狀態；使用者接管的狀態 |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | 線上指示點；「已複製」 |
 | `--rwd-font` | `font` | 系統介面字型（中文、日文、韓文依語言選擇字型） | 所有文字 |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | 裝置碼和標籤 |
@@ -150,7 +150,7 @@ RemoteWebviewDebugger.run(url, key, {
 - `src/ids.ts`：deviceId / pageId / openerId。
 - `src/launch.ts`：判斷這個頁面屬於 App 的哪一次啟動（`launchId`、`window.RWDLaunchId`、`rwd_launch` cookie）。
 - `src/pageWatch.ts`：`page` 訊息（url、標題、可見性）和時間軸事件（頁面內跳轉、使用者的點擊）。
-- `src/ui.ts`、`src/lock.ts`：Shadow DOM 中的膠囊、求助按鈕、鎖定覆蓋層、光暈、操作醒目標示和對話框；agent 連線期間擋下使用者受信任的輸入，並顯示已連線的時間。
+- `src/ui.ts`、`src/lock.ts`：Shadow DOM 中的膠囊、「請求協助」按鈕、鎖定覆蓋層、光暈、操作醒目標示和對話框；agent 連線期間擋下使用者受信任的輸入，並顯示已連線的時間。
 - `src/approval.ts`：連線核准和敏感操作確認（頁面對話框，或透過 `nativeDecide` 交給原生宿主）。
 - `src/i18n.ts`、`src/locales/`、`src/localeLoader*.ts`：語言包（每種語言的介面、操作描述和 agent 文字）、語言的決定與遞補、按需載入；`scripts/locales.mjs` 產生 `dist/locales/<id>.js`。
 - agent 引擎位於 chobitsu 旁的 `packages/chobitsu/src/engine/rwd/`：快照、`rwd.query`、可操作性檢查、合成輸入、鍵盤、console / 網路緩衝區、截圖、`rwd.storage`、IndexedDB 中的工作階段記錄（`coldlog.ts`）、覆蓋層偵測（`overlays.ts`）、等級與確認規則（`policy.ts`）、給 agent 的文字（`i18n.ts`）。快照所用的 Playwright 原始碼位於 `packages/chobitsu/src/engine/vendor/playwright/`。建置時會從原始碼把它們打包進 `dist/sdk.js`。

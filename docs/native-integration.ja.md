@@ -1,4 +1,4 @@
-<!-- i18n-source: 9df5f749e07f20a0f47dbc50ab37d0c462f2092e -->
+<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | 日本語 | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # ネイティブアプリへの組み込み
@@ -32,7 +32,7 @@ H5 ページなら `<script>` タグで SDK を読み込めます。自社アプ
 | `app` | アプリの `{ name, version }`。エージェントと管理コンソールに表示されます |
 | `nativeKey` | 起動時に生成し（例：UUID を 2 つ連結）、注入するスクリプトにだけ書き込むランダムなシークレット。`nativeControl()` と `nativeDecide()` に必要です。ページのスクリプトからは、エージェントの `evaluate_script` も含めて読めません |
 | `nativeApproval` | `true` にすると、接続承認と操作の確認を SDK のページ内ダイアログではなくネイティブのダイアログで表示します |
-| `helpButton` | アプリ独自の「ヘルプを求める」入口がある場合は `false` |
+| `helpButton` | アプリ独自の「サポートを依頼」入口がある場合は `false` |
 | `lang` | アプリの言語を表す言語タグ（`'en'`、`'zh'`、`'ja'`、`'pt-BR'` など。[SDK の言語](../sdk/README.ja.md#言語)を参照）。デフォルトは `navigator.languages` に従います |
 | `lockScreen`、`theme`、`eruda` | H5 ページと同じです。[protocol.ja.md §10](protocol.ja.md#10-ホスト向け-javascript-api) を参照してください |
 
@@ -97,7 +97,7 @@ final class RWD: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithRep
             "deviceToken": deviceToken as Any,
             "userId": userId as Any,
             "app": ["name": "My App", "version": "5.12.0"],
-            "helpButton": false,          // アプリに独自のヘルプ入口がある
+            "helpButton": false,          // アプリに独自のサポート依頼入口がある
             "nativeKey": nativeKey,
             "nativeApproval": true,       // 承認と確認はネイティブのダイアログで
             "lang": "en",
@@ -266,12 +266,12 @@ class Rwd(private val context: Context) {
 | `deviceCode`、`status` | デバイスコードと、接続が `online`、`connecting`、`polling`、`rejected`、`quota` のどれかを表示します |
 | `control` | `observe`：「AI が閲覧中」、`agent`：「AI が操作中」。どちらの場合も戻るボタンとスワイプでの戻る操作を無効にします。`user`：「あなたが引き継いでいます」 |
 | `level` | 接続中のエージェントに許可されたレベル |
-| `config.helpButton` | プロジェクトのポリシーがこのユーザーにヘルプを提供するかどうか。これに応じて独自のヘルプ入口を表示・非表示にします |
+| `config.helpButton` | プロジェクトのポリシーがこのユーザーにサポートを提供するかどうか。これに応じて独自のサポート依頼入口を表示・非表示にします |
 | `pending` | ユーザーへの問い合わせ。後述します |
 | `deviceToken` | 初めて現れたとき、または変わったときに保存します |
 
 - **引き継ぐ / AI に戻す / 終了：** `nativeControl(nativeKey, 'takeover' | 'handback' | 'end')`。キーが間違っていれば `false` を返します。
-- **ヘルプを求める：** `help(true)`（取り消すには `help(false)`）。
+- **サポートを依頼：** `help(true)`（取り消すには `help(false)`）。
 - **接続承認**（`pending.kind === 'attach'`）：`pending.agent.name` と `pending.agent.keyHint` を表示し、`pending.levels`（最後の要素がエージェントの要求したレベル）を選択肢として示してから、`nativeDecide(nativeKey, pending.requestId, level)` を呼びます。拒否する場合は `null` を渡します。`pending.expiresAt`（30 秒）までに応答してください。
 - **操作の確認**（`pending.kind === 'confirm'`）：`pending.action`（例：`click "Place order"`）を表示してから、`nativeDecide(nativeKey, requestId, 'allow')` または `null` を呼びます。
 - `nativeDecide` は、そのリクエストを status で報告した WebView で実行してください。ゲートウェイは前面のページに問い合わせます。
@@ -285,7 +285,7 @@ class Rwd(private val context: Context) {
 
 ## 招待リンクからページを開く
 
-サポート担当者は管理コンソール（プロジェクトの **招待** タブ）で、チケット番号などのメモを付けて**招待**を作成できます。リンクはプロジェクトの招待 URL（またはその招待用に設定した URL）に `?rwd_invite=<token>` を付けたもので、一度だけ使え、デフォルトでは 30 分で期限切れになります。SDK を組み込んだページがこのリンクを開くと、SDK はアドレスバーからトークンを取り除き、`hello` と一緒に送ります。デバイスは最初からヘルプ要請中の状態でオンラインになり、管理コンソールでは招待済みとしてマークされるので、誰もデバイスコードを読み上げる必要がありません。
+サポート担当者は管理コンソール（プロジェクトの **招待** タブ）で、チケット番号などのメモを付けて**招待**を作成できます。リンクはプロジェクトの招待 URL（またはその招待用に設定した URL）に `?rwd_invite=<token>` を付けたもので、一度だけ使え、デフォルトでは 30 分で期限切れになります。SDK を組み込んだページがこのリンクを開くと、SDK はアドレスバーからトークンを取り除き、`hello` と一緒に送ります。デバイスは最初からサポート依頼中の状態でオンラインになり、管理コンソールでは招待済みとしてマークされるので、誰もデバイスコードを読み上げる必要がありません。
 
 アプリの場合：
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: 9d368db4a362be21a3c387a4cc6eee7935f0427d -->
+<!-- i18n-source: d2ea049794e5ac593bfdcf1034f0e136ddc5b83c -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -18,7 +18,7 @@
 
 Ein Bug, der nur auf dem Smartphone eines einzigen Nutzers auftritt – in einer Super-App à la WeChat oder in der WebView Ihrer eigenen App –, ist am schwersten zu debuggen: kein USB-Kabel, kein Remote-Debugging-Port, keine Möglichkeit, ihn auf Ihrem Rechner nachzustellen. Remote WebView Debugger bringt diese Seite stattdessen zu Ihrem KI-Agenten.
 
-- **Ein einziges Script-Tag** (oder eine native Injektion) bringt eine Seite online. Der Nutzer sieht ein kleines Badge mit einem Gerätecode und kann auf *Hilfe anfordern* tippen.
+- **Ein einziges Script-Tag** (oder eine native Injektion) bringt eine Seite online. Der Nutzer sieht ein kleines Badge mit einem Gerätecode und kann auf *Unterstützung anfordern* tippen.
 - **Ihr Agent verbindet sich über MCP** – Claude Code, Cursor oder ein beliebiger MCP-Client –, nachdem der Nutzer auf dem Gerät zugestimmt hat. Er liest Barrierefreiheits-Snapshots, Console, Netzwerk und Screenshots, und er klickt, tippt und scrollt wie ein Mensch, über alle Seiten und WebViews dieses Geräts hinweg.
 - **Der Nutzer behält die Kontrolle.** Er sieht, was die KI tut (Agent-Cursor, eine Aufgabenkarte mit den geplanten Schritten, ein leuchtender Rand), und kann jederzeit übernehmen oder die Sitzung beenden. Passwörter, Telefon- und Kartennummern werden maskiert, bevor irgendetwas das Smartphone verlässt.
 - **Selbst gehostet.** Ein einziges Go-Binary mit eingebetteter Konsole und eingebettetem SDK; SQLite oder Postgres.

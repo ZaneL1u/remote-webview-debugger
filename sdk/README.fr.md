@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # SDK de page RWD (`sdk/`)
@@ -11,7 +11,7 @@ Un fichier JS qu'une WebView d'application ou une page H5 charge, pour qu'un age
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // facultatif
     deviceId: "…",               // facultatif ; fourni par un hôte natif qui injecte le SDK
-    helpButton: true,            // facultatif ; affiche le bouton « Besoin d'aide »
+    helpButton: true,            // facultatif ; affiche le bouton « Demander une assistance »
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // facultatif ; une étiquette de langue, par défaut d'après les langues du navigateur
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@ Publié sur npm sous le nom [`remote-webview-debugger`](https://www.npmjs.com/pa
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}` ; `status` vaut `idle / connecting / online / polling / stopped / rejected / quota`, `lang` est la langue de l'interface (`null` avant `run()`), `logSession` le journal de session dans lequel écrit cette page (`null` quand rien n'est enregistré) |
 | `stop()` | Se déconnecte et retire l'interface (la collecte de la console / du réseau continue, dans une limite bornée) |
 | `setUser(userId)` | Change d'utilisateur ; se reconnecte une fois avec un nouveau `hello` |
-| `help(on)` | Demande de l'aide / annule la demande |
+| `help(on)` | Demande une assistance / annule la demande |
 | `nativeControl(nativeKey, action)` | « Reprendre » / « Rendre » / « Terminer » depuis l'interface propre de l'hôte natif |
 | `nativeDecide(nativeKey, requestId, value)` | Avec `nativeApproval`, répond à `status().pending` : un niveau ou `null` pour une demande de rattachement, `'allow'` ou `null` pour la confirmation d'une action sensible |
 | `setLang(lang?)` | Change la langue de l'interface à l'exécution (le réglage de langue propre à une application) ; sans argument, revient aux langues du navigateur. Voir [Langues](#langues) |
@@ -50,7 +50,7 @@ Options de `run()` :
 |---|---|
 | `userId` | L'utilisateur connecté, envoyé avec le `hello` |
 | `deviceId` | Un identifiant d'appareil stable fourni par un hôte natif (sinon, un identifiant est conservé dans le localStorage) |
-| `helpButton` | Affiche le bouton « Besoin d'aide » (combiné par OU avec la politique du projet) |
+| `helpButton` | Affiche le bouton « Demander une assistance » (combiné par OU avec la politique du projet) |
 | `app` | `{ name, version }` de l'application hôte |
 | `lang` | Langue de tout ce que voit l'utilisateur du téléphone (pastille, fenêtre flottante, barre inférieure, boîtes de dialogue, toasts, l'onglet eruda, et la description « AI wants to … » d'une action sensible) : une étiquette de langue comme `'ja'` ou `'pt-BR'`. Par défaut : les langues du navigateur. Voir [Langues](#langues) |
 | `locales` | Packs de langue supplémentaires, enregistrés avant le choix de la langue (comme `registerLocale`) |
@@ -81,7 +81,7 @@ Intégrées : anglais (`en`), chinois simplifié (`zh`), chinois traditionnel (
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { en: { ui: { help: 'Contact support' } } }, // remplace des messages isolés, dans n'importe quelle langue
@@ -107,7 +107,7 @@ L'interface vit dans une shadow root sur `#__rwd` (en dehors de `<body>`) : le 
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | Boutons, interrupteurs, pointeur de l'agent, mises en surbrillance et lueur des bords |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | Le bouton « Terminer » |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | « Besoin d'aide » ; l'état où l'utilisateur a la main |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | « Demander une assistance » et « En assistance » ; l'état où l'utilisateur a la main |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | Point « en ligne » ; « copié » |
 | `--rwd-font` | `font` | police d'interface du système (adaptée à la langue pour le chinois, le japonais et le coréen) | Tout le texte |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | Code d'appareil et badges |
@@ -150,7 +150,7 @@ Ces tampons sont la mémoire d'une seule page. En parallèle, le SDK écrit un *
 - `src/ids.ts` : deviceId / pageId / openerId.
 - `src/launch.ts` : le lancement de l'application auquel appartient cette page (`launchId`, `window.RWDLaunchId`, le cookie `rwd_launch`).
 - `src/pageWatch.ts` : messages `page` (url, titre, visibilité) et événements de la chronologie (navigation dans la page, touchers de l'utilisateur).
-- `src/ui.ts`, `src/lock.ts` : la pastille, le bouton d'aide, la surcouche de verrouillage, la lueur, la mise en surbrillance des actions et les boîtes de dialogue dans un Shadow DOM ; bloque les saisies de confiance de l'utilisateur pendant qu'un agent est rattaché, et affiche depuis combien de temps il est connecté.
+- `src/ui.ts`, `src/lock.ts` : la pastille, le bouton « Demander une assistance », la surcouche de verrouillage, la lueur, la mise en surbrillance des actions et les boîtes de dialogue dans un Shadow DOM ; bloque les saisies de confiance de l'utilisateur pendant qu'un agent est rattaché, et affiche depuis combien de temps il est connecté.
 - `src/approval.ts` : approbation du rattachement et confirmation des actions sensibles (boîte de dialogue dans la page, ou hôte natif via `nativeDecide`).
 - `src/i18n.ts`, `src/locales/`, `src/localeLoader*.ts` : packs de langue (textes de l'interface, des actions et de l'agent pour chaque langue), choix et repli, chargement à la demande ; `scripts/locales.mjs` construit `dist/locales/<id>.js`.
 - Le moteur de l'agent se trouve à côté de chobitsu dans `packages/chobitsu/src/engine/rwd/` : instantané, `rwd.query`, vérifications d'actionnabilité, saisie synthétisée, clavier, tampons console / réseau, captures d'écran, `rwd.storage`, le journal de session dans IndexedDB (`coldlog.ts`), détection des surcouches (`overlays.ts`), niveaux et règles de confirmation (`policy.ts`), textes destinés à l'agent (`i18n.ts`). Les sources Playwright utilisées pour les instantanés se trouvent dans `packages/chobitsu/src/engine/vendor/playwright/`. Le build les regroupe depuis les sources dans `dist/sdk.js`.

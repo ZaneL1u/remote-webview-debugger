@@ -1,4 +1,4 @@
-<!-- i18n-source: 9df5f749e07f20a0f47dbc50ab37d0c462f2092e -->
+<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | 繁體中文 | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # App 原生整合
@@ -32,7 +32,7 @@ H5 頁面用一個 `<script>` 標籤就能載入 SDK。在你自己的 App 裡�
 | `app` | 你的 App 的 `{ name, version }`，會顯示給 agent 並出現在主控台 |
 | `nativeKey` | 啟動時產生的隨機密鑰（例如兩個 UUID 串接），只寫進注入的指令碼。`nativeControl()` 和 `nativeDecide()` 都要求出示它；頁面指令碼（包括 agent 的 `evaluate_script`）都讀不到 |
 | `nativeApproval` | 設為 `true` 時，連線核准和操作確認會改用原生對話框，而不是 SDK 的頁內對話框 |
-| `helpButton` | App 有自己的「求助」入口時設為 `false` |
+| `helpButton` | App 有自己的「請求協助」入口時設為 `false` |
 | `lang` | 與 App 語言一致的語言標記（`'en'`、`'zh'`、`'ja'`、`'pt-BR'`…，見 [SDK 語言](../sdk/README.zh-TW.md#語言)）；預設跟隨 `navigator.languages` |
 | `lockScreen`、`theme`、`eruda` | 與 H5 頁面相同，請見 [protocol.zh-TW.md §10](protocol.zh-TW.md#10-宿主-javascript-介面) |
 
@@ -97,7 +97,7 @@ final class RWD: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithRep
             "deviceToken": deviceToken as Any,
             "userId": userId as Any,
             "app": ["name": "My App", "version": "5.12.0"],
-            "helpButton": false,          // App 有自己的求助入口
+            "helpButton": false,          // App 有自己的協助入口
             "nativeKey": nativeKey,
             "nativeApproval": true,       // 核准和確認使用原生對話框
             "lang": "en",
@@ -266,12 +266,12 @@ class Rwd(private val context: Context) {
 | `deviceCode`、`status` | 顯示裝置碼，以及連線狀態是 `online`、`connecting`、`polling`、`rejected` 還是 `quota` |
 | `control` | `observe`：「AI 正在檢視」；`agent`：「AI 正在操作」；兩者都要停用返回鍵和滑動返回；`user`：「你已接管」 |
 | `level` | 授予已連線 agent 的等級 |
-| `config.helpButton` | 專案策略是否為這位使用者提供求助功能；據此顯示或隱藏你自己的求助入口 |
+| `config.helpButton` | 專案策略是否為這位使用者提供協助功能；據此顯示或隱藏你自己的協助入口 |
 | `pending` | 需要使用者回答的問題，見下文 |
 | `deviceToken` | 首次出現或改變時保存下來 |
 
 - **接管 / 交還 / 結束：** `nativeControl(nativeKey, 'takeover' | 'handback' | 'end')`；密鑰錯誤時回傳 `false`。
-- **求助：** `help(true)`（`help(false)` 取消）。
+- **請求協助：** `help(true)`（`help(false)` 取消請求）。
 - **連線核准**（`pending.kind === 'attach'`）：顯示 `pending.agent.name` 和 `pending.agent.keyHint`，讓使用者從 `pending.levels` 中選擇（最後一個是 agent 要求的等級），然後呼叫 `nativeDecide(nativeKey, pending.requestId, level)`，或傳入 `null` 表示拒絕。請在 `pending.expiresAt`（30 秒）之前回覆。
 - **操作確認**（`pending.kind === 'confirm'`）：顯示 `pending.action`（例如 `click "Place order"`），然後呼叫 `nativeDecide(nativeKey, requestId, 'allow')` 或傳入 `null`。
 - 在回報了這個請求的 WebView 上執行 `nativeDecide`：閘道只會詢問前景頁面。
@@ -285,7 +285,7 @@ class Rwd(private val context: Context) {
 
 ## 從邀請連結開啟頁面
 
-客服可以在主控台（專案的「邀請」分頁）建立**邀請**，並附上工單編號之類的備註。連結是專案的邀請網址（或為這個邀請另外設定的網址）加上 `?rwd_invite=<token>`；只能使用一次，預設 30 分鐘後失效。載入了 SDK 的頁面開啟它時，SDK 會把權杖從網址列中取出，隨 `hello` 一起送出；裝置一上線就處於求助狀態，並在主控台中標示為受邀，沒有人需要口頭唸出裝置碼。
+客服可以在主控台（專案的「邀請」分頁）建立**邀請**，並附上工單編號之類的備註。連結是專案的邀請網址（或為這個邀請另外設定的網址）加上 `?rwd_invite=<token>`；只能使用一次，預設 30 分鐘後失效。載入了 SDK 的頁面開啟它時，SDK 會把權杖從網址列中取出，隨 `hello` 一起送出；裝置一上線就已在請求協助，並在主控台中標示為受邀，沒有人需要口頭唸出裝置碼。
 
 在 App 中：
 

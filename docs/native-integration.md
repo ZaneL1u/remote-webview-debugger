@@ -31,7 +31,7 @@ The console's built-in guide (**Docs → Integrate a native app**) shows the sam
 | `app` | `{ name, version }` of your app, shown to agents and in the console |
 | `nativeKey` | A random secret generated at launch (e.g. two UUIDs) and written only into the injected script. Required by `nativeControl()` and `nativeDecide()`; page scripts, including the agent's `evaluate_script`, can't read it |
 | `nativeApproval` | `true` to show attach approvals and action confirmations as native dialogs instead of the SDK's in-page dialogs |
-| `helpButton` | `false` if the app has its own "Get help" entry |
+| `helpButton` | `false` if the app has its own "Request assistance" entry |
 | `lang` | Your app's language as a tag (`'en'`, `'zh'`, `'ja'`, `'pt-BR'`…; see the [SDK languages](../sdk/README.md#languages)); default follows `navigator.languages` |
 | `lockScreen`, `theme`, `eruda` | As for H5 pages, see [protocol.md §10](protocol.md#10-javascript-api-for-hosts) |
 
@@ -96,7 +96,7 @@ final class RWD: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithRep
             "deviceToken": deviceToken as Any,
             "userId": userId as Any,
             "app": ["name": "My App", "version": "5.12.0"],
-            "helpButton": false,          // the app has its own help entry
+            "helpButton": false,          // the app has its own assistance entry
             "nativeKey": nativeKey,
             "nativeApproval": true,       // native dialogs for approvals and confirmations
             "lang": "en",
@@ -265,12 +265,12 @@ Poll `status()` (the sketches above post it every 500 ms; the reference only pos
 | `deviceCode`, `status` | Show the device code and whether the link is `online`, `connecting`, `polling`, `rejected` or `quota` |
 | `control` | `observe`: "AI is viewing"; `agent`: "AI in control"; in both, disable the back button and swipe-back; `user`: "You've taken over" |
 | `level` | The level granted to the attached agent |
-| `config.helpButton` | Whether the project's policy offers help to this user; show or hide your own help entry accordingly |
+| `config.helpButton` | Whether the project's policy offers assistance to this user; show or hide your own assistance entry accordingly |
 | `pending` | A question for the user, see below |
 | `deviceToken` | Save it when it first appears or changes |
 
 - **Take over / hand back / end:** `nativeControl(nativeKey, 'takeover' | 'handback' | 'end')`; it returns `false` if the key is wrong.
-- **Get help:** `help(true)` (and `help(false)` to cancel).
+- **Request assistance:** `help(true)` (and `help(false)` to cancel).
 - **Attach approval** (`pending.kind === 'attach'`): show `pending.agent.name` and `pending.agent.keyHint`, offer `pending.levels` (the last one is what the agent asked for), then call `nativeDecide(nativeKey, pending.requestId, level)`, or pass `null` to refuse. Answer before `pending.expiresAt` (30 seconds).
 - **Action confirmation** (`pending.kind === 'confirm'`): show `pending.action` (e.g. `click "Place order"`), then `nativeDecide(nativeKey, requestId, 'allow')` or `null`.
 - Run `nativeDecide` in the WebView whose status reported the request: the gateway asks the foreground page.
@@ -284,7 +284,7 @@ Poll `status()` (the sketches above post it every 500 ms; the reference only pos
 
 ## Opening pages from invite links
 
-Support can create an **invite** in the console (a project's **Invites** tab) with a note such as a ticket number. The link is the project's invite URL (or one set for that invite) plus `?rwd_invite=<token>`; it works once and expires after 30 minutes by default. When a page with the SDK opens it, the SDK takes the token out of the address bar and sends it with its `hello`; the device comes online already asking for help and is marked as invited in the console, so nobody has to read out a device code.
+Support can create an **invite** in the console (a project's **Invites** tab) with a note such as a ticket number. The link is the project's invite URL (or one set for that invite) plus `?rwd_invite=<token>`; it works once and expires after 30 minutes by default. When a page with the SDK opens it, the SDK takes the token out of the address bar and sends it with its `hello`; the device comes online already requesting assistance and is marked as invited in the console, so nobody has to read out a device code.
 
 For an app:
 

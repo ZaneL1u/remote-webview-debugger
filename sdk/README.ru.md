@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # SDK страницы RWD (`sdk/`)
@@ -11,7 +11,7 @@
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // необязательно
     deviceId: "…",               // необязательно; передаёт нативный хост, внедряющий SDK
-    helpButton: true,            // необязательно; показать кнопку «Попросить помощь»
+    helpButton: true,            // необязательно; показать кнопку «Запросить поддержку»
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // необязательно; тег языка, по умолчанию из языков браузера
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`; `status` — это `idle / connecting / online / polling / stopped / rejected / quota`, `lang` — язык интерфейса (`null` до вызова `run()`), `logSession` — журнал сеанса, в который пишет эта страница (`null`, если запись не ведётся) |
 | `stop()` | Отключиться и убрать интерфейс (сбор console / сетевых запросов продолжается, в ограниченном объёме) |
 | `setUser(userId)` | Сменить пользователя; один раз переподключается с новым `hello` |
-| `help(on)` | Попросить помощь / отменить |
+| `help(on)` | Запросить поддержку / отменить запрос |
 | `nativeControl(nativeKey, action)` | «Перехватить» / «Вернуть ИИ» / «Завершить» из собственного интерфейса нативного хоста |
 | `nativeDecide(nativeKey, requestId, value)` | При `nativeApproval` — ответ на `status().pending`: уровень доступа или `null` для запроса на подключение, `'allow'` или `null` для подтверждения чувствительного действия |
 | `setLang(lang?)` | Сменить язык интерфейса во время работы (собственная настройка языка в приложении); без аргумента — вернуться к языкам браузера. См. [Языки](#языки) |
@@ -50,7 +50,7 @@
 |---|---|
 | `userId` | Вошедший пользователь; отправляется в `hello` |
 | `deviceId` | Стабильный идентификатор устройства от нативного хоста (иначе он хранится в localStorage) |
-| `helpButton` | Показывать кнопку «Попросить помощь» (объединяется через ИЛИ с политикой проекта) |
+| `helpButton` | Показывать кнопку «Запросить поддержку» (объединяется через ИЛИ с политикой проекта) |
 | `app` | `{ name, version }` приложения-хоста |
 | `lang` | Язык всего, что видит пользователь телефона (плашка, плавающее окно, нижняя панель, диалоги, всплывающие уведомления, вкладка eruda и описание чувствительного действия «AI wants to …»): тег языка, например `'ja'` или `'pt-BR'`. По умолчанию — языки браузера. См. [Языки](#языки) |
 | `locales` | Дополнительные языковые пакеты, регистрируются до выбора языка (как `registerLocale`) |
@@ -81,7 +81,7 @@
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { en: { ui: { help: 'Contact support' } } }, // заменить отдельные сообщения любого языка
@@ -107,7 +107,7 @@ RemoteWebviewDebugger.run(url, key, {
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | Кнопки, переключатели, курсор агента, подсветку и свечение по краям |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | Кнопку «Завершить» |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | «Попросить помощь»; состояние, когда управляет пользователь |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | «Запросить поддержку» и «Идёт поддержка»; состояние, когда управляет пользователь |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | Индикатор «в сети»; «Скопировано» |
 | `--rwd-font` | `font` | системный шрифт интерфейса (для китайского, японского и корейского — свой для каждого языка) | Весь текст |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | Код устройства и теги |
@@ -150,7 +150,7 @@ RemoteWebviewDebugger.run(url, key, {
 - `src/ids.ts`: deviceId / pageId / openerId.
 - `src/launch.ts`: к какому запуску приложения относится эта страница (`launchId`, `window.RWDLaunchId`, cookie `rwd_launch`).
 - `src/pageWatch.ts`: сообщения `page` (url, title, visibility) и события хронологии (переходы внутри страницы, нажатия пользователя).
-- `src/ui.ts`, `src/lock.ts`: плашка, кнопка помощи, блокирующий оверлей, свечение, подсветка действий и диалоги в Shadow DOM; блокирует доверенный ввод пользователя, пока подключён агент, и показывает, сколько длится подключение.
+- `src/ui.ts`, `src/lock.ts`: плашка, кнопка «Запросить поддержку», блокирующий оверлей, свечение, подсветка действий и диалоги в Shadow DOM; блокирует доверенный ввод пользователя, пока подключён агент, и показывает, сколько длится подключение.
 - `src/approval.ts`: одобрение подключения и подтверждение чувствительных действий (диалог на странице или нативный хост через `nativeDecide`).
 - `src/i18n.ts`, `src/locales/`, `src/localeLoader*.ts`: языковые пакеты (тексты интерфейса, действий и агента для каждого языка), выбор языка и резервные языки, загрузка по требованию; `scripts/locales.mjs` собирает `dist/locales/<id>.js`.
 - Движок агента находится рядом с chobitsu в `packages/chobitsu/src/engine/rwd/`: снимок, `rwd.query`, проверки готовности элемента к действию, синтетический ввод, клавиатура, буферы console / сети, скриншоты, `rwd.storage`, журнал сеанса в IndexedDB (`coldlog.ts`), обнаружение перекрывающих слоёв (`overlays.ts`), уровни доступа и правила подтверждения (`policy.ts`), тексты для агента (`i18n.ts`). Исходники Playwright, используемые для снимков, лежат в `packages/chobitsu/src/engine/vendor/playwright/`. Сборка включает их из исходников в `dist/sdk.js`.

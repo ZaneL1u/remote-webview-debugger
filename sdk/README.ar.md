@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -15,7 +15,7 @@
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // اختياري
     deviceId: "…",               // اختياري؛ يمرّره المضيف الأصلي الذي يحقن SDK
-    helpButton: true,            // اختياري؛ يُظهر زر "Get help"
+    helpButton: true,            // اختياري؛ يُظهر زر «طلب المساعدة»
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // اختياري؛ وسم لغة، والافتراضي من لغات المتصفح
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -43,7 +43,7 @@
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`؛ قيمة `status` واحدة من `idle / connecting / online / polling / stopped / rejected / quota`، و `lang` لغة الواجهة (`null` قبل `run()`)، و `logSession` سجل الجلسة الذي تكتب فيه هذه الصفحة (`null` حين لا يجري التسجيل) |
 | `stop()` | يقطع الاتصال ويزيل الواجهة (يستمر جمع console والشبكة، ضمن حدود) |
 | `setUser(userId)` | يغيّر المستخدم؛ ويعيد الاتصال مرة واحدة برسالة `hello` جديدة |
-| `help(on)` | طلب المساعدة / إلغاؤه |
+| `help(on)` | طلب المساعدة / إلغاء الطلب |
 | `nativeControl(nativeKey, action)` | تولّي التحكم / إعادة التحكم / الإنهاء من واجهة المضيف الأصلي نفسه |
 | `nativeDecide(nativeKey, requestId, value)` | مع `nativeApproval`، يجيب عن `status().pending`: مستوى أو `null` لطلب الربط، و `'allow'` أو `null` لتأكيد إجراء حساس |
 | `setLang(lang?)` | يبدّل لغة الواجهة أثناء التشغيل (إعداد اللغة الخاص بالتطبيق)؛ ودون وسيط يعود إلى لغات المتصفح. انظر [اللغات](#اللغات) |
@@ -56,7 +56,7 @@
 |---|---|
 | `userId` | المستخدم المسجَّل دخوله، ويُرسل مع `hello` |
 | `deviceId` | معرّف جهاز ثابت يمرّره المضيف الأصلي (وإلا يُحفظ معرّف في localStorage) |
-| `helpButton` | يُظهر زر "Get help" (ويُدمج بعملية OR مع سياسة المشروع) |
+| `helpButton` | يُظهر زر «طلب المساعدة» (ويُدمج بعملية OR مع سياسة المشروع) |
 | `app` | `{ name, version }` للتطبيق المضيف |
 | `lang` | لغة كل ما يراه مستخدم الهاتف (الشارة، النافذة العائمة، الشريط السفلي، مربعات الحوار، الإشعارات العابرة، تبويب eruda، ووصف "AI wants to …" للإجراء الحساس): وسم لغة مثل `'ja'` أو `'pt-BR'`. الافتراضي: لغات المتصفح. انظر [اللغات](#اللغات) |
 | `locales` | حزم لغات إضافية، تُسجَّل قبل اختيار اللغة (مثل `registerLocale`) |
@@ -89,7 +89,7 @@
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { ar: { ui: { help: 'تواصل مع الدعم' } } }, // تغيير نصوص مفردة في أي لغة
@@ -117,7 +117,7 @@ RemoteWebviewDebugger.run(url, key, {
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | الأزرار، والمفاتيح، ومؤشر الوكيل، والإبرازات، والتوهّج على الحواف |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | زر «إنهاء» |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | «طلب المساعدة»؛ وحالة تحكّم المستخدم |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | «طلب المساعدة» و«قيد المساعدة»؛ وحالة تحكّم المستخدم |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | نقطة الاتصال؛ و«تم النسخ» |
 | `--rwd-font` | `font` | خط واجهة النظام (بحسب اللغة للصينية واليابانية والكورية) | كل النصوص |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | رمز الجهاز والوسوم |
@@ -160,7 +160,7 @@ RemoteWebviewDebugger.run(url, key, {
 - `src/ids.ts`: deviceId / pageId / openerId.
 - `src/launch.ts`: أيّ تشغيل للتطبيق تنتمي إليه هذه الصفحة (`launchId`، `window.RWDLaunchId`، ملف تعريف الارتباط `rwd_launch`).
 - `src/pageWatch.ts`: رسائل `page` (url، title، visibility) وأحداث الخط الزمني (التنقل داخل الصفحة، نقرات المستخدم).
-- `src/ui.ts`، `src/lock.ts`: الشارة، وزر المساعدة، وطبقة القفل، والتوهّج، وإبراز الإجراء، ومربعات الحوار في Shadow DOM؛ يحجب إدخال المستخدم الموثوق أثناء ربط وكيل، ويعرض منذ متى هو متصل.
+- `src/ui.ts`، `src/lock.ts`: الشارة، وزر «طلب المساعدة»، وطبقة القفل، والتوهّج، وإبراز الإجراء، ومربعات الحوار في Shadow DOM؛ يحجب إدخال المستخدم الموثوق أثناء ربط وكيل، ويعرض منذ متى هو متصل.
 - `src/approval.ts`: الموافقة على الربط وتأكيد الإجراء الحساس (مربع حوار في الصفحة، أو المضيف الأصلي عبر `nativeDecide`).
 - `src/i18n.ts`، `src/locales/`، `src/localeLoader*.ts`: حزم اللغات (نصوص الواجهة والإجراءات والوكيل لكل لغة)، والاختيار والاحتياط، والتحميل عند الحاجة؛ ويبني `scripts/locales.mjs` الملفات `dist/locales/<id>.js`.
 - يعيش محرّك الوكيل بجوار chobitsu في `packages/chobitsu/src/engine/rwd/`: اللقطة، و `rwd.query`، وفحوص قابلية التنفيذ، والإدخال المُصطنَع، ولوحة المفاتيح، ومخازن console / الشبكة المؤقتة، ولقطات الشاشة، و `rwd.storage`، وسجل الجلسة في IndexedDB (`coldlog.ts`)، وكشف الطبقات العائمة (`overlays.ts`)، والمستويات وقواعد التأكيد (`policy.ts`)، والنصوص الموجّهة إلى الوكيل (`i18n.ts`). مصادر Playwright المستخدمة في اللقطات موجودة في `packages/chobitsu/src/engine/vendor/playwright/`. ويجمّعها البناء من المصدر في `dist/sdk.js`.

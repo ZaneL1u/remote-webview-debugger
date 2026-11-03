@@ -10,7 +10,7 @@ One JS file that an App WebView or H5 page loads, so an AI agent can inspect and
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // optional
     deviceId: "…",               // optional; passed in by a native host that injects the SDK
-    helpButton: true,            // optional; show the "Get help" button
+    helpButton: true,            // optional; show the "Request assistance" button
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // optional; a language tag, default from the browser's languages
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -36,7 +36,7 @@ Published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/re
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`; `status` is `idle / connecting / online / polling / stopped / rejected / quota`, `lang` the UI language (`null` before `run()`), `logSession` the session log this page writes to (`null` when not recording) |
 | `stop()` | Disconnect and remove the UI (console / network collection continues, bounded) |
 | `setUser(userId)` | Change the user; reconnects once with a new `hello` |
-| `help(on)` | Ask for help / cancel |
+| `help(on)` | Request assistance / cancel the request |
 | `nativeControl(nativeKey, action)` | Take over / hand back / end from the native host's own UI |
 | `nativeDecide(nativeKey, requestId, value)` | With `nativeApproval`, answer `status().pending`: a level or `null` for an attach request, `'allow'` or `null` for a sensitive-action confirmation |
 | `setLang(lang?)` | Switch the UI language at runtime (an app's own language setting); no argument goes back to the browser's languages. See [Languages](#languages) |
@@ -49,7 +49,7 @@ Published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/re
 |---|---|
 | `userId` | The signed-in user, sent with the `hello` |
 | `deviceId` | A stable device id from a native host (otherwise one is kept in localStorage) |
-| `helpButton` | Show the "Get help" button (OR-ed with the project policy) |
+| `helpButton` | Show the "Request assistance" button (OR-ed with the project policy) |
 | `app` | `{ name, version }` of the host app |
 | `lang` | Language of everything the phone user sees (pill, floating window, bottom bar, dialogs, toasts, the eruda tab, and the "AI wants to …" description of a sensitive action): a language tag such as `'ja'` or `'pt-BR'`. Default: the browser's languages. See [Languages](#languages) |
 | `locales` | Extra language packs, registered before the language is picked (like `registerLocale`) |
@@ -80,7 +80,7 @@ Built in: English (`en`), Simplified Chinese (`zh`), Traditional Chinese (`zh-TW
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { en: { ui: { help: 'Contact support' } } }, // change single messages of any language
@@ -106,7 +106,7 @@ The UI lives in a shadow root on `#__rwd` (outside `<body>`), so page CSS doesn'
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | Buttons, switches, the agent's pointer, highlights and the edge glow |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | The End button |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | Get help; the user-in-control state |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | Request assistance and Assisting; the user-in-control state |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | Online dot; "copied" |
 | `--rwd-font` | `font` | system UI font (per language for Chinese, Japanese, Korean) | All text |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | Device code and tags |
@@ -149,7 +149,7 @@ Those buffers are one page's memory. In parallel the SDK writes a **session log*
 - `src/ids.ts`: deviceId / pageId / openerId.
 - `src/launch.ts`: which launch of the app this page belongs to (`launchId`, `window.RWDLaunchId`, the `rwd_launch` cookie).
 - `src/pageWatch.ts`: `page` messages (url, title, visibility) and timeline events (in-page navigation, the user's taps).
-- `src/ui.ts`, `src/lock.ts`: the pill, help button, lock overlay, glow, action highlight and dialogs in a Shadow DOM; blocks the user's trusted input while an agent is attached, and shows how long it has been connected.
+- `src/ui.ts`, `src/lock.ts`: the pill, Request assistance button, lock overlay, glow, action highlight and dialogs in a Shadow DOM; blocks the user's trusted input while an agent is attached, and shows how long it has been connected.
 - `src/approval.ts`: attach approval and sensitive-action confirmation (page dialog, or the native host via `nativeDecide`).
 - `src/i18n.ts`, `src/locales/`, `src/localeLoader*.ts`: language packs (UI, action and agent text per language), picking and fallback, on-demand loading; `scripts/locales.mjs` builds `dist/locales/<id>.js`.
 - The agent engine lives next to chobitsu in `packages/chobitsu/src/engine/rwd/`: snapshot, `rwd.query`, actionability checks, synthesized input, keyboard, console / network buffers, screenshots, `rwd.storage`, the session log in IndexedDB (`coldlog.ts`), overlay detection (`overlays.ts`), levels and confirmation rules (`policy.ts`), agent-facing text (`i18n.ts`). The Playwright sources used for snapshots are in `packages/chobitsu/src/engine/vendor/playwright/`. The build bundles them from source into `dist/sdk.js`.

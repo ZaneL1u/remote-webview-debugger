@@ -1,4 +1,4 @@
-<!-- i18n-source: 9df5f749e07f20a0f47dbc50ab37d0c462f2092e -->
+<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | Français | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Intégration dans une application native
@@ -32,7 +32,7 @@ Le guide intégré à la console web (**Docs → Integrate a native app**) montr
 | `app` | `{ name, version }` de votre application, affiché aux agents et dans la console web |
 | `nativeKey` | Un secret aléatoire généré au lancement (p. ex. deux UUID) et écrit uniquement dans le script injecté. Requis par `nativeControl()` et `nativeDecide()` ; les scripts de la page, y compris le `evaluate_script` de l'agent, ne peuvent pas le lire |
 | `nativeApproval` | `true` pour afficher les approbations de rattachement et les confirmations d'action dans des boîtes de dialogue natives plutôt que dans celles du SDK dans la page |
-| `helpButton` | `false` si l'application a sa propre entrée « Besoin d'aide » |
+| `helpButton` | `false` si l'application a sa propre entrée « Demander une assistance » |
 | `lang` | La langue de votre application, sous forme d'étiquette (`'en'`, `'zh'`, `'ja'`, `'pt-BR'`… ; voir les [langues du SDK](../sdk/README.fr.md#langues)) ; par défaut, suit `navigator.languages` |
 | `lockScreen`, `theme`, `eruda` | Comme pour les pages H5, voir [protocol.fr.md §10](protocol.fr.md#10-api-javascript-pour-les-hôtes) |
 
@@ -97,7 +97,7 @@ final class RWD: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithRep
             "deviceToken": deviceToken as Any,
             "userId": userId as Any,
             "app": ["name": "My App", "version": "5.12.0"],
-            "helpButton": false,          // l'application a sa propre entrée d'aide
+            "helpButton": false,          // l'application a sa propre entrée d'assistance
             "nativeKey": nativeKey,
             "nativeApproval": true,       // dialogues natifs pour les approbations et confirmations
             "lang": "en",
@@ -266,12 +266,12 @@ Interrogez `status()` régulièrement (les esquisses ci-dessus le transmettent t
 | `deviceCode`, `status` | Afficher le code d'appareil et l'état de la liaison : `online`, `connecting`, `polling`, `rejected` ou `quota` |
 | `control` | `observe` : « L'IA regarde » ; `agent` : « L'IA a le contrôle » ; dans les deux cas, désactivez le bouton Retour et le balayage arrière ; `user` : « Vous avez repris la main » |
 | `level` | Le niveau accordé à l'agent rattaché |
-| `config.helpButton` | Indique si la politique du projet propose l'aide à cet utilisateur ; affichez ou masquez votre propre entrée d'aide en conséquence |
+| `config.helpButton` | Indique si la politique du projet propose l'assistance à cet utilisateur ; affichez ou masquez votre propre entrée d'assistance en conséquence |
 | `pending` | Une question pour l'utilisateur, voir ci-dessous |
 | `deviceToken` | Sauvegardez-le dès qu'il apparaît ou qu'il change |
 
 - **Reprendre / Rendre / Terminer :** `nativeControl(nativeKey, 'takeover' | 'handback' | 'end')` ; renvoie `false` si la clé est incorrecte.
-- **Besoin d'aide :** `help(true)` (et `help(false)` pour annuler).
+- **Demander une assistance :** `help(true)` (et `help(false)` pour annuler la demande).
 - **Approbation du rattachement** (`pending.kind === 'attach'`) : affichez `pending.agent.name` et `pending.agent.keyHint`, proposez `pending.levels` (le dernier est celui que l'agent a demandé), puis appelez `nativeDecide(nativeKey, pending.requestId, level)`, ou passez `null` pour refuser. Répondez avant `pending.expiresAt` (30 secondes).
 - **Confirmation d'action** (`pending.kind === 'confirm'`) : affichez `pending.action` (p. ex. `click "Place order"`), puis `nativeDecide(nativeKey, requestId, 'allow')` ou `null`.
 - Exécutez `nativeDecide` dans la WebView dont l'état a signalé la demande : la passerelle interroge la page au premier plan.
@@ -285,7 +285,7 @@ Interrogez `status()` régulièrement (les esquisses ci-dessus le transmettent t
 
 ## Ouvrir des pages depuis des liens d'invitation
 
-Le support peut créer une **invitation** dans la console web (onglet **Invites** d'un projet) avec une note, par exemple un numéro de ticket. Le lien est l'URL d'invitation du projet (ou celle définie pour cette invitation) suivie de `?rwd_invite=<token>` ; il ne fonctionne qu'une fois et expire par défaut au bout de 30 minutes. Quand une page équipée du SDK l'ouvre, le SDK retire le jeton de la barre d'adresse et l'envoie avec son `hello` ; l'appareil se met en ligne en train de demander de l'aide et apparaît comme invité dans la console web, si bien que personne n'a à lire un code d'appareil à voix haute.
+Le support peut créer une **invitation** dans la console web (onglet **Invites** d'un projet) avec une note, par exemple un numéro de ticket. Le lien est l'URL d'invitation du projet (ou celle définie pour cette invitation) suivie de `?rwd_invite=<token>` ; il ne fonctionne qu'une fois et expire par défaut au bout de 30 minutes. Quand une page équipée du SDK l'ouvre, le SDK retire le jeton de la barre d'adresse et l'envoie avec son `hello` ; l'appareil se met en ligne avec une demande d'assistance déjà en cours et apparaît comme invité dans la console web, si bien que personne n'a à lire un code d'appareil à voix haute.
 
 Pour une application :
 

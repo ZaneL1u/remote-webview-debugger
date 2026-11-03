@@ -105,7 +105,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // on change
 {"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
-{"t":"help","on":true}                                              // the user asks for help / cancels
+{"t":"help","on":true}                                              // the user requests assistance / cancels
 {"t":"control","action":"takeover"|"handback"|"end"}                // the user's buttons, §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
 {"id":17,"result":{…}}                                              // RPC success, §5
@@ -124,7 +124,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"Support Bot"}|null,"level":"interact"|null,
  "attachedMs":83000|null}                                     // §4, to every page of the device
-{"t":"help","on":false}                                       // help cleared: an agent attached, a console member ended the session, or the user ended it on the device
+{"t":"help","on":false}                                       // request cleared: an agent attached, a console member ended the session, or the user ended it on the device
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, to the foreground page
 {"t":"attach_cancel","requestId":"…"}                         // §7, to every page
@@ -166,7 +166,7 @@ If an attach request is pending and the reconnecting page is the device's foregr
 
 **Resume token.** Every `welcome` carries a new `resume` token bound to the `pageId`. When a page with a known `pageId` reconnects, its `hello.resume` must match the last one issued, else the connection is closed with **4409** and the SDK starts over with a new `pageId`. Knowing a `pageId` is therefore not enough to impersonate a page.
 
-**Invite.** When the page URL carries `?rwd_invite=<token>`, the SDK removes the parameter from the address bar (`history.replaceState`), keeps the token in sessionStorage and sends it in `hello.invite` until a `welcome` arrives. The gateway accepts it if the invite belongs to the same project, is unused and unexpired: the device is marked `invited` and asking for help, the timeline records which invite it came from, and the invite is used up. Invalid invites are ignored silently. See [§12.6](#126-device-invites).
+**Invite.** When the page URL carries `?rwd_invite=<token>`, the SDK removes the parameter from the address bar (`history.replaceState`), keeps the token in sessionStorage and sends it in `hello.invite` until a `welcome` arrives. The gateway accepts it if the invite belongs to the same project, is unused and unexpired: the device is marked `invited` and requesting assistance, the timeline records which invite it came from, and the invite is used up. Invalid invites are ignored silently. See [§12.6](#126-device-invites).
 
 ### 3.6 Close codes
 
@@ -184,7 +184,7 @@ Each device has one control state, which the gateway decides and broadcasts to a
 
 | State | Meaning | Page UI |
 |---|---|---|
-| `none` | No agent attached | Collapsed pill with the device code (plus the help button when enabled) |
+| `none` | No agent attached | Collapsed pill with the device code (plus the Request assistance button when enabled) |
 | `observe` | An agent is attached and only looking | "AI is viewing", user input is blocked (unless the user turned the lock off), glowing screen edge, **Take over** and **End** buttons |
 | `agent` | The agent is operating the page | "AI working", the same lock, edge, and buttons, plus the agent's cursor |
 | `user` | The user took over | No lock, a static edge, **Hand back** and **End** buttons |
@@ -198,7 +198,7 @@ Transitions:
 | No interaction for `policy.agentIdleMinutes` (default 2; checked every 10 s) | `agent` → `observe` |
 | The page sends `control: takeover` | `observe` / `agent` → `user` |
 | The page sends `control: handback` | `user` → `agent` (or `none` if no agent is attached) |
-| The page sends `control: end` | The agent is detached and help is cleared → `none` |
+| The page sends `control: end` | The agent is detached and the assistance request is cleared → `none` |
 | The agent disconnects or is replaced, its key is revoked, `policy.attachMaxMinutes` (default 60) runs out, or a console member ends the session | → `none` |
 
 The page locks from the moment an agent attaches (`observe`), not only once it acts, and stays locked through `agent` → `observe` on idle until the user takes over or the state goes back to `none`.
@@ -378,7 +378,7 @@ When an agent calls `connect_device`, the gateway merges the policies of the pro
 - The SDK's dialog lives in a Shadow DOM, accepts trusted taps only and arms 0.4 s after it appears, so an agent can't approve itself. Same-origin tabs share the decision over BroadcastChannel.
 - The user can turn on **auto-allow** with a maximum level in the SDK's floating window; the SDK then answers at once with the highest offered level within it and shows a notice.
 - With `run({ nativeApproval: true })` the SDK shows no dialog. Instead `status().pending` becomes `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}` and the native host answers with `nativeDecide(nativeKey, requestId, level | null)`.
-- After approval the gateway attaches the agent (replacing any other agent on the device), clears help (`{"t":"help","on":false}`) and broadcasts `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`; the page locks right away ([§4](#4-control-state)).
+- After approval the gateway attaches the agent (replacing any other agent on the device), clears the assistance request (`{"t":"help","on":false}`) and broadcasts `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`; the page locks right away ([§4](#4-control-state)).
 
 With `approval: none` the agent attaches right away at the computed level.
 
@@ -411,7 +411,7 @@ When the WebSocket fails 3 times in a row, the SDK calls `POST /v1/presence` eve
 
 - The gateway uses `key`, `deviceId`, `userId`, `device.{ua, platform, app}`, `deviceToken` and `help`; `pageId` and `page` are informational. App key and origin are checked as for the WebSocket, with the same rate limit.
 - A device that has been issued a device token ([§3.5](#35-device-token-resume-token-and-invites)) must send it here too; otherwise the call fails with `401 bad_token` and nothing about the device is updated. A device without a token (an older SDK) keeps polling without one.
-- `help: true` marks the device as asking for help, as `hello.help` does, unless an agent is already attached.
+- `help: true` marks the device as requesting assistance, as `hello.help` does, unless an agent is already attached.
 - A polling device counts as online for 90 seconds after each call.
 - `connect: true` tells the page to open the WebSocket now. The gateway sets it when an agent calls `connect_device` or `wait_for_device` for the device.
 - As a safety net the SDK also retries the WebSocket on every 5th poll.
@@ -423,7 +423,7 @@ The SDK exposes `window.RemoteWebviewDebugger`. Pages call `run()`; native hosts
 ```js
 RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: the signed-in user, shown to agents and the console
-  helpButton,            // show the "Get help" button (OR-ed with the policy's helpButton)
+  helpButton,            // show the "Request assistance" button (OR-ed with the policy's helpButton)
   app,                   // { name, version } of the host app
   lang,                  // a language tag for the phone user's UI; default from navigator.languages (§15)
   locales,               // extra language packs; messages: per-language overrides (§15)
@@ -446,7 +446,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
 |---|---|
 | `run(gatewayUrl, appKey, options?)` | Brings the page online. Resolves once the gateway has answered, or after 8 s with what is known. Calling it again returns the same promise |
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`. `status` is `idle`, `connecting`, `online`, `polling`, `rejected`, `quota` or `stopped`; `logSession` is the session log this page writes to, `null` when it is not recording ([§5.4](#54-session-log)) |
-| `help(on = true)` | Ask for help, or cancel |
+| `help(on = true)` | Request assistance, or cancel the request |
 | `setUser(userId)` | Change the signed-in user (the SDK reconnects with a new `hello`) |
 | `stop()` | Disconnect and remove the UI; console and network capture continue, bounded |
 | `nativeControl(nativeKey, 'takeover' \| 'handback' \| 'end')` | The native host's own control buttons. Returns `false` if the key doesn't match |
@@ -477,7 +477,7 @@ type Policy = {
   confirmSelectors: string[]       // clicking these needs the user's OK (besides [data-rwd-confirm])
   networkExclude: string[]         // requests kept out of what agents read (§5.2)
   sessionLog: boolean              // pages keep a session log (default true, §5.4)
-  helpButton: 'off' | 'all' | 'listed'   // who sees the "Get help" button (default off)
+  helpButton: 'off' | 'all' | 'listed'   // who sees the "Request assistance" button (default off)
   helpUsers: string[]              // userIds for helpButton = listed
   agentIdleMinutes: number         // agent → observe after this much inactivity (default 2, max 120)
   attachMaxMinutes: number         // an attachment ends after this long (default 60, max 1440)
@@ -491,7 +491,7 @@ type Policy = {
 - Values are normalized on save: an `approval` other than `none` becomes `prompt`, an invalid `maxLevel` becomes `interact`, numbers are clamped. `maskPatterns` must compile, else `400 bad_policy`. `maskSelectors`, `confirmSelectors`, `networkExclude` and `helpUsers` are trimmed of blank entries and cut at 50 each, `maskPatterns` at 20.
 - **`networkExclude`** is the noise an agent should not have to wade through: fonts that always 404, analytics beacons. Each rule is matched against the request URL as a case-insensitive substring, as a `*` wildcard pattern (`*/404/*`), or as a regular expression when it is written `/…/` (with optional flags; the default is `i`). A rule that doesn't compile matches nothing. Matching requests are left out of the network list and of `net_fail` timeline events, but the page still records them, so an agent can ask for them with `includeExcluded` ([§5.2](#52-methods), [§14.3](#143-tools)). They are a convenience, not a privacy control — use `maskSelectors` / `maskPatterns` for data that must not leave the page.
 - **`sessionLog`** is on unless it is set to `false`, including for projects saved before the field existed. Turning it off stops every page of the project from recording and deletes the logs already on those devices for that origin; a single page can opt out on its own with `run({ record: false })` ([§5.4](#54-session-log)).
-- The masking, confirmation, network-exclude, session-log, help and eruda fields reach pages in `welcome.config` ([§3.4](#34-welcome)); a page's own `run({ networkExclude })` rules are added to the project's.
+- The masking, confirmation, network-exclude, session-log, assistance and eruda fields reach pages in `welcome.config` ([§3.4](#34-welcome)); a page's own `run({ networkExclude })` rules are added to the project's.
 - **Several projects on one device.** A device is identified by its `deviceId`, not by project: pages loaded with different app keys on the same phone are pages of one device. When an agent attaches, the gateway merges the policies of the projects whose pages are connected, keeping the strictest value: `prompt` if any project asks, the smallest `maxLevel`, `agentIdleMinutes` and `attachMaxMinutes`, and the smallest non-zero `maxAgents`.
 
 ## 12. Console REST API
@@ -554,15 +554,15 @@ API keys belong to the gateway, not to a project: one key reaches every device.
 | Method | Path | Role | Response |
 |---|---|---|---|
 | GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}` (`pageSize` ≤ 100). `online` (default): online devices, most recently connected first. `all`: every known device, newest first. In both modes `q` matches device id, device code (dashes optional), userId, user agent, the system label (in either language) and project names |
-| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: devices whose latest page came from the project (default `all`, up to 500), asking for help first, then online, then most recently seen. `waiting` means asking for help |
+| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: devices whose latest page came from the project (default `all`, up to 500), requesting assistance first, then online, then most recently seen. `waiting` means requesting assistance (shown as Assisting) |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | Always `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. Codes: `device_offline`, `no_page` (the page is reconnecting), `timeout`, `takeover`, `internal` and the RPC codes of [§5.1](#51-envelope) |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: detaches the agent, clears help, control back to `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: detaches the agent, clears the assistance request, control back to `none` |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 Device invites
 
-An invite lets a user bring their device online, already asking for help, just by opening a link. Nobody has to read out a device code.
+An invite lets a user bring their device online, already requesting assistance, just by opening a link. Nobody has to read out a device code.
 
 | Method | Path | Role | Request | Response |
 |---|---|---|---|---|
@@ -682,7 +682,7 @@ Each device keeps its last 300 timeline events in memory; the console shows the 
 | `navigated` / `reloaded` | A page moved to a new URL / reconnected at the same URL |
 | `focus` | A page came to the foreground |
 | `error` / `console_error` / `net_fail` / `user_tap` | Events reported by the page ([§3.2](#32-page--gateway)) |
-| `help` | The user asked for help or cancelled, or arrived through an invite |
+| `help` | The user requested assistance or cancelled the request, or arrived through an invite |
 | `agent` | Attach requests, denials, timeouts, attachments, task changes |
 | `control` | Control state changes; the summary gives the reason (user took over, AI idle, user ended, …) |
 | `offline` | The device's last page went away while an agent was attached |
@@ -694,7 +694,7 @@ Each device keeps its last 300 timeline events in memory; the console shows the 
 ```
 retry: 3000
 
-event: device     data: Device                               a device changed (online, help, control, approval, task…)
+event: device     data: Device                               a device changed (online, assistance request, control, approval, task…)
 event: timeline   data: {"deviceId", "event": TimelineEvent}
 event: ping       data: {}                                   every 25 s
 ```
@@ -726,7 +726,7 @@ Content that comes from the page (snapshots, console, network, storage, evaluate
 
 | Tool | Level | Parameters | Description |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all` (default `online`), `userId?`, `deviceCode?` (any case, with or without the hyphen) | Up to 50 devices, those asking for help first |
+| `list_devices` | — | `status?: online\|waiting\|all` (default `online`), `userId?`, `deviceCode?` (any case, with or without the hyphen) | Up to 50 devices, those requesting assistance first |
 | `connect_device` | — | `device` (device code or deviceId), `level?: Level` (default `interact`), `follow?: true` | Attach, asking the user first if required ([§7](#7-attach-approval)); within 10 minutes of letting go of the device itself the same key comes back without asking again, at no more than the level granted then. Selects the foreground page. Fails if the device has no connected page (and nudges a polling device to reconnect) |
 | `disconnect_device` | — | — | Detach |
 | `wait_for_device` | — | `device`, `timeoutSec?: 60` (max 300) | Wait until the device has a connected page; a polling device is told to reconnect |

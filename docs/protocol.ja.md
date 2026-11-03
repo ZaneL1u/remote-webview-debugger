@@ -1,4 +1,4 @@
-<!-- i18n-source: f8d7479861527272991767e64a8c5860621d75ed -->
+<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -106,7 +106,7 @@
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // 変化したとき
 {"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
-{"t":"help","on":true}                                              // ユーザーがヘルプを求める / 取り消す
+{"t":"help","on":true}                                              // ユーザーがサポートを依頼する / 依頼を取り消す
 {"t":"control","action":"takeover"|"handback"|"end"}                // ユーザーのボタン、§4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
 {"id":17,"result":{…}}                                              // RPC 成功、§5
@@ -125,7 +125,7 @@
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"Support Bot"}|null,"level":"interact"|null,
  "attachedMs":83000|null}                                     // §4、デバイスのすべてのページへ
-{"t":"help","on":false}                                       // ヘルプ解除: エージェントがアタッチした、管理コンソールのメンバーがセッションを終了した、またはユーザーがデバイス上で終了した
+{"t":"help","on":false}                                       // サポート依頼を解除: エージェントがアタッチした、管理コンソールのメンバーがセッションを終了した、またはユーザーがデバイス上で終了した
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7、フォアグラウンドのページへ
 {"t":"attach_cancel","requestId":"…"}                         // §7、すべてのページへ
@@ -167,7 +167,7 @@
 
 **再開トークン。** `welcome` のたびに、`pageId` に紐づいた新しい `resume` トークンが届きます。既知の `pageId` のページが再接続するときは、`hello.resume` が最後に発行されたものと一致する必要があり、一致しない場合は **4409** で切断され、SDK は新しい `pageId` でやり直します。したがって、`pageId` を知っているだけではページになりすませません。
 
-**招待。** ページの URL に `?rwd_invite=<token>` が含まれる場合、SDK はアドレスバーからこのパラメーターを取り除き（`history.replaceState`）、トークンを sessionStorage に保存して、`welcome` が届くまで `hello.invite` で送ります。ゲートウェイは、招待が同じプロジェクトのもので、未使用かつ期限内であれば受け入れます。デバイスは `invited` としてマークされてヘルプ要請中になり、タイムラインにはどの招待から来たかが記録され、招待は使用済みになります。無効な招待は何も知らせずに無視されます。[§12.6](#126-デバイス招待) を参照してください。
+**招待。** ページの URL に `?rwd_invite=<token>` が含まれる場合、SDK はアドレスバーからこのパラメーターを取り除き（`history.replaceState`）、トークンを sessionStorage に保存して、`welcome` が届くまで `hello.invite` で送ります。ゲートウェイは、招待が同じプロジェクトのもので、未使用かつ期限内であれば受け入れます。デバイスは `invited` としてマークされてサポート依頼中になり、タイムラインにはどの招待から来たかが記録され、招待は使用済みになります。無効な招待は何も知らせずに無視されます。[§12.6](#126-デバイス招待) を参照してください。
 
 ### 3.6 クローズコード
 
@@ -185,7 +185,7 @@
 
 | 状態 | 意味 | ページの UI |
 |---|---|---|
-| `none` | エージェントがアタッチしていない | デバイスコードを表示した折りたたみ状態のピル（有効な場合はヘルプボタンも） |
+| `none` | エージェントがアタッチしていない | デバイスコードを表示した折りたたみ状態のピル（有効な場合は「サポートを依頼」ボタンも） |
 | `observe` | エージェントがアタッチしていて、閲覧のみ | 「AI is viewing」、ユーザー入力はブロック（ユーザーがロックをオフにした場合を除く）、画面の縁が光る、**引き継ぐ**ボタンと**終了**ボタン |
 | `agent` | エージェントがページを操作中 | 「AI working」、同じロック・縁・ボタンに加えてエージェントのカーソル |
 | `user` | ユーザーが引き継いだ | ロックなし、縁は静止表示、**AI に戻す**ボタンと**終了**ボタン |
@@ -199,7 +199,7 @@
 | `policy.agentIdleMinutes`（デフォルト 2、10 秒ごとに確認）の間、操作がない | `agent` → `observe` |
 | ページが `control: takeover` を送る | `observe` / `agent` → `user` |
 | ページが `control: handback` を送る | `user` → `agent`（エージェントがアタッチしていなければ `none`） |
-| ページが `control: end` を送る | エージェントがデタッチされ、ヘルプが解除される → `none` |
+| ページが `control: end` を送る | エージェントがデタッチされ、サポート依頼が解除される → `none` |
 | エージェントの切断または置き換え、そのキーの失効、`policy.attachMaxMinutes`（デフォルト 60）の期限切れ、または管理コンソールのメンバーによるセッション終了 | → `none` |
 
 ページは、エージェントが操作を始めたときではなく、アタッチした時点（`observe`）からロックされます。アイドルによる `agent` → `observe` の間もロックされたままで、ユーザーが引き継ぐか状態が `none` に戻るまで続きます。
@@ -379,7 +379,7 @@ min(エージェントが要求したレベル（デフォルト interact）,
 - SDK のダイアログは Shadow DOM の中にあり、信頼されたタップしか受け付けず、表示から 0.4 秒後に有効になります。そのため、エージェントが自分で承認することはできません。同じオリジンのタブは BroadcastChannel で判断を共有します。
 - ユーザーは SDK のフローティングウィンドウで、上限レベルを指定して**自動許可**をオンにできます。その場合 SDK は、その上限内で提示された最も高いレベルで即座に応答し、通知を表示します。
 - `run({ nativeApproval: true })` の場合、SDK はダイアログを表示しません。代わりに `status().pending` が `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}` になり、ネイティブホストが `nativeDecide(nativeKey, requestId, level | null)` で応答します。
-- 承認されると、ゲートウェイはエージェントをアタッチし（そのデバイスにいたほかのエージェントは置き換えられます）、ヘルプを解除して（`{"t":"help","on":false}`）、`{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}` を通知します。ページはすぐにロックされます（[§4](#4-制御状態)）。
+- 承認されると、ゲートウェイはエージェントをアタッチし（そのデバイスにいたほかのエージェントは置き換えられます）、サポート依頼を解除して（`{"t":"help","on":false}`）、`{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}` を通知します。ページはすぐにロックされます（[§4](#4-制御状態)）。
 
 `approval: none` の場合、エージェントは算出されたレベルですぐにアタッチします。
 
@@ -412,7 +412,7 @@ WebSocket が 3 回続けて失敗すると、SDK は代わりに 60 秒ごと�
 
 - ゲートウェイが使うのは `key`、`deviceId`、`userId`、`device.{ua, platform, app}`、`deviceToken`、`help` で、`pageId` と `page` は参考情報です。アプリキーとオリジンは WebSocket と同様に確認され、レート制限も同じです。
 - デバイストークンを発行済みのデバイス（[§3.5](#35-デバイストークン再開トークン招待)）は、ここでもトークンを送る必要があります。送らない場合、呼び出しは `401 bad_token` で失敗し、デバイスの情報は何も更新されません。トークンを持たないデバイス（古い SDK）は、トークンなしでポーリングを続けます。
-- `help: true` は、`hello.help` と同様にデバイスをヘルプ要請中にします。ただし、すでにエージェントがアタッチしている場合は除きます。
+- `help: true` は、`hello.help` と同様にデバイスをサポート依頼中にします。ただし、すでにエージェントがアタッチしている場合は除きます。
 - ポーリング中のデバイスは、呼び出しのたびに 90 秒間オンラインとみなされます。
 - `connect: true` は、ページに今すぐ WebSocket を開くよう伝えます。エージェントがそのデバイスに対して `connect_device` または `wait_for_device` を呼び出したときに、ゲートウェイがこれを設定します。
 - 念のため、SDK は 5 回目のポーリングごとにも WebSocket を再試行します。
@@ -424,7 +424,7 @@ SDK は `window.RemoteWebviewDebugger` を公開します。ページは `run()`
 ```js
 RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: ログイン中のユーザー。エージェントと管理コンソールに表示される
-  helpButton,            // 「ヘルプを求める」ボタンを表示する（ポリシーの helpButton と OR を取る）
+  helpButton,            // 「サポートを依頼」ボタンを表示する（ポリシーの helpButton と OR を取る）
   app,                   // ホストアプリの { name, version }
   lang,                  // 端末のユーザー向け UI の言語タグ。デフォルトは navigator.languages から（§15）
   locales,               // 追加の言語パック。messages：言語ごとの上書き（§15）
@@ -447,7 +447,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
 |---|---|
 | `run(gatewayUrl, appKey, options?)` | ページをオンラインにする。ゲートウェイが応答した時点、または 8 秒後にその時点で分かっている内容で resolve する。再度呼び出すと同じ Promise を返す |
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`。`status` は `idle`、`connecting`、`online`、`polling`、`rejected`、`quota`、`stopped` のいずれか。`logSession` はこのページが書き込むセッションログで、記録していない場合は `null`（[§5.4](#54-セッションログ)） |
-| `help(on = true)` | ヘルプを求める、または取り消す |
+| `help(on = true)` | サポートを依頼する、または依頼を取り消す |
 | `setUser(userId)` | ログイン中のユーザーを変更する（SDK は新しい `hello` で再接続する） |
 | `stop()` | 切断して UI を取り除く。console とネットワークのキャプチャーは上限付きで続く |
 | `nativeControl(nativeKey, 'takeover' \| 'handback' \| 'end')` | ネイティブホスト独自の制御ボタン。キーが一致しなければ `false` を返す |
@@ -478,7 +478,7 @@ type Policy = {
   confirmSelectors: string[]       // クリックにユーザーの許可が必要な要素（[data-rwd-confirm] のほかに）
   networkExclude: string[]         // エージェントが読む内容から除外するリクエスト（§5.2）
   sessionLog: boolean              // ページがセッションログを記録する（デフォルト true、§5.4）
-  helpButton: 'off' | 'all' | 'listed'   // 「ヘルプを求める」ボタンを表示する対象（デフォルト off）
+  helpButton: 'off' | 'all' | 'listed'   // 「サポートを依頼」ボタンを表示する対象（デフォルト off）
   helpUsers: string[]              // helpButton = listed のときの userId
   agentIdleMinutes: number         // この時間操作がなければ agent → observe（デフォルト 2、最大 120）
   attachMaxMinutes: number         // アタッチはこの時間で終了する（デフォルト 60、最大 1440）
@@ -492,7 +492,7 @@ type Policy = {
 - 値は保存時に正規化されます。`none` 以外の `approval` は `prompt` に、無効な `maxLevel` は `interact` になり、数値は範囲内に丸められます。`maskPatterns` はコンパイルできる必要があり、できなければ `400 bad_policy` です。`maskSelectors`、`confirmSelectors`、`networkExclude`、`helpUsers` は空の項目が取り除かれ、それぞれ 50 件まで、`maskPatterns` は 20 件までに切り詰められます。
 - **`networkExclude`** は、常に 404 になるフォントや解析用ビーコンなど、エージェントが読まずに済ませたいノイズです。各ルールはリクエスト URL に対して、大文字小文字を区別しない部分一致、`*` ワイルドカードのパターン（`*/404/*`）、または `/…/` と書いた場合は正規表現（フラグは任意、デフォルトは `i`）として照合されます。コンパイルできないルールは何にも一致しません。一致したリクエストはネットワーク一覧と `net_fail` のタイムラインイベントから除外されますが、ページは記録を続けるので、エージェントは `includeExcluded` で取得できます（[§5.2](#52-メソッド)、[§14.3](#143-ツール)）。これは利便性のための機能であり、プライバシーを守る仕組みではありません。ページの外に出してはいけないデータには `maskSelectors` / `maskPatterns` を使ってください。
 - **`sessionLog`** は、`false` に設定しない限りオンです。このフィールドができる前に保存されたプロジェクトも同様です。オフにすると、プロジェクトのすべてのページで記録が止まり、それらのデバイスでそのオリジンについて保存済みのログが削除されます。個々のページは `run({ record: false })` で単独でオプトアウトできます（[§5.4](#54-セッションログ)）。
-- マスク、確認、ネットワーク除外、セッションログ、ヘルプ、eruda のフィールドは `welcome.config`（[§3.4](#34-welcome)）でページに届きます。ページ自身の `run({ networkExclude })` のルールは、プロジェクトのルールに追加されます。
+- マスク、確認、ネットワーク除外、セッションログ、サポート依頼、eruda のフィールドは `welcome.config`（[§3.4](#34-welcome)）でページに届きます。ページ自身の `run({ networkExclude })` のルールは、プロジェクトのルールに追加されます。
 - **1 台のデバイスに複数のプロジェクト。** デバイスはプロジェクトではなく `deviceId` で識別されます。同じ端末で異なるアプリキーを使って読み込まれたページは、1 台のデバイスのページです。エージェントがアタッチするとき、ゲートウェイは接続中のページのプロジェクトのポリシーをマージし、最も厳しい値を採用します。いずれかのプロジェクトが求めていれば `prompt`、`maxLevel`、`agentIdleMinutes`、`attachMaxMinutes` は最小値、`maxAgents` は 0 以外の最小値です。
 
 ## 12. 管理コンソール REST API
@@ -555,15 +555,15 @@ API キーはプロジェクトではなくゲートウェイに属します。1
 | メソッド | パス | ロール | レスポンス |
 |---|---|---|---|
 | GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}`（`pageSize` ≤ 100）。`online`（デフォルト）: オンラインのデバイス、接続が新しい順。`all`: 既知のすべてのデバイス、新しい順。どちらのモードでも `q` はデバイス ID、デバイスコード（ハイフンは任意）、userId、ユーザーエージェント、システムラベル（どちらの言語でも）、プロジェクト名に一致する |
-| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: 最新のページがそのプロジェクトのものであるデバイス（デフォルト `all`、最大 500）。ヘルプ要請中、オンライン、最終確認が新しい順。`waiting` はヘルプ要請中を意味する |
+| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: 最新のページがそのプロジェクトのものであるデバイス（デフォルト `all`、最大 500）。サポート依頼中、オンライン、最終確認が新しい順。`waiting` はサポート依頼中（表示は「対応中」）を意味する |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 常に `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`。コード: `device_offline`、`no_page`（ページが再接続中）、`timeout`、`takeover`、`internal`、および [§5.1](#51-エンベロープ) の RPC コード |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: エージェントをデタッチし、ヘルプを解除し、制御を `none` に戻す |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: エージェントをデタッチし、サポート依頼を解除し、制御を `none` に戻す |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 デバイス招待
 
-招待を使うと、ユーザーはリンクを開くだけで、ヘルプ要請中の状態でデバイスをオンラインにできます。デバイスコードを読み上げてもらう必要はありません。
+招待を使うと、ユーザーはリンクを開くだけで、サポート依頼中の状態でデバイスをオンラインにできます。デバイスコードを読み上げてもらう必要はありません。
 
 | メソッド | パス | ロール | リクエスト | レスポンス |
 |---|---|---|---|---|
@@ -683,7 +683,7 @@ type AuditEvent = {
 | `navigated` / `reloaded` | ページが新しい URL に移動した / 同じ URL で再接続した |
 | `focus` | ページがフォアグラウンドになった |
 | `error` / `console_error` / `net_fail` / `user_tap` | ページから報告されたイベント（[§3.2](#32-ページ--ゲートウェイ)） |
-| `help` | ユーザーがヘルプを求めた、取り消した、または招待から来た |
+| `help` | ユーザーがサポートを依頼した、依頼を取り消した、または招待から来た |
 | `agent` | アタッチ要求、拒否、タイムアウト、アタッチ、タスクの変更 |
 | `control` | 制御状態の変化。summary に理由が入る（ユーザーが引き継いだ、AI がアイドル、ユーザーが終了した、…） |
 | `offline` | エージェントのアタッチ中に、デバイスの最後のページが消えた |
@@ -695,7 +695,7 @@ type AuditEvent = {
 ```
 retry: 3000
 
-event: device     data: Device                               デバイスが変化した（オンライン、ヘルプ、制御、承認、タスク…）
+event: device     data: Device                               デバイスが変化した（オンライン、サポート依頼、制御、承認、タスク…）
 event: timeline   data: {"deviceId", "event": TimelineEvent}
 event: ping       data: {}                                   25 秒ごと
 ```
@@ -727,7 +727,7 @@ event: ping       data: {}                                   25 秒ごと
 
 | ツール | レベル | パラメーター | 説明 |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all`（デフォルト `online`）、`userId?`、`deviceCode?`（大文字小文字を問わず、ハイフンの有無も問わない） | 最大 50 台のデバイス。ヘルプ要請中のものが先頭 |
+| `list_devices` | — | `status?: online\|waiting\|all`（デフォルト `online`）、`userId?`、`deviceCode?`（大文字小文字を問わず、ハイフンの有無も問わない） | 最大 50 台のデバイス。サポート依頼中のものが先頭 |
 | `connect_device` | — | `device`（デバイスコードまたは deviceId）、`level?: Level`（デフォルト `interact`）、`follow?: true` | アタッチする。必要ならまずユーザーに確認する（[§7](#7-アタッチの承認)）。自分からデバイスを離れてから 10 分以内なら、同じキーは再確認なしで、そのとき許可されたレベルを上限として戻れる。フォアグラウンドのページを選択する。デバイスに接続中のページがなければ失敗する（ポーリング中のデバイスには再接続を促す） |
 | `disconnect_device` | — | — | デタッチする |
 | `wait_for_device` | — | `device`、`timeoutSec?: 60`（最大 300） | デバイスに接続中のページができるまで待つ。ポーリング中のデバイスには再接続を指示する |

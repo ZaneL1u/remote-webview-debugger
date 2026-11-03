@@ -1,4 +1,4 @@
-<!-- i18n-source: f8d7479861527272991767e64a8c5860621d75ed -->
+<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -106,7 +106,7 @@
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // 有變化時送出
 {"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
-{"t":"help","on":true}                                              // 使用者按下求助 / 取消求助
+{"t":"help","on":true}                                              // 使用者請求協助 / 取消請求
 {"t":"control","action":"takeover"|"handback"|"end"}                // 使用者的按鈕，§4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
 {"id":17,"result":{…}}                                              // RPC 成功，§5
@@ -125,7 +125,7 @@
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"客服機器人"}|null,"level":"interact"|null,
  "attachedMs":83000|null}                                     // §4，送給裝置的所有頁面
-{"t":"help","on":false}                                       // 求助已清除：agent 已接入、主控台成員結束了工作階段，或使用者在裝置上按了結束
+{"t":"help","on":false}                                       // 協助請求已清除：agent 已接入、主控台成員結束了工作階段，或使用者在裝置上按了結束
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"客服機器人"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7，送給前景頁面
 {"t":"attach_cancel","requestId":"…"}                         // §7，送給所有頁面
@@ -167,7 +167,7 @@ SDK 能處理 `reconnect`，但閘道目前不會送出它。
 
 **恢復權杖。** 每個 `welcome` 都會帶一個綁定 `pageId` 的新 `resume`。已知的 `pageId` 重新連線時，`hello.resume` 必須等於上一次核發的值，否則以 **4409** 關閉，SDK 改用新的 `pageId` 從頭開始。因此只知道 `pageId`，無法冒充頁面。
 
-**邀請。** 頁面網址帶有 `?rwd_invite=<權杖>` 時，SDK 會立即把這個參數從網址列移除（`history.replaceState`），把權杖暫存在 sessionStorage，並在收到 `welcome` 之前一直隨 `hello.invite` 送出。邀請屬於同一個專案、尚未使用且未過期時，閘道就會接受：裝置被標記為「透過邀請接入」並進入求助狀態，時間軸記錄它來自哪個邀請，該邀請隨即失效。無效的邀請會被默默忽略。見 [§12.6](#126-裝置邀請)。
+**邀請。** 頁面網址帶有 `?rwd_invite=<權杖>` 時，SDK 會立即把這個參數從網址列移除（`history.replaceState`），把權杖暫存在 sessionStorage，並在收到 `welcome` 之前一直隨 `hello.invite` 送出。邀請屬於同一個專案、尚未使用且未過期時，閘道就會接受：裝置被標記為「透過邀請接入」並進入「協助中」狀態，時間軸記錄它來自哪個邀請，該邀請隨即失效。無效的邀請會被默默忽略。見 [§12.6](#126-裝置邀請)。
 
 ### 3.6 關閉碼
 
@@ -185,7 +185,7 @@ SDK 能處理 `reconnect`，但閘道目前不會送出它。
 
 | 狀態 | 意義 | 頁面介面 |
 |---|---|---|
-| `none` | 沒有 agent 接入 | 膠囊收合，只顯示裝置碼（啟用時另有求助按鈕） |
+| `none` | 沒有 agent 接入 | 膠囊收合，只顯示裝置碼（啟用時另有「請求協助」按鈕） |
 | `observe` | agent 已接入，只在檢視 | 「AI 檢視中」，攔截使用者輸入（除非使用者關閉了鎖定），螢幕邊緣有光暈，按鈕「接管」「結束」 |
 | `agent` | agent 正在操作頁面 | 「AI 操作中」，同樣的鎖定、光暈和按鈕，另有 agent 的游標 |
 | `user` | 使用者已接管 | 不鎖定，邊緣光暈靜止，按鈕「交還 AI」「結束」 |
@@ -199,7 +199,7 @@ SDK 能處理 `reconnect`，但閘道目前不會送出它。
 | 超過 `policy.agentIdleMinutes`（預設 2，每 10 秒檢查一次）沒有互動 | `agent` → `observe` |
 | 頁面送出 `control: takeover` | `observe` / `agent` → `user` |
 | 頁面送出 `control: handback` | `user` → `agent`（沒有 agent 接入時回到 `none`） |
-| 頁面送出 `control: end` | 中斷 agent 接入、清除求助 → `none` |
+| 頁面送出 `control: end` | 中斷 agent 接入、清除協助請求 → `none` |
 | agent 中斷連線或被取代、它的金鑰被撤銷、達到 `policy.attachMaxMinutes`（預設 60），或主控台成員結束工作階段 | → `none` |
 
 頁面從 agent 接入（`observe`）的那一刻起就會鎖定，而不是等它開始操作；閒置後 `agent` → `observe` 也維持鎖定，直到使用者接管或狀態回到 `none`。
@@ -379,7 +379,7 @@ agent 呼叫 `connect_device` 時，閘道會先合併裝置上已開啟頁面�
 - SDK 的確認對話框位於 Shadow DOM 中，只回應可信的點按，而且出現 0.4 秒後才生效，agent 無法替使用者按「允許」。同一來源的多個分頁透過 BroadcastChannel 共享決定。
 - 使用者可以在 SDK 浮動視窗中開啟**自動允許** AI 接入並設定最高等級；之後 SDK 會直接以不超過這個等級的最高可選等級回覆，並顯示提示。
 - `run({ nativeApproval: true })` 時 SDK 不跳出對話框，而是讓 `status().pending` 變成 `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`，由原生宿主呼叫 `nativeDecide(nativeKey, requestId, level | null)` 回覆。
-- 核准後，閘道讓 agent 接入（取代裝置上的其他 agent），清除求助（`{"t":"help","on":false}`），並廣播 `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`；頁面隨即鎖定（[§4](#4-控制狀態)）。
+- 核准後，閘道讓 agent 接入（取代裝置上的其他 agent），清除協助請求（`{"t":"help","on":false}`），並廣播 `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`；頁面隨即鎖定（[§4](#4-控制狀態)）。
 
 `approval: none` 時，agent 直接以計算出的等級接入。
 
@@ -412,7 +412,7 @@ WebSocket 連續失敗 3 次後，SDK 改為每 60 秒呼叫一次 `POST /v1/pre
 
 - 閘道使用 `key`、`deviceId`、`userId`、`device.{ua, platform, app}`、`deviceToken` 和 `help`；`pageId` 和 `page` 僅供參考。接入金鑰和來源的檢查與 WebSocket 相同，速率限制也共用。
 - 已經核發過裝置權杖（[§3.5](#35-裝置權杖恢復權杖與邀請)）的裝置，輪詢時也必須帶上它；否則回傳 `401 bad_token`，裝置的任何資訊都不會更新。沒有權杖的裝置（舊版 SDK）可以繼續不帶權杖輪詢。
-- `help: true` 會把裝置標記為求助中，作用與 `hello.help` 相同；已有 agent 接入時不生效。
+- `help: true` 會把裝置標記為「協助中」，作用與 `hello.help` 相同；已有 agent 接入時不生效。
 - 每次輪詢後，裝置在 90 秒內都算在線。
 - `connect: true` 表示頁面應該立即建立 WebSocket 連線。agent 對這台裝置呼叫 `connect_device` 或 `wait_for_device` 時，閘道會設定它。
 - 作為保險，SDK 每到第 5 次輪詢也會主動重試一次 WebSocket。
@@ -424,7 +424,7 @@ SDK 公開全域物件 `window.RemoteWebviewDebugger`。頁面直接呼叫 `run(
 ```js
 RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null：目前登入的使用者，agent 和主控台都看得到
-  helpButton,            // 顯示「求助」按鈕（與原則的 helpButton 取 OR）
+  helpButton,            // 顯示「請求協助」按鈕（與原則的 helpButton 取 OR）
   app,                   // 宿主 App 的 { name, version }
   lang,                  // 語言標記：手機使用者看到的介面語言，預設取自 navigator.languages（§15）
   locales,               // 額外的語言包；messages：依語言覆寫文字（§15）
@@ -447,7 +447,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
 |---|---|
 | `run(gatewayUrl, appKey, options?)` | 讓頁面上線。閘道回覆後 resolve，最晚 8 秒後依已知資訊 resolve。重複呼叫會回傳同一個 Promise |
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`。`status` 的值為 `idle`、`connecting`、`online`、`polling`、`rejected`、`quota`、`stopped`；`logSession` 是本頁面正在寫入的工作階段記錄 id，沒有在記錄時為 `null`（[§5.4](#54-工作階段記錄)） |
-| `help(on = true)` | 求助，或取消求助 |
+| `help(on = true)` | 請求協助，或取消請求 |
 | `setUser(userId)` | 切換目前登入的使用者（SDK 會以新的 `hello` 重新連線） |
 | `stop()` | 中斷連線並移除介面；console 和網路記錄會在有上限的緩衝區中繼續進行 |
 | `nativeControl(nativeKey, 'takeover' \| 'handback' \| 'end')` | 原生宿主自己的「接管」「交還 AI」「結束」按鈕。密鑰不符時回傳 `false` |
@@ -478,7 +478,7 @@ type Policy = {
   confirmSelectors: string[]       // 點擊這些元素前需要使用者確認（[data-rwd-confirm] 之外）
   networkExclude: string[]         // 不出現在 agent 看到的網路清單中的請求（§5.2）
   sessionLog: boolean              // 頁面是否保留工作階段記錄（預設 true，§5.4）
-  helpButton: 'off' | 'all' | 'listed'   // 誰看得到「求助」按鈕（預設 off）
+  helpButton: 'off' | 'all' | 'listed'   // 誰看得到「請求協助」按鈕（預設 off）
   helpUsers: string[]              // helpButton = listed 時的 userId 名單
   agentIdleMinutes: number         // AI 操作中閒置多久後回到僅檢視（預設 2，最大 120）
   attachMaxMinutes: number         // 一次接入的最長時間（預設 60，最大 1440）
@@ -492,7 +492,7 @@ type Policy = {
 - 儲存時會正規化：`approval` 不是 `none` 的一律視為 `prompt`，無效的 `maxLevel` 視為 `interact`，數值會被限制在允許範圍內。`maskPatterns` 必須能編譯，否則回傳 `400 bad_policy`。`maskSelectors`、`confirmSelectors`、`networkExclude`、`helpUsers` 會去除空白項目，各自最多 50 筆，`maskPatterns` 最多 20 筆。
 - **`networkExclude`** 用來擋掉 agent 不必去翻找的雜訊：一直 404 的字型、數據分析上報等。每條規則依下列方式與請求網址比對：不分大小寫的子字串；含 `*` 的萬用字元模式（`*/404/*`）；寫成 `/…/` 時為正規表示式（可帶旗標，預設為 `i`）。無法編譯的規則什麼都不比對。符合的請求不會出現在網路清單中，也不會產生 `net_fail` 時間軸事件，但頁面仍然會記錄，agent 需要時可以用 `includeExcluded` 查看（[§5.2](#52-方法)、[§14.3](#143-工具)）。它只是為了清爽，不是隱私手段——不該離開頁面的資料要用 `maskSelectors` / `maskPatterns`。
 - **`sessionLog`** 只要沒有明確設為 `false` 就是開啟，包括這個欄位出現之前儲存的舊專案。關閉後，專案下所有頁面都會停止記錄，並刪除這些裝置上該來源已存下的記錄；單一頁面也可以用 `run({ record: false })` 自行退出（[§5.4](#54-工作階段記錄)）。
-- 遮蔽、確認、網路排除、工作階段記錄、求助和 eruda 相關欄位，透過 `welcome.config` 送達頁面（[§3.4](#34-welcome)）；頁面自己在 `run({ networkExclude })` 傳入的規則會與專案的規則合併。
+- 遮蔽、確認、網路排除、工作階段記錄、協助入口和 eruda 相關欄位，透過 `welcome.config` 送達頁面（[§3.4](#34-welcome)）；頁面自己在 `run({ networkExclude })` 傳入的規則會與專案的規則合併。
 - **一台裝置上有多個專案的頁面。** 裝置以 `deviceId` 區分，不分專案：同一支手機以不同接入金鑰載入的頁面，都是同一台裝置的頁面。agent 接入時，閘道會合併已連線頁面所屬各專案的原則，每一項取最嚴格的值：任一專案要求核准就需要核准；`maxLevel`、`agentIdleMinutes`、`attachMaxMinutes` 取最小值；`maxAgents` 取最小的非零值。
 
 ## 12. 主控台 REST API
@@ -555,15 +555,15 @@ API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存�
 | 方法 | 路徑 | 角色 | 回應 |
 |---|---|---|---|
 | GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}`（`pageSize` 最大 100）。`online`（預設）：在線裝置，依本次上線時間由新到舊。`all`：所有出現過的裝置，依首次出現時間由新到舊。兩種模式下 `q` 都會比對裝置 ID、裝置碼（`-` 可省略）、userId、UA、系統描述（中英文皆可）和專案名稱 |
-| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`：最近一個頁面來自該專案的裝置（預設 `all`，最多 500 台）。求助中的排在最前，其次是在線的，再依最近在線時間排序。`waiting` 指求助中 |
+| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`：最近一個頁面來自該專案的裝置（預設 `all`，最多 500 台）。請求協助的排在最前，其次是在線的，再依最近在線時間排序。`waiting` 指請求協助（介面上顯示為「協助中」） |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 一律回傳 `200`：`{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<前 4000 個字元>","error"?:{"code","message"}}`。錯誤碼：`device_offline`、`no_page`（頁面正在重新連線）、`timeout`、`takeover`、`internal`，以及 [§5.1](#51-訊息格式) 的 RPC 錯誤碼 |
-| POST | `/devices/:id/end` | member | `{"ok":true}`：中斷 agent 接入、清除求助，控制狀態回到 `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`：中斷 agent 接入、清除協助請求，控制狀態回到 `none` |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 裝置邀請
 
-使用者只要開啟邀請連結，裝置就會上線並直接處於求助狀態，不必再口頭念出裝置碼。
+使用者只要開啟邀請連結，裝置就會上線並直接請求協助，不必再口頭念出裝置碼。
 
 | 方法 | 路徑 | 角色 | 請求 | 回應 |
 |---|---|---|---|---|
@@ -683,7 +683,7 @@ type AuditEvent = {
 | `navigated` / `reloaded` | 頁面導覽到新網址 / 在原網址重新連線 |
 | `focus` | 頁面回到前景 |
 | `error` / `console_error` / `net_fail` / `user_tap` | 頁面回報的事件（[§3.2](#32-頁面--閘道)） |
-| `help` | 使用者求助或取消求助，或透過邀請接入 |
+| `help` | 使用者請求協助或取消請求，或透過邀請接入 |
 | `agent` | 接入請求、拒絕、逾時、接入成功、任務變化 |
 | `control` | 控制狀態變化，摘要中會說明原因（使用者接管、AI 閒置、使用者結束等） |
 | `offline` | 有 agent 接入時，裝置的最後一個頁面中斷了 |
@@ -695,7 +695,7 @@ type AuditEvent = {
 ```
 retry: 3000
 
-event: device     data: Device                               裝置有變化（上線、求助、控制狀態、核准、任務等）
+event: device     data: Device                               裝置有變化（上線、協助請求、控制狀態、核准、任務等）
 event: timeline   data: {"deviceId", "event": TimelineEvent}
 event: ping       data: {}                                   每 25 秒一次
 ```
@@ -727,7 +727,7 @@ event: ping       data: {}                                   每 25 秒一次
 
 | 工具 | 等級 | 參數 | 說明 |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all`（預設 `online`）、`userId?`、`deviceCode?`（不分大小寫，有無連字號皆可） | 最多 50 台裝置，求助中的排在最前 |
+| `list_devices` | — | `status?: online\|waiting\|all`（預設 `online`）、`userId?`、`deviceCode?`（不分大小寫，有無連字號皆可） | 最多 50 台裝置，請求協助的排在最前 |
 | `connect_device` | — | `device`（裝置碼或 deviceId）、`level?: Level`（預設 `interact`）、`follow?: true` | 接入裝置，需要時先請使用者核准（[§7](#7-接入核准)）；自己放開裝置後 10 分鐘內，同一把金鑰再次接入不必重新核准，等級不超過當時授予的等級。接入後選取前景頁面。裝置沒有已連線的頁面時失敗（並促使輪詢中的裝置重新連線） |
 | `disconnect_device` | — | — | 離開裝置 |
 | `wait_for_device` | — | `device`、`timeoutSec?: 60`（最大 300） | 等待裝置有頁面連上；輪詢中的裝置會被通知重新連線 |

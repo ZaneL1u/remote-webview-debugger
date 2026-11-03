@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 页面 SDK（`sdk/`）
@@ -11,7 +11,7 @@ App WebView / H5 页面加载的一个 JS 文件，让 AI agent 通过 RWD 网�
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 可选
     deviceId: "…",               // 可选，原生注入时由原生传入
-    helpButton: true,            // 可选，显示「求助」按钮
+    helpButton: true,            // 可选，显示「请求协助」按钮
     app: { name: "商城", version: "3.2.0" },
     lang: "zh",                  // 可选，语言标签，默认按浏览器语言
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@ npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webv
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`，`status` 为 `idle / connecting / online / polling / stopped / rejected / quota`，`lang` 是界面语言（`run()` 之前为 `null`），`logSession` 是本页面正在写入的会话日志 id（不在记录时为 `null`） |
 | `stop()` | 断开并移除界面（console / 网络采集继续，有上限） |
 | `setUser(userId)` | 更新用户；会用新的 `hello` 重连一次 |
-| `help(on)` | 发起 / 取消求助 |
+| `help(on)` | 请求协助 / 取消请求 |
 | `nativeControl(nativeKey, action)` | 原生的接管 / 交还 / 结束 |
 | `nativeDecide(nativeKey, requestId, value)` | `nativeApproval` 时回答 `status().pending`：接入审批传级别或 `null`，敏感操作确认传 `'allow'` 或 `null` |
 | `setLang(lang?)` | 运行时切换界面语言（比如 App 自己的语言设置）；不传参数则回到浏览器语言。见[多语言](#多语言) |
@@ -50,7 +50,7 @@ npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webv
 |---|---|
 | `userId` | 当前登录用户，随 `hello` 发送 |
 | `deviceId` | 原生宿主传入的固定设备 ID（不传则存在 localStorage） |
-| `helpButton` | 显示「求助」按钮（与项目策略取或） |
+| `helpButton` | 显示「请求协助」按钮（与项目策略取或） |
 | `app` | 宿主 App 的 `{ name, version }` |
 | `lang` | 手机用户看到的界面语言（胶囊、悬浮窗、底部栏、对话框、提示、eruda 里的 tab，以及敏感操作确认里「AI 想要…」的描述）：语言标签，如 `'ja'`、`'pt-BR'`。默认按浏览器语言。见[多语言](#多语言) |
 | `locales` | 额外的语言包，在选择语言之前注册（同 `registerLocale`） |
@@ -81,7 +81,7 @@ npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webv
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { zh: { ui: { help: '联系客服' } } }, // 覆盖任意语言的个别文案
@@ -107,7 +107,7 @@ RemoteWebviewDebugger.run(url, key, {
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | 按钮、开关、agent 的指针、高亮和边缘光圈 |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | 「结束」按钮 |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 求助；用户接管状态 |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 「请求协助」按钮和「协助中」状态；用户接管状态 |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | 在线指示点；「已复制」 |
 | `--rwd-font` | `font` | 系统界面字体（中文、日文、韩文按语言选字体） | 全部文字 |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | 设备码和标签 |
@@ -150,7 +150,7 @@ RemoteWebviewDebugger.run(url, key, {
 - `src/ids.ts`：deviceId / pageId / openerId。
 - `src/launch.ts`：判断本页面属于 App 的哪一次启动（`launchId`、`window.RWDLaunchId`、`rwd_launch` cookie）。
 - `src/pageWatch.ts`：`page` 消息（url、标题、可见性）和时间线事件（页面内跳转、用户点击摘要）。
-- `src/ui.ts`、`src/lock.ts`：Shadow DOM 里的胶囊、求助按钮、遮罩、光圈、操作高亮、确认对话框；agent 接入期间拦截用户的可信输入，并显示已连接时长。
+- `src/ui.ts`、`src/lock.ts`：Shadow DOM 里的胶囊、「请求协助」按钮、遮罩、光圈、操作高亮、确认对话框；agent 接入期间拦截用户的可信输入，并显示已连接时长。
 - `src/approval.ts`：接入审批、敏感操作确认（页面对话框或原生宿主 `nativeDecide`）。
 - `src/i18n.ts`、`src/locales/`、`src/localeLoader*.ts`：语言包（每种语言的界面、操作描述和 agent 文案）、语言选择与回退、按需加载；`scripts/locales.mjs` 生成 `dist/locales/<id>.js`。
 - agent 引擎在 chobitsu 旁边：`packages/chobitsu/src/engine/rwd/`（快照、`rwd.query`、可操作性检查、合成输入、键盘、console / 网络缓冲、截图、`rwd.storage`、IndexedDB 里的会话日志 `coldlog.ts`、浮层识别 `overlays.ts`、级别与确认规则 `policy.ts`、给 agent 的文案 `i18n.ts`），快照用的 Playwright 源码在 `packages/chobitsu/src/engine/vendor/playwright/`。构建时从源码打包进 `dist/sdk.js`。

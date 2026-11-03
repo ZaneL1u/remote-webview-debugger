@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # SDK da página do RWD (`sdk/`)
@@ -11,7 +11,7 @@ Um único arquivo JS que uma WebView de app ou uma página H5 carrega para que u
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // opcional
     deviceId: "…",               // opcional; passado por um host nativo que injeta o SDK
-    helpButton: true,            // opcional; mostra o botão "Pedir ajuda"
+    helpButton: true,            // opcional; mostra o botão "Solicitar assistência"
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // opcional; uma tag de idioma, por padrão vem dos idiomas do navegador
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@ Publicado no npm como [`remote-webview-debugger`](https://www.npmjs.com/package/
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`; `status` é `idle / connecting / online / polling / stopped / rejected / quota`, `lang` é o idioma da interface (`null` antes de `run()`), `logSession` é o log da sessão em que esta página grava (`null` quando não está gravando) |
 | `stop()` | Desconecta e remove a interface (a coleta de console / rede continua, com limite) |
 | `setUser(userId)` | Troca o usuário; reconecta uma vez com um novo `hello` |
-| `help(on)` | Pede ajuda / cancela |
+| `help(on)` | Solicita assistência / cancela a solicitação |
 | `nativeControl(nativeKey, action)` | Assumir o controle / devolver o controle / encerrar a partir da interface do próprio host nativo |
 | `nativeDecide(nativeKey, requestId, value)` | Com `nativeApproval`, responde a `status().pending`: um nível ou `null` para um pedido de conexão, `'allow'` ou `null` para a confirmação de uma ação sensível |
 | `setLang(lang?)` | Troca o idioma da interface em tempo de execução (a configuração de idioma do próprio app); sem argumento, volta aos idiomas do navegador. Veja [Idiomas](#idiomas) |
@@ -50,7 +50,7 @@ Opções de `run()`:
 |---|---|
 | `userId` | O usuário logado, enviado com o `hello` |
 | `deviceId` | Um id de dispositivo estável vindo de um host nativo (senão, um é guardado no localStorage) |
-| `helpButton` | Mostra o botão "Pedir ajuda" (combinado com OR com a política do projeto) |
+| `helpButton` | Mostra o botão "Solicitar assistência" (combinado com OR com a política do projeto) |
 | `app` | `{ name, version }` do app host |
 | `lang` | Idioma de tudo o que o usuário do celular vê (pílula, janela flutuante, barra inferior, diálogos, toasts, a aba do eruda e a descrição "A IA quer …" de uma ação sensível): uma tag de idioma como `'ja'` ou `'pt-BR'`. Padrão: os idiomas do navegador. Veja [Idiomas](#idiomas) |
 | `locales` | Pacotes de idioma extras, registrados antes de o idioma ser escolhido (como `registerLocale`) |
@@ -81,7 +81,7 @@ Embutidos: inglês (`en`), chinês simplificado (`zh`), chinês tradicional (`zh
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { en: { ui: { help: 'Contact support' } } }, // altera mensagens avulsas de qualquer idioma
@@ -107,7 +107,7 @@ A interface fica num shadow root em `#__rwd` (fora do `<body>`), então o CSS da
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | Botões, chaves, o ponteiro do agente, destaques e o brilho nas bordas |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | O botão Encerrar |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | Pedir ajuda; o estado de usuário no controle |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | Solicitar assistência e Em atendimento; o estado de usuário no controle |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | Ponto de online; "copiado" |
 | `--rwd-font` | `font` | fonte de interface do sistema (por idioma para chinês, japonês e coreano) | Todo o texto |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | Código do dispositivo e tags |
@@ -150,7 +150,7 @@ Esses buffers são a memória de uma única página. Em paralelo, o SDK grava um
 - `src/ids.ts`: deviceId / pageId / openerId.
 - `src/launch.ts`: a qual inicialização do app esta página pertence (`launchId`, `window.RWDLaunchId`, o cookie `rwd_launch`).
 - `src/pageWatch.ts`: mensagens `page` (url, title, visibility) e eventos da linha do tempo (navegação dentro da página, toques do usuário).
-- `src/ui.ts`, `src/lock.ts`: a pílula, o botão de ajuda, a camada de bloqueio, o brilho, o destaque de ação e os diálogos num Shadow DOM; bloqueia as entradas confiáveis do usuário enquanto um agente está conectado e mostra há quanto tempo ele está conectado.
+- `src/ui.ts`, `src/lock.ts`: a pílula, o botão “Solicitar assistência”, a camada de bloqueio, o brilho, o destaque de ação e os diálogos num Shadow DOM; bloqueia as entradas confiáveis do usuário enquanto um agente está conectado e mostra há quanto tempo ele está conectado.
 - `src/approval.ts`: aprovação de conexão e confirmação de ação sensível (diálogo na página, ou o host nativo via `nativeDecide`).
 - `src/i18n.ts`, `src/locales/`, `src/localeLoader*.ts`: pacotes de idioma (textos de interface, de ação e do agente por idioma), escolha e fallback, carregamento sob demanda; `scripts/locales.mjs` gera `dist/locales/<id>.js`.
 - O motor do agente fica ao lado do chobitsu, em `packages/chobitsu/src/engine/rwd/`: snapshot, `rwd.query`, verificações de acionabilidade, entrada sintetizada, teclado, buffers de console / rede, capturas de tela, `rwd.storage`, o log da sessão no IndexedDB (`coldlog.ts`), detecção de sobreposições (`overlays.ts`), níveis e regras de confirmação (`policy.ts`), textos voltados ao agente (`i18n.ts`). Os fontes do Playwright usados nos snapshots estão em `packages/chobitsu/src/engine/vendor/playwright/`. O build os empacota a partir do código-fonte em `dist/sdk.js`.

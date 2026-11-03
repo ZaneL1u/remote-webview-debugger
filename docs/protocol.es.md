@@ -1,4 +1,4 @@
-<!-- i18n-source: f8d7479861527272991767e64a8c5860621d75ed -->
+<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | Español | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -106,7 +106,7 @@ Cada conexión tiene una cola de envío de 64 mensajes. Una página que no da ab
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // cuando cambia
 {"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
-{"t":"help","on":true}                                              // el usuario pide ayuda / la cancela
+{"t":"help","on":true}                                              // el usuario solicita asistencia / cancela la solicitud
 {"t":"control","action":"takeover"|"handback"|"end"}                // los botones del usuario, §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
 {"id":17,"result":{…}}                                              // RPC correcta, §5
@@ -125,7 +125,7 @@ Cada conexión tiene una cola de envío de 64 mensajes. Una página que no da ab
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"Support Bot"}|null,"level":"interact"|null,
  "attachedMs":83000|null}                                     // §4, a todas las páginas del dispositivo
-{"t":"help","on":false}                                       // ayuda retirada: se vinculó un agente, un miembro de la consola terminó la sesión o el usuario la finalizó en el dispositivo
+{"t":"help","on":false}                                       // solicitud retirada: se vinculó un agente, un miembro de la consola terminó la sesión o el usuario la finalizó en el dispositivo
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, a la página en primer plano
 {"t":"attach_cancel","requestId":"…"}                         // §7, a todas las páginas
@@ -167,7 +167,7 @@ Si hay una solicitud de vinculación pendiente y la página que se reconecta es 
 
 **Token de reanudación.** Cada `welcome` lleva un token `resume` nuevo ligado al `pageId`. Cuando se reconecta una página con un `pageId` conocido, su `hello.resume` debe coincidir con el último emitido; si no, la conexión se cierra con **4409** y el SDK empieza de cero con un `pageId` nuevo. Por tanto, conocer un `pageId` no basta para suplantar una página.
 
-**Invitación.** Cuando la URL de la página lleva `?rwd_invite=<token>`, el SDK quita el parámetro de la barra de direcciones (`history.replaceState`), guarda el token en sessionStorage y lo envía en `hello.invite` hasta que llega un `welcome`. El gateway lo acepta si la invitación pertenece al mismo proyecto, no se ha usado y no ha caducado: el dispositivo queda marcado como `invited` y pidiendo ayuda, la línea de tiempo registra de qué invitación vino y la invitación se consume. Las invitaciones no válidas se ignoran en silencio. Ver [§12.6](#126-invitaciones-de-dispositivo).
+**Invitación.** Cuando la URL de la página lleva `?rwd_invite=<token>`, el SDK quita el parámetro de la barra de direcciones (`history.replaceState`), guarda el token en sessionStorage y lo envía en `hello.invite` hasta que llega un `welcome`. El gateway lo acepta si la invitación pertenece al mismo proyecto, no se ha usado y no ha caducado: el dispositivo queda marcado como `invited` y en asistencia, la línea de tiempo registra de qué invitación vino y la invitación se consume. Las invitaciones no válidas se ignoran en silencio. Ver [§12.6](#126-invitaciones-de-dispositivo).
 
 ### 3.6 Códigos de cierre
 
@@ -185,7 +185,7 @@ Cada dispositivo tiene un único estado de control, que decide el gateway y difu
 
 | Estado | Significado | Interfaz en la página |
 |---|---|---|
-| `none` | No hay agente vinculado | Píldora plegada con el código de dispositivo (más el botón de ayuda si está activado) |
+| `none` | No hay agente vinculado | Píldora plegada con el código de dispositivo (más el botón "Solicitar asistencia" si está activado) |
 | `observe` | Hay un agente vinculado que solo mira | "La IA está mirando", la entrada del usuario está bloqueada (salvo que el usuario haya desactivado el bloqueo), borde de pantalla luminoso, botones **Tomar control** y **Finalizar** |
 | `agent` | El agente está operando la página | "IA trabajando", el mismo bloqueo, borde y botones, más el cursor del agente |
 | `user` | El usuario tomó el control | Sin bloqueo, un borde estático, botones **Devolver** y **Finalizar** |
@@ -199,7 +199,7 @@ Transiciones:
 | Sin interacción durante `policy.agentIdleMinutes` (2 por defecto; se comprueba cada 10 s) | `agent` → `observe` |
 | La página envía `control: takeover` | `observe` / `agent` → `user` |
 | La página envía `control: handback` | `user` → `agent` (o `none` si no hay agente vinculado) |
-| La página envía `control: end` | Se desvincula el agente y se retira la ayuda → `none` |
+| La página envía `control: end` | Se desvincula el agente y se retira la solicitud de asistencia → `none` |
 | El agente se desconecta o es sustituido, su clave se revoca, se agota `policy.attachMaxMinutes` (60 por defecto) o un miembro de la consola termina la sesión | → `none` |
 
 La página se bloquea desde el momento en que un agente se vincula (`observe`), no solo cuando empieza a actuar, y sigue bloqueada al pasar de `agent` a `observe` por inactividad, hasta que el usuario toma el control o el estado vuelve a `none`.
@@ -379,7 +379,7 @@ Cuando un agente llama a `connect_device`, el gateway combina las políticas de 
 - El diálogo del SDK vive en un Shadow DOM, solo acepta toques de confianza y se activa 0,4 s después de aparecer, para que un agente no pueda aprobarse a sí mismo. Las pestañas del mismo origen comparten la decisión mediante BroadcastChannel.
 - El usuario puede activar **permitir automáticamente** con un nivel máximo en la ventana flotante del SDK; entonces el SDK responde al instante con el nivel ofrecido más alto dentro de ese máximo y muestra un aviso.
 - Con `run({ nativeApproval: true })` el SDK no muestra ningún diálogo. En su lugar, `status().pending` pasa a ser `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}` y el host nativo responde con `nativeDecide(nativeKey, requestId, level | null)`.
-- Tras la aprobación, el gateway vincula al agente (sustituyendo a cualquier otro agente del dispositivo), retira la ayuda (`{"t":"help","on":false}`) y difunde `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`; la página se bloquea de inmediato ([§4](#4-estado-de-control)).
+- Tras la aprobación, el gateway vincula al agente (sustituyendo a cualquier otro agente del dispositivo), retira la solicitud de asistencia (`{"t":"help","on":false}`) y difunde `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`; la página se bloquea de inmediato ([§4](#4-estado-de-control)).
 
 Con `approval: none` el agente se vincula de inmediato al nivel calculado.
 
@@ -412,7 +412,7 @@ Cuando el WebSocket falla 3 veces seguidas, el SDK pasa a llamar a `POST /v1/pre
 
 - El gateway usa `key`, `deviceId`, `userId`, `device.{ua, platform, app}`, `deviceToken` y `help`; `pageId` y `page` son informativos. La clave de app y el origen se comprueban igual que en el WebSocket, con el mismo límite de frecuencia.
 - Un dispositivo al que se le ha emitido un token de dispositivo ([§3.5](#35-token-de-dispositivo-token-de-reanudación-e-invitaciones)) también debe enviarlo aquí; si no, la llamada falla con `401 bad_token` y no se actualiza nada del dispositivo. Un dispositivo sin token (un SDK antiguo) sigue sondeando sin él.
-- `help: true` marca el dispositivo como pidiendo ayuda, igual que `hello.help`, salvo que ya haya un agente vinculado.
+- `help: true` marca que el dispositivo solicita asistencia, igual que `hello.help`, salvo que ya haya un agente vinculado.
 - Un dispositivo que sondea cuenta como en línea durante 90 segundos tras cada llamada.
 - `connect: true` le dice a la página que abra el WebSocket ya. El gateway lo activa cuando un agente llama a `connect_device` o `wait_for_device` para ese dispositivo.
 - Como red de seguridad, el SDK también reintenta el WebSocket cada 5 sondeos.
@@ -424,7 +424,7 @@ El SDK expone `window.RemoteWebviewDebugger`. Las páginas llaman a `run()`; los
 ```js
 RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: el usuario con sesión iniciada, visible para los agentes y la consola
-  helpButton,            // mostrar el botón "Pedir ayuda" (OR con el helpButton de la política)
+  helpButton,            // mostrar el botón "Solicitar asistencia" (OR con el helpButton de la política)
   app,                   // { name, version } de la app anfitriona
   lang,                  // una etiqueta de idioma para la interfaz del usuario del teléfono; por defecto según navigator.languages (§15)
   locales,               // paquetes de idioma adicionales; messages: textos sobrescritos por idioma (§15)
@@ -447,7 +447,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
 |---|---|
 | `run(gatewayUrl, appKey, options?)` | Pone la página en línea. Se resuelve en cuanto responde el gateway, o a los 8 s con lo que se sepa. Llamarla de nuevo devuelve la misma promesa |
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`. `status` es `idle`, `connecting`, `online`, `polling`, `rejected`, `quota` o `stopped`; `logSession` es el registro de sesión en el que escribe esta página, `null` cuando no está grabando ([§5.4](#54-registro-de-sesión)) |
-| `help(on = true)` | Pedir ayuda o cancelarla |
+| `help(on = true)` | Solicitar asistencia o cancelar la solicitud |
 | `setUser(userId)` | Cambiar el usuario con sesión iniciada (el SDK se reconecta con un `hello` nuevo) |
 | `stop()` | Desconectar y quitar la interfaz; la captura de console y red continúa, con límite |
 | `nativeControl(nativeKey, 'takeover' \| 'handback' \| 'end')` | Los botones de control propios del host nativo. Devuelve `false` si la clave no coincide |
@@ -478,7 +478,7 @@ type Policy = {
   confirmSelectors: string[]       // hacer clic en estos requiere el OK del usuario (además de [data-rwd-confirm])
   networkExclude: string[]         // peticiones que no aparecen en lo que leen los agentes (§5.2)
   sessionLog: boolean              // las páginas mantienen un registro de sesión (por defecto true, §5.4)
-  helpButton: 'off' | 'all' | 'listed'   // quién ve el botón "Pedir ayuda" (por defecto off)
+  helpButton: 'off' | 'all' | 'listed'   // quién ve el botón "Solicitar asistencia" (por defecto off)
   helpUsers: string[]              // userIds para helpButton = listed
   agentIdleMinutes: number         // agent → observe tras esta inactividad (por defecto 2, máx. 120)
   attachMaxMinutes: number         // una vinculación termina pasado este tiempo (por defecto 60, máx. 1440)
@@ -492,7 +492,7 @@ type Policy = {
 - Los valores se normalizan al guardar: un `approval` distinto de `none` pasa a `prompt`, un `maxLevel` no válido pasa a `interact` y los números se acotan. `maskPatterns` debe compilar; si no, `400 bad_policy`. A `maskSelectors`, `confirmSelectors`, `networkExclude` y `helpUsers` se les quitan las entradas vacías y se cortan a 50 cada uno; `maskPatterns`, a 20.
 - **`networkExclude`** es el ruido que un agente no debería tener que atravesar: fuentes que siempre dan 404, beacons de analítica. Cada regla se compara con la URL de la petición como subcadena sin distinguir mayúsculas, como patrón con comodín `*` (`*/404/*`) o como expresión regular cuando se escribe `/…/` (con flags opcionales; por defecto `i`). Una regla que no compila no coincide con nada. Las peticiones que coinciden se omiten de la lista de red y de los eventos `net_fail` de la línea de tiempo, pero la página las sigue grabando, así que un agente puede pedirlas con `includeExcluded` ([§5.2](#52-métodos), [§14.3](#143-herramientas)). Son una comodidad, no un control de privacidad: usa `maskSelectors` / `maskPatterns` para los datos que no deben salir de la página.
 - **`sessionLog`** está activado salvo que se ponga a `false`, también en los proyectos guardados antes de que existiera el campo. Desactivarlo impide grabar a todas las páginas del proyecto y borra los registros que ya hay en esos dispositivos para ese origen; una página concreta puede excluirse por su cuenta con `run({ record: false })` ([§5.4](#54-registro-de-sesión)).
-- Los campos de enmascaramiento, confirmación, exclusión de red, registro de sesión, ayuda y eruda llegan a las páginas en `welcome.config` ([§3.4](#34-welcome)); las reglas del `run({ networkExclude })` de la propia página se suman a las del proyecto.
+- Los campos de enmascaramiento, confirmación, exclusión de red, registro de sesión, asistencia y eruda llegan a las páginas en `welcome.config` ([§3.4](#34-welcome)); las reglas del `run({ networkExclude })` de la propia página se suman a las del proyecto.
 - **Varios proyectos en un mismo dispositivo.** Un dispositivo se identifica por su `deviceId`, no por proyecto: las páginas cargadas con distintas claves de app en el mismo teléfono son páginas de un único dispositivo. Cuando un agente se vincula, el gateway combina las políticas de los proyectos cuyas páginas están conectadas y se queda con el valor más estricto: `prompt` si algún proyecto lo pide, el menor `maxLevel`, `agentIdleMinutes` y `attachMaxMinutes`, y el menor `maxAgents` distinto de cero.
 
 ## 12. API REST de la consola web
@@ -555,15 +555,15 @@ Las claves de API pertenecen al gateway, no a un proyecto: una clave llega a tod
 | Método | Ruta | Rol | Respuesta |
 |---|---|---|---|
 | GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}` (`pageSize` ≤ 100). `online` (por defecto): dispositivos en línea, los conectados más recientemente primero. `all`: todos los dispositivos conocidos, los más nuevos primero. En ambos modos, `q` busca en el id de dispositivo, el código de dispositivo (guiones opcionales), el userId, el user agent, la etiqueta del sistema (en cualquiera de los dos idiomas) y los nombres de proyecto |
-| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: dispositivos cuya última página vino del proyecto (por defecto `all`, hasta 500); primero los que piden ayuda, luego los que están en línea y luego los vistos más recientemente. `waiting` significa pidiendo ayuda |
+| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: dispositivos cuya última página vino del proyecto (por defecto `all`, hasta 500); primero los que solicitan asistencia, luego los que están en línea y luego los vistos más recientemente. `waiting` significa que el usuario solicitó asistencia (se muestra como En asistencia) |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | Siempre `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. Códigos: `device_offline`, `no_page` (la página se está reconectando), `timeout`, `takeover`, `internal` y los códigos RPC de [§5.1](#51-envoltorio) |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: desvincula al agente, retira la ayuda y el control vuelve a `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: desvincula al agente, retira la solicitud de asistencia y el control vuelve a `none` |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 Invitaciones de dispositivo
 
-Una invitación permite a un usuario poner su dispositivo en línea, ya pidiendo ayuda, con solo abrir un enlace. Nadie tiene que dictar un código de dispositivo.
+Una invitación permite a un usuario poner su dispositivo en línea, con la asistencia ya solicitada, con solo abrir un enlace. Nadie tiene que dictar un código de dispositivo.
 
 | Método | Ruta | Rol | Petición | Respuesta |
 |---|---|---|---|---|
@@ -683,7 +683,7 @@ Cada dispositivo guarda en memoria sus 300 últimos eventos de la línea de tiem
 | `navigated` / `reloaded` | Una página pasó a una URL nueva / se reconectó en la misma URL |
 | `focus` | Una página pasó al primer plano |
 | `error` / `console_error` / `net_fail` / `user_tap` | Eventos que informa la página ([§3.2](#32-página--gateway)) |
-| `help` | El usuario pidió ayuda o la canceló, o llegó a través de una invitación |
+| `help` | El usuario solicitó asistencia o canceló la solicitud, o llegó a través de una invitación |
 | `agent` | Solicitudes de vinculación, denegaciones, tiempos agotados, vinculaciones, cambios de tarea |
 | `control` | Cambios del estado de control; el resumen da el motivo (el usuario tomó el control, IA inactiva, el usuario finalizó, …) |
 | `offline` | La última página del dispositivo desapareció mientras había un agente vinculado |
@@ -695,7 +695,7 @@ Cada dispositivo guarda en memoria sus 300 últimos eventos de la línea de tiem
 ```
 retry: 3000
 
-event: device     data: Device                               un dispositivo cambió (en línea, ayuda, control, aprobación, tarea…)
+event: device     data: Device                               un dispositivo cambió (en línea, asistencia, control, aprobación, tarea…)
 event: timeline   data: {"deviceId", "event": TimelineEvent}
 event: ping       data: {}                                   cada 25 s
 ```
@@ -727,7 +727,7 @@ El contenido que viene de la página (instantáneas, console, red, almacenamient
 
 | Herramienta | Nivel | Parámetros | Descripción |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all` (por defecto `online`), `userId?`, `deviceCode?` (mayúsculas o minúsculas, con o sin guion) | Hasta 50 dispositivos, primero los que piden ayuda |
+| `list_devices` | — | `status?: online\|waiting\|all` (por defecto `online`), `userId?`, `deviceCode?` (mayúsculas o minúsculas, con o sin guion) | Hasta 50 dispositivos, primero los que solicitan asistencia |
 | `connect_device` | — | `device` (código de dispositivo o deviceId), `level?: Level` (por defecto `interact`), `follow?: true` | Vincularse, preguntando antes al usuario si hace falta ([§7](#7-aprobación-de-la-vinculación)); en los 10 minutos siguientes a soltar el dispositivo por sí misma, la misma clave vuelve sin preguntar otra vez, con un nivel no superior al concedido entonces. Selecciona la página en primer plano. Falla si el dispositivo no tiene ninguna página conectada (y empuja a un dispositivo que sondea a reconectarse) |
 | `disconnect_device` | — | — | Desvincularse |
 | `wait_for_device` | — | `device`, `timeoutSec?: 60` (máx. 300) | Esperar a que el dispositivo tenga una página conectada; a un dispositivo que sondea se le pide que se reconecte |

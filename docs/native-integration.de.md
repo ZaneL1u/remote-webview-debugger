@@ -1,4 +1,4 @@
-<!-- i18n-source: 9df5f749e07f20a0f47dbc50ab37d0c462f2092e -->
+<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | Deutsch | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Integration in native Apps
@@ -32,7 +32,7 @@ Die integrierte Anleitung der Konsole (**Doku → Native App integrieren**) zeig
 | `app` | `{ name, version }` Ihrer App, angezeigt für Agenten und in der Konsole |
 | `nativeKey` | Ein zufälliges Geheimnis, beim Start erzeugt (z. B. zwei UUIDs) und nur in das injizierte Script geschrieben. Erforderlich für `nativeControl()` und `nativeDecide()`; Seiten-Scripts, auch das `evaluate_script` des Agenten, können es nicht lesen |
 | `nativeApproval` | `true`, um Verbindungsfreigaben und Bestätigungen von Aktionen als native Dialoge statt als Dialoge des SDK in der Seite anzuzeigen |
-| `helpButton` | `false`, wenn die App einen eigenen Eintrag „Hilfe anfordern“ hat |
+| `helpButton` | `false`, wenn die App einen eigenen Eintrag „Unterstützung anfordern“ hat |
 | `lang` | Die Sprache Ihrer App als Tag (`'en'`, `'zh'`, `'ja'`, `'pt-BR'`…; siehe die [Sprachen des SDK](../sdk/README.de.md#sprachen)); standardmäßig folgt sie `navigator.languages` |
 | `lockScreen`, `theme`, `eruda` | Wie bei H5-Seiten, siehe [protocol.de.md §10](protocol.de.md#10-javascript-api-für-hosts) |
 
@@ -97,7 +97,7 @@ final class RWD: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithRep
             "deviceToken": deviceToken as Any,
             "userId": userId as Any,
             "app": ["name": "My App", "version": "5.12.0"],
-            "helpButton": false,          // die App hat einen eigenen Hilfe-Eintrag
+            "helpButton": false,          // die App hat einen eigenen Unterstützungs-Eintrag
             "nativeKey": nativeKey,
             "nativeApproval": true,       // native Dialoge für Freigaben und Bestätigungen
             "lang": "en",
@@ -266,12 +266,12 @@ Fragen Sie `status()` regelmäßig ab (die Skizzen oben senden es alle 500 ms; d
 | `deviceCode`, `status` | Gerätecode anzeigen und ob die Verbindung `online`, `connecting`, `polling`, `rejected` oder `quota` ist |
 | `control` | `observe`: „KI sieht zu“; `agent`: „KI arbeitet“; in beiden Fällen den Zurück-Button und die Zurück-Wischgeste deaktivieren; `user`: „Sie haben übernommen“ |
 | `level` | Die Zugriffsstufe, die dem verbundenen Agenten gewährt wurde |
-| `config.helpButton` | Ob die Richtlinie des Projekts diesem Nutzer Hilfe anbietet; blenden Sie Ihren eigenen Hilfe-Eintrag entsprechend ein oder aus |
+| `config.helpButton` | Ob die Richtlinie des Projekts diesem Nutzer Unterstützung anbietet; blenden Sie Ihren eigenen Unterstützungs-Eintrag entsprechend ein oder aus |
 | `pending` | Eine Frage an den Nutzer, siehe unten |
 | `deviceToken` | Speichern Sie es, sobald es zum ersten Mal auftaucht oder sich ändert |
 
 - **Übernehmen / Zurückgeben / Beenden:** `nativeControl(nativeKey, 'takeover' | 'handback' | 'end')`; liefert `false`, wenn der Key falsch ist.
-- **Hilfe anfordern:** `help(true)` (und `help(false)` zum Abbrechen).
+- **Unterstützung anfordern:** `help(true)` (und `help(false)`, um die Anfrage abzubrechen).
 - **Verbindungsfreigabe** (`pending.kind === 'attach'`): Zeigen Sie `pending.agent.name` und `pending.agent.keyHint` an, bieten Sie `pending.levels` an (die letzte ist die, die der Agent angefragt hat), und rufen Sie dann `nativeDecide(nativeKey, pending.requestId, level)` auf, oder übergeben Sie `null` zum Ablehnen. Antworten Sie vor `pending.expiresAt` (30 Sekunden).
 - **Bestätigung einer Aktion** (`pending.kind === 'confirm'`): Zeigen Sie `pending.action` an (z. B. `click "Place order"`), dann `nativeDecide(nativeKey, requestId, 'allow')` oder `null`.
 - Führen Sie `nativeDecide` in der WebView aus, deren Status die Anfrage gemeldet hat: Das Gateway fragt die Seite im Vordergrund.
@@ -285,7 +285,7 @@ Fragen Sie `status()` regelmäßig ab (die Skizzen oben senden es alle 500 ms; d
 
 ## Seiten aus Einladungslinks öffnen
 
-Der Support kann in der Konsole eine **Einladung** erstellen (Tab **Einladungen** eines Projekts), mit einer Notiz wie einer Ticketnummer. Der Link ist die Einladungs-URL des Projekts (oder eine für diese Einladung festgelegte) plus `?rwd_invite=<token>`; er funktioniert einmal und läuft standardmäßig nach 30 Minuten ab. Öffnet eine Seite mit dem SDK ihn, nimmt das SDK das Token aus der Adressleiste und sendet es mit seinem `hello`; das Gerät geht bereits mit einer Hilfeanfrage online und ist in der Konsole als eingeladen markiert, sodass niemand einen Gerätecode vorlesen muss.
+Der Support kann in der Konsole eine **Einladung** erstellen (Tab **Einladungen** eines Projekts), mit einer Notiz wie einer Ticketnummer. Der Link ist die Einladungs-URL des Projekts (oder eine für diese Einladung festgelegte) plus `?rwd_invite=<token>`; er funktioniert einmal und läuft standardmäßig nach 30 Minuten ab. Öffnet eine Seite mit dem SDK ihn, nimmt das SDK das Token aus der Adressleiste und sendet es mit seinem `hello`; das Gerät geht bereits mit einer Unterstützungsanfrage online und ist in der Konsole als eingeladen markiert, sodass niemand einen Gerätecode vorlesen muss.
 
 Für eine App:
 

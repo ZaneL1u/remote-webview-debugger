@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD ページ SDK（`sdk/`）
@@ -11,7 +11,7 @@ App WebView や H5 ページが読み込む 1 つの JS ファイルです。こ
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 任意
     deviceId: "…",               // 任意。SDK を注入するネイティブホストが渡す
-    helpButton: true,            // 任意。「ヘルプを求める」ボタンを表示する
+    helpButton: true,            // 任意。「サポートを依頼」ボタンを表示する
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // 任意。言語タグ。デフォルトはブラウザの言語設定から
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@ npm に [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`。`status` は `idle / connecting / online / polling / stopped / rejected / quota`、`lang` は UI の言語（`run()` の前は `null`）、`logSession` はこのページが書き込むセッションログ（記録していないときは `null`） |
 | `stop()` | 切断して UI を取り除きます（console / ネットワークの収集は上限付きで続きます） |
 | `setUser(userId)` | ユーザーを変更します。新しい `hello` で一度再接続します |
-| `help(on)` | ヘルプを求める / 取り消す |
+| `help(on)` | サポートを依頼 / 依頼を取り消す |
 | `nativeControl(nativeKey, action)` | ネイティブホスト独自の UI から引き継ぐ / AI に戻す / 終了を行います |
 | `nativeDecide(nativeKey, requestId, value)` | `nativeApproval` 使用時に `status().pending` に応答します。接続要求にはレベルまたは `null`、センシティブな操作の確認には `'allow'` または `null` |
 | `setLang(lang?)` | 実行時に UI の言語を切り替えます（アプリ独自の言語設定など）。引数なしで呼ぶとブラウザの言語設定に戻ります。[言語](#言語)を参照 |
@@ -50,7 +50,7 @@ npm に [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview
 |---|---|
 | `userId` | サインイン中のユーザー。`hello` と一緒に送られます |
 | `deviceId` | ネイティブホストからの安定したデバイス ID（指定しない場合は localStorage に保持されます） |
-| `helpButton` | 「ヘルプを求める」ボタンを表示します（プロジェクトのポリシーと OR を取ります） |
+| `helpButton` | 「サポートを依頼」ボタンを表示します（プロジェクトのポリシーと OR を取ります） |
 | `app` | ホストアプリの `{ name, version }` |
 | `lang` | 端末のユーザーが目にするすべて（ピル、フローティングウィンドウ、下部バー、ダイアログ、トースト、eruda のタブ、センシティブな操作の「AI が … しようとしています」という説明）の言語：`'ja'` や `'pt-BR'` などの言語タグ。デフォルトはブラウザの言語設定です。[言語](#言語)を参照 |
 | `locales` | 追加の言語パック。言語を選ぶ前に登録されます（`registerLocale` と同じ） |
@@ -81,7 +81,7 @@ npm に [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { ja: { ui: { help: 'サポートに問い合わせる' } } }, // 任意の言語の個別のメッセージを変更
@@ -107,7 +107,7 @@ UI は `#__rwd`（`<body>` の外）の Shadow DOM 内にあるため、ペー�
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | ボタン、スイッチ、エージェントのポインター、ハイライト、縁の光 |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | 「終了」ボタン |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 「ヘルプを求める」、ユーザーが引き継ぎ中の状態 |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | 「サポートを依頼」と「対応中」、ユーザーが引き継ぎ中の状態 |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | オンラインを示すドット、「コピー済み」 |
 | `--rwd-font` | `font` | システムの UI フォント（中国語、日本語、韓国語は言語ごと） | すべてのテキスト |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | デバイスコードとタグ |
@@ -150,7 +150,7 @@ UI は `#__rwd`（`<body>` の外）の Shadow DOM 内にあるため、ペー�
 - `src/ids.ts`：deviceId / pageId / openerId。
 - `src/launch.ts`：このページがアプリのどの起動に属するか（`launchId`、`window.RWDLaunchId`、`rwd_launch` Cookie）。
 - `src/pageWatch.ts`：`page` メッセージ（URL、タイトル、可視状態）とタイムラインイベント（ページ内遷移、ユーザーのタップ）。
-- `src/ui.ts`、`src/lock.ts`：Shadow DOM 内のピル、ヘルプボタン、ロック用オーバーレイ、光る縁、操作のハイライト、ダイアログ。エージェントの接続中はユーザーの信頼された入力をブロックし、接続時間を表示します。
+- `src/ui.ts`、`src/lock.ts`：Shadow DOM 内のピル、「サポートを依頼」ボタン、ロック用オーバーレイ、光る縁、操作のハイライト、ダイアログ。エージェントの接続中はユーザーの信頼された入力をブロックし、接続時間を表示します。
 - `src/approval.ts`：接続承認とセンシティブな操作の確認（ページのダイアログ、または `nativeDecide` 経由のネイティブホスト）。
 - `src/i18n.ts`、`src/locales/`、`src/localeLoader*.ts`：言語パック（言語ごとの UI、操作、エージェント向けのテキスト）、言語の選択とフォールバック、オンデマンドの読み込み。`scripts/locales.mjs` が `dist/locales/<id>.js` をビルドします。
 - エージェント側のエンジンは chobitsu と並んで `packages/chobitsu/src/engine/rwd/` にあります：スナップショット、`rwd.query`、操作可能性のチェック、合成入力、キーボード、console / ネットワークのバッファ、スクリーンショット、`rwd.storage`、IndexedDB 上のセッションログ（`coldlog.ts`）、オーバーレイの検出（`overlays.ts`）、レベルと確認のルール（`policy.ts`）、エージェント向けのテキスト（`i18n.ts`）。スナップショットに使う Playwright のソースは `packages/chobitsu/src/engine/vendor/playwright/` にあります。ビルド時にこれらをソースから `dist/sdk.js` にバンドルします。

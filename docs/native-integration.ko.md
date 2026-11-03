@@ -1,4 +1,4 @@
-<!-- i18n-source: 9df5f749e07f20a0f47dbc50ab37d0c462f2092e -->
+<!-- i18n-source: 31ca5368de9be3c956127575af7d1fa6f7497f77 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | 한국어 | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # 네이티브 앱 연동
@@ -32,7 +32,7 @@ H5 페이지는 `<script>` 태그로 SDK를 불러올 수 있어요. 자사 앱 
 | `app` | 앱의 `{ name, version }`. 에이전트와 콘솔에 표시돼요 |
 | `nativeKey` | 앱 실행 시 생성해(예: UUID 두 개) 주입 스크립트에만 넣는 무작위 비밀 값. `nativeControl()`과 `nativeDecide()`에 필요하고, 페이지 스크립트(에이전트의 `evaluate_script` 포함)는 읽을 수 없어요 |
 | `nativeApproval` | `true`이면 접속 승인과 작업 확인을 SDK의 페이지 내 대화상자 대신 네이티브 대화상자로 보여 줘요 |
-| `helpButton` | 앱에 자체 “도움 요청” 진입점이 있으면 `false` |
+| `helpButton` | 앱에 자체 “지원 요청” 진입점이 있으면 `false` |
 | `lang` | 앱의 언어 태그(`'en'`, `'zh'`, `'ja'`, `'pt-BR'`…. [SDK 언어](../sdk/README.ko.md#언어) 참고). 기본값은 `navigator.languages`를 따라요 |
 | `lockScreen`, `theme`, `eruda` | H5 페이지와 같아요. [protocol.ko.md §10](protocol.ko.md#10-호스트용-javascript-api) 참고 |
 
@@ -97,7 +97,7 @@ final class RWD: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithRep
             "deviceToken": deviceToken as Any,
             "userId": userId as Any,
             "app": ["name": "My App", "version": "5.12.0"],
-            "helpButton": false,          // 앱에 자체 도움 요청 진입점이 있음
+            "helpButton": false,          // 앱에 자체 지원 요청 진입점이 있음
             "nativeKey": nativeKey,
             "nativeApproval": true,       // 승인과 확인은 네이티브 대화상자로
             "lang": "en",
@@ -266,12 +266,12 @@ class Rwd(private val context: Context) {
 | `deviceCode`, `status` | 기기 코드와 연결 상태(`online`, `connecting`, `polling`, `rejected`, `quota`)를 표시해요 |
 | `control` | `observe`: “AI 보는 중”, `agent`: “AI 조작 중”. 둘 다 뒤로 가기 버튼과 스와이프로 뒤로 가기를 막으세요. `user`: “직접 조작 중” |
 | `level` | 접속한 에이전트에게 허용된 권한 수준 |
-| `config.helpButton` | 프로젝트 정책이 이 사용자에게 도움 요청을 제공하는지 여부. 이에 따라 앱 자체의 도움 요청 진입점을 보이거나 숨기세요 |
+| `config.helpButton` | 프로젝트 정책이 이 사용자에게 지원을 제공하는지 여부. 이에 따라 앱 자체의 지원 요청 진입점을 보이거나 숨기세요 |
 | `pending` | 사용자에게 묻는 질문. 아래 참고 |
 | `deviceToken` | 처음 나타나거나 바뀌면 저장하세요 |
 
 - **직접 조작 / AI에 맡기기 / 종료:** `nativeControl(nativeKey, 'takeover' | 'handback' | 'end')`. 키가 틀리면 `false`를 반환해요.
-- **도움 요청:** `help(true)`(취소하려면 `help(false)`).
+- **지원 요청:** `help(true)`(취소하려면 `help(false)`).
 - **접속 승인**(`pending.kind === 'attach'`): `pending.agent.name`과 `pending.agent.keyHint`를 보여 주고 `pending.levels`를 선택지로 제시한 뒤(마지막 항목이 에이전트가 요청한 수준이에요), `nativeDecide(nativeKey, pending.requestId, level)`을 호출하세요. 거부하려면 `null`을 넘기세요. `pending.expiresAt`(30초) 전에 응답해야 해요.
 - **작업 확인**(`pending.kind === 'confirm'`): `pending.action`(예: `click "Place order"`)을 보여 준 뒤 `nativeDecide(nativeKey, requestId, 'allow')` 또는 `null`을 호출하세요.
 - `nativeDecide`는 그 요청을 status로 보고한 WebView에서 실행하세요. 게이트웨이는 포그라운드 페이지에 물어봐요.
@@ -285,7 +285,7 @@ class Rwd(private val context: Context) {
 
 ## 초대 링크로 페이지 열기
 
-지원 담당자는 콘솔(프로젝트의 **초대** 탭)에서 티켓 번호 같은 메모와 함께 **초대**를 만들 수 있어요. 링크는 프로젝트의 초대 URL(또는 그 초대에 지정한 URL)에 `?rwd_invite=<token>`을 붙인 것이고, 한 번만 쓸 수 있으며 기본적으로 30분 후 만료돼요. SDK가 들어 있는 페이지가 이 링크를 열면 SDK는 주소 표시줄에서 토큰을 꺼내 `hello`와 함께 보내요. 기기는 처음부터 도움을 요청하는 상태로 온라인이 되고 콘솔에 초대받은 기기로 표시되므로, 아무도 기기 코드를 불러 줄 필요가 없어요.
+지원 담당자는 콘솔(프로젝트의 **초대** 탭)에서 티켓 번호 같은 메모와 함께 **초대**를 만들 수 있어요. 링크는 프로젝트의 초대 URL(또는 그 초대에 지정한 URL)에 `?rwd_invite=<token>`을 붙인 것이고, 한 번만 쓸 수 있으며 기본적으로 30분 후 만료돼요. SDK가 들어 있는 페이지가 이 링크를 열면 SDK는 주소 표시줄에서 토큰을 꺼내 `hello`와 함께 보내요. 기기는 처음부터 지원을 요청한 상태로 온라인이 되고 콘솔에 초대받은 기기로 표시되므로, 아무도 기기 코드를 불러 줄 필요가 없어요.
 
 앱에서는:
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: f8d7479861527272991767e64a8c5860621d75ed -->
+<!-- i18n-source: 97a0829808d3d00572988c94823b55104f61fbb3 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -106,7 +106,7 @@
 
 {"t":"page","url":"…","title":"…","visibility":"visible"|"hidden"}   // 바뀌었을 때
 {"t":"event","kind":"error"|"console_error"|"net_fail"|"user_tap","summary":"…","at":1730000000000}
-{"t":"help","on":true}                                              // 사용자가 도움을 요청 / 취소
+{"t":"help","on":true}                                              // 사용자가 지원을 요청 / 요청 취소
 {"t":"control","action":"takeover"|"handback"|"end"}                // 사용자의 버튼, §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
 {"id":17,"result":{…}}                                              // RPC 성공, §5
@@ -125,7 +125,7 @@
 {"t":"control","state":"none"|"observe"|"agent"|"user",
  "agent":{"name":"Support Bot"}|null,"level":"interact"|null,
  "attachedMs":83000|null}                                     // §4, 기기의 모든 페이지로
-{"t":"help","on":false}                                       // 도움 요청 해제: 에이전트가 접속했거나, 콘솔 멤버가 세션을 종료했거나, 사용자가 기기에서 종료함
+{"t":"help","on":false}                                       // 지원 요청 해제: 에이전트가 접속했거나, 콘솔 멤버가 세션을 종료했거나, 사용자가 기기에서 종료함
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, 포그라운드 페이지로
 {"t":"attach_cancel","requestId":"…"}                         // §7, 모든 페이지로
@@ -167,7 +167,7 @@
 
 **재개 토큰.** 모든 `welcome`에는 `pageId`에 묶인 새 `resume` 토큰이 들어 있어요. 이미 알려진 `pageId`로 페이지가 다시 연결할 때는 `hello.resume`이 마지막으로 발급된 토큰과 일치해야 해요. 일치하지 않으면 **4409**로 닫히고, SDK는 새 `pageId`로 처음부터 다시 시작해요. 따라서 `pageId`를 안다고 해서 페이지를 사칭할 수는 없어요.
 
-**초대.** 페이지 URL에 `?rwd_invite=<token>`이 있으면, SDK는 주소창에서 이 매개변수를 지우고(`history.replaceState`), 토큰을 sessionStorage에 보관한 뒤 `welcome`이 올 때까지 `hello.invite`로 보내요. 초대가 같은 프로젝트의 것이고, 아직 쓰이지 않았고, 만료되지 않았으면 게이트웨이가 받아들여요. 그러면 기기는 `invited`로 표시되고 도움 요청 상태가 되며, 타임라인에는 어느 초대로 들어왔는지 기록되고, 초대는 사용 처리돼요. 유효하지 않은 초대는 조용히 무시해요. [§12.6](#126-기기-초대) 참고.
+**초대.** 페이지 URL에 `?rwd_invite=<token>`이 있으면, SDK는 주소창에서 이 매개변수를 지우고(`history.replaceState`), 토큰을 sessionStorage에 보관한 뒤 `welcome`이 올 때까지 `hello.invite`로 보내요. 초대가 같은 프로젝트의 것이고, 아직 쓰이지 않았고, 만료되지 않았으면 게이트웨이가 받아들여요. 그러면 기기는 `invited`로 표시되고 지원 요청 상태가 되며, 타임라인에는 어느 초대로 들어왔는지 기록되고, 초대는 사용 처리돼요. 유효하지 않은 초대는 조용히 무시해요. [§12.6](#126-기기-초대) 참고.
 
 ### 3.6 종료 코드
 
@@ -185,7 +185,7 @@
 
 | 상태 | 의미 | 페이지 UI |
 |---|---|---|
-| `none` | 접속한 에이전트 없음 | 기기 코드가 적힌 접힌 배지(활성화된 경우 도움 요청 버튼도 함께) |
+| `none` | 접속한 에이전트 없음 | 기기 코드가 적힌 접힌 배지(활성화된 경우 지원 요청 버튼도 함께) |
 | `observe` | 에이전트가 접속해서 보기만 하는 중 | "AI 보는 중", 사용자 입력 차단(사용자가 잠금을 끄지 않은 경우), 빛나는 화면 테두리, **직접 조작**과 **종료** 버튼 |
 | `agent` | 에이전트가 페이지를 조작하는 중 | "AI 조작 중", 같은 잠금·테두리·버튼에 더해 에이전트의 커서 |
 | `user` | 사용자가 직접 조작으로 전환함 | 잠금 없음, 움직이지 않는 테두리, **AI에 맡기기**와 **종료** 버튼 |
@@ -199,7 +199,7 @@
 | `policy.agentIdleMinutes`(기본값 2, 10초마다 확인) 동안 상호작용 없음 | `agent` → `observe` |
 | 페이지가 `control: takeover`를 보냄 | `observe` / `agent` → `user` |
 | 페이지가 `control: handback`을 보냄 | `user` → `agent`(접속한 에이전트가 없으면 `none`) |
-| 페이지가 `control: end`를 보냄 | 에이전트 접속이 해제되고 도움 요청도 해제됨 → `none` |
+| 페이지가 `control: end`를 보냄 | 에이전트 접속이 해제되고 지원 요청도 해제됨 → `none` |
 | 에이전트의 연결이 끊기거나 다른 에이전트로 대체됨, 키가 폐기됨, `policy.attachMaxMinutes`(기본값 60)가 지남, 또는 콘솔 멤버가 세션을 종료함 | → `none` |
 
 페이지는 에이전트가 행동할 때가 아니라 접속한 순간(`observe`)부터 잠기고, 유휴 상태로 `agent` → `observe` 전환이 일어나도 사용자가 직접 조작으로 전환하거나 상태가 `none`으로 돌아갈 때까지 잠긴 채로 있어요.
@@ -379,7 +379,7 @@ min(에이전트가 요청한 수준(기본값 interact),
 - SDK의 대화 상자는 Shadow DOM 안에 있고, 신뢰된 탭만 받으며, 나타난 지 0.4초 뒤에야 활성화돼요. 그래서 에이전트가 스스로 승인할 수 없어요. 같은 출처의 탭들은 BroadcastChannel로 결정을 공유해요.
 - 사용자는 SDK의 플로팅 창에서 최대 수준을 정해 **자동 허용**을 켤 수 있어요. 그러면 SDK는 그 범위 안에서 제안된 가장 높은 수준으로 즉시 응답하고 알림을 보여 줘요.
 - `run({ nativeApproval: true })`이면 SDK는 대화 상자를 보여 주지 않아요. 대신 `status().pending`이 `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`가 되고, 네이티브 호스트가 `nativeDecide(nativeKey, requestId, level | null)`로 응답해요.
-- 승인되면 게이트웨이는 에이전트를 접속시키고(그 기기에 다른 에이전트가 있으면 대체해요), 도움 요청을 해제하고(`{"t":"help","on":false}`), `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`를 브로드캐스트해요. 페이지는 즉시 잠겨요([§4](#4-제어-상태)).
+- 승인되면 게이트웨이는 에이전트를 접속시키고(그 기기에 다른 에이전트가 있으면 대체해요), 지원 요청을 해제하고(`{"t":"help","on":false}`), `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`를 브로드캐스트해요. 페이지는 즉시 잠겨요([§4](#4-제어-상태)).
 
 `approval: none`이면 에이전트는 계산된 수준으로 바로 접속해요.
 
@@ -412,7 +412,7 @@ WebSocket이 3번 연속 실패하면 SDK는 대신 60초마다 `POST /v1/presen
 
 - 게이트웨이는 `key`, `deviceId`, `userId`, `device.{ua, platform, app}`, `deviceToken`, `help`를 사용하고, `pageId`와 `page`는 참고용이에요. 앱 키와 출처는 WebSocket과 같은 방식으로, 같은 속도 제한을 적용해 확인해요.
 - 기기 토큰을 발급받은 기기([§3.5](#35-기기-토큰-재개-토큰-초대))는 여기서도 토큰을 보내야 해요. 그렇지 않으면 호출은 `401 bad_token`으로 실패하고 기기 정보는 아무것도 갱신되지 않아요. 토큰이 없는 기기(오래된 SDK)는 토큰 없이 계속 폴링해요.
-- `help: true`는 `hello.help`처럼 기기를 도움 요청 상태로 표시해요. 단, 이미 에이전트가 접속해 있으면 그렇지 않아요.
+- `help: true`는 `hello.help`처럼 기기를 지원 요청 상태로 표시해요. 단, 이미 에이전트가 접속해 있으면 그렇지 않아요.
 - 폴링하는 기기는 호출할 때마다 90초 동안 온라인으로 간주돼요.
 - `connect: true`는 페이지에 지금 WebSocket을 열라고 알려요. 에이전트가 그 기기에 대해 `connect_device`나 `wait_for_device`를 호출하면 게이트웨이가 이 값을 설정해요.
 - 안전장치로, SDK는 다섯 번째 폴링마다 WebSocket도 다시 시도해요.
@@ -424,7 +424,7 @@ SDK는 `window.RemoteWebviewDebugger`를 노출해요. 페이지는 `run()`을 �
 ```js
 RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   userId,                // string | null: 로그인한 사용자. 에이전트와 콘솔에 표시
-  helpButton,            // "도움 요청" 버튼 표시(정책의 helpButton과 OR)
+  helpButton,            // "지원 요청" 버튼 표시(정책의 helpButton과 OR)
   app,                   // 호스트 앱의 { name, version }
   lang,                  // 휴대폰 사용자 UI의 언어 태그. 기본값은 navigator.languages에서(§15)
   locales,               // 추가 언어 팩. messages: 언어별 덮어쓰기(§15)
@@ -447,7 +447,7 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
 |---|---|
 | `run(gatewayUrl, appKey, options?)` | 페이지를 온라인으로 만들어요. 게이트웨이가 응답하면, 또는 8초 뒤에 그때까지 알게 된 내용으로 resolve돼요. 다시 호출하면 같은 promise를 반환해요 |
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`. `status`는 `idle`, `connecting`, `online`, `polling`, `rejected`, `quota`, `stopped` 중 하나예요. `logSession`은 이 페이지가 기록하는 세션 로그이고, 기록하지 않으면 `null`이에요([§5.4](#54-세션-로그)) |
-| `help(on = true)` | 도움 요청 또는 취소 |
+| `help(on = true)` | 지원 요청 또는 요청 취소 |
 | `setUser(userId)` | 로그인한 사용자 변경(SDK가 새 `hello`로 다시 연결해요) |
 | `stop()` | 연결을 끊고 UI를 제거해요. console과 네트워크 수집은 한도 안에서 계속돼요 |
 | `nativeControl(nativeKey, 'takeover' \| 'handback' \| 'end')` | 네이티브 호스트 자체의 제어 버튼. 키가 맞지 않으면 `false`를 반환해요 |
@@ -478,7 +478,7 @@ type Policy = {
   confirmSelectors: string[]       // 클릭하려면 사용자의 허락이 필요한 요소([data-rwd-confirm] 외에)
   networkExclude: string[]         // 에이전트가 읽는 내용에서 뺄 요청(§5.2)
   sessionLog: boolean              // 페이지가 세션 로그를 기록(기본값 true, §5.4)
-  helpButton: 'off' | 'all' | 'listed'   // "도움 요청" 버튼을 볼 수 있는 대상(기본값 off)
+  helpButton: 'off' | 'all' | 'listed'   // "지원 요청" 버튼을 볼 수 있는 대상(기본값 off)
   helpUsers: string[]              // helpButton = listed일 때의 userId 목록
   agentIdleMinutes: number         // 이만큼 활동이 없으면 agent → observe(기본값 2, 최대 120)
   attachMaxMinutes: number         // 접속은 이 시간이 지나면 종료(기본값 60, 최대 1440)
@@ -492,7 +492,7 @@ type Policy = {
 - 값은 저장할 때 정규화돼요. `none`이 아닌 `approval`은 `prompt`가 되고, 유효하지 않은 `maxLevel`은 `interact`가 되며, 숫자는 범위 안으로 조정돼요. `maskPatterns`는 컴파일할 수 있어야 하고, 그렇지 않으면 `400 bad_policy`예요. `maskSelectors`, `confirmSelectors`, `networkExclude`, `helpUsers`는 빈 항목을 제거하고 각각 50개에서, `maskPatterns`는 20개에서 잘라요.
 - **`networkExclude`**는 에이전트가 굳이 헤치고 지나갈 필요가 없는 잡음이에요. 항상 404가 나는 글꼴이나 분석용 비콘 같은 것들이죠. 각 규칙은 요청 URL에 대해 대소문자를 구분하지 않는 부분 문자열로, `*` 와일드카드 패턴(`*/404/*`)으로, 또는 `/…/`로 쓰면 정규식으로(플래그는 선택, 기본값 `i`) 비교해요. 컴파일되지 않는 규칙은 아무것과도 일치하지 않아요. 일치하는 요청은 네트워크 목록과 `net_fail` 타임라인 이벤트에서 빠지지만, 페이지는 여전히 기록하므로 에이전트가 `includeExcluded`로 요청할 수 있어요([§5.2](#52-메서드), [§14.3](#143-도구)). 이 규칙은 편의 기능이지 개인정보 보호 수단이 아니에요. 페이지 밖으로 나가면 안 되는 데이터에는 `maskSelectors` / `maskPatterns`를 쓰세요.
 - **`sessionLog`**는 `false`로 설정하지 않는 한 켜져 있어요. 이 필드가 생기기 전에 저장된 프로젝트도 마찬가지예요. 끄면 프로젝트의 모든 페이지가 기록을 멈추고, 그 기기들에 해당 출처로 이미 보관된 로그도 삭제돼요. 페이지 하나만 따로 빠지려면 `run({ record: false })`를 쓰면 돼요([§5.4](#54-세션-로그)).
-- 마스킹, 확인, 네트워크 제외, 세션 로그, 도움 요청, eruda 필드는 `welcome.config`로 페이지에 전달돼요([§3.4](#34-welcome)). 페이지 자체의 `run({ networkExclude })` 규칙은 프로젝트의 규칙에 더해져요.
+- 마스킹, 확인, 네트워크 제외, 세션 로그, 지원 요청, eruda 필드는 `welcome.config`로 페이지에 전달돼요([§3.4](#34-welcome)). 페이지 자체의 `run({ networkExclude })` 규칙은 프로젝트의 규칙에 더해져요.
 - **한 기기의 여러 프로젝트.** 기기는 프로젝트가 아니라 `deviceId`로 식별돼요. 같은 휴대폰에서 서로 다른 앱 키로 로드된 페이지들은 한 기기의 페이지예요. 에이전트가 접속하면 게이트웨이는 연결된 페이지들의 프로젝트 정책을 병합하면서 가장 엄격한 값을 택해요. 어느 한 프로젝트라도 요구하면 `prompt`, 가장 작은 `maxLevel`, `agentIdleMinutes`, `attachMaxMinutes`, 그리고 0이 아닌 값 중 가장 작은 `maxAgents`예요.
 
 ## 12. 콘솔 REST API
@@ -555,15 +555,15 @@ API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로
 | 메서드 | 경로 | 역할 | 응답 |
 |---|---|---|---|
 | GET | `/devices?status=online\|all&q=&project=&page=1&pageSize=20` | member | `{"devices":[Device],"total","page","pageSize"}`(`pageSize` ≤ 100). `online`(기본값): 온라인 기기, 가장 최근에 연결된 순. `all`: 알려진 모든 기기, 최신순. 두 모드 모두 `q`는 기기 ID, 기기 코드(대시는 생략 가능), userId, 사용자 에이전트, 시스템 라벨(어느 언어로든), 프로젝트 이름과 비교해요 |
-| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: 최신 페이지가 이 프로젝트에서 온 기기(기본값 `all`, 최대 500대)를 도움 요청 중인 기기, 온라인 기기, 가장 최근에 본 기기 순으로 반환해요. `waiting`은 도움 요청 중을 뜻해요 |
+| GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: 최신 페이지가 이 프로젝트에서 온 기기(기본값 `all`, 최대 500대)를 지원을 요청한 기기, 온라인 기기, 가장 최근에 본 기기 순으로 반환해요. `waiting`은 지원을 요청한 상태(화면에는 “지원 중”으로 표시)를 뜻해요 |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 항상 `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. 코드: `device_offline`, `no_page`(페이지가 다시 연결 중), `timeout`, `takeover`, `internal`, 그리고 [§5.1](#51-엔벨로프)의 RPC 코드 |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: 에이전트 접속을 해제하고, 도움 요청을 해제하고, 제어 상태를 `none`으로 되돌려요 |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: 에이전트 접속을 해제하고, 지원 요청을 해제하고, 제어 상태를 `none`으로 되돌려요 |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 기기 초대
 
-초대를 쓰면 사용자는 링크를 여는 것만으로 이미 도움 요청 상태인 기기를 온라인으로 만들 수 있어요. 누군가가 기기 코드를 불러 줄 필요가 없어요.
+초대를 쓰면 사용자는 링크를 여는 것만으로 이미 지원 요청 상태인 기기를 온라인으로 만들 수 있어요. 누군가가 기기 코드를 불러 줄 필요가 없어요.
 
 | 메서드 | 경로 | 역할 | 요청 | 응답 |
 |---|---|---|---|---|
@@ -683,7 +683,7 @@ type AuditEvent = {
 | `navigated` / `reloaded` | 페이지가 새 URL로 이동함 / 같은 URL에서 다시 연결됨 |
 | `focus` | 페이지가 포그라운드로 옴 |
 | `error` / `console_error` / `net_fail` / `user_tap` | 페이지가 보고한 이벤트([§3.2](#32-페이지--게이트웨이)) |
-| `help` | 사용자가 도움을 요청했거나 취소함, 또는 초대를 통해 들어옴 |
+| `help` | 사용자가 지원을 요청했거나 요청을 취소함, 또는 초대를 통해 들어옴 |
 | `agent` | 접속 요청, 거부, 시간 초과, 접속, 작업 변경 |
 | `control` | 제어 상태 변경. 요약에 이유가 나와요(사용자가 직접 조작으로 전환, AI 유휴, 사용자가 종료 등) |
 | `offline` | 에이전트가 접속해 있는 동안 기기의 마지막 페이지가 사라짐 |
@@ -695,7 +695,7 @@ type AuditEvent = {
 ```
 retry: 3000
 
-event: device     data: Device                               기기가 바뀜(온라인, 도움 요청, 제어, 승인, 작업…)
+event: device     data: Device                               기기가 바뀜(온라인, 지원 요청, 제어, 승인, 작업…)
 event: timeline   data: {"deviceId", "event": TimelineEvent}
 event: ping       data: {}                                   25초마다
 ```
@@ -727,7 +727,7 @@ event: ping       data: {}                                   25초마다
 
 | 도구 | 수준 | 매개변수 | 설명 |
 |---|---|---|---|
-| `list_devices` | — | `status?: online\|waiting\|all`(기본값 `online`), `userId?`, `deviceCode?`(대소문자 무관, 하이픈 유무 무관) | 최대 50대의 기기. 도움 요청 중인 기기가 먼저 |
+| `list_devices` | — | `status?: online\|waiting\|all`(기본값 `online`), `userId?`, `deviceCode?`(대소문자 무관, 하이픈 유무 무관) | 최대 50대의 기기. 지원을 요청한 기기가 먼저 |
 | `connect_device` | — | `device`(기기 코드 또는 deviceId), `level?: Level`(기본값 `interact`), `follow?: true` | 접속해요. 필요하면 먼저 사용자에게 물어봐요([§7](#7-접속-승인)). 에이전트가 스스로 기기를 놓은 지 10분 안이면 같은 키는 다시 묻지 않고, 그때 허용된 수준을 넘지 않는 선에서 돌아와요. 포그라운드 페이지를 선택해요. 기기에 연결된 페이지가 없으면 실패해요(폴링 중인 기기에는 다시 연결하라고 알려요) |
 | `disconnect_device` | — | — | 접속 해제 |
 | `wait_for_device` | — | `device`, `timeoutSec?: 60`(최대 300) | 기기에 연결된 페이지가 생길 때까지 기다려요. 폴링 중인 기기에는 다시 연결하라고 알려요 |

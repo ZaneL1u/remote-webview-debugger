@@ -1,4 +1,4 @@
-<!-- i18n-source: 8b96028b6553c0ce9fc8b5176a6a613bdaa1228f -->
+<!-- i18n-source: d9a31993ea867d3ef7058e7d637886f38a6ee3e1 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | Deutsch | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD-Seiten-SDK (`sdk/`)
@@ -11,7 +11,7 @@ Eine JS-Datei, die eine App-WebView oder H5-Seite lädt, damit ein KI-Agent die 
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // optional
     deviceId: "…",               // optional; von einem nativen Host übergeben, der das SDK injiziert
-    helpButton: true,            // optional; zeigt den Button "Hilfe anfordern"
+    helpButton: true,            // optional; zeigt den Button "Unterstützung anfordern"
     app: { name: "Shop", version: "3.2.0" },
     lang: "en",                  // optional; ein Sprach-Tag, standardmäßig aus den Browsersprachen
   }).then(({ deviceCode, status }) => console.log(deviceCode, status))
@@ -37,7 +37,7 @@ Auf npm veröffentlicht als [`remote-webview-debugger`](https://www.npmjs.com/pa
 | `status()` | `{deviceCode, status, control, help, label, deviceId, pageId, version, lang, deviceToken, level, config, pending, logSession}`; `status` ist `idle / connecting / online / polling / stopped / rejected / quota`, `lang` die UI-Sprache (`null` vor `run()`), `logSession` das Sitzungsprotokoll, in das diese Seite schreibt (`null`, wenn nicht aufgezeichnet wird) |
 | `stop()` | Trennt die Verbindung und entfernt die UI (die Erfassung von Console und Netzwerk läuft begrenzt weiter) |
 | `setUser(userId)` | Wechselt den Nutzer; verbindet sich einmal mit einem neuen `hello` neu |
-| `help(on)` | Hilfe anfordern / abbrechen |
+| `help(on)` | Unterstützung anfordern / Anfrage abbrechen |
 | `nativeControl(nativeKey, action)` | Übernehmen / Zurückgeben / Beenden aus der eigenen UI des nativen Hosts |
 | `nativeDecide(nativeKey, requestId, value)` | Beantwortet mit `nativeApproval` die Frage in `status().pending`: eine Stufe oder `null` bei einer Zugriffsanfrage, `'allow'` oder `null` bei der Bestätigung einer sensiblen Aktion |
 | `setLang(lang?)` | Wechselt die UI-Sprache zur Laufzeit (die eigene Spracheinstellung einer App); ohne Argument gelten wieder die Browsersprachen. Siehe [Sprachen](#sprachen) |
@@ -50,7 +50,7 @@ Optionen von `run()`:
 |---|---|
 | `userId` | Der angemeldete Nutzer, wird mit dem `hello` gesendet |
 | `deviceId` | Eine stabile Geräte-ID von einem nativen Host (sonst wird eine in localStorage gespeichert) |
-| `helpButton` | Zeigt den Button „Hilfe anfordern“ (ODER-verknüpft mit der Projektrichtlinie) |
+| `helpButton` | Zeigt den Button „Unterstützung anfordern“ (ODER-verknüpft mit der Projektrichtlinie) |
 | `app` | `{ name, version }` der Host-App |
 | `lang` | Sprache von allem, was der Nutzer auf dem Telefon sieht (Badge, schwebendes Fenster, untere Leiste, Dialoge, Toasts, der eruda-Tab und die Beschreibung „Die KI möchte …“ einer sensiblen Aktion): ein Sprach-Tag wie `'ja'` oder `'pt-BR'`. Standard: die Browsersprachen. Siehe [Sprachen](#sprachen) |
 | `locales` | Zusätzliche Sprachpakete, die vor der Sprachwahl registriert werden (wie `registerLocale`) |
@@ -81,7 +81,7 @@ Eingebaut: Englisch (`en`), vereinfachtes Chinesisch (`zh`), traditionelles Chin
 RemoteWebviewDebugger.registerLocale({
   id: 'it',
   name: 'Italiano',
-  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Chiedi aiuto' /* … */ },
+  ui: { takeover: 'Prendi il controllo', end: 'Termina', help: 'Richiedi assistenza' /* … */ },
 })
 RemoteWebviewDebugger.run(url, key, {
   messages: { en: { ui: { help: 'Contact support' } } }, // einzelne Meldungen beliebiger Sprachen ändern
@@ -107,7 +107,7 @@ Die UI lebt in einem Shadow Root an `#__rwd` (außerhalb von `<body>`), sodass S
 |---|---|---|---|
 | `--rwd-accent-rgb` | `accent` | `59, 130, 246` | Buttons, Schalter, der Zeiger des Agents, Hervorhebungen und das Leuchten am Rand |
 | `--rwd-danger-rgb` | `danger` | `239, 68, 68` | Der Button „Beenden“ |
-| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | „Hilfe anfordern“; der Zustand, in dem der Nutzer steuert |
+| `--rwd-warning-rgb` | `warning` | `245, 158, 11` | „Unterstützung anfordern“ und „In Betreuung“; der Zustand, in dem der Nutzer steuert |
 | `--rwd-success-rgb` | `success` | `34, 197, 94` | Online-Punkt; „Kopiert“ |
 | `--rwd-font` | `font` | System-UI-Schrift (für Chinesisch, Japanisch, Koreanisch je Sprache) | Aller Text |
 | `--rwd-font-mono` | `monoFont` | `ui-monospace, "SF Mono", …` | Gerätecode und Tags |
@@ -150,7 +150,7 @@ Diese Puffer sind das Gedächtnis einer einzelnen Seite. Parallel dazu schreibt 
 - `src/ids.ts`: deviceId / pageId / openerId.
 - `src/launch.ts`: zu welchem App-Start diese Seite gehört (`launchId`, `window.RWDLaunchId`, das Cookie `rwd_launch`).
 - `src/pageWatch.ts`: `page`-Nachrichten (url, title, visibility) und Ereignisse der Zeitleiste (Navigation innerhalb der Seite, Taps des Nutzers).
-- `src/ui.ts`, `src/lock.ts`: Badge, Hilfe-Button, Sperr-Overlay, Leuchten, Aktionshervorhebung und Dialoge in einem Shadow DOM; blockiert die vertrauenswürdigen Eingaben des Nutzers, solange ein Agent verbunden ist, und zeigt, wie lange die Verbindung schon besteht.
+- `src/ui.ts`, `src/lock.ts`: Badge, Button „Unterstützung anfordern“, Sperr-Overlay, Leuchten, Aktionshervorhebung und Dialoge in einem Shadow DOM; blockiert die vertrauenswürdigen Eingaben des Nutzers, solange ein Agent verbunden ist, und zeigt, wie lange die Verbindung schon besteht.
 - `src/approval.ts`: Verbindungsfreigabe und Bestätigung sensibler Aktionen (Dialog auf der Seite oder der native Host über `nativeDecide`).
 - `src/i18n.ts`, `src/locales/`, `src/localeLoader*.ts`: Sprachpakete (UI-, Aktions- und Agent-Texte pro Sprache), Auswahl und Rückfall, Nachladen bei Bedarf; `scripts/locales.mjs` baut `dist/locales/<id>.js`.
 - Die Agent-Engine liegt neben chobitsu in `packages/chobitsu/src/engine/rwd/`: Snapshot, `rwd.query`, Prüfungen der Bedienbarkeit, synthetische Eingaben, Tastatur, Console- / Netzwerkpuffer, Screenshots, `rwd.storage`, das Sitzungsprotokoll in IndexedDB (`coldlog.ts`), Overlay-Erkennung (`overlays.ts`), Stufen und Bestätigungsregeln (`policy.ts`), Texte für den Agent (`i18n.ts`). Die für Snapshots verwendeten Playwright-Quellen liegen in `packages/chobitsu/src/engine/vendor/playwright/`. Der Build bündelt sie aus dem Quellcode in `dist/sdk.js`.
