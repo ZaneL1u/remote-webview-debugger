@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Stage the built console and SDK into internal/web for go:embed, or reset the
-# directory to its committed placeholders after building.
+# Stage the built console and SDK (sdk.js and the locales/ next to it) into
+# internal/web for go:embed, or reset the directory to its committed
+# placeholders after building.
 #   embed.sh stage <console-dist> <sdk.js>
 #   embed.sh reset
 set -euo pipefail
@@ -10,6 +11,10 @@ stage)
   find "$web/console" "$web/sdk" -mindepth 1 -delete
   cp -R "$2"/. "$web/console/"
   cp "$3" "$web/sdk/sdk.js"
+  if [ -d "$(dirname "$3")/locales" ]; then
+    mkdir "$web/sdk/locales"
+    cp "$(dirname "$3")"/locales/*.js "$web/sdk/locales/"
+  fi
   ;;
 reset)
   find "$web/console" "$web/sdk" -mindepth 1 -delete

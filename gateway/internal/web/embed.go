@@ -1,6 +1,7 @@
 // Package web embeds the built console SPA and page SDK. `make gateway`
-// copies console/dist into console/ and sdk/dist/sdk.js into sdk/ before
-// building; the placeholders keep `go build` working without them.
+// copies console/dist into console/, and sdk/dist/sdk.js with the language
+// packs in sdk/dist/locales into sdk/ before building; the placeholders keep
+// `go build` working without them.
 package web
 
 import (

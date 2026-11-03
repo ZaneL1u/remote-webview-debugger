@@ -65,7 +65,7 @@ func main() {
 
 func usage() {
 	fmt.Fprint(os.Stderr, `usage:
-  rwd serve [--addr :8080] [--data rwd.db] [--public-url https://host/v1] [--trust-proxy] [--demo-dir DIR] [--mcp-rate-limit N] [--lang en|zh]
+  rwd serve [--addr :8080] [--data rwd.db] [--public-url https://host/v1] [--trust-proxy] [--demo-dir DIR] [--mcp-rate-limit N] [--lang en|zh|zh-TW|fr|es|ru|ar|ja|ko|de|pt]
   rwd mcp --gateway https://host/v1        (API key from RWD_API_KEY)
   rwd version
 
@@ -83,11 +83,11 @@ func serve(args []string) error {
 	demo := fs.String("demo-dir", env("RWD_DEMO_DIR", ""), "serve this directory at /demo/ (optional)")
 	mcpRate := fs.Int("mcp-rate-limit", envInt("RWD_MCP_RATE_LIMIT"), "MCP requests per client IP per minute, 0 for no limit (RWD_MCP_RATE_LIMIT)")
 	trust := fs.Bool("trust-proxy", env("RWD_TRUST_PROXY", "") == "1", "trust X-Forwarded-* headers (only behind a reverse proxy)")
-	langFlag := fs.String("lang", env("RWD_LANG", string(i18n.Default)), "language of agent-facing text: en or zh (RWD_LANG); the console's fallback")
+	langFlag := fs.String("lang", env("RWD_LANG", string(i18n.Default)), "language of agent-facing text: en, zh, zh-TW, fr, es, ru, ar, ja, ko, de or pt (RWD_LANG); the console's fallback")
 	fs.Parse(args)
 	lang, ok := i18n.Parse(*langFlag)
 	if !ok {
-		return fmt.Errorf("unsupported language %q (want en or zh)", *langFlag)
+		return fmt.Errorf("unsupported language %q (want one of %v)", *langFlag, i18n.Langs)
 	}
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))

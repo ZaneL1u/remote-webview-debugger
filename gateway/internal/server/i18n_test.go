@@ -166,10 +166,11 @@ func TestConsoleLanguage(t *testing.T) {
 		{login, "", "Incorrect email or password"},
 		{login, "zh-CN", "邮箱或密码错误"},
 		{login, "zh-CN,zh;q=0.9,en;q=0.8", "邮箱或密码错误"},
-		{login, "fr-FR, en;q=0.5, zh;q=0.6", "邮箱或密码错误"},
+		{login, "it-IT, en;q=0.5, zh;q=0.6", "邮箱或密码错误"},
 		{login, "en", "Incorrect email or password"},
-		{login, "fr", "Incorrect email or password"},
-		{login + "?lang=zh-CN", "en", "邮箱或密码错误"},
+		{login, "it", "Incorrect email or password"},
+		{login, "fr-FR, en;q=0.5", i18n.FR.T(i18n.APIBadPassword)},
+		{login + "?lang=zh-HK", "en", i18n.ZHTW.T(i18n.APIBadPassword)},
 		{login + "?lang=en", "zh-CN", "Incorrect email or password"},
 	}
 	for _, c := range cases {

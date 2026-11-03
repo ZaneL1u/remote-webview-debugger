@@ -15,6 +15,7 @@ import (
 	"log/slog"
 	"net/http"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 
@@ -110,6 +111,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/metrics", s.metrics)
 	mux.HandleFunc("GET /v1/sdk.js", s.serveSDK)
 	mux.HandleFunc("GET /v1/sdk/{version}/sdk.js", s.serveSDK)
+	mux.HandleFunc("GET /v1/locales/{file}", s.serveLocale)
+	mux.HandleFunc("GET /v1/sdk/{version}/locales/{file}", s.serveLocale)
 	mux.HandleFunc("GET /v1/page", s.servePage)
 	mux.HandleFunc("POST /v1/presence", s.presence)
 	mux.HandleFunc("OPTIONS /v1/presence", s.presence)
@@ -192,6 +195,31 @@ func (s *Server) serveSDK(w http.ResponseWriter, r *http.Request) {
 	// through its hooks are not muted.
 	h.Set("Access-Control-Allow-Origin", "*")
 	w.Write(s.sdk)
+}
+
+var localeFile = regexp.MustCompile(`^[A-Za-z]{2,8}(-[A-Za-z0-9]{2,8})*\.js$`)
+
+// serveLocale serves the SDK's on-demand language packs: sdk.js loads
+// locales/<id>.js from next to itself (docs/protocol.md §3.5).
+func (s *Server) serveLocale(w http.ResponseWriter, r *http.Request) {
+	file := r.PathValue("file")
+	v := r.PathValue("version")
+	if !localeFile.MatchString(file) || (v != "" && v != s.sdkVersion) {
+		http.NotFound(w, r)
+		return
+	}
+	b, err := fs.ReadFile(web.SDK(), "locales/"+file)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	h := w.Header()
+	// Short cache even under /sdk/<version>/: the version is sdk.js's hash, and
+	// a pack's text can change without it.
+	h.Set("Cache-Control", "public, max-age=300")
+	h.Set("Content-Type", "text/javascript; charset=utf-8")
+	h.Set("Access-Control-Allow-Origin", "*")
+	w.Write(b)
 }
 
 // --- page connections ---

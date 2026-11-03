@@ -1,11 +1,12 @@
-// Package i18n holds the gateway's human-language text in English and
-// Chinese. Agent-facing text (MCP) uses the configured language (RWD_LANG);
-// console-facing text follows each request's Accept-Language.
+// Package i18n holds the gateway's human-language text, one catalog per
+// language (en.go, zh.go, zh_tw.go, …). Agent-facing text (MCP) uses the
+// configured language (RWD_LANG); console-facing text follows each request's
+// Accept-Language.
 //
 // Messages are looked up by Key. Keys used from Go code are constants in
 // keys.go; tool and parameter descriptions are keyed by "tool.<name>" and by
-// their jsonschema struct tags. Every key has an entry in both catalogs
-// (checked by the tests).
+// their jsonschema struct tags. Every key has an entry in every catalog, with
+// the same fmt verbs (checked by the tests).
 package i18n
 
 import (
@@ -17,27 +18,58 @@ import (
 type Lang string
 
 const (
-	EN Lang = "en"
-	ZH Lang = "zh"
+	EN   Lang = "en"
+	ZH   Lang = "zh" // Simplified Chinese
+	ZHTW Lang = "zh-TW"
+	FR   Lang = "fr"
+	ES   Lang = "es"
+	RU   Lang = "ru"
+	AR   Lang = "ar"
+	JA   Lang = "ja"
+	KO   Lang = "ko"
+	DE   Lang = "de"
+	PT   Lang = "pt"
 )
+
+// Langs lists the supported languages.
+var Langs = []Lang{EN, ZH, ZHTW, FR, ES, RU, AR, JA, KO, DE, PT}
 
 // Default is the language when nothing else is configured.
 const Default = EN
 
 type Key string
 
-var catalogs = map[Lang]map[Key]string{EN: en, ZH: zh}
+var catalogs = map[Lang]map[Key]string{
+	EN: en, ZH: zh, ZHTW: zhTW, FR: fr, ES: es, RU: ru, AR: ar, JA: ja, KO: ko, DE: de, PT: pt,
+}
 
-// Parse normalizes a language tag: en, en-US → EN; zh, zh-CN, zh_CN,
-// zh-Hans → ZH. Other languages are not supported.
+// Parse normalizes a language tag to a supported language: en-US → EN;
+// zh, zh-CN, zh_CN, zh-Hans → ZH; zh-TW, zh-HK, zh-MO, zh-Hant → ZHTW;
+// fr-CA → FR, pt-BR → PT and so on.
 func Parse(tag string) (Lang, bool) {
 	t := strings.ToLower(strings.TrimSpace(strings.ReplaceAll(tag, "_", "-")))
-	base, _, _ := strings.Cut(t, "-")
-	switch base {
-	case "en":
-		return EN, true
-	case "zh":
+	parts := strings.Split(t, "-")
+	if parts[0] == "zh" {
+		hant, hans, region := false, false, false
+		for _, p := range parts[1:] {
+			switch p {
+			case "hant":
+				hant = true
+			case "hans":
+				hans = true
+			case "tw", "hk", "mo":
+				region = true
+			}
+		}
+		if hant || (region && !hans) {
+			return ZHTW, true
+		}
 		return ZH, true
+	}
+	for _, l := range Langs {
+		if string(l) == parts[0] {
+			return l, true
+		}
 	}
 	return "", false
 }
