@@ -32,8 +32,9 @@ gateway:
 website: sdk
 	cd website && npm ci && npm run build
 
-# What CI runs.
+# What CI runs. Docs: translations present and in step with English (docs/translating.md).
 check:
+	node scripts/docs/i18n.mjs check
 	cd gateway && test -z "$$(gofmt -l .)" && go vet ./... && go test -race -count=1 ./...
 	cd sdk && npm run typecheck && npm run build && npm test
 	cd console && npm run typecheck && npm run build
