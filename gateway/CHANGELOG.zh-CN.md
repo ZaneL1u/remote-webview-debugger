@@ -4,6 +4,34 @@
 
 网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）。tag 形如 `gateway-vX.Y.Z`。
 
+## v0.2.0 (2026-11-03)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.1.1...gateway-v0.2.0)
+
+> 内嵌页面 SDK：v0.2.0
+
+### 🚀 新功能
+
+- optional per-IP rate limit for MCP requests ([94d71dc](https://github.com/ZaneL1u/remote-webview-debugger/commit/94d71dc))
+- **deploy:** a public demo gateway that starts over every day ([373657e](https://github.com/ZaneL1u/remote-webview-debugger/commit/373657e))
+- 网关面向 agent 的文案和 API 错误信息支持 11 种语言，按 Accept-Language 自动选择；新增 /v1/locales/ 托管 SDK 的按需语言包 ([b21b657](https://github.com/ZaneL1u/remote-webview-debugger/commit/b21b657))
+- **console:** 控制台支持 11 种语言，跟随浏览器语言并可手动切换，语言包按需加载；阿拉伯语从右到左排版 ([80cbd2f](https://github.com/ZaneL1u/remote-webview-debugger/commit/80cbd2f))
+- a key per visitor for public demos (--demo-keys) ([086a734](https://github.com/ZaneL1u/remote-webview-debugger/commit/086a734))
+- **deploy:** demo visitors get keys of their own ([dd55dda](https://github.com/ZaneL1u/remote-webview-debugger/commit/dd55dda))
+- 「求助」改为「请求协助」，设备状态显示为「协助中」，11 种语言的手机界面、控制台和面向 agent 的文案一起调整 ([73637cb](https://github.com/ZaneL1u/remote-webview-debugger/commit/73637cb))
+
+### 🩹 修复
+
+- **deploy:** one gateway image per compose stack ([fabb2ae](https://github.com/ZaneL1u/remote-webview-debugger/commit/fabb2ae))
+
+### 📖 文档
+
+- README and docs in Traditional Chinese, Japanese, Spanish, French, Russian and Arabic ([9ba0aae](https://github.com/ZaneL1u/remote-webview-debugger/commit/9ba0aae))
+- translate the MCP rate limit and the per-stack gateway image ([26d9dec](https://github.com/ZaneL1u/remote-webview-debugger/commit/26d9dec))
+- 文档：说明 11 种语言、语言包加载与自定义、样式覆盖（CSS 变量、run({ style })、::part），并同步到各语言译本 ([d17b1f5](https://github.com/ZaneL1u/remote-webview-debugger/commit/d17b1f5))
+- 文档新增韩语、德语、巴西葡萄牙语译本，与界面的 11 种语言一致；所有文档的语言切换行列出全部语言 ([0161fed](https://github.com/ZaneL1u/remote-webview-debugger/commit/0161fed))
+- 网关 README 的 --demo-keys 说明同步到各语言译本 ([ddc67e3](https://github.com/ZaneL1u/remote-webview-debugger/commit/ddc67e3))
+
 ## v0.1.1 (2026-11-03)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.1.0...gateway-v0.1.1)

@@ -4,6 +4,34 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded). Tags: `gateway-vX.Y.Z`.
 
+## v0.2.0 (2026-11-03)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.1.1...gateway-v0.2.0)
+
+> Embedded page SDK: v0.2.0
+
+### 🚀 Enhancements
+
+- optional per-IP rate limit for MCP requests ([94d71dc](https://github.com/ZaneL1u/remote-webview-debugger/commit/94d71dc))
+- **deploy:** a public demo gateway that starts over every day ([373657e](https://github.com/ZaneL1u/remote-webview-debugger/commit/373657e))
+- agents and the API in 11 languages; serve the SDK's language packs ([b21b657](https://github.com/ZaneL1u/remote-webview-debugger/commit/b21b657))
+- **console:** 11 languages loaded on demand, right to left for Arabic ([80cbd2f](https://github.com/ZaneL1u/remote-webview-debugger/commit/80cbd2f))
+- a key per visitor for public demos (--demo-keys) ([086a734](https://github.com/ZaneL1u/remote-webview-debugger/commit/086a734))
+- **deploy:** demo visitors get keys of their own ([dd55dda](https://github.com/ZaneL1u/remote-webview-debugger/commit/dd55dda))
+- "Request assistance" and "Assisting" instead of "Get help", in every language ([73637cb](https://github.com/ZaneL1u/remote-webview-debugger/commit/73637cb))
+
+### 🩹 Fixes
+
+- **deploy:** one gateway image per compose stack ([fabb2ae](https://github.com/ZaneL1u/remote-webview-debugger/commit/fabb2ae))
+
+### 📖 Documentation
+
+- README and docs in Traditional Chinese, Japanese, Spanish, French, Russian and Arabic ([9ba0aae](https://github.com/ZaneL1u/remote-webview-debugger/commit/9ba0aae))
+- translate the MCP rate limit and the per-stack gateway image ([26d9dec](https://github.com/ZaneL1u/remote-webview-debugger/commit/26d9dec))
+- languages and styling, in every doc language ([d17b1f5](https://github.com/ZaneL1u/remote-webview-debugger/commit/d17b1f5))
+- Korean, German and Brazilian Portuguese, the same 11 languages as the UI ([0161fed](https://github.com/ZaneL1u/remote-webview-debugger/commit/0161fed))
+- translate the --demo-keys flag ([ddc67e3](https://github.com/ZaneL1u/remote-webview-debugger/commit/ddc67e3))
+
 ## v0.1.1 (2026-11-03)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.1.0...gateway-v0.1.1)
