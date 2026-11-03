@@ -1,18 +1,59 @@
 {
-  "name": "@rwd/sdk",
+  "name": "remote-webview-debugger",
   "version": "0.1.0",
-  "private": true,
-  "description": "remote-webview-debugger page SDK: lets an AI agent inspect and operate an H5 page / App WebView through the RWD gateway",
+  "description": "Remote WebView Debugger page SDK: lets an AI agent inspect and operate an H5 page / App WebView through the RWD gateway",
   "license": "MIT",
-  "type": "module",
-  "files": [
-    "dist/sdk.js"
+  "homepage": "https://debugger.site",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZaneL1u/remote-webview-debugger.git",
+    "directory": "sdk"
+  },
+  "bugs": "https://github.com/ZaneL1u/remote-webview-debugger/issues",
+  "keywords": [
+    "webview",
+    "h5",
+    "remote-debugging",
+    "mcp",
+    "ai-agent",
+    "devtools",
+    "mobile"
   ],
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./sdk.js": "./dist/sdk.js",
+    "./package.json": "./package.json"
+  },
+  "unpkg": "./dist/sdk.js",
+  "jsdelivr": "./dist/sdk.js",
+  "files": [
+    "dist/sdk.js",
+    "dist/sdk.js.map",
+    "dist/index.mjs",
+    "dist/index.mjs.map",
+    "dist/index.d.ts",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "CHANGELOG.zh-CN.md",
+    "NOTICE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && vite build --mode esm && node scripts/dts.mjs",
     "typecheck": "tsc --noEmit -p .",
     "test": "playwright test -c test/playwright.config.ts",
-    "gateway": "node test/mock-gateway.mjs"
+    "gateway": "node test/mock-gateway.mjs",
+    "prepack": "cp ../LICENSE ../NOTICE ."
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
@@ -22,6 +63,8 @@
     "devtools-protocol": "0.0.1339468",
     "licia": "1.48.1",
     "modern-screenshot": "4.7.0",
+    "rolldown": "1.2.16",
+    "rolldown-plugin-dts": "0.28.8",
     "typescript": "5.9.3",
     "vite": "8.3.4",
     "ws": "8.22.0"

@@ -79,6 +79,9 @@ jobs:
           size=$(gzip -9c dist/sdk.js | wc -c)
           echo "sdk.js gzip: $size bytes"
           test "$size" -lt 81920
+      - name: Package contents
+        working-directory: sdk
+        run: npm pack --dry-run
       - run: npx playwright install --with-deps chromium webkit
         working-directory: sdk
       - run: npm test

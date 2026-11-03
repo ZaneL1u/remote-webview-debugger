@@ -12,6 +12,9 @@ node_modules/
 gateway/bin/
 deploy/platform/rwd
 sdk/dist/
+sdk/LICENSE
+sdk/NOTICE
+sdk/*.tgz
 console/dist/
 website/dist/
 test-results/
