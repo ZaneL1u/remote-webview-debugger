@@ -35,24 +35,20 @@ export const ru: Dict = {
     ctaGithub: 'Звезда на GitHub',
     ctaSelfHost: 'Свой хостинг за 5 минут',
     points: ['Без USB-кабеля', 'Без порта удалённой отладки', 'В приложении — только один скрипт', 'Работает и после того, как баг случился'],
-    ticker: [
-      'связь установлена',
-      'устройство K7Q2-9M4X в сети',
-      'снимок 42 мс',
-      '34 инструмента готовы',
-      'маскирование включено',
-      'уровень interact',
-      'журнал сеанса · 3 запуска',
-      'живой патч проверен',
-      'идёт аудит',
-      'шлюз · свой хостинг',
-      '11 языков',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'инструмента MCP' },
+      { value: '11', label: 'языков' },
+      { value: '1', label: 'скрипт для подключения' },
+      { value: '0', label: 'USB-кабелей' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'Добавьте на страницу',
     flow: {
       label: 'ИИ-агент общается по MCP с вашим собственным шлюзом, а тот по WebSocket доходит до SDK страницы на телефоне пользователя.',
       agent: 'ИИ-агент',
       agentSub: 'Claude Code · Codex · Cursor · любой MCP-клиент',
-      gw: 'шлюз rwd',
+      gw: 'Шлюз',
       gwSub: 'свой хостинг · разрешение · аудит',
       phone: 'Телефон пользователя',
       phoneSub: 'H5-страница / WebView приложения + SDK',
@@ -67,7 +63,7 @@ export const ru: Dict = {
     lead:
       'Телефон в этом демо запускает настоящий SDK страницы внутри демо-магазина. Его шлюз смоделирован в вашем браузере, поэтому из этой вкладки ничего не уходит — но каждый снимок, нажатие, строка console и живой патч ниже настоящие.',
     agentTitle: 'ИИ-агент',
-    agentSub: 'подключён к MCP-серверу rwd',
+    agentSub: 'подключён к MCP-серверу Remote WebView Debugger',
     skinLabel: 'Стиль агента',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

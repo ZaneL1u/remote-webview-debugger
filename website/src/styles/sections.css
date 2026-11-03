@@ -859,9 +859,17 @@ html:is([lang='zh-CN'], [lang='zh-TW'], [lang='ja'], [lang='ko'], [lang='ar']) .
   .faq {
     grid-template-columns: minmax(0, 1fr);
   }
-  .ticker {
-    height: 36px;
-    margin-top: 32px;
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stat:nth-child(3) {
+    border-inline-start: 0;
+  }
+  .stat:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+  .install pre {
+    font-size: 11.5px;
   }
   .levels li {
     grid-template-columns: 1fr;
@@ -877,9 +885,6 @@ html:is([lang='zh-CN'], [lang='zh-TW'], [lang='ja'], [lang='ko'], [lang='ar']) .
   .step,
   .feature {
     padding: 22px 20px;
-  }
-  .fx-grid {
-    height: 52vh;
   }
   .lang-menu {
     min-width: 0;
@@ -908,7 +913,6 @@ html:is([lang='zh-CN'], [lang='zh-TW'], [lang='ja'], [lang='ko'], [lang='ar']) .
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .ticker-track,
   .radar,
   .fx-aurora {
     animation: none !important;

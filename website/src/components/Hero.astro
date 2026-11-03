@@ -1,6 +1,7 @@
 ---
 import type { Dict } from '../i18n/en.ts'
-import { REPO } from '../lib/site.ts'
+import { REPO, SDK_CDN } from '../lib/site.ts'
+import { copyButton } from '../lib/html.ts'
 import Icon from './Icon.astro'
 
 interface Props {
@@ -9,7 +10,6 @@ interface Props {
 const { t } = Astro.props
 const h = t.hero
 const f = h.flow
-const run = h.ticker
 ---
 
 <section class="hero" aria-labelledby="hero-title">
@@ -25,7 +25,12 @@ const run = h.ticker
         <a class="btn btn-ghost" href={REPO}><Icon name="github" /><span>{h.ctaGithub}</span></a>
         <a class="btn btn-link" href="#self-host"><span>{h.ctaSelfHost}</span><Icon name="arrow" /></a>
       </div>
-      <ul class="hero-points reveal" data-hero="points">{h.points.map(p => <li><Icon name="check" />{p}</li>)}</ul>
+      <div class="install code reveal" data-hero="install">
+        <span class="install-label">{h.installLabel}</span>
+        <pre><code><span class="t-t">&lt;script</span> <span class="t-a">src</span>=<span class="t-s">"{SDK_CDN}"</span><span class="t-t">&gt;&lt;/script&gt;</span></code></pre>
+        <Fragment set:html={copyButton()} />
+      </div>
+      <ul class="hero-specs reveal" data-hero="points">{h.points.map(p => <li>{p}</li>)}</ul>
     </div>
     <div class="flow reveal hud" role="img" aria-label={f.label} data-flow>
       <div class="flow-node flow-agent hud" data-flow-node><span class="flow-ic"><Icon name="bot" /></span><div><b>{f.agent}</b><small>{f.agentSub}</small></div></div>
@@ -40,11 +45,13 @@ const run = h.ticker
     </div>
   </div>
   <div class="wrap">
-    <div class="ticker reveal hud" aria-hidden="true">
-      <div class="ticker-track">
-        <span class="ticker-run">{run.map(s => <b>{s}</b>)}</span>
-        <span class="ticker-run">{run.map(s => <b>{s}</b>)}</span>
-      </div>
-    </div>
+    <dl class="stats reveal" data-hero="stats">
+      {h.stats.map(st => (
+        <div class="stat">
+          <dt>{st.label}</dt>
+          <dd data-count-to={st.value}>{st.value}</dd>
+        </div>
+      ))}
+    </dl>
   </div>
 </section>

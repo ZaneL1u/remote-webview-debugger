@@ -35,24 +35,20 @@ export const ptBR: Dict = {
     ctaGithub: 'Dar uma estrela no GitHub',
     ctaSelfHost: 'Auto-hospedar em 5 minutos',
     points: ['Sem cabo USB', 'Sem porta de depuração remota', 'Sem recompilar o app: só um script', 'Funciona depois que o bug aconteceu'],
-    ticker: [
-      'conexão estabelecida',
-      'dispositivo K7Q2-9M4X online',
-      'snapshot em 42 ms',
-      '34 ferramentas prontas',
-      'mascaramento ativo',
-      'nível interact',
-      'log da sessão · 3 inicializações',
-      'patch ao vivo verificado',
-      'auditoria gravando',
-      'gateway auto-hospedado',
-      '11 idiomas',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'ferramentas MCP' },
+      { value: '11', label: 'idiomas' },
+      { value: '1', label: 'tag script a adicionar' },
+      { value: '0', label: 'cabos USB' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'Adicione à sua página',
     flow: {
       label: 'Um agente de IA fala MCP com o seu gateway auto-hospedado, que alcança o SDK da página no celular do usuário por um WebSocket.',
       agent: 'Agente de IA',
       agentSub: 'Claude Code · Codex · Cursor · qualquer cliente MCP',
-      gw: 'gateway rwd',
+      gw: 'Gateway',
       gwSub: 'auto-hospedado · aprovação · auditoria',
       phone: 'Celular do usuário',
       phoneSub: 'página H5 / WebView do app + SDK',
@@ -67,7 +63,7 @@ export const ptBR: Dict = {
     lead:
       'O celular desta demo roda o SDK de verdade dentro de uma loja de demonstração. O gateway dele é simulado no seu navegador, então nada sai desta aba — mas todo snapshot, clique, linha de console e patch ao vivo aqui embaixo é real.',
     agentTitle: 'Agente de IA',
-    agentSub: 'conectado ao servidor MCP do rwd',
+    agentSub: 'conectado ao servidor MCP do Remote WebView Debugger',
     skinLabel: 'Estilo do agente',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

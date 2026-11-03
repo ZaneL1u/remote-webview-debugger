@@ -35,24 +35,20 @@ export const zh: Dict = {
     ctaGithub: '在 GitHub 上 Star',
     ctaSelfHost: '5 分钟自建部署',
     points: ['不用数据线', '不开远程调试端口', 'App 只需注入一个脚本', '问题发生之后再接入也来得及'],
-    ticker: [
-      '链路已建立',
-      '设备 K7Q2-9M4X 在线',
-      '快照 42 MS',
-      '34 个工具就绪',
-      '遮罩已开启',
-      '权限 · 可操作',
-      '会话日志 · 最近 3 次启动',
-      '热修已验证',
-      '审计记录中',
-      '网关 · 自建部署',
-      '11 种语言',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'MCP 工具' },
+      { value: '11', label: '种语言' },
+      { value: '1', label: '个脚本' },
+      { value: '0', label: '根数据线' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: '加到你的页面',
     flow: {
       label: 'AI agent 通过 MCP 连接你自建的网关，网关再通过 WebSocket 连到用户手机上的页面 SDK。',
       agent: 'AI agent',
       agentSub: 'Claude Code · Codex · Cursor 等 MCP 客户端',
-      gw: 'rwd 网关',
+      gw: '网关',
       gwSub: '自建部署 · 审批 · 审计',
       phone: '用户的手机',
       phoneSub: 'H5 页面 / App WebView + SDK',
@@ -67,7 +63,7 @@ export const zh: Dict = {
     lead:
       '演示里的手机上，商城页面加载的就是真正的页面 SDK。网关在你的浏览器里模拟，任何数据都不会离开这个标签页；但下面每一次快照、点击、console 输出和热修补丁都是真实的。',
     agentTitle: 'AI agent',
-    agentSub: '已连接 rwd MCP 服务',
+    agentSub: '已连接 Remote WebView Debugger 的 MCP 服务',
     skinLabel: 'Agent 样式',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

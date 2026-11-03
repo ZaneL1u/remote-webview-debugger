@@ -35,24 +35,20 @@ export const ko: Dict = {
     ctaGithub: 'GitHub에서 Star 누르기',
     ctaSelfHost: '5분 만에 셀프 호스팅',
     points: ['데이터 케이블 불필요', '원격 디버깅 포트 불필요', '앱은 스크립트 하나만 주입', '버그가 지난 뒤에 접속해도 괜찮아요'],
-    ticker: [
-      '연결 완료',
-      '기기 K7Q2-9M4X 온라인',
-      '스냅샷 42 MS',
-      '도구 34개 준비',
-      '마스킹 켜짐',
-      '권한 · interact',
-      '세션 로그 · 최근 3회 실행',
-      '라이브 패치 검증됨',
-      '감사 기록 중',
-      '게이트웨이 · 셀프 호스팅',
-      '11개 언어',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'MCP 도구' },
+      { value: '11', label: '지원 언어' },
+      { value: '1', label: '추가할 스크립트' },
+      { value: '0', label: '데이터 케이블' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: '페이지에 추가',
     flow: {
       label: 'AI 에이전트가 MCP로 직접 운영하는 게이트웨이에 연결하고, 게이트웨이는 WebSocket으로 사용자 휴대폰의 페이지 SDK에 닿아요.',
       agent: 'AI 에이전트',
       agentSub: 'Claude Code · Codex · Cursor 등 MCP 클라이언트',
-      gw: 'rwd 게이트웨이',
+      gw: '게이트웨이',
       gwSub: '셀프 호스팅 · 승인 · 감사',
       phone: '사용자의 휴대폰',
       phoneSub: 'H5 페이지 / 앱 WebView + SDK',
@@ -67,7 +63,7 @@ export const ko: Dict = {
     lead:
       '데모 속 휴대폰에서 돌아가는 건 데모 쇼핑몰에 들어간 진짜 페이지 SDK예요. 게이트웨이만 브라우저 안에서 모사하니 어떤 데이터도 이 탭을 벗어나지 않아요. 그래도 아래의 스냅샷, 클릭, console 출력, 라이브 패치는 모두 진짜예요.',
     agentTitle: 'AI 에이전트',
-    agentSub: 'rwd MCP 서버에 연결됨',
+    agentSub: 'Remote WebView Debugger MCP 서버에 연결됨',
     skinLabel: '에이전트 스타일',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

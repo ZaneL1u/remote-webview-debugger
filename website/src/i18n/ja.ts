@@ -35,24 +35,20 @@ export const ja: Dict = {
     ctaGithub: 'GitHub で Star',
     ctaSelfHost: '5 分でセルフホスト',
     points: ['USB ケーブル不要', 'リモートデバッグ用ポート不要', 'アプリは script タグ 1 つの注入だけ', '不具合が起きた後からでも間に合う'],
-    ticker: [
-      'リンク確立',
-      'デバイス K7Q2-9M4X オンライン',
-      'スナップショット 42 ms',
-      'ツール 34 件 待機',
-      'マスク オン',
-      'レベル interact',
-      'セッションログ · 起動 3 回分',
-      'ライブパッチ 検証済み',
-      '監査ログ 記録中',
-      'ゲートウェイ セルフホスト',
-      '11 言語',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'MCP ツール' },
+      { value: '11', label: '対応言語' },
+      { value: '1', label: '追加する script タグ' },
+      { value: '0', label: 'USB ケーブル' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'ページに追加',
     flow: {
       label: 'AI エージェントは MCP でセルフホストのゲートウェイに接続し、ゲートウェイが WebSocket でユーザーのスマートフォン上のページ SDK に届きます。',
       agent: 'AI エージェント',
       agentSub: 'Claude Code · Codex · Cursor などの MCP クライアント',
-      gw: 'rwd ゲートウェイ',
+      gw: 'ゲートウェイ',
       gwSub: 'セルフホスト · 承認 · 監査',
       phone: 'ユーザーのスマートフォン',
       phoneSub: 'H5 ページ / アプリ WebView + SDK',
@@ -67,7 +63,7 @@ export const ja: Dict = {
     lead:
       'このデモのスマートフォンでは、デモショップの中で本物のページ SDK が動いています。ゲートウェイはブラウザ内のモックなので、このタブから出ていくものは何もありません。けれども下のスナップショット、クリック、console の 1 行、ライブパッチは、すべて本物です。',
     agentTitle: 'AI エージェント',
-    agentSub: 'rwd MCP サーバーに接続済み',
+    agentSub: 'Remote WebView Debugger の MCP サーバーに接続済み',
     skinLabel: 'エージェントのスタイル',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

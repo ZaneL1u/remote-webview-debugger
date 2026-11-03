@@ -35,24 +35,20 @@ export const zhTW: Dict = {
     ctaGithub: '在 GitHub 上 Star',
     ctaSelfHost: '5 分鐘自行架設',
     points: ['不用傳輸線', '不開遠端除錯連接埠', 'App 只需注入一段指令碼', '問題發生之後再接入也來得及'],
-    ticker: [
-      '連線已建立',
-      '裝置 K7Q2-9M4X 線上',
-      '快照 42 ms',
-      '34 個工具就緒',
-      '遮蔽已開啟',
-      '權限 · 可操作',
-      '工作階段記錄 · 最近 3 次啟動',
-      '即時修補已驗證',
-      '稽核記錄中',
-      '閘道 · 自行架設',
-      '11 種語言',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'MCP 工具' },
+      { value: '11', label: '種語言' },
+      { value: '1', label: '段指令碼' },
+      { value: '0', label: '條傳輸線' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: '加到你的頁面',
     flow: {
       label: 'AI agent 透過 MCP 連到你自行架設的閘道，閘道再透過 WebSocket 連到使用者手機上的頁面 SDK。',
       agent: 'AI agent',
       agentSub: 'Claude Code · Codex · Cursor 等 MCP 用戶端',
-      gw: 'rwd 閘道',
+      gw: '閘道',
       gwSub: '自行架設 · 核准 · 稽核',
       phone: '使用者的手機',
       phoneSub: 'H5 頁面 / App WebView + SDK',
@@ -67,7 +63,7 @@ export const zhTW: Dict = {
     lead:
       '示範裡的手機上，商城頁面載入的就是真正的頁面 SDK。閘道在你的瀏覽器裡模擬，任何資料都不會離開這個分頁；但下面每一次快照、點擊、console 輸出和即時修補都是真實的。',
     agentTitle: 'AI agent',
-    agentSub: '已連線 rwd MCP 伺服器',
+    agentSub: '已連線 Remote WebView Debugger 的 MCP 伺服器',
     skinLabel: 'Agent 樣式',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

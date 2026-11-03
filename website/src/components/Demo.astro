@@ -6,6 +6,7 @@
 import type { Dict } from '../i18n/en.ts'
 import type { Locale } from '../i18n/locales.ts'
 import { code, copyButton, escapeHtml, qr, tabs } from '../lib/html.ts'
+import { brand } from '../lib/icons.ts'
 import { DEMO } from '../lib/site.ts'
 import * as S from '../lib/snippets.ts'
 import Icon from './Icon.astro'
@@ -85,18 +86,40 @@ const footnote = escapeHtml(d.footnote).replace(/&lt;(\/?code)&gt;/g, '<$1>')
 
       <div class="demo-grid">
         <div class="agent">
-          <div class="agent-head" data-show="watch">
-            <span class="agent-avatar" aria-hidden="true"><Icon name="bot" class="ic ic-bot" /><Icon name="claude" class="ic ic-skin ic-claude" /><Icon name="codex" class="ic ic-skin ic-codex" /></span>
-            <div><p class="agent-title">{d.agentTitle}</p><p class="agent-sub"><span class="mcp-dot" aria-hidden="true"></span>{d.agentSub}</p></div>
+          <div class="term-bar" data-show="watch">
+            <span class="term-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="term-title"><span class="cc">claude — ~/support</span><span class="cx">codex — ~/support</span></span>
             <div class="skin" role="group" aria-label={d.skinLabel}>
-              <button type="button" data-skin="claude" aria-pressed="true"><Icon name="claude" /><span>{d.skinClaude}</span></button>
-              <button type="button" data-skin="codex" aria-pressed="false"><Icon name="codex" /><span>{d.skinCodex}</span></button>
+              <button type="button" data-skin="claude" aria-pressed="true"><Fragment set:html={brand('claude')} /><span>{d.skinClaude}</span></button>
+              <button type="button" data-skin="codex" aria-pressed="false"><Fragment set:html={brand('codex')} /><span>{d.skinCodex}</span></button>
             </div>
           </div>
           <div class="transcript" data-transcript role="log" aria-label={d.agentTitle} tabindex="0" data-show="watch">
+            <div class="term-banner cc" aria-hidden="true">
+              <Fragment set:html={brand('clawd', 'clawd')} />
+              <div><b>Claude Code</b><br /><span class="dim">Opus · Claude Max</span><br /><span class="dim">~/support</span></div>
+            </div>
+            <div class="term-banner cx" aria-hidden="true">
+              <div class="cx-box">
+                <div><b>&gt;_ OpenAI Codex</b></div>
+                <div class="gap"></div>
+                <div><span class="dim">model:</span>     gpt-5-codex   <span class="dim">/model to change</span></div>
+                <div><span class="dim">directory:</span> ~/support</div>
+              </div>
+            </div>
             <div class="start-card" data-start-card>
               <p>{d.startHint}</p>
               <button class="btn btn-primary" type="button" data-start><Icon name="play" /><span>{d.start}</span></button>
+            </div>
+            <div class="term-live" data-term-live hidden>
+              <span class="cc"><i class="spin" data-spin>✻</i> <b class="verb" data-verb>Pondering…</b> <span class="dim">(<span data-elapsed>0s</span> · ↓ <span data-tokens>0</span> tokens · esc to interrupt)</span></span>
+              <span class="cx"><b class="shimmer">Working</b> <span class="dim">(<span data-elapsed>0s</span> • esc to interrupt)</span></span>
+            </div>
+            <div class="term-input" aria-hidden="true">
+              <div class="box cc"><span class="pr">&gt;</span><span class="caret"></span></div>
+              <div class="hint cc"><span>? for shortcuts</span></div>
+              <div class="box cx"><span class="pr">›</span><span class="ph">Ask Codex to do anything</span></div>
+              <div class="hint cx"><span>⏎ send · ⌃J newline · ⌃T transcript · ⌃C quit</span><span>100% context left</span></div>
             </div>
           </div>
 

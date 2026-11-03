@@ -35,24 +35,20 @@ export const ar: Dict = {
     ctaGithub: 'أضف نجمة على GitHub',
     ctaSelfHost: 'استضفه بنفسك في 5 دقائق',
     points: ['بلا كابل USB', 'بلا منفذ للتصحيح عن بُعد', 'بلا إعادة بناء للتطبيق، سكربت واحد يكفي', 'يعمل بعد وقوع الخلل'],
-    ticker: [
-      'أُنشئت الوصلة',
-      'الجهاز K7Q2-9M4X متصل',
-      'لقطة في 42 ms',
-      '34 أداة جاهزة',
-      'الإخفاء مفعّل',
-      'المستوى interact',
-      'سجل الجلسة · 3 عمليات تشغيل',
-      'تم التحقق من الإصلاح الحي',
-      'التدقيق قيد التسجيل',
-      'بوابة مستضافة ذاتيًا',
-      '11 لغة',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'أداة MCP' },
+      { value: '11', label: 'لغة' },
+      { value: '1', label: 'سكربت تضيفه' },
+      { value: '0', label: 'كابل USB' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'أضفه إلى صفحتك',
     flow: {
       label: 'يتحدث وكيل الذكاء الاصطناعي بـ MCP إلى بوابتك المستضافة ذاتيًا، وهي تصل إلى SDK الصفحة على هاتف المستخدم عبر WebSocket.',
       agent: 'وكيل الذكاء الاصطناعي',
       agentSub: 'Claude Code · Codex · Cursor · أي عميل MCP',
-      gw: 'بوابة rwd',
+      gw: 'البوابة',
       gwSub: 'استضافة ذاتية · موافقة · تدقيق',
       phone: 'هاتف المستخدم',
       phoneSub: 'صفحة H5 / WebView التطبيق + SDK',
@@ -67,7 +63,7 @@ export const ar: Dict = {
     lead:
       'الهاتف في هذا العرض يشغّل SDK الصفحة نفسه داخل متجر تجريبي. أما بوابته فمحاكاة داخل متصفحك، فلا يغادر أي شيء هذه اللسانة — ومع ذلك فكل لقطة ونقرة وسطر console وإصلاح حي تراه أدناه حقيقي.',
     agentTitle: 'وكيل الذكاء الاصطناعي',
-    agentSub: 'مرتبط بخادم rwd على MCP',
+    agentSub: 'مرتبط بخادم MCP الخاص بـ Remote WebView Debugger',
     skinLabel: 'نمط الوكيل',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

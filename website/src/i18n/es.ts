@@ -35,24 +35,20 @@ export const es: Dict = {
     ctaGithub: 'Dale una estrella en GitHub',
     ctaSelfHost: 'Autoalójalo en 5 minutos',
     points: ['Sin cable USB', 'Sin puerto de depuración remota', 'Sin recompilar la app: solo un script', 'Funciona después de que ocurra el bug'],
-    ticker: [
-      'enlace establecido',
-      'dispositivo K7Q2-9M4X en línea',
-      'instantánea en 42 ms',
-      '34 herramientas listas',
-      'enmascarado activo',
-      'nivel interact',
-      'registro de sesión · 3 inicios',
-      'parche en vivo verificado',
-      'auditoría grabando',
-      'gateway autoalojado',
-      '11 idiomas',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'herramientas MCP' },
+      { value: '11', label: 'idiomas' },
+      { value: '1', label: 'script que añadir' },
+      { value: '0', label: 'cables USB' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'Añádelo a tu página',
     flow: {
       label: 'Un agente de IA habla MCP con tu gateway autoalojado, que llega por WebSocket al SDK de página en el teléfono del usuario.',
       agent: 'Agente de IA',
       agentSub: 'Claude Code · Codex · Cursor · cualquier cliente MCP',
-      gw: 'gateway rwd',
+      gw: 'Gateway',
       gwSub: 'autoalojado · aprobación · auditoría',
       phone: 'Teléfono del usuario',
       phoneSub: 'página H5 / WebView de la app + SDK',
@@ -67,7 +63,7 @@ export const es: Dict = {
     lead:
       'El teléfono de esta demo ejecuta el SDK de página de verdad dentro de una tienda de demostración. Su gateway está simulado en tu navegador, así que nada sale de esta pestaña, pero cada instantánea, clic, línea de console y parche en vivo que ves abajo es real.',
     agentTitle: 'Agente de IA',
-    agentSub: 'conectado al servidor MCP de rwd',
+    agentSub: 'conectado al servidor MCP de Remote WebView Debugger',
     skinLabel: 'Estilo del agente',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

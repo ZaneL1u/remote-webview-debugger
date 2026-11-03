@@ -41,7 +41,7 @@
 
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Arabic', sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, 'PingFang SC', monospace;
-  --font-hud: 'Orbitron', 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-hud: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   --wrap: 1200px;
   --gutter: 24px;
   --radius: 18px;

@@ -12,6 +12,23 @@ import { scriptText, type ScriptText } from './text/index.ts'
 import type { ToolResult, Tools } from './tools'
 import type { View } from './view'
 
+/** Typical time of a tool call against a real gateway, ms (a round trip plus the work on the phone). */
+const LATENCY: Record<string, number> = {
+  list_devices: 420,
+  set_task: 280,
+  take_snapshot: 680,
+  find_elements: 420,
+  list_console_messages: 390,
+  list_network_requests: 430,
+  get_storage: 360,
+  get_session_timeline: 340,
+  go_back: 560,
+  navigate_page: 640,
+  evaluate_script: 520,
+  batch_actions: 900,
+  disconnect_device: 240,
+}
+
 /** How long the demo waits for a tap on "Allow" before the hand taps it. */
 const AUTO_ALLOW_S = 9
 
@@ -58,6 +75,8 @@ export async function runScenario(ctx: ScenarioCtx) {
   const sleep = (ms: number) => player.sleep(tk, ms)
   const say = async (text: string) => {
     await player.gate(tk)
+    // The model thinks for a moment before it writes.
+    await sleep(500 + Math.random() * 700)
     await view.say(text, ms => player.sleep(tk, ms))
     await sleep(500)
   }
@@ -77,9 +96,12 @@ export async function runScenario(ctx: ScenarioCtx) {
     const started = performance.now()
     const r = await run()
     player.check(tk)
-    // Let the running state register, even for instant results.
-    const shown = performance.now() - started
-    if (shown < 380) await sleep(380 - shown)
+    // The mock gateway answers at once; a real one is an MCP round trip
+    // away (agent → gateway → phone → back). Take about as long as that.
+    const took = performance.now() - started
+    const target = (LATENCY[name] ?? 360) * (0.8 + Math.random() * 0.45)
+    if (took < target) await sleep(target - took)
+    r.ms = Math.max(r.ms, Math.round(performance.now() - started))
     h.done(r)
     calls++
     ctx.onProgress(Math.min(calls, TOTAL_CALLS - 1), TOTAL_CALLS)

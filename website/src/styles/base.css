@@ -156,21 +156,6 @@ kbd {
     transform: translate3d(-1%, 2%, 0) scale(1.03);
   }
 }
-.fx-grid {
-  position: absolute;
-  left: -40%;
-  right: -40%;
-  bottom: -14vh;
-  height: 72vh;
-  background:
-    repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px 7%),
-    repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px 5%);
-  transform: perspective(420px) rotateX(74deg);
-  transform-origin: bottom center;
-  -webkit-mask-image: linear-gradient(to top, #000, transparent 72%);
-  mask-image: linear-gradient(to top, #000, transparent 72%);
-  opacity: 0.9;
-}
 .fx::before {
   content: '';
   position: absolute;
@@ -191,16 +176,6 @@ kbd {
 :root[data-theme='light'] .fx::after {
   background: radial-gradient(125% 85% at 50% 24%, transparent 46%, rgba(120, 140, 190, 0.16) 100%);
 }
-.fx-scan {
-  position: absolute;
-  inset: 0;
-  opacity: var(--scan-op);
-  background:
-    repeating-linear-gradient(to bottom, rgba(170, 200, 255, 0.04) 0 1px, transparent 1px 3px),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
-  background-size: auto, 120px 120px;
-}
-
 /* ------------------------------ buttons ------------------------------ */
 
 .btn {
@@ -275,43 +250,10 @@ kbd {
   transform: scaleX(-1);
 }
 
-/* --------------------------- HUD furniture --------------------------- */
+/* --------------------------- cards --------------------------- */
 
 .hud {
   position: relative;
-}
-.hud::before,
-.hud::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 0 solid var(--hud);
-  pointer-events: none;
-  opacity: 0.85;
-  transition: opacity 0.25s;
-}
-.hud::before {
-  top: -1px;
-  inset-inline-start: -1px;
-  border-width: 1px 0 0 1px;
-  border-start-start-radius: 5px;
-}
-.hud::after {
-  bottom: -1px;
-  inset-inline-end: -1px;
-  border-width: 0 1px 1px 0;
-  border-end-end-radius: 5px;
-}
-[dir='rtl'] .hud::before {
-  border-width: 1px 1px 0 0;
-}
-[dir='rtl'] .hud::after {
-  border-width: 0 0 1px 1px;
-}
-.hud:hover::before,
-.hud:hover::after {
-  opacity: 1;
 }
 
 /* ------------------------------ header ------------------------------ */
@@ -603,9 +545,8 @@ html:is([lang='ar'], [lang='ru'], [lang='de'], [lang='fr'], [lang='es'], [lang='
   background: var(--panel);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  font: 500 11.5px/1.4 var(--font-hud);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font: 500 12px/1.4 var(--font-hud);
+  letter-spacing: 0.02em;
   color: var(--ink-2);
   box-shadow: 0 0 24px -12px color-mix(in srgb, var(--accent) 80%, transparent);
 }
@@ -666,79 +607,90 @@ html[lang='ar'] .hero h1 {
   align-items: center;
   gap: 12px 14px;
 }
-.hero-points {
-  margin-top: 30px;
+/* the specs line: what you don't need, in one quiet row */
+.hero-specs {
+  margin-top: 18px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 22px;
+  gap: 6px 22px;
+  font: 400 12.5px/1.7 var(--font-mono);
   color: var(--ink-3);
-  font-size: 14px;
 }
-.hero-points li {
+.hero-specs li {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
 }
-.hero-points .ic {
-  width: 16px;
-  height: 16px;
-  color: var(--green);
+.hero-specs li::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  opacity: 0.7;
 }
 
-/* the HUD status ticker under the hero */
-.ticker {
-  margin-top: clamp(36px, 5vw, 56px);
-  height: 40px;
+/* the install line: the one thing to add, ready to copy */
+.install {
+  position: relative;
+  margin-top: 28px;
+  max-width: 720px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 8px 8px 0;
+  border-radius: 12px;
   overflow: hidden;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--bg-sunk) 55%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-  direction: ltr;
 }
-.ticker-track {
-  display: flex;
-  flex: none;
-  will-change: transform;
-  animation: ticker 48s linear infinite;
-}
-.ticker-run {
-  display: flex;
-  flex: none;
-  align-items: center;
-  white-space: nowrap;
-  font: 500 11px/1 var(--font-hud);
-  letter-spacing: 0.16em;
+.install-label {
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  padding: 7px 12px 0 14px;
+  font: 500 10.5px/1 var(--font-mono);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: var(--code-ink-3);
+}
+.install pre {
+  flex: 1;
+  min-width: 0;
+  padding: 26px 0 4px 14px;
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.install .copy {
+  flex: none;
+}
+
+/* figures under the hero */
+.stats {
+  margin: clamp(40px, 6vw, 64px) 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--line);
+}
+.stat {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  padding: 18px 20px;
+}
+.stat + .stat {
+  border-inline-start: 1px solid var(--line);
+}
+.stat dt {
+  font: 400 12.5px/1.4 var(--font-mono);
   color: var(--ink-3);
 }
-.ticker-run b {
-  font-weight: 500;
-  padding: 0 26px;
-  position: relative;
-}
-.ticker-run b::after {
-  content: '';
-  position: absolute;
-  right: -3px;
-  top: 50%;
-  width: 5px;
-  height: 5px;
-  margin-top: -2.5px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 70%, transparent);
-  box-shadow: 0 0 8px 1px color-mix(in srgb, var(--accent) 60%, transparent);
-}
-.ticker-run b:nth-child(3n) {
-  color: var(--accent-text);
-}
-@keyframes ticker {
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
+.stat dd {
+  margin: 0;
+  font: 600 clamp(1.8rem, 3.4vw, 2.6rem) / 1 var(--font-sans);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
 }
 
 /* ------------------------------ hero flow ------------------------------ */
@@ -952,13 +904,15 @@ html[lang='ar'] .hero h1 {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font: 500 11.5px/1 var(--font-hud);
-  letter-spacing: 0.18em;
+  font: 500 12px/1 var(--font-hud);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent-text);
 }
-html:is([lang='ar'], [lang='ru']) .kicker {
-  letter-spacing: 0.08em;
+html:is([lang='zh-CN'], [lang='zh-TW'], [lang='ja'], [lang='ko'], [lang='ar']) .kicker {
+  letter-spacing: 0;
+  font-family: var(--font-sans);
+  font-weight: 600;
 }
 .sec-num {
   display: inline-flex;

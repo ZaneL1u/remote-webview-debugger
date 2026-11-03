@@ -35,24 +35,20 @@ export const en = {
     ctaGithub: 'Star on GitHub',
     ctaSelfHost: 'Self-host in 5 minutes',
     points: ['No USB cable', 'No remote-debugging port', 'No app rebuild beyond one script', 'Works after the bug happened'],
-    ticker: [
-      'link established',
-      'device K7Q2-9M4X online',
-      'snapshot 42 ms',
-      '34 tools armed',
-      'masking on',
-      'level interact',
-      'session log · 3 launches',
-      'live patch verified',
-      'audit recording',
-      'gateway self-hosted',
-      '11 languages',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'MCP tools' },
+      { value: '11', label: 'languages' },
+      { value: '1', label: 'script tag to add' },
+      { value: '0', label: 'USB cables' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'Add to your page',
     flow: {
       label: 'An AI agent talks MCP to your self-hosted gateway, which reaches the page SDK on the user’s phone over a WebSocket.',
       agent: 'AI agent',
       agentSub: 'Claude Code · Codex · Cursor · any MCP client',
-      gw: 'rwd gateway',
+      gw: 'Gateway',
       gwSub: 'self-hosted · approval · audit',
       phone: 'User’s phone',
       phoneSub: 'H5 page / app WebView + SDK',
@@ -67,7 +63,7 @@ export const en = {
     lead:
       'The phone in this demo runs the actual page SDK inside a demo shop. Its gateway is mocked in your browser, so nothing leaves this tab — but every snapshot, click, console line and live patch below is real.',
     agentTitle: 'AI agent',
-    agentSub: 'connected to the rwd MCP server',
+    agentSub: 'connected to the Remote WebView Debugger MCP server',
     skinLabel: 'Agent style',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

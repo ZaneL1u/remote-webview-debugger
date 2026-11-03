@@ -37,24 +37,20 @@ export const fr: Dict = {
     ctaGithub: 'Mettre une étoile sur GitHub',
     ctaSelfHost: 'Auto-héberger en 5 minutes',
     points: ['Sans câble USB', 'Sans port de débogage distant', 'Rien à reconstruire, juste un script', 'Fonctionne même après le bug'],
-    ticker: [
-      'liaison établie',
-      'appareil K7Q2-9M4X en ligne',
-      'instantané 42 ms',
-      '34 outils armés',
-      'masquage actif',
-      'niveau interact',
-      'journal de session · 3 lancements',
-      'correctif à chaud vérifié',
-      'audit en cours',
-      'passerelle auto-hébergée',
-      '11 langues',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'outils MCP' },
+      { value: '11', label: 'langues' },
+      { value: '1', label: 'script à ajouter' },
+      { value: '0', label: 'câble USB' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'Ajoutez-le à votre page',
     flow: {
       label: 'Un agent IA parle MCP à votre passerelle auto-hébergée, qui atteint le SDK de page sur le téléphone de l’utilisateur par WebSocket.',
       agent: 'Agent IA',
       agentSub: 'Claude Code · Codex · Cursor · tout client MCP',
-      gw: 'passerelle rwd',
+      gw: 'Passerelle',
       gwSub: 'auto-hébergée · accord · audit',
       phone: 'Téléphone de l’utilisateur',
       phoneSub: 'page H5 / WebView + SDK',
@@ -69,7 +65,7 @@ export const fr: Dict = {
     lead:
       'Le téléphone de cette démo exécute le véritable SDK de page dans une boutique de démonstration. Sa passerelle est simulée dans votre navigateur : rien ne quitte cet onglet — mais chaque instantané, chaque clic, chaque ligne de console et chaque correctif à chaud ci-dessous est réel.',
     agentTitle: 'Agent IA',
-    agentSub: 'connecté au serveur MCP rwd',
+    agentSub: 'connecté au serveur MCP de Remote WebView Debugger',
     skinLabel: 'Style d’agent',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

@@ -36,25 +36,21 @@ export const de: Dict = {
     ctaGithub: 'Star auf GitHub',
     ctaSelfHost: 'In 5 Minuten selbst hosten',
     points: ['Kein USB-Kabel', 'Kein Remote-Debugging-Port', 'Kein App-Rebuild, nur ein Script', 'Greift auch nach dem Bug noch'],
-    ticker: [
-      'Verbindung steht',
-      'Gerät K7Q2-9M4X online',
-      'Snapshot 42 ms',
-      '34 Tools bereit',
-      'Maskierung an',
-      'Stufe interact',
-      'Sitzungsprotokoll · 3 Starts',
-      'Live-Patch verifiziert',
-      'Audit zeichnet auf',
-      'Gateway selbst gehostet',
-      '11 Sprachen',
+    /** Figures under the hero (the numbers are the same in every language). */
+    stats: [
+      { value: '34', label: 'MCP-Tools' },
+      { value: '11', label: 'Sprachen' },
+      { value: '1', label: 'Script zum Einbinden' },
+      { value: '0', label: 'USB-Kabel' },
     ],
+    /** The one-liner under the buttons. */
+    installLabel: 'In Ihre Seite einbinden',
     flow: {
       label:
         'Ein KI-Agent spricht MCP mit Ihrem selbst gehosteten Gateway, und dieses erreicht das Seiten-SDK auf dem Smartphone des Nutzers über einen WebSocket.',
       agent: 'KI-Agent',
       agentSub: 'Claude Code · Codex · Cursor · jeder MCP-Client',
-      gw: 'rwd-Gateway',
+      gw: 'Gateway',
       gwSub: 'selbst gehostet · Freigabe · Audit',
       phone: 'Smartphone des Nutzers',
       phoneSub: 'H5-Seite / App-WebView + SDK',
@@ -69,7 +65,7 @@ export const de: Dict = {
     lead:
       'Das Smartphone in dieser Demo führt das echte Seiten-SDK in einem Demo-Shop aus. Sein Gateway ist in Ihrem Browser nachgebildet, es verlässt also nichts diesen Tab – aber jeder Snapshot, jeder Klick, jede Console-Zeile und jeder Live-Patch weiter unten ist echt.',
     agentTitle: 'KI-Agent',
-    agentSub: 'mit dem rwd-MCP-Server verbunden',
+    agentSub: 'mit dem MCP-Server von Remote WebView Debugger verbunden',
     skinLabel: 'Agent-Stil',
     skinClaude: 'Claude Code',
     skinCodex: 'Codex',

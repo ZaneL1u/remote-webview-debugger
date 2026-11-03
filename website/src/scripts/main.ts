@@ -1,7 +1,5 @@
 import '@fontsource-variable/geist/wght.css'
 import '@fontsource-variable/geist-mono/wght.css'
-// Orbitron is used only for small HUD labels (kickers, readouts, the ticker).
-import '@fontsource/orbitron/latin-500.css'
 import { mountStars, restyleStars } from './stars.ts'
 import { mountMotion } from './motion.ts'
 import { mountAll as mountLottie } from './lottie.ts'
