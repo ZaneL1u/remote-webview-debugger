@@ -5,7 +5,7 @@ English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [�
 One JS file that an App WebView or H5 page loads, so an AI agent can inspect and operate the page through the RWD gateway (`gateway/`) and MCP. Protocol: [`docs/protocol.md`](../docs/protocol.md); architecture: [`docs/architecture.md`](../docs/architecture.md).
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // optional
@@ -23,7 +23,7 @@ Published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/re
 
 | Use | Where |
 |---|---|
-| `<script>` from a CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js` or `https://unpkg.com/remote-webview-debugger@0.1.0/dist/sdk.js` (minified IIFE, global `RemoteWebviewDebugger`; pin the version, and add `integrity` if you like) |
+| `<script>` from a CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js` or `https://unpkg.com/remote-webview-debugger@0.2.0/dist/sdk.js` (minified IIFE, global `RemoteWebviewDebugger`; pin the version, and add `integrity` if you like) |
 | A bundler | `npm install remote-webview-debugger`, then `import { run, status } from 'remote-webview-debugger'` (ES module with types). Import it before your own code so capture starts early. Don't also load the `<script>` version on the same page |
 | Your gateway | `https://<gateway>/v1/sdk.js`, the copy the gateway embeds (also at a content-addressed URL for SRI, offered by the console) |
 | A native app | Bundle `dist/sdk.js` from the package, or download it from one of the above; see [native integration](../docs/native-integration.md) |
@@ -71,7 +71,7 @@ Built in: English (`en`), Simplified Chinese (`zh`), Traditional Chinese (`zh-TW
 
 **Loading.** English and Simplified Chinese are inside `sdk.js`. The other packs load on demand, the first time a page needs them (the UI shows the fallback language for that moment):
 
-- `<script>` build: from `locales/<id>.js` next to `sdk.js` (the CDN path, e.g. `…/remote-webview-debugger@0.1.0/dist/locales/ja.js`, or your gateway's `/v1/locales/ja.js`), and from the gateway passed to `run()` if that fails. To avoid the extra request, load the pack yourself, before or after `sdk.js`: `<script src="…/dist/locales/ja.js"></script>`.
+- `<script>` build: from `locales/<id>.js` next to `sdk.js` (the CDN path, e.g. `…/remote-webview-debugger@0.2.0/dist/locales/ja.js`, or your gateway's `/v1/locales/ja.js`), and from the gateway passed to `run()` if that fails. To avoid the extra request, load the pack yourself, before or after `sdk.js`: `<script src="…/dist/locales/ja.js"></script>`.
 - ES module build: a dynamic import, so your bundler puts each language in its own chunk. To bundle one up front instead: `import ja from 'remote-webview-debugger/locales/ja'`, then `run(url, key, { locales: [ja] })`.
 
 **Your own packs and wording.** A pack is `{ id, name, dir?, ui?, action?, agent? }`; anything left out comes from its fallback languages:

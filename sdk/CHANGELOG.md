@@ -4,6 +4,26 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The page SDK, published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger). Tags: `sdk-vX.Y.Z`.
 
+## v0.2.0 (2026-11-03)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.1.0...sdk-v0.2.0)
+
+### 🚀 Enhancements
+
+- language packs in 11 languages, your own packs and styles ([9febf83](https://github.com/ZaneL1u/remote-webview-debugger/commit/9febf83))
+- "Request assistance" and "Assisting" instead of "Get help", in every language ([73637cb](https://github.com/ZaneL1u/remote-webview-debugger/commit/73637cb))
+
+### 🔥 Performance
+
+- mangle the whole bundle and minify the UI's stylesheets ([555779e](https://github.com/ZaneL1u/remote-webview-debugger/commit/555779e))
+
+### 📖 Documentation
+
+- README and docs in Traditional Chinese, Japanese, Spanish, French, Russian and Arabic ([9ba0aae](https://github.com/ZaneL1u/remote-webview-debugger/commit/9ba0aae))
+- languages and styling, in every doc language ([d17b1f5](https://github.com/ZaneL1u/remote-webview-debugger/commit/d17b1f5))
+- Korean, German and Brazilian Portuguese, the same 11 languages as the UI ([0161fed](https://github.com/ZaneL1u/remote-webview-debugger/commit/0161fed))
+- "Request assistance" and "Assisting" instead of "Get help" ([09f9f1c](https://github.com/ZaneL1u/remote-webview-debugger/commit/09f9f1c))
+
 ## v0.1.0 (2026-11-03)
 
 First release.

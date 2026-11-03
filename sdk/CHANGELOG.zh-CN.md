@@ -4,6 +4,26 @@
 
 页面 SDK，npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)。tag 形如 `sdk-vX.Y.Z`。
 
+## v0.2.0 (2026-11-03)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.1.0...sdk-v0.2.0)
+
+### 🚀 新功能
+
+- 手机端界面支持 11 种语言：自动选择并逐级回退、按需加载、可注册自定义语言包和覆盖文案、阿拉伯语从右到左排版；样式可用 CSS 变量、run({ style }) 和 ::part 覆盖 ([9febf83](https://github.com/ZaneL1u/remote-webview-debugger/commit/9febf83))
+- 「求助」改为「请求协助」，设备状态显示为「协助中」，11 种语言的手机界面、控制台和面向 agent 的文案一起调整 ([73637cb](https://github.com/ZaneL1u/remote-webview-debugger/commit/73637cb))
+
+### 🔥 性能
+
+- sdk.js 体积减小约 10%（gzip 后 85.3 KB → 76.9 KB）：修复了一处阻止整体混淆的直接 eval，并压缩了界面样式 ([555779e](https://github.com/ZaneL1u/remote-webview-debugger/commit/555779e))
+
+### 📖 文档
+
+- README and docs in Traditional Chinese, Japanese, Spanish, French, Russian and Arabic ([9ba0aae](https://github.com/ZaneL1u/remote-webview-debugger/commit/9ba0aae))
+- 文档：说明 11 种语言、语言包加载与自定义、样式覆盖（CSS 变量、run({ style })、::part），并同步到各语言译本 ([d17b1f5](https://github.com/ZaneL1u/remote-webview-debugger/commit/d17b1f5))
+- 文档新增韩语、德语、巴西葡萄牙语译本，与界面的 11 种语言一致；所有文档的语言切换行列出全部语言 ([0161fed](https://github.com/ZaneL1u/remote-webview-debugger/commit/0161fed))
+- 文档中「求助」改为「请求协助」，设备状态改为「协助中」，11 种语言同步 ([09f9f1c](https://github.com/ZaneL1u/remote-webview-debugger/commit/09f9f1c))
+
 ## v0.1.0 (2026-11-03)
 
 首个版本。

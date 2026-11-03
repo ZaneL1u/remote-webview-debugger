@@ -14,7 +14,7 @@ The console's built-in guide (**Docs → Integrate a native app**) shows the sam
 ## Checklist
 
 1. **Ask for consent.** Turn remote debugging on only after the user agrees (the mock app shows a native consent dialog first). Attach approval on the device still applies on top of that.
-2. **Get the SDK.** Bundle `dist/sdk.js` from the npm package [`remote-webview-debugger`](../sdk/README.md) with the app, so neither the gateway nor a CDN can ever push code to it; or download it once when debugging is enabled, from your gateway (`https://rwd.example.com/v1/sdk.js`) or a pinned CDN URL (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.1.0/dist/sdk.js`).
+2. **Get the SDK.** Bundle `dist/sdk.js` from the npm package [`remote-webview-debugger`](../sdk/README.md) with the app, so neither the gateway nor a CDN can ever push code to it; or download it once when debugging is enabled, from your gateway (`https://rwd.example.com/v1/sdk.js`) or a pinned CDN URL (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.0/dist/sdk.js`).
 3. **Build the boot script:** the SDK source, then `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`, then (optionally) a timer that reports `status()` to native code.
 4. **Inject it at document start** into the main frame of every WebView, before the first page loads, so capture starts before any page script runs.
 5. **Keep `deviceId` and `deviceToken`** in app storage and pass both to every WebView.
