@@ -1,4 +1,4 @@
-<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 閘道
@@ -46,6 +46,7 @@ rwd version                             顯示版本號
 | `--lang` / `RWD_LANG` | `en` | AI 讀到的所有內容的語言：MCP 說明、工具與參數描述、工具結果、`[Session changes]` 和錯誤訊息。這個值也會透過 `welcome.agentLang` 傳給頁面 SDK，讓頁面端產生的錯誤訊息和事件摘要使用同一種語言。可設為 `en`、`zh`（簡體中文）、`zh-TW`（繁體中文）、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de` 或 `pt`；也接受帶地區的標記，並對應到最接近的語言（`zh-CN` → `zh`，`zh-HK` → `zh-TW`，`pt-BR` → `pt`）。主控台依每個請求的 `?lang=` 或 `Accept-Language` 選擇語言，兩者都沒有時才使用這個值 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | 在 `/demo/` 底下提供這個目錄（選用，用於示範頁面） |
 | `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0`（不限制） | 每個用戶端 IP 每分鐘允許的 MCP 請求數，超過的會收到 `429` 並帶有 `Retry-After: 60`。適用於 API 金鑰公開的閘道，例如示範用的閘道（[deploy/demo](../deploy/demo/README.md)）。放在代理後面時，需要 `--trust-proxy` 才看得到用戶端 IP |
+| `--demo-keys` / `RWD_DEMO_KEYS=1` | 關閉 | 執行公開示範：`POST /v1/demo/keys`（不必登入，允許跨來源請求）為每位訪客核發一把自己的 API 金鑰（`interact` 等級，24 小時有效，每個 IP 每小時 5 把），訪客之間不會共用同一個 agent；`list_devices` 必須帶 `deviceCode`，誰也列不出別人的裝置。請見 [deploy/demo](../deploy/demo/README.md) |
 | `RWD_ADMIN_EMAIL` | `admin` | owner 帳號的電子郵件（登入名稱）。只有在資料庫裡還沒有 owner 時（第一次啟動）才會建立 owner；之後再改這個值**不會**多出第二個 owner，只決定 `RWD_ADMIN_PASSWORD` 套用到哪個 owner |
 | `RWD_ADMIN_PASSWORD` | — | owner 密碼。建立 owner 時使用；之後**每次啟動**都會重設 `RWD_ADMIN_EMAIL` 所指 owner 的密碼，因此也可以用來救回帳號。如果這個電子郵件不屬於 owner（是其他成員，或根本不存在），就會忽略並在記錄中說明，同時列出現有的 owner。未設定且資料庫是空的時，會隨機產生一組密碼，並在記錄中印出一次 |
 | `RWD_METRICS_TOKEN` | — | 設定後，存取 `/v1/metrics` 需要 `Authorization: Bearer <token>` |

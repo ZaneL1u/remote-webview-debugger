@@ -1,4 +1,4 @@
-<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 게이트웨이
@@ -46,6 +46,7 @@ rwd version                             버전 출력
 | `--lang` / `RWD_LANG` | `en` | AI가 읽는 모든 것의 언어: MCP instructions, 도구와 매개변수 설명, 도구 결과, `[Session changes]`, 오류. 페이지 SDK에도 `welcome.agentLang`으로 전달돼서, 페이지에서 만드는 오류와 이벤트 요약도 같은 언어가 돼요. `en`, `zh`(중국어 간체), `zh-TW`(중국어 번체), `fr`, `es`, `ru`, `ar`, `ja`, `ko`, `de`, `pt` 중 하나예요. 지역 태그도 받으며 가장 가까운 언어로 매핑돼요 (`zh-CN` → `zh`, `zh-HK` → `zh-TW`, `pt-BR` → `pt`). 콘솔은 요청마다 언어를 고르고(`?lang=` 또는 `Accept-Language`), 정하지 못하면 이 값을 써요 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | 이 디렉터리를 `/demo/`에서 제공해요 (선택, 데모 페이지용) |
 | `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0` (제한 없음) | 클라이언트 IP당 분당 허용하는 MCP 요청 수. 넘으면 `429`와 `Retry-After: 60`을 받아요. 데모처럼 API 키가 공개된 게이트웨이용이에요 ([deploy/demo](../deploy/demo/README.md)). 프록시 뒤에서는 클라이언트 IP를 보려면 `--trust-proxy`가 필요해요 |
+| `--demo-keys` / `RWD_DEMO_KEYS=1` | 꺼짐 | 공개 데모를 운영해요. `POST /v1/demo/keys`(로그인 없이, CORS 허용)가 방문자마다 전용 API 키(권한 수준 `interact`, 24시간 유효, IP당 시간마다 5개)를 발급하므로 방문자끼리 에이전트를 공유하지 않아요. 또 `list_devices`에는 `deviceCode`가 필요해서 다른 방문자의 기기를 목록으로 볼 수 없어요. [deploy/demo](../deploy/demo/README.md) 참고 |
 | `RWD_ADMIN_EMAIL` | `admin` | 소유자 계정의 이메일(로그인 이름). 소유자는 데이터베이스에 소유자가 없을 때만(첫 시작 때) 생성돼요. 나중에 이 값을 바꿔도 두 번째 소유자가 생기지 **않고**, `RWD_ADMIN_PASSWORD`를 어느 소유자에게 적용할지만 정해요 |
 | `RWD_ADMIN_PASSWORD` | — | 소유자 비밀번호. 소유자를 만들 때 쓰이고, 이후 **매번** 시작할 때 `RWD_ADMIN_EMAIL`로 지정한 소유자의 비밀번호를 재설정해요. 계정 복구 수단도 겸해요. 그 이메일이 소유자의 것이 아니면(다른 멤버이거나 아무도 아니면) 무시되고, 로그에 그 사실과 소유자 목록이 남아요. 빈 데이터베이스에서 설정하지 않으면 무작위 비밀번호를 만들어 로그에 한 번 출력해요 |
 | `RWD_METRICS_TOKEN` | — | 설정하면 `/v1/metrics`에 `Authorization: Bearer <token>`이 필요해요 |

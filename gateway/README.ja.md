@@ -1,4 +1,4 @@
-<!-- i18n-source: 048ece68ecafa5fd74a1bc0378b1a0eb32f2cf96 -->
+<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd ゲートウェイ
@@ -46,6 +46,7 @@ rwd version                             バージョンを表示
 | `--lang` / `RWD_LANG` | `en` | AI が読むすべてのテキストの言語。MCP の説明、ツールとパラメーターの説明、ツールの結果、`[Session changes]`、エラーが対象。`welcome.agentLang` としてページ SDK にも伝わり、ページ側で生成するエラーやイベントの要約も同じ言語になる。`en`、`zh`（簡体字中国語）、`zh-TW`（繁体字中国語）、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de`、`pt` のいずれか。地域付きのタグも受け付け、最も近い言語に対応付ける（`zh-CN` → `zh`、`zh-HK` → `zh-TW`、`pt-BR` → `pt`）。管理コンソールはリクエストごとに言語を選び（`?lang=` または `Accept-Language`）、どちらもなければこの値を使用 |
 | `--demo-dir` / `RWD_DEMO_DIR` | — | このディレクトリを `/demo/` で配信（任意。デモページ用） |
 | `--mcp-rate-limit` / `RWD_MCP_RATE_LIMIT` | `0`（制限なし） | クライアント IP ごとに 1 分間に許可する MCP リクエスト数。超えた分には `Retry-After: 60` 付きで `429` を返す。デモのように API キーを公開しているゲートウェイ向け（[deploy/demo](../deploy/demo/README.md)）。プロキシの背後ではクライアント IP を得るために `--trust-proxy` が必要 |
+| `--demo-keys` / `RWD_DEMO_KEYS=1` | オフ | 公開デモを運用します。`POST /v1/demo/keys`（サインイン不要、CORS 開放）が訪問者ごとに専用の API キー（レベル `interact`、有効期間 24 時間、IP ごとに 1 時間あたり 5 個まで）を発行するので、訪問者どうしでエージェントを共有することはありません。また `list_devices` には `deviceCode` が必要になり、ほかの訪問者のデバイスを一覧できなくなります。[deploy/demo](../deploy/demo/README.md) を参照 |
 | `RWD_ADMIN_EMAIL` | `admin` | owner アカウントのメールアドレス（ログイン名）。owner が作成されるのはデータベースに owner がまだいないとき（初回起動時）だけ。後から変更しても owner が 2 人目として作られることは**なく**、`RWD_ADMIN_PASSWORD` をどの owner に適用するかが変わるだけ |
 | `RWD_ADMIN_PASSWORD` | — | owner のパスワード。owner の作成時に使われるほか、その後も**起動のたび**に `RWD_ADMIN_EMAIL` が指す owner のパスワードを再設定するため、アカウントの復旧手段にもなる。そのメールアドレスが owner のものでない場合（別のメンバー、または該当なし）は無視され、ログにその旨と既存の owner が出力される。未設定でデータベースが空なら、ランダムなパスワードを生成してログに一度だけ出力 |
 | `RWD_METRICS_TOKEN` | — | 設定すると、`/v1/metrics` に `Authorization: Bearer <token>` が必要になる |
