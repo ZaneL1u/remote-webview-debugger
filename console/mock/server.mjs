@@ -352,7 +352,7 @@ function createDevice(projectId, opts = {}) {
     at += Math.floor(rand() * 60_000)
     dev.timeline.push(randomEvent(dev, at))
   }
-  if (dev.help) dev.timeline.push({ at: t - 30_000, page: dev.pages.at(-1)?.label ?? null, kind: 'help', summary: '用户点击了求助' })
+  if (dev.help) dev.timeline.push({ at: t - 30_000, page: dev.pages.at(-1)?.label ?? null, kind: 'help', summary: '用户请求协助' })
   if (dev.control !== 'none') {
     dev.timeline.push({ at: t - 20_000, page: null, kind: 'agent_connect', summary: '客服机器人 接入了设备' })
   }
@@ -653,7 +653,7 @@ setInterval(() => {
       pushEvent(dev, { at: t, page: focusedLabel(dev), kind: 'agent_action', summary: '客服机器人 点击了「提交订单」' })
     } else if (r < 0.355 && !dev.help && dev.control === 'none') {
       dev.help = true
-      pushEvent(dev, { at: t, page: focusedLabel(dev), kind: 'help', summary: '用户点击了求助' })
+      pushEvent(dev, { at: t, page: focusedLabel(dev), kind: 'help', summary: '用户请求协助' })
     } else if (r < 0.36 && dev.control === 'none' && !dev.help && !dev.pending) {
       setOffline(dev)
     } else if (r < 0.365 && dev.control === 'none' && !dev.help && !dev.pending) {

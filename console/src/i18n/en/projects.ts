@@ -197,17 +197,17 @@ export const projects = {
     },
 
     help: {
-      title: 'Help button',
-      description: 'A floating help button at the bottom right of the page. When the user taps it, the device is marked as asking for help and moves to the top of the device list.',
+      title: 'Assistance button',
+      description: 'A floating “Request assistance” button at the bottom right of the page. When the user taps it, the device is marked as assisting and moves to the top of the device list.',
       all: 'All users',
-      allDescription: 'Every page with the SDK shows the help button.',
+      allDescription: 'Every page with the SDK shows the assistance button.',
       listed: 'Specific users',
       listedDescription: 'Shown only to the userIds listed below. Good for staged rollouts and beta tests.',
       off: 'Off',
-      offDescription: 'No floating button. The app can call help() from its own help entry.',
+      offDescription: 'No floating button. The app can call help() from its own assistance entry.',
       usersLabel: 'Allowed userIds',
       usersHint: 'One per line, matching the userId passed to run() / setUser().',
-      usersEmpty: 'With an empty list, nobody sees the help button.',
+      usersEmpty: 'With an empty list, nobody sees the assistance button.',
     },
 
     eruda: {

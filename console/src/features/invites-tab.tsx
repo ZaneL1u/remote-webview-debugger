@@ -28,7 +28,7 @@ import type { DeviceInvite, Project } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 // Device invites (docs/protocol.md section 12.6): a link carrying `rwd_invite=<token>`. When a user opens
-// it, the SDK reports the token, the device is marked as asking for help and the invite is used up.
+// it, the SDK reports the token, the device is marked as assisting and the invite is used up.
 
 const expiryOptions = [
   { minutes: 30, key: 'm30' },

@@ -8,13 +8,13 @@ Try remote debugging of in-app WebViews without Xcode or a real phone. It is a p
 | `target=_blank` / `window.open` push a new WebView, going back pops it | Several pages per device (p1, p2…): opener links, foreground / background, automatic switch when one closes |
 | "Turn on remote debugging…" in the ⋯ menu, after a native consent dialog | The SDK is injected only after the user agrees |
 | Status bar plus native "Take over / Hand back / End" buttons | SDK state reported to native; `nativeControl` takes a native secret the agent can't use |
-| "Get help" in the top right | `RemoteWebviewDebugger.help()`; the console and the agent show the device as asking for help |
+| "Request assistance" in the top right | `RemoteWebviewDebugger.help()`; the console and the agent show the device as assisting |
 | About this device | Device code; the deviceId lives in the app, so it stays the same across domains and WebViews |
 | Screenshots | Native screenshot bridge: the agent gets real pixels |
 | Native dialog when an AI asks to attach, with "View only / View and interact / Advanced" | Attach approval: `nativeApproval: true` + `status().pending` + `nativeDecide` |
 | Native confirmation before clicking "Place order" | Sensitive-action confirmation (`data-rwd-confirm` / `confirmSelectors`) |
 | Device token saved on first connect and injected into every later WebView | deviceToken: only this device can use its device code (localStorage is per origin, so the app keeps it) |
-| "Get help" hidden when help is turned off remotely | Remote config `status().config.helpButton` |
+| "Request assistance" hidden when the project turns it off | Remote config `status().config.helpButton` |
 
 `Sources/RWDMockApp/RWDNative.swift` is the code a real iOS app would use (it builds for both iOS and macOS); `main.swift` is only the mock app shell. It passes `lang: "en"` to the SDK so the in-page UI matches the app (set `Config.lang` to `"zh"` for Chinese).
 

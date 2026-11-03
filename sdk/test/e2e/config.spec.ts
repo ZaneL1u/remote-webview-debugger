@@ -12,7 +12,7 @@ test('welcome.config: help button, mask selectors and patterns, confirm selector
   const s = await openFixture(page, gw)
   const id = s.pageId!
   // run({helpButton: false}) but the project turns it on; native hosts read status().config.
-  await expect(page.locator('#__rwd [data-action=help]')).toHaveText('求助')
+  await expect(page.locator('#__rwd [data-action=help]')).toHaveText('请求协助')
   expect(s.config).toEqual({ ...CONFIG, networkExclude: [], sessionLog: true, eruda: null })
 
   // Snapshot: the masked field's value and the phone number never show.

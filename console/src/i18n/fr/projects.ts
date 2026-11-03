@@ -210,18 +210,18 @@ export const projects: typeof en = {
     },
 
     help: {
-      title: 'Bouton d’aide',
+      title: 'Bouton d’assistance',
       description:
-        'Un bouton d’aide flottant en bas à droite de la page. Quand l’utilisateur appuie dessus, l’appareil est signalé comme demandant de l’aide et remonte en tête de la liste des appareils.',
+        'Un bouton flottant « Demander une assistance » en bas à droite de la page. Quand l’utilisateur appuie dessus, l’appareil est signalé « En assistance » et remonte en tête de la liste des appareils.',
       all: 'Tous les utilisateurs',
-      allDescription: 'Toutes les pages équipées du SDK affichent le bouton d’aide.',
+      allDescription: 'Toutes les pages équipées du SDK affichent le bouton d’assistance.',
       listed: 'Utilisateurs spécifiques',
       listedDescription: 'Affiché uniquement pour les userId listés ci-dessous. Idéal pour les déploiements progressifs et les tests bêta.',
       off: 'Désactivé',
-      offDescription: 'Pas de bouton flottant. L’application peut appeler help() depuis son propre point d’accès à l’aide.',
+      offDescription: 'Pas de bouton flottant. L’application peut appeler help() depuis son propre point d’accès à l’assistance.',
       usersLabel: 'userId autorisés',
       usersHint: 'Un par ligne, correspondant au userId passé à run() / setUser().',
-      usersEmpty: 'Si la liste est vide, personne ne voit le bouton d’aide.',
+      usersEmpty: 'Si la liste est vide, personne ne voit le bouton d’assistance.',
     },
 
     eruda: {

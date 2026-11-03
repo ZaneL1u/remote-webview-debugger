@@ -192,17 +192,17 @@ export const projects: typeof en = {
     },
 
     help: {
-      title: '求助入口',
-      description: '页面右下角的求助浮标。用户点击后设备会被标记为「求助中」，排在设备列表最前面。',
+      title: '协助入口',
+      description: '页面右下角的「请求协助」浮标。用户点击后设备会被标记为「协助中」，排在设备列表最前面。',
       all: '所有用户',
-      allDescription: '所有接入 SDK 的页面都显示求助浮标。',
+      allDescription: '所有接入 SDK 的页面都显示协助浮标。',
       listed: '指定用户',
       listedDescription: '只对下面名单里的 userId 显示，适合灰度或内测。',
       off: '关闭',
-      offDescription: '不显示浮标。App 可以用自己的求助入口调用 help()。',
+      offDescription: '不显示浮标。App 可以用自己的协助入口调用 help()。',
       usersLabel: '允许的 userId',
       usersHint: '每行一个，对应 run() / setUser() 传入的 userId。',
-      usersEmpty: '名单为空时没有人能看到求助浮标。',
+      usersEmpty: '名单为空时没有人能看到协助浮标。',
     },
 
     eruda: {

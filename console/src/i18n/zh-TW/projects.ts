@@ -192,17 +192,17 @@ export const projects: typeof en = {
     },
 
     help: {
-      title: '求助按鈕',
-      description: '頁面右下角的浮動求助按鈕。使用者點擊後，裝置會被標記為「求助中」，並排到裝置清單的最前面。',
+      title: '協助按鈕',
+      description: '頁面右下角的浮動「請求協助」按鈕。使用者點擊後，裝置會被標記為「協助中」，並排到裝置清單的最前面。',
       all: '所有使用者',
-      allDescription: '所有載入 SDK 的頁面都會顯示求助按鈕。',
+      allDescription: '所有載入 SDK 的頁面都會顯示協助按鈕。',
       listed: '指定使用者',
       listedDescription: '只對下方清單中的 userId 顯示，適合分階段推出或封閉測試。',
       off: '關閉',
-      offDescription: '不顯示浮動按鈕。App 可以從自己的求助入口呼叫 help()。',
+      offDescription: '不顯示浮動按鈕。App 可以從自己的協助入口呼叫 help()。',
       usersLabel: '允許的 userId',
       usersHint: '每行一個，對應傳給 run() / setUser() 的 userId。',
-      usersEmpty: '清單為空時，沒有人會看到求助按鈕。',
+      usersEmpty: '清單為空時，沒有人會看到協助按鈕。',
     },
 
     eruda: {

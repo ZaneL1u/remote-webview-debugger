@@ -209,18 +209,18 @@ export const projects: typeof en = {
     },
 
     help: {
-      title: 'Botón de ayuda',
+      title: 'Botón de asistencia',
       description:
-        'Un botón de ayuda flotante en la esquina inferior derecha de la página. Cuando el usuario lo toca, el dispositivo se marca como “pidiendo ayuda” y pasa al principio de la lista de dispositivos.',
+        'Un botón flotante “Solicitar asistencia” en la esquina inferior derecha de la página. Cuando el usuario lo toca, el dispositivo se marca como “en asistencia” y pasa al principio de la lista de dispositivos.',
       all: 'Todos los usuarios',
-      allDescription: 'Todas las páginas con el SDK muestran el botón de ayuda.',
+      allDescription: 'Todas las páginas con el SDK muestran el botón de asistencia.',
       listed: 'Usuarios concretos',
       listedDescription: 'Solo se muestra a los userId de la lista de abajo. Útil para despliegues graduales y pruebas beta.',
       off: 'Desactivado',
-      offDescription: 'Sin botón flotante. La app puede llamar a help() desde su propia opción de ayuda.',
+      offDescription: 'Sin botón flotante. La app puede llamar a help() desde su propia opción de asistencia.',
       usersLabel: 'userId permitidos',
       usersHint: 'Uno por línea, igual que el userId que se pasa a run() / setUser().',
-      usersEmpty: 'Con la lista vacía, nadie ve el botón de ayuda.',
+      usersEmpty: 'Con la lista vacía, nadie ve el botón de asistencia.',
     },
 
     eruda: {

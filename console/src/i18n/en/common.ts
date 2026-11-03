@@ -85,7 +85,7 @@ export const common = {
   },
 
   badges: {
-    help: 'Asking for help',
+    help: 'Assisting',
     agentWithName: (label: string, agent: string) => `${label} (${agent})`,
     waitingConfirmAction: 'Waiting for user to confirm action',
     waitingConfirm: 'Waiting for user approval',

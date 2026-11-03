@@ -85,7 +85,7 @@ export const common: typeof en = {
   },
 
   badges: {
-    help: 'Pedindo ajuda',
+    help: 'Em atendimento',
     agentWithName: (label, agent) => `${label} (${agent})`,
     waitingConfirmAction: 'Aguardando o usuário confirmar a ação',
     waitingConfirm: 'Aguardando a aprovação do usuário',

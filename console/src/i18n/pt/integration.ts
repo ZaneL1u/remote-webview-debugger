@@ -97,7 +97,7 @@ export const integration: typeof en = {
   invites: {
     title: 'Convidar usuários para se conectar',
     description:
-      'Envie ao usuário um link ou QR code com um token de convite. Quando ele abrir, o dispositivo fica online marcado como “pedindo ajuda”, então o suporte não precisa pedir o código do dispositivo.',
+      'Envie ao usuário um link ou QR code com um token de convite. Quando ele abrir, o dispositivo fica online marcado como “em atendimento”, então o suporte não precisa pedir o código do dispositivo.',
     create: 'Criar convite',
     emptyTitle: 'Ainda não há convites',
     emptyDescription: 'Quando um usuário não consegue descrever bem o problema, envie um convite. Ele escaneia e o dispositivo se conecta.',
@@ -125,11 +125,11 @@ export const integration: typeof en = {
     linkCopied: 'Link de convite copiado',
     deleteLabel: 'Excluir convite',
     deleteTitle: 'Excluir este convite?',
-    deleteActive: 'O link para de funcionar imediatamente; quem o abrir não será marcado como pedindo ajuda.',
+    deleteActive: 'O link para de funcionar imediatamente; quem o abrir não será marcado como “em atendimento”.',
     deleteInactive: 'Só este registro é excluído. Os dispositivos que já se conectaram não são afetados.',
 
     createTitle: 'Criar convite',
-    createDescription: 'Gera um link de uso único. Quando o usuário o abre, o dispositivo é marcado como pedindo ajuda.',
+    createDescription: 'Gera um link de uso único. Quando o usuário o abre, o dispositivo é marcado como “em atendimento”.',
     noteRequired: 'Digite uma observação',
     badUrl: 'O link deve começar com http:// ou https://',
     urlRequired: 'O projeto não tem uma URL de convite padrão. Digite um link.',
@@ -185,7 +185,7 @@ export const integration: typeof en = {
     h5Pinned: (version) =>
       `Fixado na versão ${version} com Subresource Integrity (SRI). Atualize a versão e o integrity depois de uma atualização do gateway`,
     userIdOptional: 'opcional: o ID do usuário logado, para encontrar dispositivos por usuário',
-    helpButton: 'mostrar o botão de ajuda',
+    helpButton: 'mostrar o botão de assistência',
     iosInstall: 'Chame antes de webView.load(...): baixa o SDK uma vez e o injeta no frame principal em documentStart.',
     deviceIdPerInstall: 'Um deviceId (UUID v4) fixo por instalação, para que o código do dispositivo nunca mude.',
     androidWebViewSettings: 'A WebView precisa de settings.javaScriptEnabled = true e settings.domStorageEnabled = true',
@@ -193,14 +193,14 @@ export const integration: typeof en = {
 
     full: {
       userId: 'opcional: o usuário logado, para que o console e os agentes encontrem dispositivos por usuário',
-      helpButton: 'opcional: mostrar o botão "pedir ajuda" (combinado com OU com a política do projeto)',
+      helpButton: 'opcional: mostrar o botão "Solicitar assistência" (combinado com OU com a política do projeto)',
       app: 'opcional: informações do app host; páginas H5 independentes podem omitir',
       nativeOnly: 'Só para injeção nativa por um app; veja "Integrar um app nativo"',
       deviceCode: 'Código do dispositivo do Remote Debugger',
       example: 'ex.:',
     },
     jsApi: {
-      help: 'pedir ajuda (passe false para cancelar)',
+      help: 'solicitar assistência (passe false para cancelar)',
       setUser: 'chame depois do login / da troca de usuário; reconecta uma vez',
       stop: 'desconecta e remove a interface, por exemplo quando o usuário desativa a depuração remota',
     },
@@ -224,7 +224,7 @@ export const integration: typeof en = {
       swiftDeviceToken:
         'Emitido pelo gateway na primeira vez que ele vê este dispositivo. O localStorage é separado por domínio, então o app o guarda e o injeta.',
       swiftEnable: 'Chame quando o usuário aceitar a depuração remota: baixa o SDK uma vez; as WebViews criadas depois disso recebem a injeção.',
-      swiftOwnHelp: 'o app tem a própria opção "pedir ajuda"',
+      swiftOwnHelp: 'o app tem a própria opção "Solicitar assistência"',
       swiftNativeApproval: 'aprovações / confirmações usam diálogos nativos',
       swiftDocumentStart: 'documentStart: a gravação do console e da rede começa antes de qualquer script da página rodar',
       buttons: 'Botões nativos',

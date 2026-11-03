@@ -101,7 +101,7 @@ export const integration: typeof en = {
   invites: {
     title: 'Inviter des utilisateurs à se connecter',
     description:
-      'Envoyez à un utilisateur un lien ou un code QR contenant un jeton d’invitation. Quand il l’ouvre, son appareil se connecte avec la mention « Aide demandée » : le support n’a pas besoin de lui demander son code d’appareil.',
+      'Envoyez à un utilisateur un lien ou un code QR contenant un jeton d’invitation. Quand il l’ouvre, son appareil se connecte avec la mention « En assistance » : le support n’a pas besoin de lui demander son code d’appareil.',
     create: 'Créer une invitation',
     emptyTitle: 'Aucune invitation pour l’instant',
     emptyDescription:
@@ -131,12 +131,12 @@ export const integration: typeof en = {
     linkCopied: 'Lien d’invitation copié',
     deleteLabel: 'Supprimer l’invitation',
     deleteTitle: 'Supprimer cette invitation ?',
-    deleteActive: 'Le lien cesse immédiatement de fonctionner ; quiconque l’ouvre ne sera pas signalé comme demandant de l’aide.',
+    deleteActive: 'Le lien cesse immédiatement de fonctionner ; quiconque l’ouvre ne sera pas signalé « en assistance ».',
     deleteInactive: 'Seul cet enregistrement est supprimé. Les appareils déjà connectés ne sont pas affectés.',
 
     createTitle: 'Créer une invitation',
     createDescription:
-      'Génère un lien à usage unique. Quand l’utilisateur l’ouvre, son appareil est signalé comme demandant de l’aide.',
+      'Génère un lien à usage unique. Quand l’utilisateur l’ouvre, son appareil est signalé « en assistance ».',
     noteRequired: 'Saisissez une note',
     badUrl: 'Le lien doit commencer par http:// ou https://',
     urlRequired: 'Le projet n’a pas d’URL d’invitation par défaut. Saisissez un lien.',
@@ -195,7 +195,7 @@ export const integration: typeof en = {
     h5Pinned: (version) =>
       `Version ${version} fixée avec Subresource Integrity (SRI). Mettez à jour la version et integrity après une mise à niveau de la passerelle`,
     userIdOptional: "facultatif : l'ID de l'utilisateur connecté, pour retrouver les appareils par utilisateur",
-    helpButton: "afficher le bouton d'aide",
+    helpButton: "afficher le bouton d'assistance",
     iosInstall:
       "À appeler avant webView.load(...) : télécharge le SDK une fois et l'injecte dans le cadre principal au documentStart.",
     deviceIdPerInstall: "Un deviceId (UUID v4) fixe par installation, pour que le code d'appareil ne change jamais.",
@@ -204,14 +204,14 @@ export const integration: typeof en = {
 
     full: {
       userId: "facultatif : l'utilisateur connecté, pour que la console et les agents retrouvent les appareils par utilisateur",
-      helpButton: `facultatif : afficher le bouton "demander de l'aide" (combiné par OU avec la politique du projet)`,
+      helpButton: `facultatif : afficher le bouton "Demander une assistance" (combiné par OU avec la politique du projet)`,
       app: "facultatif : informations sur l'application hôte ; les pages H5 autonomes peuvent l'omettre",
       nativeOnly: `Uniquement pour l'injection native par une application ; voir "Intégrer une application native"`,
       deviceCode: "Code d'appareil Remote Debugger",
       example: 'ex.',
     },
     jsApi: {
-      help: "demander de l'aide (passer false pour annuler)",
+      help: "demander une assistance (passer false pour annuler)",
       setUser: "à appeler après la connexion / un changement d'utilisateur ; se reconnecte une fois",
       stop: "se déconnecter et retirer l'interface, par exemple quand l'utilisateur désactive le débogage à distance",
     },
@@ -237,7 +237,7 @@ export const integration: typeof en = {
         "Émis par la passerelle la première fois qu'elle voit cet appareil. localStorage est propre à chaque domaine : l'application le conserve et l'injecte.",
       swiftEnable:
         "À appeler une fois que l'utilisateur accepte le débogage à distance : télécharge le SDK une fois ; les WebView créées ensuite le reçoivent par injection.",
-      swiftOwnHelp: `l'application a son propre point d'accès "demander de l'aide"`,
+      swiftOwnHelp: `l'application a son propre point d'accès "Demander une assistance"`,
       swiftNativeApproval: 'les approbations / confirmations utilisent des boîtes de dialogue natives',
       swiftDocumentStart:
         "documentStart : l'enregistrement de la console et du réseau commence avant l'exécution de tout script de la page",

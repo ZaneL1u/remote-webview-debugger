@@ -114,7 +114,7 @@ export const docs: typeof en = {
     options: {
       userId: 'El usuario con sesión iniciada. La consola y los agentes pueden buscar dispositivos por usuario; llama a setUser() cuando cambie el estado de la sesión.',
       helpButton:
-        'Muestra el botón de ayuda; cuando el usuario lo toca, el dispositivo se marca como “Pidiendo ayuda” en la consola. Se combina con OR con la opción de ayuda de la política del proyecto.',
+        'Muestra el botón “Solicitar asistencia”; cuando el usuario lo toca, el dispositivo se marca como “En asistencia” en la consola. Se combina con OR con el botón de asistencia de la política del proyecto.',
       app: 'Datos de la app anfitriona <c>{ name, version }</c>, que se muestran en la lista de dispositivos.',
       deviceId:
         'Lo pasa la app al inyectar de forma nativa, para que siga siendo el mismo dispositivo en todas las WebView y dominios. En páginas H5 normales, el SDK genera uno y lo guarda en localStorage.',
@@ -191,8 +191,8 @@ export const docs: typeof en = {
     screenshot: 'Capturas de pantalla',
     screenshotBody:
       'En iOS, registra <c>webkit.messageHandlers.rwdScreenshot</c> (con respuesta); en Android, proporciona <c>window.RWDAndroid.screenshot()</c>. Ambos devuelven una URL de datos JPEG/PNG.',
-    help: 'Pedir ayuda',
-    helpBody: 'Haz que la opción de ayuda propia de la app llame a <c>help(true)</c>; la política del proyecto puede controlar quién la ve por userId.',
+    help: 'Solicitar asistencia',
+    helpBody: 'Haz que la opción “Solicitar asistencia” propia de la app llame a <c>help(true)</c>; la política del proyecto puede controlar quién la ve por userId.',
   },
 
   mcp: {
@@ -227,7 +227,7 @@ export const docs: typeof en = {
       'El agente elige las herramientas por sí mismo: list_devices para encontrar el dispositivo, connect_device para conectarse (esperando la aprobación del usuario), y después instantáneas, registros y acciones en la página. Prueba algo como:',
     prompts: [
       'Lista los dispositivos en línea, conéctate a GSJH-EV2J y averigua por qué el total del pago muestra --',
-      'El usuario u_20391 está pidiendo ayuda. Conéctate a su dispositivo, reproduce “Realizar pedido no hace nada” y encuentra la causa raíz',
+      'El usuario u_20391 solicitó asistencia. Conéctate a su dispositivo, reproduce “Realizar pedido no hace nada” y encuentra la causa raíz',
       'Conéctate a K7Q2-9M4X solo con acceso Solo ver y resume los errores de console y las solicitudes fallidas de la página actual',
       'En la página del producto, elige la opción de caja regalo y haz un pedido para reproducir el problema; avísame cuando necesites que tome el control',
       'Espera a que GSJH-EV2J esté en línea, conéctate, abre la página de la promoción y canjea un cupón; después vuelve a la página de la lista',
@@ -245,7 +245,7 @@ export const docs: typeof en = {
       advanced: 'Avanzado',
     },
     desc: {
-      listDevices: 'Lista los dispositivos, primero los que piden ayuda',
+      listDevices: 'Lista los dispositivos, primero los que están en asistencia',
       connectDevice:
         'Se conecta por código de dispositivo o deviceId; con la aprobación activada, espera a que el usuario confirme en el dispositivo (unos 35 segundos como máximo)',
       disconnectDevice: 'Abandona el dispositivo; la página del usuario vuelve a estar inactiva',

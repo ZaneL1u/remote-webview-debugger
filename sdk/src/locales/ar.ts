@@ -25,7 +25,7 @@ const ui: UiMessages = {
     offline: 'غير متصل',
   },
   connecting: 'جارٍ الاتصال…',
-  helpPending: 'تم طلب المساعدة',
+  helpPending: 'قيد المساعدة',
   copy: 'نسخ',
   copied: 'تم النسخ',
   noteHelp: 'تم طلب المساعدة. سيعثر عليك المطوّر من خلال رمز الجهاز هذا.',

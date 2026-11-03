@@ -218,18 +218,18 @@ export const projects: typeof en = {
     },
 
     help: {
-      title: 'Hilfe-Button',
+      title: 'Unterstützungs-Button',
       description:
-        'Ein schwebender Hilfe-Button unten rechts auf der Seite. Tippt der Nutzer darauf, wird das Gerät als „bittet um Hilfe“ markiert und rückt in der Geräteliste nach oben.',
+        'Ein schwebender Button „Unterstützung anfordern“ unten rechts auf der Seite. Tippt der Nutzer darauf, wird das Gerät als „In Betreuung“ markiert und rückt in der Geräteliste nach oben.',
       all: 'Alle Nutzer',
-      allDescription: 'Jede Seite mit dem SDK zeigt den Hilfe-Button.',
+      allDescription: 'Jede Seite mit dem SDK zeigt den Unterstützungs-Button.',
       listed: 'Bestimmte Nutzer',
       listedDescription: 'Nur für die unten aufgeführten userIds sichtbar. Gut für schrittweise Rollouts und Betatests.',
       off: 'Aus',
-      offDescription: 'Kein schwebender Button. Die App kann help() aus ihrem eigenen Hilfe-Einstieg aufrufen.',
+      offDescription: 'Kein schwebender Button. Die App kann help() aus ihrem eigenen Unterstützungs-Einstieg aufrufen.',
       usersLabel: 'Zugelassene userIds',
       usersHint: 'Eine pro Zeile, passend zur an run() / setUser() übergebenen userId.',
-      usersEmpty: 'Bei leerer Liste sieht niemand den Hilfe-Button.',
+      usersEmpty: 'Bei leerer Liste sieht niemand den Unterstützungs-Button.',
     },
 
     eruda: {

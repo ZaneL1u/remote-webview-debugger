@@ -206,8 +206,9 @@ ${CJK_FONTS}
 .win .codebox { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
 .win .big { font: 700 24px/30px var(--mono); letter-spacing: 1.5px; }
 .win .note { margin-top: 10px; font-size: 12px; line-height: 17px; color: rgba(var(--ink), .55); }
-.win .row { display: flex; gap: 8px; margin-top: 14px; }
-.win .row .btn { flex: 1; text-align: center; }
+.win .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+/* Equal halves; a label too long for half the card gets its own row. */
+.win .row .btn { flex: 1 0 0; min-width: max-content; text-align: center; white-space: nowrap; }
 .code { font: 500 12px/16px var(--mono); letter-spacing: .5px; color: rgba(var(--ink), .7); }
 .pill { border-radius: calc(var(--radius) - 2px); padding: 7px 12px 7px 9px; gap: 9px; }
 .pill .lines { display: flex; flex-direction: column; gap: 1px; min-width: 0; }

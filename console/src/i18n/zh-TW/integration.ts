@@ -92,7 +92,7 @@ export const integration: typeof en = {
 
   invites: {
     title: '邀請使用者連線',
-    description: '把帶有邀請權杖的連結或 QR 碼傳給使用者。使用者開啟後，裝置會上線並標記為「求助中」，客服不必再詢問裝置碼。',
+    description: '把帶有邀請權杖的連結或 QR 碼傳給使用者。使用者開啟後，裝置會上線並標記為「協助中」，客服不必再詢問裝置碼。',
     create: '建立邀請',
     emptyTitle: '還沒有邀請',
     emptyDescription: '遇到說不清楚問題的使用者時，傳一個邀請給對方，掃描後裝置就會連線。',
@@ -120,11 +120,11 @@ export const integration: typeof en = {
     linkCopied: '已複製邀請連結',
     deleteLabel: '刪除邀請',
     deleteTitle: '要刪除這個邀請嗎？',
-    deleteActive: '連結會立即失效，之後開啟它的人不會被標記為求助中。',
+    deleteActive: '連結會立即失效，之後開啟它的人不會被標記為協助中。',
     deleteInactive: '只會刪除這筆記錄，不影響已經連線的裝置。',
 
     createTitle: '建立邀請',
-    createDescription: '產生一個一次性的連結。使用者開啟後，裝置會被標記為求助中。',
+    createDescription: '產生一個一次性的連結。使用者開啟後，裝置會被標記為協助中。',
     noteRequired: '請輸入備註',
     badUrl: '連結必須以 http:// 或 https:// 開頭',
     urlRequired: '專案沒有預設邀請網址，請輸入連結',
@@ -177,7 +177,7 @@ export const integration: typeof en = {
     h5Head: '放在 <head> 中盡早同步載入，讓 SDK 從頁面一開始就記錄 console 和網路',
     h5Pinned: (version) => `固定為 ${version} 版，並以 Subresource Integrity（SRI）驗證。閘道升級後需更新版本號和 integrity`,
     userIdOptional: '選填：目前登入使用者的 ID，方便依使用者尋找裝置',
-    helpButton: '顯示求助按鈕',
+    helpButton: '顯示協助按鈕',
     iosInstall: '在 webView.load(...) 之前呼叫：下載一次 SDK，並在 documentStart 注入主框架。',
     deviceIdPerInstall: '每次安裝固定一個 deviceId（UUID v4），讓裝置碼保持不變。',
     androidWebViewSettings: 'WebView 需要設定 settings.javaScriptEnabled = true 和 settings.domStorageEnabled = true',
@@ -185,14 +185,14 @@ export const integration: typeof en = {
 
     full: {
       userId: '選填：登入的使用者，讓主控台和 agent 可以依使用者尋找裝置',
-      helpButton: '選填：顯示「求助」按鈕（與專案策略取 OR）',
+      helpButton: '選填：顯示「請求協助」按鈕（與專案策略取 OR）',
       app: '選填：宿主 App 資訊，獨立的 H5 頁面可省略',
       nativeOnly: '以下只用於 App 的原生注入，請參閱「App 原生整合」',
       deviceCode: 'Remote Debugger 裝置碼',
       example: '例如',
     },
     jsApi: {
-      help: '求助（傳入 false 則取消）',
+      help: '請求協助（傳入 false 則取消）',
       setUser: '登入或切換使用者後呼叫，會重新連線一次',
       stop: '中斷連線並移除介面，例如使用者關閉了遠端除錯',
     },
@@ -215,7 +215,7 @@ export const integration: typeof en = {
       swiftDeviceId: '每次安裝一個 deviceId，所有 WebView、所有網域共用 → 裝置碼保持不變。',
       swiftDeviceToken: '閘道第一次見到這台裝置時簽發。localStorage 依網域隔離，所以由 App 保存並注入。',
       swiftEnable: '使用者同意遠端除錯後呼叫：下載一次 SDK，之後建立的 WebView 都會被注入。',
-      swiftOwnHelp: 'App 有自己的「求助」入口',
+      swiftOwnHelp: 'App 有自己的「請求協助」入口',
       swiftNativeApproval: '核准 / 確認使用原生對話框',
       swiftDocumentStart: 'documentStart：在任何頁面指令碼執行之前就開始記錄 console 和網路',
       buttons: '原生按鈕',

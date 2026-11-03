@@ -118,7 +118,7 @@ export const docs: typeof en = {
       userId:
         'L’utilisateur connecté. La console et les agents peuvent rechercher les appareils par utilisateur ; appelez setUser() quand l’état de connexion change.',
       helpButton:
-        'Affiche le bouton d’aide ; quand l’utilisateur appuie dessus, l’appareil est signalé « Aide demandée » dans la console. Combiné par OU avec le point d’accès à l’aide de la politique du projet.',
+        'Affiche le bouton « Demander une assistance » ; quand l’utilisateur appuie dessus, l’appareil est signalé « En assistance » dans la console. Combiné par OU avec le bouton d’assistance de la politique du projet.',
       app: 'Informations sur l’application hôte <c>{ name, version }</c>, affichées dans la liste des appareils.',
       deviceId:
         'Transmis par l’application lors d’une injection native, pour que l’appareil reste le même d’une WebView et d’un domaine à l’autre. Sur les pages H5 simples, le SDK en génère un et le conserve dans localStorage.',
@@ -197,9 +197,9 @@ export const docs: typeof en = {
     screenshot: 'Captures d’écran',
     screenshotBody:
       'Sur iOS, enregistrez <c>webkit.messageHandlers.rwdScreenshot</c> (avec réponse) ; sur Android, fournissez <c>window.RWDAndroid.screenshot()</c>. Les deux renvoient une data URL JPEG/PNG.',
-    help: 'Demander de l’aide',
+    help: 'Demander une assistance',
     helpBody:
-      'Faites appeler <c>help(true)</c> par le point d’accès à l’aide de l’application ; la politique du projet peut déterminer qui le voit en fonction du userId.',
+      'Faites appeler <c>help(true)</c> par le point d’accès « Demander une assistance » de l’application ; la politique du projet peut déterminer qui le voit en fonction du userId.',
   },
 
   mcp: {
@@ -234,7 +234,7 @@ export const docs: typeof en = {
       'L’agent choisit lui-même les outils : list_devices pour trouver l’appareil, connect_device pour s’y connecter (en attendant l’approbation de l’utilisateur), puis instantanés, journaux et actions sur la page. Essayez par exemple :',
     prompts: [
       'Listez les appareils en ligne, connectez-vous à GSJH-EV2J et trouvez pourquoi le total du panier affiche --',
-      'L’utilisateur u_20391 demande de l’aide. Connectez-vous à son appareil, reproduisez « Passer la commande ne fait rien » et trouvez la cause',
+      'L’utilisateur u_20391 a demandé une assistance. Connectez-vous à son appareil, reproduisez « Passer la commande ne fait rien » et trouvez la cause',
       'Connectez-vous à K7Q2-9M4X en consultation seule et résumez les erreurs console et les requêtes en échec de la page actuelle',
       'Sur la page produit, choisissez l’option coffret cadeau et passez une commande pour reproduire le problème ; prévenez-moi quand vous avez besoin que je reprenne la main',
       'Attendez que GSJH-EV2J soit en ligne, connectez-vous, ouvrez la page promo et récupérez un bon de réduction, puis revenez à la page de liste',
@@ -252,7 +252,7 @@ export const docs: typeof en = {
       advanced: 'Avancé',
     },
     desc: {
-      listDevices: 'Lister les appareils, ceux qui demandent de l’aide en premier',
+      listDevices: 'Lister les appareils, ceux en assistance en premier',
       connectDevice:
         'Se connecter par code d’appareil ou deviceId ; si l’approbation est activée, attend que l’utilisateur confirme sur l’appareil (environ 35 secondes au maximum)',
       disconnectDevice: 'Quitter l’appareil ; la page de l’utilisateur redevient inactive',

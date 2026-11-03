@@ -90,28 +90,28 @@ test('takeover, handback and end send control messages', async ({ page, gw }) =>
   await expect(page.locator('#__rwd .overlay')).toBeHidden()
 })
 
-test('help button sends help and shows 求助中', async ({ page, gw }) => {
+test('help button sends help and shows 协助中', async ({ page, gw }) => {
   const s = await openDemo(page, gw)
   const pageId = s.pageId!
   const help = page.locator('#__rwd [data-action=help]')
-  await expect(help).toHaveText('求助')
+  await expect(help).toHaveText('请求协助')
   // The pill expands into a card that holds the help button.
   await page.locator('#__rwd .pill .brand').tap()
   await expect(page.locator('#__rwd .win')).toHaveClass(/\bopen\b/)
   await help.tap()
   await gw.waitFor(() => gw.messages('help', pageId).length, 5000, 'help')
   expect(gw.messages('help', pageId)[0]).toEqual({ t: 'help', on: true })
-  await expect(help).toHaveText('取消求助')
+  await expect(help).toHaveText('取消请求')
   expect((await status(page)).help).toBe(true)
 
   // The gateway clears it when an agent joins.
   gw.sendHelp(s.deviceId!, false)
-  await expect(help).toHaveText('求助')
+  await expect(help).toHaveText('请求协助')
 
   // The page API does the same.
   await page.evaluate(() => (window as any).RemoteWebviewDebugger.help(true))
   await gw.waitFor(() => gw.messages('help', pageId).length === 2, 5000, 'help via API')
-  await expect(help).toHaveText('取消求助')
+  await expect(help).toHaveText('取消请求')
   // A new connection reports the help state in hello.
   await page.reload()
   await waitOnline(page, gw)

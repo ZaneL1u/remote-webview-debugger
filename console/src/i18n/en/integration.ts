@@ -98,7 +98,7 @@ export const integration = {
   invites: {
     title: 'Invite users to connect',
     description:
-      'Send a user a link or QR code carrying an invite token. When they open it, their device comes online marked as “asking for help”, so support doesn’t need to ask for the device code.',
+      'Send a user a link or QR code carrying an invite token. When they open it, their device comes online marked as “assisting”, so support doesn’t need to ask for the device code.',
     create: 'Create invite',
     emptyTitle: 'No invites yet',
     emptyDescription: 'When a user can’t quite describe their problem, send them an invite. They scan it and their device connects.',
@@ -127,11 +127,11 @@ export const integration = {
     linkCopied: 'Invite link copied',
     deleteLabel: 'Delete invite',
     deleteTitle: 'Delete this invite?',
-    deleteActive: 'The link stops working immediately; anyone who opens it won’t be marked as asking for help.',
+    deleteActive: 'The link stops working immediately; anyone who opens it won’t be marked as assisting.',
     deleteInactive: 'Only this record is deleted. Devices that already connected aren’t affected.',
 
     createTitle: 'Create invite',
-    createDescription: 'Generates a single-use link. When the user opens it, their device is marked as asking for help.',
+    createDescription: 'Generates a single-use link. When the user opens it, their device is marked as assisting.',
     noteRequired: 'Enter a note',
     badUrl: 'The link must start with http:// or https://',
     urlRequired: 'The project has no default invite URL. Enter a link.',
@@ -189,7 +189,7 @@ export const integration = {
     h5Pinned: (version: string) =>
       `Pinned to version ${version} with Subresource Integrity (SRI). Update the version and integrity after a gateway upgrade`,
     userIdOptional: "optional: the signed-in user's ID, to find devices by user",
-    helpButton: 'show the help button',
+    helpButton: 'show the assistance button',
     iosInstall: 'Call before webView.load(...): downloads the SDK once and injects it into the main frame at documentStart.',
     deviceIdPerInstall: 'A deviceId (UUID v4) fixed per install, so the device code never changes.',
     androidWebViewSettings: 'The WebView needs settings.javaScriptEnabled = true and settings.domStorageEnabled = true',
@@ -197,14 +197,14 @@ export const integration = {
 
     full: {
       userId: 'optional: the signed-in user, so the console and agents can find devices by user',
-      helpButton: 'optional: show the "ask for help" button (OR-ed with the project policy)',
+      helpButton: 'optional: show the "Request assistance" button (OR-ed with the project policy)',
       app: 'optional: host app info; standalone H5 pages can omit it',
       nativeOnly: 'Only for native injection by an app; see "Integrate a native app"',
       deviceCode: 'Remote Debugger device code',
       example: 'e.g.',
     },
     jsApi: {
-      help: 'ask for help (pass false to cancel)',
+      help: 'request assistance (pass false to cancel)',
       setUser: 'call after sign-in / switching users; reconnects once',
       stop: 'disconnect and remove the UI, e.g. when the user turns off remote debugging',
     },
@@ -228,7 +228,7 @@ export const integration = {
       swiftDeviceToken:
         'Issued by the gateway the first time it sees this device. localStorage is per domain, so the app keeps it and injects it.',
       swiftEnable: 'Call once the user agrees to remote debugging: downloads the SDK once; WebViews created afterwards get it injected.',
-      swiftOwnHelp: 'the app has its own "ask for help" entry',
+      swiftOwnHelp: 'the app has its own "Request assistance" entry',
       swiftNativeApproval: 'approvals / confirmations use native dialogs',
       swiftDocumentStart: 'documentStart: recording of console and network starts before any page script runs',
       buttons: 'Native buttons',

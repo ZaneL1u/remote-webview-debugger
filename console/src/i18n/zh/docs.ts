@@ -101,7 +101,7 @@ export const docs: typeof en = {
     optionsHead: ['选项', '说明'],
     options: {
       userId: '当前登录用户。控制台和 agent 可以按用户查找设备；登录状态变化后用 setUser() 更新',
-      helpButton: '显示「求助」浮标，用户点了之后设备在控制台标为「求助中」。与项目策略的求助入口取或',
+      helpButton: '显示「请求协助」浮标，用户点了之后设备在控制台标为「协助中」。与项目策略的协助入口取或',
       app: '宿主 App 信息 <c>{ name, version }</c>，显示在设备列表里',
       deviceId: '原生注入时由 App 传入，保证跨 WebView、跨域名是同一台设备。H5 不传时 SDK 自己生成并存在 localStorage',
       nativeKey: 'App 随机生成的密钥，只出现在注入脚本里。nativeControl / nativeDecide 必须带上它',
@@ -164,8 +164,8 @@ export const docs: typeof en = {
     controlBody: "<c>nativeControl(key, 'takeover' | 'handback' | 'end')</c>，密钥不对返回 false",
     screenshot: '截图',
     screenshotBody: 'iOS 注册 <c>webkit.messageHandlers.rwdScreenshot</c>（带回复），Android 提供 <c>window.RWDAndroid.screenshot()</c>，返回 JPEG/PNG 的 data URL',
-    help: '求助',
-    helpBody: 'App 自己的「求助」入口调 <c>help(true)</c>；项目策略可以按 userId 控制谁能看到',
+    help: '请求协助',
+    helpBody: 'App 自己的「请求协助」入口调 <c>help(true)</c>；项目策略可以按 userId 控制谁能看到',
   },
 
   mcp: {
@@ -193,7 +193,7 @@ export const docs: typeof en = {
     promptsIntro: 'agent 会自己选工具：先 list_devices 找设备，connect_device 接入（等用户批准），再快照、看日志、操作页面。可以这样说：',
     prompts: [
       '列出在线设备，连上 GSJH-EV2J，看看结算页为什么合计显示 --',
-      '用户 u_20391 正在求助，连上他的设备，复现「提交订单没反应」并找出根因',
+      '用户 u_20391 请求了协助，连上他的设备，复现「提交订单没反应」并找出根因',
       '只用仅查看权限连上 K7Q2-9M4X，把当前页面的 console 错误和失败请求整理给我',
       '在商品详情页选礼盒装后下单，复现问题；需要我接管时告诉我',
       '等 GSJH-EV2J 上线后连上它，打开活动页领一张优惠券，再回到列表页',
@@ -211,7 +211,7 @@ export const docs: typeof en = {
       advanced: '高级',
     },
     desc: {
-      listDevices: '列出设备，求助中的在前',
+      listDevices: '列出设备，协助中的在前',
       connectDevice: '用设备码或 deviceId 接入；开启审批时等用户在设备上确认（最长约 35 秒）',
       disconnectDevice: '离开设备，用户页面恢复空闲',
       waitForDevice: '等设备上线，轮询中的设备会被要求立即重连',

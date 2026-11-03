@@ -96,7 +96,7 @@ export const integration: typeof en = {
   invites: {
     title: 'Invitar a usuarios a conectarse',
     description:
-      'Envía a un usuario un enlace o un código QR con un token de invitación. Al abrirlo, su dispositivo se conecta marcado como “pidiendo ayuda”, así el equipo de soporte no tiene que pedirle el código de dispositivo.',
+      'Envía a un usuario un enlace o un código QR con un token de invitación. Al abrirlo, su dispositivo se conecta marcado como “en asistencia”, así el equipo de soporte no tiene que pedirle el código de dispositivo.',
     create: 'Crear invitación',
     emptyTitle: 'Todavía no hay invitaciones',
     emptyDescription: 'Cuando a un usuario le cueste describir su problema, envíale una invitación. La escanea y su dispositivo se conecta.',
@@ -124,11 +124,11 @@ export const integration: typeof en = {
     linkCopied: 'Enlace de invitación copiado',
     deleteLabel: 'Eliminar invitación',
     deleteTitle: '¿Eliminar esta invitación?',
-    deleteActive: 'El enlace deja de funcionar de inmediato; quien lo abra no quedará marcado como “pidiendo ayuda”.',
+    deleteActive: 'El enlace deja de funcionar de inmediato; quien lo abra no quedará marcado como “en asistencia”.',
     deleteInactive: 'Solo se elimina este registro. Los dispositivos que ya se conectaron no se ven afectados.',
 
     createTitle: 'Crear invitación',
-    createDescription: 'Genera un enlace de un solo uso. Cuando el usuario lo abre, su dispositivo se marca como “pidiendo ayuda”.',
+    createDescription: 'Genera un enlace de un solo uso. Cuando el usuario lo abre, su dispositivo se marca como “en asistencia”.',
     noteRequired: 'Introduce una nota',
     badUrl: 'El enlace debe empezar por http:// o https://',
     urlRequired: 'El proyecto no tiene una URL de invitación predeterminada. Introduce un enlace.',
@@ -184,7 +184,7 @@ export const integration: typeof en = {
     h5Pinned: (version) =>
       `Fijado a la versión ${version} con Subresource Integrity (SRI). Actualiza la versión y el integrity tras actualizar el gateway`,
     userIdOptional: 'opcional: el ID del usuario con sesión iniciada, para encontrar dispositivos por usuario',
-    helpButton: 'mostrar el botón de ayuda',
+    helpButton: 'mostrar el botón de asistencia',
     iosInstall: 'Llamar antes de webView.load(...): descarga el SDK una vez y lo inyecta en el marco principal en documentStart.',
     deviceIdPerInstall: 'Un deviceId (UUID v4) fijo por instalación, para que el código de dispositivo no cambie nunca.',
     androidWebViewSettings: 'La WebView necesita settings.javaScriptEnabled = true y settings.domStorageEnabled = true',
@@ -192,14 +192,14 @@ export const integration: typeof en = {
 
     full: {
       userId: 'opcional: el usuario con sesión iniciada, para que la consola y los agentes encuentren dispositivos por usuario',
-      helpButton: 'opcional: mostrar el botón "pedir ayuda" (se combina con OR con la política del proyecto)',
+      helpButton: 'opcional: mostrar el botón "Solicitar asistencia" (se combina con OR con la política del proyecto)',
       app: 'opcional: datos de la app anfitriona; las páginas H5 independientes pueden omitirlo',
       nativeOnly: 'Solo para la inyección nativa desde una app; consulta "Integrar una app nativa"',
       deviceCode: 'Código de dispositivo de Remote Debugger',
       example: 'p. ej.',
     },
     jsApi: {
-      help: 'pedir ayuda (pasa false para cancelar)',
+      help: 'solicitar asistencia (pasa false para cancelar)',
       setUser: 'llamar tras iniciar sesión / cambiar de usuario; reconecta una vez',
       stop: 'desconectar y quitar la interfaz, p. ej. cuando el usuario desactiva la depuración remota',
     },
@@ -223,7 +223,7 @@ export const integration: typeof en = {
       swiftDeviceToken:
         'Lo emite el gateway la primera vez que ve este dispositivo. localStorage es por dominio, así que la app lo guarda y lo inyecta.',
       swiftEnable: 'Llamar cuando el usuario acepte la depuración remota: descarga el SDK una vez; las WebView que se creen después lo llevan inyectado.',
-      swiftOwnHelp: 'la app tiene su propia opción "pedir ayuda"',
+      swiftOwnHelp: 'la app tiene su propia opción "Solicitar asistencia"',
       swiftNativeApproval: 'las aprobaciones / confirmaciones usan diálogos nativos',
       swiftDocumentStart: 'documentStart: el registro de console y red empieza antes de que se ejecute cualquier script de la página',
       buttons: 'Botones nativos',

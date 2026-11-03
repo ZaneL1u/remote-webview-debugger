@@ -35,13 +35,13 @@ test.describe('browser in English', () => {
     )
     await expect(win.locator('[data-action=auto] .t')).toContainText('Auto-allow AI')
     await expect(win.locator('[data-action=lock] .t')).toContainText('Lock screen while AI is connected')
-    await expect(win.locator('.row .btn')).toHaveText(['Get help', 'Hide'])
+    await expect(win.locator('.row .btn')).toHaveText(['Request assistance', 'Hide'])
     await expectFits(page, '#__rwd .win')
 
-    // Asking for help: the pill says so, and still fits.
+    // Requesting assistance: the pill says so, and still fits.
     await win.locator('[data-action=help]').tap()
-    await expect(pill.locator('.copy')).toHaveText(`${s.deviceCode} · Help requested`)
-    await expect(win.locator('[data-action=help]')).toHaveText('Cancel help')
+    await expect(pill.locator('.copy')).toHaveText(`${s.deviceCode} · Assisting`)
+    await expect(win.locator('[data-action=help]')).toHaveText('Cancel request')
     await win.locator('[data-action=toggle]').tap()
     await expectFits(page, '#__rwd .pill')
 

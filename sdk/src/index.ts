@@ -789,7 +789,7 @@ function setHelp(on: boolean) {
   s.transport.send({ t: 'help', on: s.help }, false)
 }
 
-/** Ask for help (the pill shows it; the console and agents see the device asking), or cancel. */
+/** Request assistance (the pill shows it; the console and agents see the device as assisting), or cancel the request. */
 export function help(on = true) {
   setHelp(on)
 }

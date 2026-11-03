@@ -92,7 +92,7 @@ export const integration: typeof en = {
 
   invites: {
     title: '邀请用户接入',
-    description: '生成一个带邀请令牌的链接或二维码发给用户。用户打开后设备会自动上线并标记为「求助中」，客服不用再问设备码。',
+    description: '生成一个带邀请令牌的链接或二维码发给用户。用户打开后设备会自动上线并标记为「协助中」，客服不用再问设备码。',
     create: '创建邀请',
     emptyTitle: '还没有邀请',
     emptyDescription: '遇到说不清问题的用户时，创建一个邀请发给他，扫码即可接入。',
@@ -120,11 +120,11 @@ export const integration: typeof en = {
     linkCopied: '邀请链接已复制',
     deleteLabel: '删除邀请',
     deleteTitle: '删除这个邀请？',
-    deleteActive: '链接会立即失效，用户再打开时不会被标记为求助中。',
+    deleteActive: '链接会立即失效，用户再打开时不会被标记为协助中。',
     deleteInactive: '只删除这条记录，不影响已经接入的设备。',
 
     createTitle: '创建邀请',
-    createDescription: '生成一次性的接入链接，用户打开后设备自动标记为求助中。',
+    createDescription: '生成一次性的接入链接，用户打开后设备自动标记为协助中。',
     noteRequired: '请填写备注',
     badUrl: '链接地址应以 http:// 或 https:// 开头',
     urlRequired: '项目没有配置默认邀请地址，请填写链接地址',
@@ -177,7 +177,7 @@ export const integration: typeof en = {
     h5Head: '放在 <head> 里尽早同步加载，SDK 会从页面一开始就缓存 console 和网络记录',
     h5Pinned: (version) => `固定版本 ${version}，带完整性校验（SRI）。网关升级后需更新版本号和 integrity`,
     userIdOptional: '可选：当前登录用户 ID，方便按用户查找设备',
-    helpButton: '显示求助浮标',
+    helpButton: '显示协助浮标',
     iosInstall: '在 webView.load(...) 之前调用：下载一次 SDK，并在 documentStart 注入到主框架。',
     deviceIdPerInstall: '每次安装固定的 deviceId（UUID v4），保证设备码不变。',
     androidWebViewSettings: 'WebView 需开启 settings.javaScriptEnabled = true 和 settings.domStorageEnabled = true',
@@ -185,14 +185,14 @@ export const integration: typeof en = {
 
     full: {
       userId: '可选：登录用户，控制台和 agent 可按用户找设备',
-      helpButton: '可选：显示「求助」浮标（与项目策略取或）',
+      helpButton: '可选：显示「请求协助」浮标（与项目策略取或）',
       app: '可选：宿主 App 信息，H5 独立页面可不传',
       nativeOnly: '以下只在 App 原生注入时使用，见「App 原生接入」',
       deviceCode: 'Remote Debugger 设备码',
       example: '例如',
     },
     jsApi: {
-      help: '发起求助（再传 false 取消）',
+      help: '请求协助（再传 false 取消）',
       setUser: '登录 / 切换用户后更新，会自动重连一次',
       stop: '断开并移除界面，例如用户关闭了远程排查',
     },
@@ -212,7 +212,7 @@ export const integration: typeof en = {
       swiftDeviceId: '每次安装一个 deviceId，所有 WebView、所有域名共用 → 设备码不变。',
       swiftDeviceToken: '网关第一次见到这台设备时签发。localStorage 按域名隔离，所以由 App 保管并注入。',
       swiftEnable: '用户同意远程排查后调用：下载一次 SDK，之后新建的 WebView 都会注入。',
-      swiftOwnHelp: '用 App 自己的「求助」入口',
+      swiftOwnHelp: '用 App 自己的「请求协助」入口',
       swiftNativeApproval: '审批 / 确认由原生弹窗',
       swiftDocumentStart: 'documentStart：页面脚本运行前就开始缓存 console 和网络记录',
       buttons: '原生按钮',

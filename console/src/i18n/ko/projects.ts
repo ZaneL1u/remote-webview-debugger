@@ -192,17 +192,17 @@ export const projects: typeof en = {
     },
 
     help: {
-      title: '도움 요청 버튼',
-      description: '페이지 오른쪽 아래에 떠 있는 도움 요청 버튼이에요. 사용자가 탭하면 기기가 도움 요청 중으로 표시되고 기기 목록 맨 위로 올라가요.',
+      title: '지원 요청 버튼',
+      description: '페이지 오른쪽 아래에 떠 있는 “지원 요청” 버튼이에요. 사용자가 탭하면 기기가 지원 중으로 표시되고 기기 목록 맨 위로 올라가요.',
       all: '모든 사용자',
-      allDescription: 'SDK가 설치된 모든 페이지에 도움 요청 버튼이 표시돼요.',
+      allDescription: 'SDK가 설치된 모든 페이지에 지원 요청 버튼이 표시돼요.',
       listed: '특정 사용자',
       listedDescription: '아래에 나열한 userId에게만 표시돼요. 단계적 배포나 베타 테스트에 유용해요.',
       off: '끄기',
-      offDescription: '플로팅 버튼을 표시하지 않아요. 앱 자체의 도움말 진입점에서 help()를 호출할 수 있어요.',
+      offDescription: '플로팅 버튼을 표시하지 않아요. 앱 자체의 지원 요청 진입점에서 help()를 호출할 수 있어요.',
       usersLabel: '허용할 userId',
       usersHint: '한 줄에 하나씩. run() / setUser()에 전달한 userId와 일치해야 해요.',
-      usersEmpty: '목록이 비어 있으면 아무도 도움 요청 버튼을 볼 수 없어요.',
+      usersEmpty: '목록이 비어 있으면 아무도 지원 요청 버튼을 볼 수 없어요.',
     },
 
     eruda: {

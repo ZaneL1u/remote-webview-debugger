@@ -101,7 +101,7 @@ export const docs: typeof en = {
     optionsHead: ['옵션', '설명'],
     options: {
       userId: '로그인한 사용자예요. 콘솔과 에이전트가 사용자별로 기기를 찾을 수 있어요. 로그인 상태가 바뀌면 setUser()를 호출하세요.',
-      helpButton: '도움 요청 버튼을 표시해요. 사용자가 탭하면 콘솔에서 기기가 “도움 요청 중”으로 표시돼요. 프로젝트 정책의 도움 요청 설정과 OR로 결합돼요.',
+      helpButton: '“지원 요청” 버튼을 표시해요. 사용자가 탭하면 콘솔에서 기기가 “지원 중”으로 표시돼요. 프로젝트 정책의 지원 요청 버튼 설정과 OR로 결합돼요.',
       app: '호스트 앱 정보 <c>{ name, version }</c>로, 기기 목록에 표시돼요.',
       deviceId: '앱이 네이티브로 주입할 때 전달해서, WebView와 도메인이 달라도 같은 기기로 유지돼요. 일반 H5 페이지에서는 SDK가 생성해 localStorage에 보관해요.',
       nativeKey: '앱이 생성한 무작위 비밀 값으로, 주입된 스크립트에만 들어가요. nativeControl / nativeDecide에 필요해요.',
@@ -164,8 +164,8 @@ export const docs: typeof en = {
     controlBody: "<c>nativeControl(key, 'takeover' | 'handback' | 'end')</c>. 키가 틀리면 false를 반환해요.",
     screenshot: '스크린샷',
     screenshotBody: 'iOS에서는 <c>webkit.messageHandlers.rwdScreenshot</c>(응답 포함)을 등록하고, Android에서는 <c>window.RWDAndroid.screenshot()</c>을 제공하세요. 둘 다 JPEG/PNG data URL을 반환해요.',
-    help: '도움 요청',
-    helpBody: '앱 자체의 도움말 진입점에서 <c>help(true)</c>를 호출하세요. 프로젝트 정책에서 userId별로 누구에게 보일지 정할 수 있어요.',
+    help: '지원 요청',
+    helpBody: '앱 자체의 “지원 요청” 진입점에서 <c>help(true)</c>를 호출하세요. 프로젝트 정책에서 userId별로 누구에게 보일지 정할 수 있어요.',
   },
 
   mcp: {
@@ -193,7 +193,7 @@ export const docs: typeof en = {
     promptsIntro: '에이전트가 알아서 도구를 골라요. list_devices로 기기를 찾고, connect_device로 접속한 뒤(사용자 승인 대기), 스냅샷, 로그, 페이지 조작을 진행해요. 이렇게 요청해 보세요:',
     prompts: [
       '온라인 기기를 보여 주고, GSJH-EV2J에 접속해서 결제 금액이 --로 표시되는 이유를 찾아 줘',
-      '사용자 u_20391이 도움을 요청했어. 그 기기에 접속해서 “주문하기를 눌러도 반응이 없음” 문제를 재현하고 근본 원인을 찾아 줘',
+      '사용자 u_20391이 지원을 요청했어. 그 기기에 접속해서 “주문하기를 눌러도 반응이 없음” 문제를 재현하고 근본 원인을 찾아 줘',
       'K7Q2-9M4X에 보기 전용 권한으로만 접속해서 현재 페이지의 console 오류와 실패한 요청을 정리해 줘',
       '상품 페이지에서 선물 포장 옵션을 고르고 주문해서 문제를 재현해 줘. 내가 직접 조작해야 할 때는 알려 줘',
       'GSJH-EV2J가 온라인이 될 때까지 기다렸다가 접속해서, 프로모션 페이지를 열고 쿠폰을 받은 다음 목록 페이지로 돌아가 줘',
@@ -211,7 +211,7 @@ export const docs: typeof en = {
       advanced: '고급',
     },
     desc: {
-      listDevices: '기기 목록. 도움을 요청한 기기가 먼저 나와요',
+      listDevices: '기기 목록. 지원 중인 기기가 먼저 나와요',
       connectDevice: '기기 코드나 deviceId로 접속. 승인이 켜져 있으면 사용자가 기기에서 확인할 때까지 기다려요(최대 약 35초)',
       disconnectDevice: '기기에서 나가기. 사용자의 페이지는 대기 상태로 돌아가요',
       waitForDevice: '기기가 온라인이 될 때까지 대기. 폴링 중인 기기에는 즉시 다시 연결하라고 알려요',

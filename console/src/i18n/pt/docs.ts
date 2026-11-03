@@ -101,7 +101,7 @@ export const docs: typeof en = {
     optionsHead: ['Opção', 'Descrição'],
     options: {
       userId: 'O usuário logado. O console e os agentes podem procurar dispositivos por usuário; chame setUser() quando o estado de login mudar.',
-      helpButton: 'Mostra o botão de ajuda; quando o usuário toca nele, o dispositivo é marcado como “Pedindo ajuda” no console. Combinado com OU com a opção de ajuda da política do projeto.',
+      helpButton: 'Mostra o botão “Solicitar assistência”; quando o usuário toca nele, o dispositivo é marcado como “Em atendimento” no console. Combinado com OU com o botão de assistência da política do projeto.',
       app: 'Informações do app host <c>{ name, version }</c>, exibidas na lista de dispositivos.',
       deviceId: 'Informado pelo app na injeção nativa, para que continue sendo o mesmo dispositivo entre WebViews e domínios. Em páginas H5 comuns, o SDK gera um e o guarda no localStorage.',
       nativeKey: 'Um segredo aleatório gerado pelo app que aparece só no script injetado. nativeControl / nativeDecide exigem esse segredo.',
@@ -164,8 +164,8 @@ export const docs: typeof en = {
     controlBody: "<c>nativeControl(key, 'takeover' | 'handback' | 'end')</c>; retorna false se a key estiver errada.",
     screenshot: 'Capturas de tela',
     screenshotBody: 'No iOS, registre <c>webkit.messageHandlers.rwdScreenshot</c> (com resposta); no Android, forneça <c>window.RWDAndroid.screenshot()</c>. Ambos retornam uma data URL JPEG/PNG.',
-    help: 'Pedir ajuda',
-    helpBody: 'Faça a opção de ajuda do próprio app chamar <c>help(true)</c>; a política do projeto pode controlar quem a vê por userId.',
+    help: 'Solicitar assistência',
+    helpBody: 'Faça a opção “Solicitar assistência” do próprio app chamar <c>help(true)</c>; a política do projeto pode controlar quem a vê por userId.',
   },
 
   mcp: {
@@ -193,7 +193,7 @@ export const docs: typeof en = {
     promptsIntro: 'O agente escolhe as ferramentas sozinho: list_devices para encontrar o dispositivo, connect_device para se conectar (aguardando a aprovação do usuário), depois snapshots, logs e ações na página. Experimente algo como:',
     prompts: [
       'Liste os dispositivos online, conecte-se ao GSJH-EV2J e descubra por que o total do checkout aparece como --',
-      'O usuário u_20391 está pedindo ajuda. Conecte-se ao dispositivo dele, reproduza “Fazer pedido não faz nada” e encontre a causa raiz',
+      'O usuário u_20391 solicitou assistência. Conecte-se ao dispositivo dele, reproduza “Fazer pedido não faz nada” e encontre a causa raiz',
       'Conecte-se ao K7Q2-9M4X apenas com acesso de visualização e resuma os erros do console e as requisições com falha da página atual',
       'Na página do produto, escolha a opção de caixa de presente e faça um pedido para reproduzir o problema; me avise quando precisar que eu assuma o controle',
       'Aguarde o GSJH-EV2J ficar online, conecte-se a ele, abra a página da promoção e resgate um cupom, depois volte para a página de lista',
@@ -211,7 +211,7 @@ export const docs: typeof en = {
       advanced: 'Avançado',
     },
     desc: {
-      listDevices: 'Lista os dispositivos, os que pedem ajuda primeiro',
+      listDevices: 'Lista os dispositivos, os em atendimento primeiro',
       connectDevice: 'Conecta pelo código do dispositivo ou deviceId; com a aprovação ativada, aguarda o usuário confirmar no dispositivo (até cerca de 35 segundos)',
       disconnectDevice: 'Sai do dispositivo; a página do usuário volta a ficar inativa',
       waitForDevice: 'Aguarda um dispositivo ficar online; um dispositivo em polling recebe a ordem de se reconectar na hora',

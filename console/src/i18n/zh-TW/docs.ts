@@ -101,7 +101,7 @@ export const docs: typeof en = {
     optionsHead: ['選項', '說明'],
     options: {
       userId: '目前登入的使用者。主控台和 agent 可以依使用者查詢裝置；登入狀態改變時請呼叫 setUser()。',
-      helpButton: '顯示求助按鈕；使用者點擊後，裝置在主控台中會標記為「求助中」。與專案策略中的求助入口取 OR。',
+      helpButton: '顯示「請求協助」按鈕；使用者點擊後，裝置在主控台中會標記為「協助中」。與專案策略中的協助入口取 OR。',
       app: '宿主 App 資訊 <c>{ name, version }</c>，顯示在裝置清單中。',
       deviceId: '原生注入時由 App 傳入，確保跨 WebView、跨網域都是同一台裝置。在一般的 H5 頁面上，SDK 會自行產生一個並存在 localStorage 中。',
       nativeKey: 'App 產生的隨機密鑰，只出現在注入的指令碼中。nativeControl / nativeDecide 必須帶上它。',
@@ -164,8 +164,8 @@ export const docs: typeof en = {
     controlBody: "<c>nativeControl(key, 'takeover' | 'handback' | 'end')</c>；密鑰錯誤時傳回 false。",
     screenshot: '截圖',
     screenshotBody: 'iOS 註冊 <c>webkit.messageHandlers.rwdScreenshot</c>（帶回覆）；Android 提供 <c>window.RWDAndroid.screenshot()</c>。兩者都傳回 JPEG/PNG 的 data URL。',
-    help: '求助',
-    helpBody: '由 App 自己的求助入口呼叫 <c>help(true)</c>；專案策略可以依 userId 控制誰看得到。',
+    help: '請求協助',
+    helpBody: '由 App 自己的「請求協助」入口呼叫 <c>help(true)</c>；專案策略可以依 userId 控制誰看得到。',
   },
 
   mcp: {
@@ -193,7 +193,7 @@ export const docs: typeof en = {
     promptsIntro: 'agent 會自己挑選工具：先用 list_devices 找到裝置，再用 connect_device 連線（等待使用者核准），然後擷取快照、查看記錄、操作頁面。可以試著這樣說：',
     prompts: [
       '列出線上裝置，連線到 GSJH-EV2J，查查結帳頁的總金額為什麼顯示 --',
-      '使用者 u_20391 正在求助。連線到他的裝置，重現「按送出訂單沒有反應」並找出根本原因',
+      '使用者 u_20391 請求了協助。連線到他的裝置，重現「按送出訂單沒有反應」並找出根本原因',
       '只用「僅檢視」權限連線到 K7Q2-9M4X，整理目前頁面的 console 錯誤和失敗的請求',
       '在商品頁選擇禮盒包裝後下單，重現這個問題；需要我接管時告訴我',
       '等 GSJH-EV2J 上線後連線到它，開啟活動頁領一張優惠券，然後回到清單頁',
@@ -211,7 +211,7 @@ export const docs: typeof en = {
       advanced: '進階',
     },
     desc: {
-      listDevices: '列出裝置，求助中的排在前面',
+      listDevices: '列出裝置，協助中的排在前面',
       connectDevice: '用裝置碼或 deviceId 連線；開啟核准時，會等待使用者在裝置上確認（最長約 35 秒）',
       disconnectDevice: '離開裝置，使用者的頁面恢復閒置',
       waitForDevice: '等待裝置上線；正在輪詢的裝置會被要求立即重新連線',

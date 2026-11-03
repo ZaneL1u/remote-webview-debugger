@@ -85,7 +85,7 @@ export const common: typeof en = {
   },
 
   badges: {
-    help: '도움 요청 중',
+    help: '지원 중',
     agentWithName: (label, agent) => `${label}(${agent})`,
     waitingConfirmAction: '사용자의 작업 확인 대기 중',
     waitingConfirm: '사용자 승인 대기 중',

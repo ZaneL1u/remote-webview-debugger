@@ -141,7 +141,7 @@ export type GatewayStatus = {
   totalDevices: number
   connectedPages: number
   attachedAgents: number
-  /** Online devices asking for help, and attach requests waiting on a user (newer gateways). */
+  /** Online devices whose user requested assistance (assisting), and attach requests waiting on a user (newer gateways). */
   helpDevices?: number
   pendingApprovals?: number
   wsConnections: number

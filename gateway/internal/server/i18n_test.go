@@ -118,7 +118,7 @@ func TestAgentEnglishByDefault(t *testing.T) {
 func TestAgentChinese(t *testing.T) {
 	f := setupLang(t, "", i18n.ZH)
 	s := f.mcp()
-	if instr := s.InitializeResult().Instructions; !strings.Contains(instr, "求助中的排在最前") {
+	if instr := s.InitializeResult().Instructions; !strings.Contains(instr, "协助中的排在最前") {
 		t.Fatalf("instructions: %s", instr)
 	}
 	tools := listTools(t, s)

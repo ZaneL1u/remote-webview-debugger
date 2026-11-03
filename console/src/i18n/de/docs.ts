@@ -118,7 +118,7 @@ export const docs: typeof en = {
       userId:
         'Der angemeldete Nutzer. Konsole und Agents können Geräte nach Nutzer suchen; rufen Sie setUser() auf, wenn sich der Anmeldestatus ändert.',
       helpButton:
-        'Zeigt den Hilfe-Button; tippt der Nutzer darauf, wird das Gerät in der Konsole als „Bittet um Hilfe“ markiert. ODER-verknüpft mit dem Hilfe-Einstieg der Projektrichtlinie.',
+        'Zeigt den Button „Unterstützung anfordern“; tippt der Nutzer darauf, wird das Gerät in der Konsole als „In Betreuung“ markiert. ODER-verknüpft mit dem Unterstützungs-Button der Projektrichtlinie.',
       app: 'Infos zur Host-App <c>{ name, version }</c>, angezeigt in der Geräteliste.',
       deviceId:
         'Wird bei nativer Injektion von der App übergeben, damit es über WebViews und Domains hinweg dasselbe Gerät bleibt. Auf reinen H5-Seiten erzeugt das SDK eine und speichert sie in localStorage.',
@@ -198,9 +198,9 @@ export const docs: typeof en = {
     screenshot: 'Screenshots',
     screenshotBody:
       'Registrieren Sie unter iOS <c>webkit.messageHandlers.rwdScreenshot</c> (mit Antwort); stellen Sie unter Android <c>window.RWDAndroid.screenshot()</c> bereit. Beide geben eine JPEG/PNG-Data-URL zurück.',
-    help: 'Hilfe anfordern',
+    help: 'Unterstützung anfordern',
     helpBody:
-      'Lassen Sie den eigenen Hilfe-Einstieg der App <c>help(true)</c> aufrufen; die Projektrichtlinie kann per userId steuern, wer ihn sieht.',
+      'Lassen Sie den eigenen Einstieg „Unterstützung anfordern“ der App <c>help(true)</c> aufrufen; die Projektrichtlinie kann per userId steuern, wer ihn sieht.',
   },
 
   mcp: {
@@ -237,7 +237,7 @@ export const docs: typeof en = {
       'Der Agent wählt die Tools selbst: list_devices, um das Gerät zu finden, connect_device, um sich zu verbinden (und auf die Freigabe des Nutzers zu warten), dann Snapshots, Logs und Seitenaktionen. Probieren Sie zum Beispiel:',
     prompts: [
       'Online-Geräte auflisten, mit GSJH-EV2J verbinden und herausfinden, warum der Gesamtbetrag im Checkout -- anzeigt',
-      'Nutzer u_20391 bittet um Hilfe. Mit seinem Gerät verbinden, „Bestellen reagiert nicht“ nachstellen und die Ursache finden',
+      'Nutzer u_20391 hat Unterstützung angefordert. Mit seinem Gerät verbinden, „Bestellen reagiert nicht“ nachstellen und die Ursache finden',
       'Nur mit „Nur ansehen“ mit K7Q2-9M4X verbinden und die Console-Fehler und fehlgeschlagenen Anfragen der aktuellen Seite zusammenfassen',
       'Auf der Produktseite die Geschenkbox-Option wählen und eine Bestellung aufgeben, um das Problem nachzustellen; Bescheid geben, wenn ich übernehmen soll',
       'Warten, bis GSJH-EV2J online ist, verbinden, die Aktionsseite öffnen und einen Gutschein einlösen, dann zurück zur Listenseite',
@@ -255,7 +255,7 @@ export const docs: typeof en = {
       advanced: 'Erweitert',
     },
     desc: {
-      listDevices: 'Geräte auflisten, die um Hilfe bittenden zuerst',
+      listDevices: 'Geräte auflisten, die mit Unterstützungsanfrage zuerst',
       connectDevice:
         'Per Gerätecode oder deviceId verbinden; bei aktivierter Freigabe wird auf die Bestätigung des Nutzers auf dem Gerät gewartet (bis zu etwa 35 Sekunden)',
       disconnectDevice: 'Das Gerät verlassen; die Seite des Nutzers wird wieder inaktiv',

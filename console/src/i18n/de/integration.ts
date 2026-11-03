@@ -101,7 +101,7 @@ export const integration: typeof en = {
   invites: {
     title: 'Nutzer zum Verbinden einladen',
     description:
-      'Senden Sie einem Nutzer einen Link oder QR-Code mit einem Einladungstoken. Sobald er ihn öffnet, geht sein Gerät als „bittet um Hilfe“ markiert online, und der Support muss nicht nach dem Gerätecode fragen.',
+      'Senden Sie einem Nutzer einen Link oder QR-Code mit einem Einladungstoken. Sobald er ihn öffnet, geht sein Gerät als „In Betreuung“ markiert online, und der Support muss nicht nach dem Gerätecode fragen.',
     create: 'Einladung erstellen',
     emptyTitle: 'Noch keine Einladungen',
     emptyDescription:
@@ -131,11 +131,11 @@ export const integration: typeof en = {
     linkCopied: 'Einladungslink kopiert',
     deleteLabel: 'Einladung löschen',
     deleteTitle: 'Diese Einladung löschen?',
-    deleteActive: 'Der Link wird sofort ungültig; wer ihn öffnet, wird nicht als „bittet um Hilfe“ markiert.',
+    deleteActive: 'Der Link wird sofort ungültig; wer ihn öffnet, wird nicht als „In Betreuung“ markiert.',
     deleteInactive: 'Nur dieser Eintrag wird gelöscht. Bereits verbundene Geräte sind nicht betroffen.',
 
     createTitle: 'Einladung erstellen',
-    createDescription: 'Erzeugt einen Einmal-Link. Sobald der Nutzer ihn öffnet, wird sein Gerät als „bittet um Hilfe“ markiert.',
+    createDescription: 'Erzeugt einen Einmal-Link. Sobald der Nutzer ihn öffnet, wird sein Gerät als „In Betreuung“ markiert.',
     noteRequired: 'Geben Sie eine Notiz ein',
     badUrl: 'Der Link muss mit http:// oder https:// beginnen',
     urlRequired: 'Das Projekt hat keine Standard-Einladungs-URL. Geben Sie einen Link ein.',
@@ -194,7 +194,7 @@ export const integration: typeof en = {
     h5Pinned: (version) =>
       `Fest auf Version ${version} mit Subresource Integrity (SRI). Nach einem Gateway-Upgrade Version und integrity aktualisieren`,
     userIdOptional: 'optional: ID des angemeldeten Nutzers, um Geräte nach Nutzer zu finden',
-    helpButton: 'Hilfe-Button anzeigen',
+    helpButton: 'Unterstützungs-Button anzeigen',
     iosInstall:
       'Vor webView.load(...) aufrufen: lädt das SDK einmal herunter und injiziert es bei documentStart in den Hauptframe.',
     deviceIdPerInstall: 'Eine pro Installation feste deviceId (UUID v4), damit sich der Gerätecode nie ändert.',
@@ -203,14 +203,14 @@ export const integration: typeof en = {
 
     full: {
       userId: 'optional: der angemeldete Nutzer, damit Konsole und Agents Geräte nach Nutzer finden',
-      helpButton: 'optional: den "Hilfe anfordern"-Button anzeigen (ODER-verknüpft mit der Projektrichtlinie)',
+      helpButton: 'optional: den "Unterstützung anfordern"-Button anzeigen (ODER-verknüpft mit der Projektrichtlinie)',
       app: 'optional: Infos zur Host-App; eigenständige H5-Seiten können das weglassen',
       nativeOnly: 'Nur für native Injektion durch eine App; siehe "Native App integrieren"',
       deviceCode: 'Gerätecode von Remote Debugger',
       example: 'z. B.',
     },
     jsApi: {
-      help: 'Hilfe anfordern (false übergeben, um abzubrechen)',
+      help: 'Unterstützung anfordern (false übergeben, um abzubrechen)',
       setUser: 'nach Anmeldung / Nutzerwechsel aufrufen; verbindet einmal neu',
       stop: 'Verbindung trennen und die UI entfernen, z. B. wenn der Nutzer Remote-Debugging ausschaltet',
     },
@@ -236,7 +236,7 @@ export const integration: typeof en = {
         'Vom Gateway ausgestellt, wenn es dieses Gerät zum ersten Mal sieht. localStorage gilt pro Domain, daher speichert die App es und injiziert es.',
       swiftEnable:
         'Aufrufen, sobald der Nutzer dem Remote-Debugging zustimmt: lädt das SDK einmal herunter; danach erstellte WebViews bekommen es injiziert.',
-      swiftOwnHelp: 'die App hat einen eigenen "Hilfe anfordern"-Einstieg',
+      swiftOwnHelp: 'die App hat einen eigenen "Unterstützung anfordern"-Einstieg',
       swiftNativeApproval: 'Freigaben / Bestätigungen über native Dialoge',
       swiftDocumentStart: 'documentStart: Die Aufzeichnung von Console und Netzwerk beginnt, bevor ein Seitenskript läuft',
       buttons: 'Native Buttons',

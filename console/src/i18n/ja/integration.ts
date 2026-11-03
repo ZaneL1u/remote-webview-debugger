@@ -97,7 +97,7 @@ export const integration: typeof en = {
   invites: {
     title: 'ユーザーを接続に招待',
     description:
-      '招待トークン付きのリンクまたは QR コードをユーザーに送ります。ユーザーが開くと、デバイスが「ヘルプ要請中」としてオンラインになるので、サポート担当がデバイスコードを尋ねる必要はありません。',
+      '招待トークン付きのリンクまたは QR コードをユーザーに送ります。ユーザーが開くと、デバイスが「対応中」としてオンラインになるので、サポート担当がデバイスコードを尋ねる必要はありません。',
     create: '招待を作成',
     emptyTitle: 'まだ招待はありません',
     emptyDescription: 'ユーザーが問題をうまく説明できないときは、招待を送りましょう。スキャンするだけでデバイスが接続されます。',
@@ -125,11 +125,11 @@ export const integration: typeof en = {
     linkCopied: '招待リンクをコピーしました',
     deleteLabel: '招待を削除',
     deleteTitle: 'この招待を削除しますか？',
-    deleteActive: 'リンクはすぐに使えなくなり、開いてもヘルプ要請中としてマークされなくなります。',
+    deleteActive: 'リンクはすぐに使えなくなり、開いても対応中としてマークされなくなります。',
     deleteInactive: 'この記録だけが削除されます。すでに接続したデバイスには影響しません。',
 
     createTitle: '招待を作成',
-    createDescription: '1 回だけ使えるリンクを生成します。ユーザーが開くと、デバイスはヘルプ要請中としてマークされます。',
+    createDescription: '1 回だけ使えるリンクを生成します。ユーザーが開くと、デバイスは対応中としてマークされます。',
     noteRequired: 'メモを入力してください',
     badUrl: 'リンクは http:// または https:// で始まる必要があります',
     urlRequired: 'プロジェクトにデフォルトの招待 URL がありません。リンクを入力してください。',
@@ -185,7 +185,7 @@ export const integration: typeof en = {
     h5Pinned: (version) =>
       `バージョン ${version} に固定し、サブリソース完全性（SRI）で検証します。ゲートウェイのアップグレード後はバージョンと integrity を更新してください`,
     userIdOptional: '任意：ログイン中のユーザーの ID。ユーザーでデバイスを探すのに使います',
-    helpButton: 'ヘルプボタンを表示',
+    helpButton: 'サポート依頼ボタンを表示',
     iosInstall: 'webView.load(...) の前に呼び出します。SDK を一度ダウンロードし、documentStart でメインフレームに注入します。',
     deviceIdPerInstall: 'インストールごとに固定の deviceId（UUID v4）。デバイスコードが変わらないようにします。',
     androidWebViewSettings: 'WebView では settings.javaScriptEnabled = true と settings.domStorageEnabled = true が必要です',
@@ -193,14 +193,14 @@ export const integration: typeof en = {
 
     full: {
       userId: '任意：ログイン中のユーザー。管理コンソールとエージェントがユーザーでデバイスを探せるようにします',
-      helpButton: '任意：「ヘルプを求める」ボタンを表示（プロジェクトのポリシーとの OR）',
+      helpButton: '任意：「サポートを依頼」ボタンを表示（プロジェクトのポリシーとの OR）',
       app: '任意：ホストアプリの情報。単独の H5 ページでは省略可',
       nativeOnly: 'アプリによるネイティブ注入でのみ使用。「ネイティブアプリの組み込み」を参照',
       deviceCode: 'Remote Debugger のデバイスコード',
       example: '例',
     },
     jsApi: {
-      help: 'ヘルプを求める（false を渡すと取り消し）',
+      help: 'サポートを依頼（false を渡すと取り消し）',
       setUser: 'ログイン / ユーザー切り替え後に呼び出す。一度だけ再接続します',
       stop: '切断して UI を削除する（例：ユーザーがリモートデバッグをオフにしたとき）',
     },
@@ -224,7 +224,7 @@ export const integration: typeof en = {
       swiftDeviceToken:
         'ゲートウェイがこのデバイスを初めて認識したときに発行します。localStorage はドメインごとなので、アプリが保持して注入します。',
       swiftEnable: 'ユーザーがリモートデバッグに同意したら呼び出します。SDK を一度ダウンロードし、以降に作成する WebView に注入します。',
-      swiftOwnHelp: 'アプリ独自の「ヘルプを求める」導線を使う',
+      swiftOwnHelp: 'アプリ独自の「サポートを依頼」導線を使う',
       swiftNativeApproval: '承認 / 確認はネイティブのダイアログで行う',
       swiftDocumentStart: 'documentStart：ページのスクリプトが実行される前から console とネットワークの記録を開始',
       buttons: 'ネイティブのボタン',

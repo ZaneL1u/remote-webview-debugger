@@ -1,7 +1,7 @@
 // A phone-sized macOS "app" that behaves like an iOS app built on WKWebView:
 // a native navigation bar, a stack of WebViews (links with target=_blank and
 // window.open push a new WebView, like pushing a view controller), a native
-// help button, a consent dialog before remote debugging, native
+// "Request assistance" button, a consent dialog before remote debugging, native
 // takeover / hand back / end buttons, and native dialogs for AI attach
 // requests and sensitive-action confirmations. All remote-debugging work
 // happens in RWDNative.swift.
@@ -65,7 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
     var window: NSWindow!
     let backButton = NSButton(title: "‹", target: nil, action: nil)
     let titleLabel = NSTextField(labelWithString: "")
-    let helpButton = NSButton(title: "Get help", target: nil, action: nil)
+    let helpButton = NSButton(title: "Request assistance", target: nil, action: nil)
     let moreButton = NSButton(title: "⋯", target: nil, action: nil)
     let statusLabel = NSTextField(labelWithString: "")
     let primaryButton = NSButton(title: "", target: nil, action: nil)
@@ -166,8 +166,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         backButton.font = .systemFont(ofSize: 22)
         backButton.frame = NSRect(x: 8, y: 6, width: 36, height: 32)
         moreButton.frame = NSRect(x: size.width - 44, y: 8, width: 36, height: 28)
-        helpButton.frame = NSRect(x: size.width - 152, y: 8, width: 104, height: 28)
-        titleLabel.frame = NSRect(x: 50, y: 12, width: size.width - 210, height: 20)
+        helpButton.frame = NSRect(x: size.width - 184, y: 8, width: 136, height: 28)
+        titleLabel.frame = NSRect(x: 50, y: 12, width: size.width - 242, height: 20)
         titleLabel.alignment = .center
         titleLabel.font = .boldSystemFont(ofSize: 15)
         titleLabel.lineBreakMode = .byTruncatingTail
@@ -270,8 +270,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate, WKNaviga
         let locked = s.control == "agent"
         backButton.isEnabled = !locked && (stack.count > 1 || stack.last?.canGoBack == true)
         helpButton.isEnabled = !locked && rwd.enabled
-        helpButton.isHidden = s.helpButton == false // the project turned help off for this user
-        helpButton.title = s.help ? "Help requested" : "Get help"
+        helpButton.isHidden = s.helpButton == false // the project turned the assistance button off for this user
+        helpButton.title = s.help ? "Assisting" : "Request assistance"
         var text: String
         var color = NSColor.secondaryLabelColor
         if !rwd.enabled {

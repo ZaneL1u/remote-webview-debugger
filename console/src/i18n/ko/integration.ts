@@ -96,7 +96,7 @@ export const integration: typeof en = {
   invites: {
     title: '사용자 접속 초대',
     description:
-      '초대 토큰이 담긴 링크나 QR 코드를 사용자에게 보내세요. 사용자가 열면 기기가 “도움 요청 중”으로 표시되어 온라인이 되므로, 고객 지원팀이 기기 코드를 물어볼 필요가 없어요.',
+      '초대 토큰이 담긴 링크나 QR 코드를 사용자에게 보내세요. 사용자가 열면 기기가 “지원 중”으로 표시되어 온라인이 되므로, 고객 지원팀이 기기 코드를 물어볼 필요가 없어요.',
     create: '초대 만들기',
     emptyTitle: '아직 초대가 없어요',
     emptyDescription: '사용자가 문제를 잘 설명하지 못할 때 초대를 보내 보세요. 사용자가 스캔하면 기기가 연결돼요.',
@@ -124,11 +124,11 @@ export const integration: typeof en = {
     linkCopied: '초대 링크를 복사했어요',
     deleteLabel: '초대 삭제',
     deleteTitle: '이 초대를 삭제할까요?',
-    deleteActive: '링크가 즉시 무효가 돼요. 링크를 열어도 도움 요청 중으로 표시되지 않아요.',
+    deleteActive: '링크가 즉시 무효가 돼요. 링크를 열어도 지원 중으로 표시되지 않아요.',
     deleteInactive: '이 기록만 삭제돼요. 이미 접속한 기기에는 영향이 없어요.',
 
     createTitle: '초대 만들기',
-    createDescription: '한 번만 쓸 수 있는 링크를 만들어요. 사용자가 열면 기기가 도움 요청 중으로 표시돼요.',
+    createDescription: '한 번만 쓸 수 있는 링크를 만들어요. 사용자가 열면 기기가 지원 중으로 표시돼요.',
     noteRequired: '메모를 입력해 주세요',
     badUrl: '링크는 http:// 또는 https://로 시작해야 해요',
     urlRequired: '프로젝트에 기본 초대 URL이 없어요. 링크를 입력해 주세요.',
@@ -184,7 +184,7 @@ export const integration: typeof en = {
     h5Pinned: (version) =>
       `SRI(Subresource Integrity)로 버전 ${version}에 고정. 게이트웨이를 업그레이드하면 버전과 integrity를 업데이트하세요`,
     userIdOptional: '선택: 로그인한 사용자 ID. 사용자별로 기기를 찾을 수 있어요',
-    helpButton: '도움 요청 버튼 표시',
+    helpButton: '지원 요청 버튼 표시',
     iosInstall: 'webView.load(...) 전에 호출: SDK를 한 번 내려받아 documentStart 시점에 메인 프레임에 주입해요.',
     deviceIdPerInstall: '설치마다 고정된 deviceId(UUID v4). 기기 코드가 바뀌지 않아요.',
     androidWebViewSettings: 'WebView에 settings.javaScriptEnabled = true와 settings.domStorageEnabled = true가 필요해요',
@@ -192,14 +192,14 @@ export const integration: typeof en = {
 
     full: {
       userId: '선택: 로그인한 사용자. 콘솔과 에이전트가 사용자별로 기기를 찾을 수 있어요',
-      helpButton: '선택: "도움 요청" 버튼 표시(프로젝트 정책과 OR)',
+      helpButton: '선택: "지원 요청" 버튼 표시(프로젝트 정책과 OR)',
       app: '선택: 호스트 앱 정보. 독립 H5 페이지는 생략해도 돼요',
       nativeOnly: '앱의 네이티브 주입에서만 사용. "네이티브 앱 연동" 참고',
       deviceCode: 'Remote Debugger 기기 코드',
       example: '예:',
     },
     jsApi: {
-      help: '도움 요청(취소하려면 false 전달)',
+      help: '지원 요청(취소하려면 false 전달)',
       setUser: '로그인 / 사용자 전환 후 호출. 한 번 다시 연결해요',
       stop: '연결을 끊고 UI를 제거. 예: 사용자가 원격 디버깅을 끌 때',
     },
@@ -223,7 +223,7 @@ export const integration: typeof en = {
       swiftDeviceToken:
         '게이트웨이가 이 기기를 처음 볼 때 발급해요. localStorage는 도메인별이라 앱이 보관했다가 주입해요.',
       swiftEnable: '사용자가 원격 디버깅에 동의하면 호출: SDK를 한 번 내려받고, 이후 만드는 WebView에 주입해요.',
-      swiftOwnHelp: '앱에 자체 "도움 요청" 진입점이 있음',
+      swiftOwnHelp: '앱에 자체 "지원 요청" 진입점이 있음',
       swiftNativeApproval: '승인 / 확인에 네이티브 대화상자 사용',
       swiftDocumentStart: 'documentStart: 페이지 스크립트가 실행되기 전부터 console과 네트워크 기록 시작',
       buttons: '네이티브 버튼',

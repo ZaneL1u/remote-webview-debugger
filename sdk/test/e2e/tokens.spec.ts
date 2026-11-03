@@ -102,9 +102,9 @@ test('invite: rwd_invite goes into hello once and leaves the address bar', async
   expect(page.url()).toMatch(new RegExp(`/demo/platform/index\\.html\\?key=${KEY}#top$`))
   const s = await waitOnline(page, gw)
   expect(gw.findPage(s.pageId!).hello.invite).toBe('inv-123')
-  // The gateway put the device into 求助中.
+  // The gateway put the device into 协助中.
   expect(gw.devices.get(s.deviceId).invited).toBe(true)
-  await expect(page.locator('#__rwd [data-action=help]')).toHaveText('取消求助')
+  await expect(page.locator('#__rwd [data-action=help]')).toHaveText('取消请求')
   expect(await page.evaluate(() => sessionStorage.getItem('rwd:invite'))).toBeNull()
 
   await page.reload()
