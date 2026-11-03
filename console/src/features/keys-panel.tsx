@@ -71,7 +71,7 @@ export function KeysPanel() {
                 <div key={i} className="flex items-center gap-4 px-5 py-3.5">
                   <Skeleton className="h-4 w-28" />
                   <Skeleton className="h-4 w-36" />
-                  <Skeleton className="ml-auto h-4 w-16" />
+                  <Skeleton className="ms-auto h-4 w-16" />
                 </div>
               ))}
             </div>
@@ -124,20 +124,20 @@ function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="pl-5">{c.name}</TableHead>
+              <TableHead className="ps-5">{c.name}</TableHead>
               <TableHead>{c.key}</TableHead>
               <TableHead>{c.level}</TableHead>
               <TableHead>{c.expiry}</TableHead>
               <TableHead>{c.ipAllowlist}</TableHead>
               <TableHead>{c.lastUsed}</TableHead>
               <TableHead>{c.status}</TableHead>
-              {manage && <TableHead className="pr-5 text-right">{c.actions}</TableHead>}
+              {manage && <TableHead className="pe-5 text-end">{c.actions}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {keys.map((k) => (
               <TableRow key={k.id} className={cn((k.revokedAt || isExpired(k)) && 'text-muted-foreground')}>
-                <TableCell className="max-w-44 pl-5">
+                <TableCell className="max-w-44 ps-5">
                   <p className="truncate font-medium">{k.name}</p>
                   <p className="text-xs text-muted-foreground">{t.projects.keys.createdOn(formatDay(k.createdAt))}</p>
                 </TableCell>
@@ -154,7 +154,7 @@ function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
                   <KeyStatus k={k} />
                 </TableCell>
                 {manage && (
-                  <TableCell className="pr-5 text-right">
+                  <TableCell className="pe-5 text-end">
                     {!k.revokedAt && <RevokeButton k={k} />}
                   </TableCell>
                 )}

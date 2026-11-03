@@ -93,7 +93,7 @@ export function GatewayStatus({ className }: { className?: string }) {
         </span>
         <span className={cn('hidden text-xs font-medium lg:inline', m.text)}>{m.label}</span>
         {data && (
-          <span className="hidden w-12 text-left font-mono text-[11px] text-muted-foreground tabular-nums md:inline">
+          <span className="hidden w-12 text-start font-mono text-[11px] text-muted-foreground tabular-nums md:inline">
             {data.rttMs} ms
           </span>
         )}
@@ -178,7 +178,7 @@ function StatusDetails({
           {data ? (
             <>
               <span className="font-mono tabular-nums">{data.rttMs} ms</span>
-              <span className={cn('ml-1.5 text-xs', rttQuality(data.rttMs).className)}>{rttQuality(data.rttMs).label}</span>
+              <span className={cn('ms-1.5 text-xs', rttQuality(data.rttMs).className)}>{rttQuality(data.rttMs).label}</span>
             </>
           ) : (
             '—'

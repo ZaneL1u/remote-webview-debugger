@@ -33,7 +33,7 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { getLang, rich, useT } from '@/i18n'
+import { getLang, locale, rich, useT } from '@/i18n'
 import { formatCount, formatDate, relativeTime } from '@/lib/format'
 import { useCan } from '@/lib/permissions'
 import { allDevicesQuery, projectsQuery, statusQuery } from '@/lib/queries'
@@ -294,7 +294,7 @@ function SearchBox({ value, onChange }: { value: string; onChange: (q: string) =
 
   return (
     <div className="relative min-w-0 flex-1">
-      <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+      <SearchIcon className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         ref={input}
         type="search"
@@ -304,7 +304,7 @@ function SearchBox({ value, onChange }: { value: string; onChange: (q: string) =
         spellCheck={false}
         aria-label={t.label}
         placeholder={t.placeholder}
-        className="pr-16 pl-9 [&::-webkit-search-cancel-button]:hidden"
+        className="pe-16 ps-9 [&::-webkit-search-cancel-button]:hidden"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
@@ -318,7 +318,7 @@ function SearchBox({ value, onChange }: { value: string; onChange: (q: string) =
         <Button
           variant="ghost"
           size="icon-xs"
-          className="absolute top-1/2 right-1.5 -translate-y-1/2 text-muted-foreground"
+          className="absolute top-1/2 end-1.5 -translate-y-1/2 text-muted-foreground"
           aria-label={t.clear}
           onClick={() => {
             setText('')
@@ -328,7 +328,7 @@ function SearchBox({ value, onChange }: { value: string; onChange: (q: string) =
           <XIcon />
         </Button>
       ) : (
-        <kbd className="pointer-events-none absolute top-1/2 right-2.5 hidden -translate-y-1/2 rounded border bg-muted px-1.5 font-mono text-[11px] text-muted-foreground sm:block">
+        <kbd className="pointer-events-none absolute top-1/2 end-2.5 hidden -translate-y-1/2 rounded border bg-muted px-1.5 font-mono text-[11px] text-muted-foreground sm:block">
           /
         </kbd>
       )}
@@ -399,7 +399,7 @@ function ListSkeleton() {
           </div>
           <Skeleton className="hidden h-4 w-48 md:block" />
           <Skeleton className="hidden h-4 w-32 lg:block" />
-          <Skeleton className="ml-auto h-5 w-16" />
+          <Skeleton className="ms-auto h-5 w-16" />
         </div>
       ))}
     </div>
@@ -491,7 +491,7 @@ function formatDay(ms: number) {
   if (getLang() === 'zh') return formatDate(ms).slice(0, 10)
   const d = new Date(ms)
   const year = d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric'
-  return d.toLocaleDateString('en-US', { year, month: 'short', day: 'numeric' })
+  return d.toLocaleDateString(locale(), { year, month: 'short', day: 'numeric' })
 }
 
 function StatusBadges({ d }: { d: Device }) {
@@ -561,7 +561,7 @@ function CodeAndId({ d, linkClassName }: { d: Device; linkClassName?: string }) 
           className="size-6 text-muted-foreground [&_svg]:size-3.5"
         />
       </div>
-      <div className="mt-0.5 flex items-center gap-1 pl-3.5 text-[11px] text-muted-foreground">
+      <div className="mt-0.5 flex items-center gap-1 ps-3.5 text-[11px] text-muted-foreground">
         <span className="truncate font-mono" title={d.id} data-testid="device-id">
           {shortId(d.id)}
         </span>
@@ -612,12 +612,12 @@ function DeviceTable({ devices }: { devices: Device[] }) {
         </colgroup>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="pl-4">{t.table.device}</TableHead>
+            <TableHead className="ps-4">{t.table.device}</TableHead>
             <TableHead>{t.table.systemApp}</TableHead>
             <TableHead>{t.table.userProject}</TableHead>
             <TableHead>{t.table.currentPage}</TableHead>
             <TableHead>{t.table.status}</TableHead>
-            <TableHead className="pr-4 text-right">{t.table.since}</TableHead>
+            <TableHead className="pe-4 text-end">{t.table.since}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -632,7 +632,7 @@ function DeviceTable({ devices }: { devices: Device[] }) {
               )}
               onClick={() => void navigate({ to: '/devices/$deviceId', params: { deviceId: d.id } })}
             >
-              <TableCell className={cn('py-3 pl-4', d.help && 'shadow-[inset_3px_0_0_var(--destructive)]')}>
+              <TableCell className={cn('py-3 ps-4', d.help && 'shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)]')}>
                 <CodeAndId d={d} />
               </TableCell>
               <TableCell className="py-3">
@@ -648,7 +648,7 @@ function DeviceTable({ devices }: { devices: Device[] }) {
                 {d.currentPage ? (
                   <div className="min-w-0" title={d.currentPage.url}>
                     <p className="truncate">
-                      <span className="mr-1.5 font-mono text-[11px] text-muted-foreground">{d.currentPage.label}</span>
+                      <span className="me-1.5 font-mono text-[11px] text-muted-foreground">{d.currentPage.label}</span>
                       {d.currentPage.title || t.row.untitled}
                     </p>
                     <p className="truncate font-mono text-[11px] text-muted-foreground">{pagePath(d.currentPage.url)}</p>
@@ -660,7 +660,7 @@ function DeviceTable({ devices }: { devices: Device[] }) {
               <TableCell className="py-3 whitespace-normal">
                 <StatusBadges d={d} />
               </TableCell>
-              <TableCell className="py-3 pr-4 text-right text-[13px]">
+              <TableCell className="py-3 pe-4 text-end text-[13px]">
                 <SinceCell d={d} now={now} />
                 <p className="mt-0.5 text-[11px] text-muted-foreground" title={formatDate(d.firstSeenAt)}>
                   {t.row.firstSeen(formatDay(d.firstSeenAt))}
@@ -709,21 +709,21 @@ function DeviceCards({ devices }: { devices: Device[] }) {
           data-device-card={d.code}
           className={cn(
             'cursor-pointer space-y-2.5 px-4 py-3.5 transition-colors hover:bg-muted/40 active:bg-muted/60',
-            d.help && 'bg-destructive-soft/50 shadow-[inset_3px_0_0_var(--destructive)] dark:bg-destructive-soft/30',
+            d.help && 'bg-destructive-soft/50 shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)] dark:bg-destructive-soft/30',
           )}
           onClick={() => void navigate({ to: '/devices/$deviceId', params: { deviceId: d.id } })}
         >
           <div className="flex items-start justify-between gap-3">
             <CodeAndId d={d} />
-            <span className="shrink-0 pt-0.5 text-right text-xs">
+            <span className="shrink-0 pt-0.5 text-end text-xs">
               <SinceCell d={d} now={now} />
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pl-3.5 text-[13px]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 ps-3.5 text-[13px]">
             <DeviceSystemLabel device={d} className="max-w-full" />
             <span className="text-xs text-muted-foreground">{d.app ? `${d.app.name} ${d.app.version}` : t.h5Page}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pl-3.5 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 ps-3.5 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <UserIcon className="size-3" />
               <span className="font-mono">{d.userId ?? t.notSignedIn}</span>
@@ -731,14 +731,14 @@ function DeviceCards({ devices }: { devices: Device[] }) {
             <ProjectLink d={d} />
           </div>
           {d.currentPage && (
-            <p className="truncate pl-3.5 text-xs" title={d.currentPage.url}>
-              <span className="mr-1 font-mono text-[11px] text-muted-foreground">{d.currentPage.label}</span>
+            <p className="truncate ps-3.5 text-xs" title={d.currentPage.url}>
+              <span className="me-1 font-mono text-[11px] text-muted-foreground">{d.currentPage.label}</span>
               {d.currentPage.title || t.untitled}
-              <span className="ml-1.5 font-mono text-[11px] text-muted-foreground">{pagePath(d.currentPage.url)}</span>
+              <span className="ms-1.5 font-mono text-[11px] text-muted-foreground">{pagePath(d.currentPage.url)}</span>
             </p>
           )}
           {(d.help || d.pending || d.control !== 'none' || d.invited) && (
-            <div className="pl-3.5">
+            <div className="ps-3.5">
               <StatusBadges d={d} />
             </div>
           )}

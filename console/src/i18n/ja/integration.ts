@@ -1,0 +1,248 @@
+import type { integration as en } from '../en/integration'
+
+export const integration: typeof en = {
+  key: {
+    title: '組み込み情報',
+    description: 'アプリキーはページのソースに含まれ、公開されることを前提としています。デバイスをオンラインにできるだけで、デバイスを操作することはできません。',
+    gatewayUrl: 'ゲートウェイの URL',
+    appKey: 'アプリキー',
+    rotate: 'キーを再発行',
+    rotateTitle: 'アプリキーを再発行しますか？',
+    rotateNew: '新しいアプリキーが生成され、古いキーはすぐに使えなくなります。',
+    rotateImpact: '古いキーを使っているページは、更新するまでオンラインになれません。キーが悪用されている場合にのみ実行してください。',
+    rotateConfirm: '再発行',
+    rotated: 'アプリキーを再発行しました。早めにページの組み込みコードを更新してください。',
+    sdkLatest: 'SDK の URL（最新版）',
+    sdkPinned: (version) => `SDK の URL（${version} に固定）`,
+  },
+
+  snippet: {
+    title: '組み込みコード',
+    description:
+      'このプロジェクトのゲートウェイの URL とアプリキーが入力済みなので、そのままコピーできます。ネイティブの承認、スクリーンショットブリッジ、デバイストークンなどについては<link>組み込みガイド</link>を参照してください。',
+    tabH5: 'H5 ページ',
+    tabIos: 'iOS（Swift）',
+    tabAndroid: 'Android（Kotlin）',
+    sdkVersion: 'SDK のバージョン',
+    latest: '最新版',
+    pinned: (version) => `${version} に固定（SRI）`,
+    pinnedHint:
+      '固定バージョンを読み込み、ブラウザが整合性ハッシュで検証します。セキュリティ要件が厳しいページや CSP のあるページに適しています。ゲートウェイのアップグレード後は、バージョンと integrity を手動で更新してください。',
+    latestHint: '常にゲートウェイの最新の SDK を読み込むため、ページを変更しなくてもゲートウェイのアップグレードが反映されます。',
+    h5Hint: 'ページの <tag>head</tag> 内のできるだけ早い位置に追加してください：',
+    iosHint: 'H5 のコードは変更不要です。アプリが <c>WKUserScript</c> で documentStart に注入します：',
+    androidHint: 'H5 のコードは変更不要です。アプリが <c>WebViewCompat.addDocumentStartJavaScript</c> で注入します：',
+  },
+
+  origins: {
+    title: '許可するオリジン',
+    description: '設定すると、これらのオリジンのページだけがアプリキーでオンラインになれます。空欄にすると制限はありません。',
+    edit: '編集',
+    saved: '許可するオリジンを保存しました',
+    invalid: (bad) =>
+      `無効：${bad.join('、')}（https://host[:port] の形式で指定してください。サブドメインのワイルドカードには *. を使用します）`,
+    unrestricted: '制限なし：すべてのオリジンのページがオンラインになれます。',
+  },
+
+  verify: {
+    title: '組み込みの検証',
+    description: 'デバイスがオンラインになり、エージェントが実際にページを操作できるかをリアルタイムで確認します。',
+    seen: 'デバイスがオンラインになりました',
+    waiting: '最初のデバイスを待っています',
+    firstSeen: (date, online) => `初回オンライン ${date} · 現在 ${online} 台がオンライン`,
+    waitingHint:
+      'ページに組み込みコードを追加し、アプリまたはブラウザで開いてください。デバイスがオンラインになると自動で更新されます。',
+    projectDisabled: 'このプロジェクトは無効になっているため、デバイスはオンラインになれません。',
+    deviceOnline: 'デバイスはオンライン',
+    deviceOffline: 'デバイスはオフライン',
+    platform: 'プラットフォーム',
+    appVersion: 'アプリのバージョン',
+    noApp: '—（H5 ページ）',
+    currentPage: 'ページ',
+    untitled: '（無題）',
+    sdkVersion: 'SDK のバージョン',
+    lastSeen: '最終確認',
+    viewDevice: 'デバイスの詳細を表示',
+    test: '接続テスト',
+    testHint:
+      'ゲートウェイがデバイスにスナップショットを要求し、往復時間とスナップショットを表示します。これで、エージェントがこのデバイスを操作できることを確認できます。',
+    testing: 'テスト中…',
+  },
+
+  troubleshoot: {
+    title: 'デバイスがオンラインにならない場合',
+    description: 'よくある原因を次の順に確認してください。詳しくは<link>トラブルシューティングガイド</link>を参照してください。',
+    badKey: {
+      title: 'キーが無効か、プロジェクトが無効化されている',
+      body: 'ページの WebSocket ハンドシェイクが 401 を返します。組み込みコードのキーが上記のキーと一致しているか（再発行すると古いキーはすぐに無効になります）、プロジェクトが無効化されていないかを確認してください。',
+    },
+    origin: {
+      title: 'オリジンが許可されていない',
+      body: 'ハンドシェイクが 403 を返します。ページのオリジン（スキーム + ホスト + ポート）を「許可するオリジン」に追加するか、リストを空にして制限を解除してください。',
+    },
+    csp: {
+      title: 'ページの CSP が接続をブロックしている',
+      body: 'ブラウザの console に <c>Refused to connect</c> と表示されます。ゲートウェイのホストを CSP の <c>script-src</c> に、ゲートウェイの <c>https://</c> と <c>wss://</c> の URL を <c>connect-src</c> に追加してください。',
+    },
+    sdkOld: {
+      title: 'SDK のバージョンが古すぎる',
+      body: '固定した SDK のバージョンがゲートウェイのプロトコルと合っていない可能性があります。最新版の URL /v1/sdk.js に切り替えるか、ゲートウェイがサポートするバージョンにアップグレードしてください。',
+    },
+    timeout: {
+      title: 'デバイスはオンラインだがテストがタイムアウトする',
+      body: 'アプリがバックグラウンドにある間、WebView の JS は一時停止します。ユーザーにアプリを前面に戻して SDK を組み込んだページを開いたままにしてもらい、再試行してください。',
+    },
+  },
+
+  invites: {
+    title: 'ユーザーを接続に招待',
+    description:
+      '招待トークン付きのリンクまたは QR コードをユーザーに送ります。ユーザーが開くと、デバイスが「ヘルプ要請中」としてオンラインになるので、サポート担当がデバイスコードを尋ねる必要はありません。',
+    create: '招待を作成',
+    emptyTitle: 'まだ招待はありません',
+    emptyDescription: 'ユーザーが問題をうまく説明できないときは、招待を送りましょう。スキャンするだけでデバイスが接続されます。',
+    howTitle: '使い方',
+    howSteps: [
+      'メモにチケット番号やユーザーの特徴を書いて招待を作成すると、一覧でデバイスを見つけやすくなります。',
+      'QR コードまたはリンクをユーザーに送ります。設定で指定した招待 URL、またはその招待用に指定した URL が開きます。',
+      'ユーザーが開くと、デバイスが「招待」バッジ付きでデバイス一覧の先頭に表示されます。デバイスコードをエージェントに渡してください。',
+      '各招待は 1 回だけ使用でき、使用後または期限切れ後は無効になります。',
+    ],
+    noDefaultUrl: 'デフォルトの招待 URL が設定されていないため、招待ごとにリンクが必要です。<link>設定</link>で指定できます。',
+    status: {
+      used: '使用済み',
+      expired: '期限切れ',
+      active: '有効',
+    },
+    deleted: '招待を削除しました',
+    noNote: '（メモなし）',
+    createdBy: (name) => `${name} が作成 · `,
+    usedAgo: (when) => `使用 ${when}`,
+    viewDevice: 'デバイスを表示',
+    expiredAt: (date) => `${date} に期限切れ`,
+    expiresIn: (when) => `${when}に期限切れ`,
+    qrCode: 'QR コード',
+    linkCopied: '招待リンクをコピーしました',
+    deleteLabel: '招待を削除',
+    deleteTitle: 'この招待を削除しますか？',
+    deleteActive: 'リンクはすぐに使えなくなり、開いてもヘルプ要請中としてマークされなくなります。',
+    deleteInactive: 'この記録だけが削除されます。すでに接続したデバイスには影響しません。',
+
+    createTitle: '招待を作成',
+    createDescription: '1 回だけ使えるリンクを生成します。ユーザーが開くと、デバイスはヘルプ要請中としてマークされます。',
+    noteRequired: 'メモを入力してください',
+    badUrl: 'リンクは http:// または https:// で始まる必要があります',
+    urlRequired: 'プロジェクトにデフォルトの招待 URL がありません。リンクを入力してください。',
+    note: 'メモ',
+    notePlaceholder: '例：チケット #4821 決済失敗',
+    noteHint: 'デバイスのタイムラインと監査ログに表示されます。個人情報は含めないでください。',
+    url: 'リンク',
+    optional: '（任意）',
+    urlHint: (hasDefault) =>
+      `${hasDefault ? '空欄にすると、プロジェクトのデフォルトの招待 URL を使用します。' : 'プロジェクトにデフォルトの招待 URL がないため、入力が必要です。'}ページには SDK が組み込まれている必要があります。`,
+    expiry: '有効期限',
+    expiryOptions: {
+      m30: '30 分',
+      h2: '2 時間',
+      d1: '1 日',
+      d7: '7 日',
+    },
+    submit: '招待を作成',
+
+    qrTitle: '招待の QR コード',
+    qrDescription: (note, when) => `「${note}」· ${when}に期限切れ · 1 回のみ使用可`,
+    scanHint: 'スマートフォンのカメラまたはアプリのスキャナーで読み取ってもらってください',
+    orLink: 'またはリンクをユーザーに送る',
+    done: '完了',
+  },
+
+  test: {
+    failed: 'テストに失敗しました',
+    unknownFailure: '不明な理由でテストに失敗しました。',
+    ok: '接続しました。エージェントはこのデバイスを操作できます。',
+    roundTrip: (ms) => `往復 ${ms} ms`,
+    untitled: '（無題）',
+    snapshotPreview: 'スナップショットのプレビュー（先頭 4,000 文字）',
+    emptySnapshot: '（空のスナップショット）',
+    errors: {
+      offline: 'デバイスがオンラインではありません。ユーザーにアプリを前面に戻して SDK を組み込んだページを開いてもらい、再試行してください。',
+      noPage: 'デバイスはオンラインですが、接続しているページがありません。ページの読み込みが完了しているか確認してください。',
+      timeout:
+        'デバイスが 15 秒以内に応答しませんでした。アプリがバックグラウンドにある（WebView の JS が一時停止している）か、ページが応答していない可能性があります。',
+      takeover: 'ユーザーが引き継いでいるため、現在テストを実行できません。',
+      notFound: 'デバイスが存在しないか、このプロジェクトに属していません。',
+      badRequest: 'リクエストのパラメータが無効です。',
+      internal: 'ページで内部エラーが発生しました。SDK のバージョンが古くないか確認するか、ページの console でエラーを確認してください。',
+      network: 'ゲートウェイに接続できません。ネットワークを確認してください。',
+    },
+  },
+
+  snippets: {
+    sampleAppName: 'ショップ',
+    usage: '使い方：',
+    dependency: (dep) => `依存関係：${dep}`,
+    h5Head: '<head> 内のできるだけ早い位置で同期的に読み込むと、SDK がページの最初から console とネットワークを記録します',
+    h5Pinned: (version) =>
+      `バージョン ${version} に固定し、サブリソース完全性（SRI）で検証します。ゲートウェイのアップグレード後はバージョンと integrity を更新してください`,
+    userIdOptional: '任意：ログイン中のユーザーの ID。ユーザーでデバイスを探すのに使います',
+    helpButton: 'ヘルプボタンを表示',
+    iosInstall: 'webView.load(...) の前に呼び出します。SDK を一度ダウンロードし、documentStart でメインフレームに注入します。',
+    deviceIdPerInstall: 'インストールごとに固定の deviceId（UUID v4）。デバイスコードが変わらないようにします。',
+    androidWebViewSettings: 'WebView では settings.javaScriptEnabled = true と settings.domStorageEnabled = true が必要です',
+    androidInstall: 'webView.loadUrl(...) の前に呼び出します。SDK を一度ダウンロードし、document start で注入します。',
+
+    full: {
+      userId: '任意：ログイン中のユーザー。管理コンソールとエージェントがユーザーでデバイスを探せるようにします',
+      helpButton: '任意：「ヘルプを求める」ボタンを表示（プロジェクトのポリシーとの OR）',
+      app: '任意：ホストアプリの情報。単独の H5 ページでは省略可',
+      nativeOnly: 'アプリによるネイティブ注入でのみ使用。「ネイティブアプリの組み込み」を参照',
+      deviceCode: 'Remote Debugger のデバイスコード',
+      example: '例',
+    },
+    jsApi: {
+      help: 'ヘルプを求める（false を渡すと取り消し）',
+      setUser: 'ログイン / ユーザー切り替え後に呼び出す。一度だけ再接続します',
+      stop: '切断して UI を削除する（例：ユーザーがリモートデバッグをオフにしたとき）',
+    },
+    mask: {
+      masked: 'スナップショット、スクリーンショット、console 出力では •••• と表示',
+      samplePhone: '090-1234-5678',
+      confirm: 'エージェントがクリックする前に、デバイスがユーザーに確認を求めます',
+      placeOrder: '注文を確定',
+    },
+    native: {
+      screenshotBridge: 'ネイティブのスクリーンショットブリッジ',
+      swiftTrimmed: 'examples/mock-app/Sources/RWDMockApp/RWDNative.swift を簡略化したものです。',
+      swiftInstall: '各 WKWebView を作成する前に RWD.shared.install(into: configuration) を呼び出します。',
+      swiftOnState: 'ネイティブのステータスバーと、引き継ぐ / AI に戻す / 終了のボタンを制御',
+      swiftOnPending: '接続の承認と操作の確認（ネイティブのダイアログ）',
+      swiftNativeKey: [
+        'アプリだけが知る秘密の値：ページのスクリプト（エージェントの evaluate_script を含む）からは読み取れないため、',
+        'ユーザーになりすまして操作を戻したり接続を承認したりすることはできません。',
+      ],
+      swiftDeviceId: 'インストールごとに 1 つの deviceId。すべての WebView とすべてのドメインで共有 → デバイスコードは変わりません。',
+      swiftDeviceToken:
+        'ゲートウェイがこのデバイスを初めて認識したときに発行します。localStorage はドメインごとなので、アプリが保持して注入します。',
+      swiftEnable: 'ユーザーがリモートデバッグに同意したら呼び出します。SDK を一度ダウンロードし、以降に作成する WebView に注入します。',
+      swiftOwnHelp: 'アプリ独自の「ヘルプを求める」導線を使う',
+      swiftNativeApproval: '承認 / 確認はネイティブのダイアログで行う',
+      swiftDocumentStart: 'documentStart：ページのスクリプトが実行される前から console とネットワークの記録を開始',
+      buttons: 'ネイティブのボタン',
+      swiftDecide:
+        '接続の承認：レベル（observe / interact / advanced）を渡すか、拒否するなら nil。操作の確認："allow" または nil を渡します。',
+      swiftTokenCarried: 'これ以降に開くページ（他のドメインも含む）に付与されます',
+      swiftScreenshot: 'エージェントが take_screenshot を呼び出すと、SDK はこのブリッジ経由で実際のピクセルを取得します。',
+      kotlinReference: '参考実装です（実際のアプリプロジェクトではコンパイルしていません）。API は iOS 版と 1 対 1 で対応しています。',
+      kotlinNativeKey: 'アプリだけが知る秘密の値。どの JS インターフェースからもページに公開されません。',
+      kotlinOnState: 'ネイティブのステータスバーとボタンを制御',
+      kotlinOnPending: 'ネイティブの承認 / 確認ダイアログ',
+      kotlinDeviceId: 'インストールごとに 1 つの deviceId。すべての WebView とすべてのドメインで共有します。',
+      kotlinEnable: 'ユーザーがリモートデバッグに同意した後に一度呼び出します。',
+      kotlinInstall: '各 WebView で loadUrl の前に呼び出します。javaScriptEnabled と domStorageEnabled が必要です。',
+      kotlinButtons: 'ネイティブのボタン：takeover | handback | end。承認にはレベルまたは null、確認には "allow" または null を渡します',
+      kotlinTokenCarried: 'これ以降に作成する WebView に付与されます',
+      kotlinScreenshot:
+        'エージェントが take_screenshot を呼び出すと、SDK は window.RWDAndroid.screenshot() を呼び出し、JPEG の data URL を受け取ります。',
+    },
+  },
+}

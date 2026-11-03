@@ -21,27 +21,27 @@ export function relativeTime(ms: number | null | undefined, now = Date.now()): s
 export function formatDate(ms: number | null | undefined): string {
   if (!ms) return '—'
   const d = new Date(ms)
-  if (getLang() === 'en') return dateFormat('full').format(d)
+  if (getLang() !== 'zh') return dateFormat('full').format(d)
   const p = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-/** Date only: "2026-11-02" / "Nov 2, 2026". */
+/** Date only: "2026-11-02" in Simplified Chinese, the locale's own format otherwise ("Nov 2, 2026"). */
 export function formatDay(ms: number | null | undefined): string {
   if (!ms) return '—'
-  if (getLang() === 'en') return dateFormat('day').format(ms)
+  if (getLang() !== 'zh') return dateFormat('day').format(ms)
   return formatDate(ms).slice(0, 10)
 }
 
 /** Without the year: "11-02 14:05" / "Nov 2, 14:05". */
 export function formatShortDate(ms: number | null | undefined): string {
   if (!ms) return '—'
-  if (getLang() === 'en') return dateFormat('short').format(ms)
+  if (getLang() !== 'zh') return dateFormat('short').format(ms)
   return formatDate(ms).slice(5)
 }
 
-const enDates = new Map<string, Intl.DateTimeFormat>()
-const enOptions: Record<'full' | 'day' | 'short', Intl.DateTimeFormatOptions> = {
+const dates = new Map<string, Intl.DateTimeFormat>()
+const dateOptions: Record<'full' | 'day' | 'short', Intl.DateTimeFormatOptions> = {
   // "Nov 2, 2026, 14:05": 24-hour, like the Chinese format.
   full: { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
   day: { year: 'numeric', month: 'short', day: 'numeric' },
@@ -49,10 +49,11 @@ const enOptions: Record<'full' | 'day' | 'short', Intl.DateTimeFormatOptions> = 
 }
 
 function dateFormat(kind: 'full' | 'day' | 'short') {
-  let f = enDates.get(kind)
+  const key = `${locale()}|${kind}`
+  let f = dates.get(key)
   if (!f) {
-    f = new Intl.DateTimeFormat('en-US', enOptions[kind])
-    enDates.set(kind, f)
+    f = new Intl.DateTimeFormat(locale(), dateOptions[kind])
+    dates.set(key, f)
   }
   return f
 }

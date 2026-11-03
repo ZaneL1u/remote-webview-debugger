@@ -1,0 +1,177 @@
+import type { shell as en } from '../en/shell'
+
+export const shell: typeof en = {
+  tagline: 'Lassen Sie KI jede WebView in Ihrer App aus der Ferne debuggen',
+  language: 'Sprache',
+
+  nav: {
+    skipToContent: 'Zum Hauptinhalt springen',
+    home: (brand) => `${brand} – Startseite`,
+    main: 'Hauptnavigation',
+    devices: 'Geräte',
+    projects: 'Projekte',
+    keys: 'API-Keys',
+    audit: 'Audit-Log',
+    members: 'Mitglieder',
+    docs: 'Doku',
+    accountMenu: 'Kontomenü',
+    appearance: 'Darstellung',
+    themeSystem: 'System',
+    themeLight: 'Hell',
+    themeDark: 'Dunkel',
+    changePassword: 'Passwort ändern',
+    logout: 'Abmelden',
+    gatewayVersion: (v) => `Gateway v${v}`,
+  },
+
+  auth: {
+    headline: ['Lassen Sie KI aus der Ferne', 'jede WebView Ihrer App debuggen'],
+    points: [
+      {
+        title: 'Geräte sind sofort verbunden',
+        body: 'Sobald eine App-WebView oder H5-Seite das SDK lädt, ist sie online; über den Gerätecode finden Sie das Telefon des Nutzers.',
+      },
+      {
+        title: 'Die KI untersucht selbst',
+        body: 'Claude Code und andere Agents erstellen Snapshots, lesen Logs und tippen Schaltflächen über MCP an, um das Problem nachzustellen.',
+      },
+      {
+        title: 'Nutzer behalten die Kontrolle',
+        body: 'Nutzer geben jede Verbindung frei und können jederzeit übernehmen oder beenden; sensible Daten werden maskiert, alles wird protokolliert.',
+      },
+    ],
+    footer: 'Gerät · Gateway · MCP: eine Pipeline zum Debuggen der WebViews in Ihrer App',
+  },
+
+  login: {
+    subtitle: 'Bei der Konsole anmelden',
+    title: 'Anmelden',
+    description:
+      'Verwenden Sie Ihre Mitglieds-E-Mail-Adresse und Ihr Passwort. Bei einer neuen Installation stammt das Inhaberkonto aus RWD_ADMIN_EMAIL und RWD_ADMIN_PASSWORD des Gateways.',
+    email: 'E-Mail-Adresse',
+    password: 'Passwort',
+    submit: 'Anmelden',
+    badCredentials: 'E-Mail-Adresse oder Passwort falsch',
+    accountBlocked: 'Dieses Konto kann sich nicht anmelden. Wenden Sie sich an den Projektinhaber.',
+    tooManyAttempts: 'Zu viele Versuche. Versuchen Sie es später erneut.',
+    emailRequired: 'Geben Sie Ihre E-Mail-Adresse ein',
+    passwordRequired: 'Geben Sie Ihr Passwort ein',
+  },
+
+  invite: {
+    subtitle: 'Einladung annehmen und der Konsole beitreten',
+    invalid: 'Einladungslink ungültig oder abgelaufen',
+    invalidDescription:
+      'Einladungslinks sind 7 Tage gültig und einmal verwendbar. Bitten Sie den Projektinhaber, Sie erneut einzuladen.',
+    goToLogin: 'Zur Anmeldung',
+    welcome: 'Willkommen an Bord, Sie sind angemeldet',
+    expired: 'Dieser Einladungslink ist abgelaufen. Bitten Sie den Projektinhaber, Sie erneut einzuladen.',
+    title: 'Konto einrichten',
+    description: (email) =>
+      `Sie wurden als <b>${email}</b> eingeladen. Sobald Sie ein Passwort festgelegt haben, sind Sie angemeldet.`,
+    nameRequired: 'Geben Sie Ihren Namen ein',
+    passwordTooShort: (n) => `Das Passwort muss mindestens ${n} Zeichen lang sein`,
+    passwordMismatch: 'Die Passwörter stimmen nicht überein',
+    name: 'Name',
+    password: 'Passwort',
+    passwordHint: (n) => `Mindestens ${n} Zeichen.`,
+    confirm: 'Passwort bestätigen',
+    submit: 'Einladung annehmen und anmelden',
+  },
+
+  password: {
+    changed: 'Passwort geändert',
+    wrongCurrent: 'Das aktuelle Passwort ist falsch',
+    title: 'Passwort ändern',
+    description: 'Sitzungen auf Ihren anderen Geräten bleiben angemeldet.',
+    currentRequired: 'Geben Sie Ihr aktuelles Passwort ein',
+    tooShort: (n) => `Das neue Passwort muss mindestens ${n} Zeichen lang sein`,
+    sameAsCurrent: 'Das neue Passwort muss sich vom aktuellen unterscheiden',
+    mismatch: 'Die neuen Passwörter stimmen nicht überein',
+    current: 'Aktuelles Passwort',
+    new: 'Neues Passwort',
+    hint: (n) => `Mindestens ${n} Zeichen.`,
+    confirm: 'Neues Passwort bestätigen',
+    submit: 'Passwort ändern',
+  },
+
+  states: {
+    notFound: 'Seite nicht gefunden',
+    notFoundDescription: 'Der Link ist möglicherweise fehlerhaft, oder Sie haben keinen Zugriff.',
+    backToDevices: 'Zurück zu den Geräten',
+    forbidden: 'Kein Zugriff',
+    forbiddenDescription: (role) =>
+      `Ihre Rolle (${role}) kann dies nicht ansehen. Wenden Sie sich an den Projektinhaber, wenn Sie Zugriff benötigen.`,
+  },
+
+  gateway: {
+    health: {
+      checking: 'Wird geprüft',
+      connected: 'Verbunden',
+      degraded: 'Eingeschränkt',
+      disconnected: 'Getrennt',
+    },
+    title: (label) => `Gateway ${label.toLowerCase()}`,
+    ariaLabel: (label) => `Gateway-Status: ${label}`,
+    selfCheckFailed: 'Selbsttest des Gateways fehlgeschlagen',
+    slow: (ms) => `Langsame Antworten (${ms} ms)`,
+    streamDown: 'Live-Updates getrennt; vorerst wird abgefragt',
+    rtt: { good: 'Gut', fair: 'Mittel', slow: 'Langsam' },
+    unreachable: (error, seconds) =>
+      `Gateway nicht erreichbar: ${error}. Neuer Versuch alle ${seconds} s.`,
+    reasons: (reasons) => `${reasons.join('; ')}.`,
+    checkingSummary: 'Gateway wird geprüft…',
+    legacySummary:
+      'Das Gateway läuft. Diese Gateway-Version hat keinen Status-Endpunkt, daher sind keine detaillierten Messwerte verfügbar.',
+    okSummary: 'Das Gateway ist fehlerfrei; Geräteänderungen erscheinen live in der Konsole.',
+    latency: 'Latenz',
+    stream: 'Live-Updates',
+    streamLive: 'SSE live',
+    streamPolling: 'Polling',
+    streamConnecting: 'Verbindet…',
+    onlineDevices: 'Online-Geräte',
+    agents: 'KI-Verbindungen',
+    pages: 'Seitenverbindungen',
+    projects: 'Projekte',
+    version: 'Gateway-Version',
+    sdkVersion: 'SDK-Version',
+    uptime: 'Laufzeit',
+    database: 'Datenbank',
+    url: 'Gateway-URL',
+    urlCopied: 'Gateway-URL kopiert',
+    checkedAt: (ago) => `Geprüft ${ago}`,
+    lastOk: (ago) => `Zuletzt OK: ${ago}`,
+    neverConnected: 'Noch nicht verbunden',
+    streamJustConnected: ' · Stream gerade verbunden',
+    streamConnectedFor: (duration) => ` · Stream seit ${duration} aktiv`,
+    check: 'Prüfen',
+    troubleshoot: 'Fehlerbehebung',
+  },
+
+  live: {
+    live: { label: 'Live', title: 'Mit Live-Updates verbunden; Geräteänderungen erscheinen sofort' },
+    connecting: { label: 'Verbindet…', title: 'Verbindung zu Live-Updates wird hergestellt' },
+    down: {
+      label: 'Abfrage alle 2 s',
+      title: 'Live-Updates getrennt; Aktualisierung alle 2 Sekunden, bis sie wieder verfügbar sind',
+    },
+  },
+
+  pagination: {
+    label: 'Seitennavigation',
+    empty: '0 Geräte',
+    summary: (from, to, total) => `${from}–${to} von ${total}`,
+    perPage: 'Pro Seite',
+    perPageAria: 'Einträge pro Seite',
+    perPageOption: (n) => String(n),
+    previous: 'Vorherige Seite',
+    next: 'Nächste Seite',
+    page: (n) => `Seite ${n}`,
+  },
+
+  qr: {
+    alt: 'QR-Code',
+    failed: 'QR-Code konnte nicht erzeugt werden. Kopieren Sie stattdessen den Link.',
+    download: 'QR-Code herunterladen',
+  },
+}

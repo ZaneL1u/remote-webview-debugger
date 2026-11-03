@@ -72,7 +72,7 @@ function Field({ label, value, mono = true }: { label: string; value?: string; m
     <div className="space-y-1.5">
       <p className="text-xs text-muted-foreground">{label}</p>
       {value ? (
-        <div className="flex items-center gap-2 rounded-md border bg-muted/40 py-1 pr-1 pl-3">
+        <div className="flex items-center gap-2 rounded-md border bg-muted/40 py-1 pe-1 ps-3">
           <span className={cn('min-w-0 flex-1 truncate text-sm', mono && 'font-mono')} title={value}>
             {value}
           </span>
@@ -342,7 +342,7 @@ function Step({
     <li className="relative flex gap-3">
       {!last && (
         <span
-          className={cn('absolute top-7 bottom-0 left-[13px] w-px', state === 'done' ? 'bg-success/50' : 'bg-border')}
+          className={cn('absolute top-7 bottom-0 start-[13px] w-px', state === 'done' ? 'bg-success/50' : 'bg-border')}
           aria-hidden
         />
       )}
@@ -454,7 +454,7 @@ function VerifyCard({
                     className="inline-flex items-center gap-0.5 text-xs text-brand hover:underline"
                   >
                     {tv.viewDevice}
-                    <ChevronRightIcon className="size-3" />
+                    <ChevronRightIcon className="size-3 rtl:-scale-x-100" />
                   </Link>
                 </div>
               )}
@@ -511,7 +511,7 @@ function TroubleshootCard() {
               <details className="group">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
                   {tt[id].title}
-                  <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+                  <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90 rtl:-scale-x-100 rtl:group-open:-rotate-90" />
                 </summary>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   {rich(tt[id].body, { c: (s) => <code className="font-mono">{s}</code> })}

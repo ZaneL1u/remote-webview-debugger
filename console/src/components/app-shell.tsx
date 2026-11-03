@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ChangePasswordDialog } from '@/features/change-password-dialog'
-import { useLang, useT } from '@/i18n'
+import { isCompact, useLang, useT } from '@/i18n'
 import { api } from '@/lib/api'
 import { can, roleLabels, useMe } from '@/lib/permissions'
 import { configQuery } from '@/lib/queries'
@@ -53,8 +53,8 @@ export function AppShell() {
   const config = useQuery(configQuery)
   const me = useMe()
   const t = useT()
-  // English labels are wider: the inline nav needs lg before it fits next to the header actions.
-  const wide = useLang() === 'en'
+  // Labels in alphabetic languages are wider: the inline nav needs lg before it fits next to the header actions.
+  const wide = !isCompact(useLang())
   const theme = useThemeChoice()
   const [passwordOpen, setPasswordOpen] = useState(false)
   // One org-wide SSE connection for the whole signed-in session (lib/stream.ts).
@@ -81,7 +81,7 @@ export function AppShell() {
     <div className="flex min-h-dvh flex-col">
       <a
         href="#main"
-        className="sr-only z-50 rounded-md bg-brand px-3 py-2 text-brand-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+        className="sr-only z-50 rounded-md bg-brand px-3 py-2 text-brand-foreground focus:not-sr-only focus:fixed focus:top-2 focus:start-2"
       >
         {t.shell.nav.skipToContent}
       </a>
@@ -89,7 +89,7 @@ export function AppShell() {
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:px-6">
           <Link
             to="/"
-            className="-ml-1 flex shrink-0 items-center gap-2.5 rounded-md px-1 py-1 outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+            className="-ms-1 flex shrink-0 items-center gap-2.5 rounded-md px-1 py-1 outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
             aria-label={t.shell.nav.home(BRAND.name)}
           >
             <Logo className="size-7" />
@@ -113,7 +113,7 @@ export function AppShell() {
               </Link>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
+          <div className="ms-auto flex items-center gap-1 sm:gap-1.5">
             <GatewayStatus />
             <LanguageSwitcher labelClassName="hidden xl:inline" />
             <Link

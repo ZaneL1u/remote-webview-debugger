@@ -65,7 +65,7 @@ export function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="email">{t.shell.login.email}</Label>
                 <div className="relative">
-                  <MailIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <MailIcon className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
                   {/* Not type=email: the bootstrap owner defaults to the plain name "admin". */}
                   <Input
                     id="email"
@@ -75,7 +75,7 @@ export function LoginPage() {
                     autoCapitalize="none"
                     spellCheck={false}
                     autoFocus
-                    className="pl-9"
+                    className="ps-9"
                     placeholder="you@example.com"
                     value={email}
                     aria-invalid={!!error || undefined}
@@ -86,12 +86,12 @@ export function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="password">{t.shell.login.password}</Label>
                 <div className="relative">
-                  <LockKeyholeIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <LockKeyholeIcon className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
                     autoComplete="current-password"
-                    className="pl-9"
+                    className="ps-9"
                     value={password}
                     aria-invalid={!!error || undefined}
                     onChange={(e) => setPassword(e.target.value)}

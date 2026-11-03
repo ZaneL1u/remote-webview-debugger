@@ -32,7 +32,7 @@ function AlertDialogContent({ className, ...props }: AlertDialogPrimitive.Popup.
 }
 
 function AlertDialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="alert-dialog-header" className={cn('flex flex-col gap-1.5 text-left', className)} {...props} />
+  return <div data-slot="alert-dialog-header" className={cn('flex flex-col gap-1.5 text-start', className)} {...props} />
 }
 
 function AlertDialogFooter({ className, ...props }: React.ComponentProps<'div'>) {

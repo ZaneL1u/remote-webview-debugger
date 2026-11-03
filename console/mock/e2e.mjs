@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Drives the built console against the mock API with Playwright, screenshots every page at
-// desktop and mobile widths (plus a few in dark mode and in English) and fails on unexpected console
-// errors. The main pass runs in Chinese (a zh-CN browser); the English pass uses an en-US browser and
-// also checks the language switcher and the language sent to the gateway.
+// desktop and mobile widths (plus a few in dark mode, in English, Japanese and Arabic) and fails on
+// unexpected console errors. The main pass runs in Chinese (a zh-CN browser); the English pass uses an
+// en-US browser and also checks the language switcher and the language sent to the gateway; the last
+// pass picks Japanese and Arabic from the browser and checks the right-to-left layout.
 //
 //   npm run build && npm run test:e2e
 //
@@ -791,7 +792,7 @@ async function runEnglish(vp) {
   await page.goto(`${base}/`)
   await rowsVisible(page)
   await page.getByTestId('language-switcher').filter({ visible: true }).first().click()
-  await page.getByRole('menuitemradio', { name: '中文' }).click()
+  await page.getByRole('menuitemradio', { name: '简体中文' }).click()
   await page.getByRole('heading', { name: '设备', exact: true }).waitFor()
   await page.waitForFunction(() => document.documentElement.lang === 'zh-CN')
   await page.waitForTimeout(600) // the language switch refetches every query
@@ -808,9 +809,40 @@ async function runEnglish(vp) {
   await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.waitForURL(/\/login/)
   await page.getByTestId('language-switcher').click()
-  await page.getByRole('menuitemradio', { name: '中文' }).click()
+  await page.getByRole('menuitemradio', { name: '简体中文' }).click()
   await page.getByRole('button', { name: '登录' }).waitFor()
   await shot(page, `${n}-16-login-switched`, { fullPage: false })
+  await ctx.close()
+}
+
+/** A browser in another language: picked automatically (with its catalog chunk), Arabic right to left, no sideways scroll. */
+async function runLocale(vp, locale, lang) {
+  const { ctx, page } = await newPage(vp, 'light', locale)
+  await page.goto(`${base}/`)
+  await page.waitForURL(/\/login/)
+  await page.waitForFunction((l) => document.documentElement.lang === l, lang)
+  const dir = await page.evaluate(() => document.documentElement.dir)
+  if (dir !== (lang === 'ar' ? 'rtl' : 'ltr')) throw new Error(`${lang}: <html dir> is ${dir}`)
+  await shot(page, `${vp.name}-${lang}-login`, { fullPage: false })
+  await page.locator('#email').fill('admin@example.com')
+  await page.locator('input[type=password]').fill('admin')
+  await page.locator('button[type=submit]').click()
+  await page.waitForURL(`${base}/`)
+  await rowsVisible(page)
+  const overflow = async (where) => {
+    const o = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    if (o > 1) throw new Error(`${lang} ${where}: page scrolls sideways by ${o}px`)
+  }
+  await overflow('devices')
+  await shot(page, `${vp.name}-${lang}-devices-home`)
+  await page.goto(`${base}/docs#mcp`)
+  await page.getByText('batch_actions').first().waitFor()
+  await overflow('docs')
+  await shot(page, `${vp.name}-${lang}-docs-mcp`, { fullPage: false })
+  await page.goto(`${base}/members`)
+  await visible(page.getByText('support@example.com')).waitFor()
+  await overflow('members')
+  await shot(page, `${vp.name}-${lang}-members`)
   await ctx.close()
 }
 
@@ -820,6 +852,8 @@ try {
     await run(vp)
     await runDark(vp)
     await runEnglish(vp)
+    await runLocale(vp, 'ja-JP', 'ja')
+    await runLocale(vp, 'ar-EG', 'ar')
   }
 } catch (err) {
   failed = true

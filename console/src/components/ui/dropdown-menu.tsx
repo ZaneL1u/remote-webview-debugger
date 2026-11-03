@@ -62,9 +62,9 @@ function DropdownMenuRadioGroup(props: MenuPrimitive.RadioGroup.Props) {
 
 function DropdownMenuRadioItem({ className, children, ...props }: MenuPrimitive.RadioItem.Props) {
   return (
-    <MenuPrimitive.RadioItem data-slot="dropdown-menu-radio-item" className={cn(itemClass, 'pr-8', className)} {...props}>
+    <MenuPrimitive.RadioItem data-slot="dropdown-menu-radio-item" className={cn(itemClass, 'pe-8', className)} {...props}>
       {children}
-      <MenuPrimitive.RadioItemIndicator className="absolute right-2 flex items-center">
+      <MenuPrimitive.RadioItemIndicator className="absolute end-2 flex items-center">
         <CheckIcon className="size-4" />
       </MenuPrimitive.RadioItemIndicator>
     </MenuPrimitive.RadioItem>

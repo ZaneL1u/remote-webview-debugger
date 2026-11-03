@@ -456,7 +456,7 @@ export function PolicyEditor({ project }: { project: Project }) {
             dirty && 'sticky bottom-0 shadow-[0_-6px_16px_-12px_rgb(0_0_0/0.35)]',
           )}
         >
-          <span className="mr-auto text-xs text-muted-foreground">{dirty ? m.unsaved : m.allSaved}</span>
+          <span className="me-auto text-xs text-muted-foreground">{dirty ? m.unsaved : m.allSaved}</span>
           <Button
             type="button"
             variant="ghost"
@@ -540,11 +540,11 @@ function NumberField({
             min={0}
             step={1}
             value={value}
-            className="[appearance:textfield] pr-12 tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="[appearance:textfield] pe-12 tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             aria-invalid={!!error || undefined}
             onChange={(e) => onChange(e.target.value)}
           />
-          <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">{unit}</span>
+          <span className="pointer-events-none absolute top-1/2 end-3 -translate-y-1/2 text-xs text-muted-foreground">{unit}</span>
         </div>
       )}
     </Field>

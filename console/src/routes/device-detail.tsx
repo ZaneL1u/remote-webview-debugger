@@ -77,12 +77,12 @@ export function DeviceDetailPage() {
   const backClass = 'inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground'
   const back = from ? (
     <Link to="/projects/$projectId" params={{ projectId: from }} search={{ tab: 'devices' }} className={backClass}>
-      <ChevronLeftIcon className="size-4" />
+      <ChevronLeftIcon className="size-4 rtl:-scale-x-100" />
       {fromProject ? t.projectDevices(fromProject.name) : t.projectDevicesFallback}
     </Link>
   ) : (
     <Link to="/" search={lastDevicesSearch} className={backClass}>
-      <ChevronLeftIcon className="size-4" />
+      <ChevronLeftIcon className="size-4 rtl:-scale-x-100" />
       {t.allDevices}
     </Link>
   )

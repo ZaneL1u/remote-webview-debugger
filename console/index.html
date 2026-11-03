@@ -15,11 +15,27 @@
         var t = localStorage.getItem('rwd:theme')
         if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
       } catch (e) {}
-      // Same language rule as src/i18n/index.ts: saved choice, else zh* browsers get Chinese.
+      // Same language rule as src/i18n/index.ts: the saved choice, else the first browser language we have.
       try {
-        var l = localStorage.getItem('rwd.lang')
-        if (l !== 'en' && l !== 'zh') l = /^zh\b/i.test(navigator.language) ? 'zh' : 'en'
-        document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en'
+        var all = ['en', 'zh', 'zh-TW', 'ar', 'de', 'es', 'fr', 'ja', 'ko', 'pt', 'ru']
+        var l = null
+        try {
+          l = localStorage.getItem('rwd.lang')
+        } catch (e) {}
+        if (all.indexOf(l) < 0) {
+          l = 'en'
+          var prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']
+          for (var i = 0; i < prefs.length; i++) {
+            var p = String(prefs[i]).toLowerCase().replace(/_/g, '-').split('-')
+            var m = p[0] === 'zh' ? (p.indexOf('hant') > 0 || (p.indexOf('hans') < 0 && /-(tw|hk|mo)\b/.test(p.join('-'))) ? 'zh-TW' : 'zh') : p[0]
+            if (all.indexOf(m) >= 0) {
+              l = m
+              break
+            }
+          }
+        }
+        document.documentElement.lang = l === 'zh' ? 'zh-CN' : l
+        document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr'
       } catch (e) {}
     </script>
   </head>

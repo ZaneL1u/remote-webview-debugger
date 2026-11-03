@@ -77,7 +77,7 @@ export function DevicesTab({ project }: { project: Project }) {
               <div key={i} className="flex items-center gap-4 px-4 py-3.5">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-20" />
-                <Skeleton className="ml-auto h-4 w-16" />
+                <Skeleton className="ms-auto h-4 w-16" />
               </div>
             ))}
           </div>
@@ -125,13 +125,13 @@ function DeviceTable({ devices, projectId }: { devices: Device[]; projectId: str
       <Table>
         <TableHeader className="bg-muted/40">
           <TableRow className="hover:bg-transparent">
-            <TableHead className="pl-4">{t.deviceCode}</TableHead>
+            <TableHead className="ps-4">{t.deviceCode}</TableHead>
             <TableHead>{t.userId}</TableHead>
             <TableHead>{t.platform}</TableHead>
             <TableHead>{t.appVersion}</TableHead>
-            <TableHead className="text-right">{t.pages}</TableHead>
+            <TableHead className="text-end">{t.pages}</TableHead>
             <TableHead>{t.control}</TableHead>
-            <TableHead className="pr-4 text-right">{t.lastSeen}</TableHead>
+            <TableHead className="pe-4 text-end">{t.lastSeen}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -143,7 +143,7 @@ function DeviceTable({ devices, projectId }: { devices: Device[]; projectId: str
                 void navigate({ to: '/devices/$deviceId', params: { deviceId: d.id }, search: { from: projectId } })
               }
             >
-              <TableCell className={cn('pl-4', d.help && 'shadow-[inset_3px_0_0_var(--destructive)]')}>
+              <TableCell className={cn('ps-4', d.help && 'shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)]')}>
                 <div className="flex items-center gap-2">
                   <OnlineDot online={d.online} />
                   <Link
@@ -167,14 +167,14 @@ function DeviceTable({ devices, projectId }: { devices: Device[]; projectId: str
                 <span className="block truncate text-xs text-muted-foreground">{summarizeUA(d.ua)}</span>
               </TableCell>
               <TableCell className="text-muted-foreground">{d.app?.version ?? '—'}</TableCell>
-              <TableCell className="text-right tabular-nums">{d.pages}</TableCell>
+              <TableCell className="text-end tabular-nums">{d.pages}</TableCell>
               <TableCell>
                 <div className="flex flex-wrap items-center gap-1">
                   {d.pending ? <PendingBadge pending={d.pending} /> : <ControlBadge state={d.control} agent={d.agent} />}
                   {d.level && d.control !== 'none' && !d.pending && <LevelBadge level={d.level} />}
                 </div>
               </TableCell>
-              <TableCell className="pr-4 text-right text-muted-foreground" title={new Date(d.lastSeenAt).toLocaleString(locale())}>
+              <TableCell className="pe-4 text-end text-muted-foreground" title={new Date(d.lastSeenAt).toLocaleString(locale())}>
                 {d.online ? <span className="text-success">{t.online}</span> : relativeTime(d.lastSeenAt)}
               </TableCell>
             </TableRow>
@@ -197,7 +197,7 @@ function DeviceCards({ devices, projectId }: { devices: Device[]; projectId: str
             search={{ from: projectId }}
             className={cn(
               'flex items-center gap-3 px-4 py-3 active:bg-muted/60',
-              d.help && 'bg-destructive-soft/60 shadow-[inset_3px_0_0_var(--destructive)]',
+              d.help && 'bg-destructive-soft/60 shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)]',
             )}
           >
             <div className="min-w-0 flex-1 space-y-1.5">
@@ -227,7 +227,7 @@ function DeviceCards({ devices, projectId }: { devices: Device[]; projectId: str
                 <span>{d.online ? t.online : relativeTime(d.lastSeenAt)}</span>
               </div>
             </div>
-            <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground" />
+            <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground rtl:-scale-x-100" />
           </Link>
         </li>
       ))}

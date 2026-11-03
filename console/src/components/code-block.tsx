@@ -40,7 +40,7 @@ export function CodeBlock({ code, title, lang, className, maxHeight, wrap }: Pro
       )}
     >
       {label ? (
-        <div className="flex items-center justify-between gap-2 border-b border-code-border bg-white/[0.03] py-1.5 pr-1.5 pl-3">
+        <div className="flex items-center justify-between gap-2 border-b border-code-border bg-white/[0.03] py-1.5 pe-1.5 ps-3">
           <span className="flex items-center gap-2 text-xs font-medium text-code-muted">
             <span className="flex gap-1" aria-hidden>
               <span className="size-2 rounded-full bg-white/15" />
@@ -52,13 +52,13 @@ export function CodeBlock({ code, title, lang, className, maxHeight, wrap }: Pro
           <CopyButton value={code} label={t.common.copy} variant="ghost" className="text-code-muted hover:bg-white/10 hover:text-white" />
         </div>
       ) : (
-        <CopyButton value={code} variant="outline" className={cn('absolute top-2 right-2 z-10', copyOnInk)} />
+        <CopyButton value={code} variant="outline" className={cn('absolute top-2 end-2 z-10', copyOnInk)} />
       )}
       <pre
         className={cn(
           'overflow-auto p-3.5 font-mono text-[12.5px] leading-relaxed [scrollbar-color:rgb(255_255_255/0.2)_transparent]',
           wrap ? 'break-all whitespace-pre-wrap' : 'whitespace-pre',
-          !label && 'pr-12',
+          !label && 'pe-12',
         )}
         style={maxHeight ? { maxHeight } : undefined}
       >

@@ -1,0 +1,175 @@
+import type { shell as en } from '../en/shell'
+import { plural } from './common'
+
+const chars = (n: number) => plural(n, { one: 'حرف واحد', two: 'حرفين', few: '# أحرف', many: '# حرفًا', other: '# حرف' })
+
+export const shell: typeof en = {
+  tagline: 'دع الذكاء الاصطناعي يصحّح عن بُعد كل WebView في تطبيقك',
+  language: 'اللغة',
+
+  nav: {
+    skipToContent: 'التخطي إلى المحتوى الرئيسي',
+    home: (brand) => `الصفحة الرئيسية لـ ${brand}`,
+    main: 'التنقل الرئيسي',
+    devices: 'الأجهزة',
+    projects: 'المشاريع',
+    keys: 'مفاتيح API',
+    audit: 'سجل التدقيق',
+    members: 'الأعضاء',
+    docs: 'دليل الربط',
+    accountMenu: 'قائمة الحساب',
+    appearance: 'المظهر',
+    themeSystem: 'حسب النظام',
+    themeLight: 'فاتح',
+    themeDark: 'داكن',
+    changePassword: 'تغيير كلمة المرور',
+    logout: 'تسجيل الخروج',
+    gatewayVersion: (v) => `البوابة v${v}`,
+  },
+
+  auth: {
+    headline: ['دع الذكاء الاصطناعي يصحّح عن بُعد', 'كل WebView في تطبيقك'],
+    points: [
+      {
+        title: 'تتصل الأجهزة فورًا',
+        body: 'بمجرد أن تحمّل WebView في التطبيق أو صفحة H5 الـ SDK تصبح متصلة؛ ورمز الجهاز يكفي للعثور على هاتف المستخدم.',
+      },
+      {
+        title: 'الذكاء الاصطناعي يحقق بنفسه',
+        body: 'يأخذ Claude Code وغيره من الوكلاء لقطات ويقرؤون السجلات وينقرون الأزرار عبر MCP لإعادة إنتاج المشكلة.',
+      },
+      {
+        title: 'يبقى المستخدم متحكمًا',
+        body: 'يوافق المستخدم على كل ربط ويمكنه تولّي التحكم أو الإنهاء في أي وقت؛ وتُخفى البيانات الحساسة ويُدقَّق كل شيء.',
+      },
+    ],
+    footer: 'الجهاز · البوابة · MCP: مسار واحد لتصحيح WebView في تطبيقك',
+  },
+
+  login: {
+    subtitle: 'تسجيل الدخول إلى لوحة التحكم',
+    title: 'تسجيل الدخول',
+    description:
+      'سجّل الدخول بالبريد الإلكتروني وكلمة المرور الخاصين بعضويتك. في النشر الجديد يأتي حساب المالك من RWD_ADMIN_EMAIL وRWD_ADMIN_PASSWORD في البوابة.',
+    email: 'البريد الإلكتروني',
+    password: 'كلمة المرور',
+    submit: 'تسجيل الدخول',
+    badCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    accountBlocked: 'لا يمكن لهذا الحساب تسجيل الدخول. يُرجى التواصل مع مالك المشروع.',
+    tooManyAttempts: 'محاولات كثيرة جدًا. يُرجى المحاولة لاحقًا.',
+    emailRequired: 'يُرجى إدخال البريد الإلكتروني',
+    passwordRequired: 'يُرجى إدخال كلمة المرور',
+  },
+
+  invite: {
+    subtitle: 'قبول الدعوة والانضمام إلى لوحة التحكم',
+    invalid: 'رابط الدعوة غير صالح أو منتهي الصلاحية',
+    invalidDescription: 'روابط الدعوة صالحة لمدة 7 أيام ولمرة واحدة. يُرجى الطلب من مالك المشروع إرسال دعوة جديدة.',
+    goToLogin: 'الانتقال إلى تسجيل الدخول',
+    welcome: 'مرحبًا بك، تم تسجيل دخولك',
+    expired: 'انتهت صلاحية رابط الدعوة هذا. يُرجى الطلب من مالك المشروع إرسال دعوة جديدة.',
+    title: 'إعداد حسابك',
+    description: (email) => `تمت دعوتك للانضمام باسم <b>${email}</b>. سيتم تسجيل دخولك بعد تعيين كلمة المرور.`,
+    nameRequired: 'يُرجى إدخال اسمك',
+    passwordTooShort: (n) => `يجب أن تتكون كلمة المرور من ${chars(n)} على الأقل`,
+    passwordMismatch: 'كلمتا المرور غير متطابقتين',
+    name: 'الاسم',
+    password: 'كلمة المرور',
+    passwordHint: (n) => `${chars(n)} على الأقل.`,
+    confirm: 'تأكيد كلمة المرور',
+    submit: 'قبول الدعوة وتسجيل الدخول',
+  },
+
+  password: {
+    changed: 'تم تغيير كلمة المرور',
+    wrongCurrent: 'كلمة المرور الحالية غير صحيحة',
+    title: 'تغيير كلمة المرور',
+    description: 'تبقى الجلسات على أجهزتك الأخرى مسجّلة الدخول.',
+    currentRequired: 'يُرجى إدخال كلمة المرور الحالية',
+    tooShort: (n) => `يجب أن تتكون كلمة المرور الجديدة من ${chars(n)} على الأقل`,
+    sameAsCurrent: 'يجب أن تختلف كلمة المرور الجديدة عن الحالية',
+    mismatch: 'كلمتا المرور الجديدتان غير متطابقتين',
+    current: 'كلمة المرور الحالية',
+    new: 'كلمة المرور الجديدة',
+    hint: (n) => `${chars(n)} على الأقل.`,
+    confirm: 'تأكيد كلمة المرور الجديدة',
+    submit: 'تغيير كلمة المرور',
+  },
+
+  states: {
+    notFound: 'الصفحة غير موجودة',
+    notFoundDescription: 'ربما يكون الرابط معطّلًا، أو ليست لديك صلاحية الوصول.',
+    backToDevices: 'العودة إلى الأجهزة',
+    forbidden: 'لا توجد صلاحية',
+    forbiddenDescription: (role) => `لا يسمح دورك (${role}) بعرض هذا. إن احتجت إلى الوصول، يُرجى التواصل مع مالك المشروع.`,
+  },
+
+  gateway: {
+    health: {
+      checking: 'جارٍ الفحص',
+      connected: 'متصلة',
+      degraded: 'أداء متراجع',
+      disconnected: 'غير متصلة',
+    },
+    title: (label) => `البوابة: ${label}`,
+    ariaLabel: (label) => `حالة البوابة: ${label}`,
+    selfCheckFailed: 'فشل الفحص الذاتي للبوابة',
+    slow: (ms) => `استجابات بطيئة (${ms} ms)`,
+    streamDown: 'انقطعت التحديثات الحية؛ يجري الاستطلاع مؤقتًا',
+    rtt: { good: 'جيد', fair: 'مقبول', slow: 'بطيء' },
+    unreachable: (error, seconds) => `تعذّر الوصول إلى البوابة: ${error}. تُعاد المحاولة كل ${seconds} ث.`,
+    reasons: (reasons) => `${reasons.join('؛ ')}.`,
+    checkingSummary: 'جارٍ فحص البوابة…',
+    legacySummary: 'البوابة تعمل. لا يتضمن هذا الإصدار من البوابة نقطة نهاية للحالة، لذا لا تتوفر مقاييس تفصيلية.',
+    okSummary: 'البوابة سليمة؛ وتصل تغييرات الأجهزة إلى لوحة التحكم مباشرةً.',
+    latency: 'زمن الاستجابة',
+    stream: 'التحديثات الحية',
+    streamLive: 'SSE مباشر',
+    streamPolling: 'استطلاع',
+    streamConnecting: 'جارٍ الاتصال…',
+    onlineDevices: 'الأجهزة المتصلة',
+    agents: 'عمليات ربط الذكاء الاصطناعي',
+    pages: 'اتصالات الصفحات',
+    projects: 'المشاريع',
+    version: 'إصدار البوابة',
+    sdkVersion: 'إصدار SDK',
+    uptime: 'مدة التشغيل',
+    database: 'قاعدة البيانات',
+    url: 'عنوان URL للبوابة',
+    urlCopied: 'تم نسخ عنوان URL للبوابة',
+    checkedAt: (ago) => `آخر فحص ${ago}`,
+    lastOk: (ago) => `آخر حالة سليمة: ${ago}`,
+    neverConnected: 'لم يتم الاتصال بعد',
+    streamJustConnected: ' · اتصل البث للتو',
+    streamConnectedFor: (duration) => ` · البث متصل منذ ${duration}`,
+    check: 'فحص',
+    troubleshoot: 'استكشاف الأخطاء',
+  },
+
+  live: {
+    live: { label: 'مباشر', title: 'متصل بالتحديثات الحية؛ تظهر تغييرات الأجهزة فورًا' },
+    connecting: { label: 'جارٍ الاتصال…', title: 'جارٍ الاتصال بالتحديثات الحية' },
+    down: {
+      label: 'استطلاع كل 2 ث',
+      title: 'انقطعت التحديثات الحية؛ يجري التحديث كل ثانيتين، وتعود تلقائيًا بعد استعادتها',
+    },
+  },
+
+  pagination: {
+    label: 'ترقيم الصفحات',
+    empty: 'لا توجد أجهزة',
+    summary: (from, to, total) => `${from}–${to} من ${total}`,
+    perPage: 'لكل صفحة',
+    perPageAria: 'عدد العناصر في كل صفحة',
+    perPageOption: (n) => String(n),
+    previous: 'الصفحة السابقة',
+    next: 'الصفحة التالية',
+    page: (n) => `الصفحة ${n}`,
+  },
+
+  qr: {
+    alt: 'رمز QR',
+    failed: 'تعذّر إنشاء رمز QR. يُرجى نسخ الرابط بدلًا من ذلك.',
+    download: 'تنزيل رمز QR',
+  },
+}

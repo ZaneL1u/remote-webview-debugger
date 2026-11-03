@@ -92,7 +92,7 @@ export function MembersPage() {
                   <div key={i} className="flex items-center gap-4 px-5 py-3.5">
                     <Skeleton className="size-8 rounded-full" />
                     <Skeleton className="h-4 w-40" />
-                    <Skeleton className="ml-auto h-4 w-16" />
+                    <Skeleton className="ms-auto h-4 w-16" />
                   </div>
                 ))}
               </div>
@@ -182,12 +182,12 @@ function MemberList({ members, selfId, manage }: { members: Member[]; selfId?: s
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="pl-5">{t.member}</TableHead>
+              <TableHead className="ps-5">{t.member}</TableHead>
               <TableHead>{t.role}</TableHead>
               <TableHead>{t.status}</TableHead>
               <TableHead>{t.lastLogin}</TableHead>
               <TableHead>{t.joined}</TableHead>
-              {manage && <TableHead className="pr-5 text-right">{t.actions}</TableHead>}
+              {manage && <TableHead className="pe-5 text-end">{t.actions}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -227,7 +227,7 @@ function MemberRow({ m, self, manage }: { m: Member; self: boolean; manage: bool
   const { update, remove } = useMemberMutations(m)
   return (
     <TableRow className={cn(m.disabled && 'text-muted-foreground')}>
-      <TableCell className="max-w-72 pl-5">
+      <TableCell className="max-w-72 ps-5">
         <Identity m={m} self={self} />
       </TableCell>
       <TableCell>
@@ -241,7 +241,7 @@ function MemberRow({ m, self, manage }: { m: Member; self: boolean; manage: bool
       </TableCell>
       <TableCell className="text-muted-foreground">{formatDay(m.createdAt)}</TableCell>
       {manage && (
-        <TableCell className="pr-5 text-right">
+        <TableCell className="pe-5 text-end">
           {self ? (
             <span className="text-xs text-muted-foreground">{t.cantEditSelf}</span>
           ) : (
@@ -266,7 +266,7 @@ function MemberCard({ m, self, manage }: { m: Member; self: boolean; manage: boo
         {manage && !self ? <RoleMenu m={m} onChange={(role) => update.mutate({ role })} pending={update.isPending} /> : <RoleBadge role={m.role} />}
         <span>{m.lastLoginAt ? t.signedInAgo(relativeTime(m.lastLoginAt)) : t.neverSignedIn}</span>
         {manage && !self && (
-          <span className="ml-auto">
+          <span className="ms-auto">
             <MemberActions m={m} update={update} remove={remove} />
           </span>
         )}

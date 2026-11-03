@@ -190,6 +190,11 @@
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 6rem;
   }
+  /* Right-to-left (Arabic): code, commands and ids still read left to right, isolated from the text around them. */
+  [dir='rtl'] :where(code, pre, kbd, samp) {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     min-height: 100dvh;

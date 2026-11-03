@@ -71,7 +71,7 @@ export function Pagination({
             disabled={page <= 1}
             onClick={() => onPage(page - 1)}
           >
-            <ChevronLeftIcon />
+            <ChevronLeftIcon className="rtl:-scale-x-100" />
           </Button>
           <span className="px-2 text-muted-foreground tabular-nums sm:hidden">
             {page} / {pages}
@@ -104,7 +104,7 @@ export function Pagination({
             disabled={page >= pages}
             onClick={() => onPage(page + 1)}
           >
-            <ChevronRightIcon />
+            <ChevronRightIcon className="rtl:-scale-x-100" />
           </Button>
         </div>
       </div>

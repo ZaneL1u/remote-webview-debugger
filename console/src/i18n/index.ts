@@ -1,65 +1,134 @@
 import { createElement, Fragment, type ReactNode, useSyncExternalStore } from 'react'
 
 import { en, type Messages } from './en'
-import { zh } from './zh'
 
-// UI language. An explicit choice lives in localStorage (per browser); otherwise the browser language
-// decides (zh* → Chinese, anything else → English). index.html applies the same rule to <html lang>
-// before the first paint.
+// UI language. An explicit choice lives in localStorage (per browser); otherwise the browser's
+// languages decide: the first one we have, matching zh-HK / zh-Hant to Traditional Chinese and fr-CA
+// to French, else English. index.html applies the same rule to <html lang dir> before the first paint.
 //
-// The catalogs are plain typed objects (en/ is the source of truth, zh/ must have the same shape).
-// Components read them with useT(); code outside React (formatters, the API client, toasts fired from
-// mutation callbacks) reads the current one with getT().
+// The catalogs are plain typed objects (en/ is the source of truth, every other folder must have the
+// same shape). English is bundled; the others are separate chunks loaded on demand, and a language is
+// shown once its catalog is in (main.tsx waits for the first one). Components read the current catalog
+// with useT(); code outside React (formatters, the API client, toasts fired from mutation callbacks)
+// reads it with getT().
 
-export type Lang = 'en' | 'zh'
+export type Lang = 'en' | 'zh' | 'zh-TW' | 'ar' | 'de' | 'es' | 'fr' | 'ja' | 'ko' | 'pt' | 'ru'
 export type { Messages }
 
 /** Endonyms for the language switcher; never translated. */
 export const languages: { value: Lang; label: string }[] = [
-  { value: 'zh', label: '中文' },
   { value: 'en', label: 'English' },
+  { value: 'zh', label: '简体中文' },
+  { value: 'zh-TW', label: '繁體中文' },
+  { value: 'ar', label: 'العربية' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'es', label: 'Español' },
+  { value: 'fr', label: 'Français' },
+  { value: 'ja', label: '日本語' },
+  { value: 'ko', label: '한국어' },
+  { value: 'pt', label: 'Português' },
+  { value: 'ru', label: 'Русский' },
 ]
 
+const loaders: Record<Exclude<Lang, 'en'>, () => Promise<Messages>> = {
+  zh: () => import('./zh').then((m) => m.zh),
+  'zh-TW': () => import('./zh-TW').then((m) => m.zhTW),
+  ar: () => import('./ar').then((m) => m.ar),
+  de: () => import('./de').then((m) => m.de),
+  es: () => import('./es').then((m) => m.es),
+  fr: () => import('./fr').then((m) => m.fr),
+  ja: () => import('./ja').then((m) => m.ja),
+  ko: () => import('./ko').then((m) => m.ko),
+  pt: () => import('./pt').then((m) => m.pt),
+  ru: () => import('./ru').then((m) => m.ru),
+}
+
 const KEY = 'rwd.lang'
-const catalogs: Record<Lang, Messages> = { en, zh }
+const catalogs: Partial<Record<Lang, Messages>> = { en }
 const listeners = new Set<() => void>()
+
+function isLang(v: unknown): v is Lang {
+  return languages.some((l) => l.value === v)
+}
+
+/** The supported language for a BCP 47 tag, or null: zh-HK → zh-TW, zh-SG → zh, pt-PT → pt. */
+export function matchLang(tag: string): Lang | null {
+  const parts = tag.trim().toLowerCase().replace(/_/g, '-').split('-')
+  if (parts[0] === 'zh') {
+    const hant = parts.includes('hant') || (!parts.includes('hans') && parts.some((p) => p === 'tw' || p === 'hk' || p === 'mo'))
+    return hant ? 'zh-TW' : 'zh'
+  }
+  return isLang(parts[0]) ? parts[0] : null
+}
 
 function stored(): Lang | null {
   try {
     const v = localStorage.getItem(KEY)
-    return v === 'en' || v === 'zh' ? v : null
+    return isLang(v) ? v : null
   } catch {
     return null
   }
 }
 
 function detect(): Lang {
-  const nav = typeof navigator !== 'undefined' ? navigator.language : ''
-  return /^zh\b/i.test(nav) ? 'zh' : 'en'
+  if (typeof navigator === 'undefined') return 'en'
+  const prefs = navigator.languages?.length ? navigator.languages : [navigator.language || '']
+  for (const tag of prefs) {
+    const l = matchLang(tag)
+    if (l) return l
+  }
+  return 'en'
 }
 
-let lang: Lang = stored() ?? detect()
+function load(l: Lang): Promise<Messages> {
+  const ready = catalogs[l]
+  if (ready) return Promise.resolve(ready)
+  return loaders[l as Exclude<Lang, 'en'>]().then((m) => (catalogs[l] = m))
+}
+
+let lang: Lang = 'en'
+let wanted: Lang = stored() ?? detect()
+
+function show(next: Lang) {
+  if (next !== wanted) return // a later choice won the race
+  const changed = next !== lang
+  lang = next
+  applyDocument()
+  if (changed) listeners.forEach((l) => l())
+}
+
+/** Resolves once the first language is ready to render (English if its catalog fails to load). */
+export const ready: Promise<void> = load(wanted).then(
+  () => show(wanted),
+  () => {
+    wanted = 'en'
+    show('en')
+  },
+)
 applyDocument()
 
 function applyDocument() {
   if (typeof document === 'undefined') return
   document.documentElement.lang = htmlLang(lang)
+  document.documentElement.dir = dirOf(lang)
 }
 
 export function getLang(): Lang {
   return lang
 }
 
+/** Switch language: remembered right away, shown as soon as its catalog has loaded. */
 export function setLang(next: Lang) {
   try {
     localStorage.setItem(KEY, next)
   } catch {
     // private mode: the choice still applies to this tab
   }
-  if (next === lang) return
-  lang = next
-  applyDocument()
-  listeners.forEach((l) => l())
+  wanted = next
+  load(next).then(
+    () => show(next),
+    () => undefined,
+  )
 }
 
 /** Runs `listener` after every language change; returns the unsubscribe function. */
@@ -76,22 +145,31 @@ export function useLang(): Lang {
 
 /** The current catalog, re-rendering the caller when the language changes. */
 export function useT(): Messages {
-  return catalogs[useLang()]
+  return catalogs[useLang()] ?? en
 }
 
 /** The current catalog, for code outside React (read it at call time, do not cache it). */
 export function getT(): Messages {
-  return catalogs[lang]
+  return catalogs[lang] ?? en
 }
 
 /** BCP 47 tag for <html lang>, Intl formatters and the `Accept-Language` header sent to the gateway. */
 export function htmlLang(l: Lang = lang) {
-  return l === 'zh' ? 'zh-CN' : 'en'
+  return l === 'zh' ? 'zh-CN' : l
 }
 
-/** Locale for Intl / toLocaleString. */
+/** Locale for Intl / toLocaleString (Arabic keeps Western digits, like the code and logs around them). */
 export function locale(l: Lang = lang) {
-  return l === 'zh' ? 'zh-CN' : 'en-US'
+  return l === 'en' ? 'en-US' : l === 'zh' ? 'zh-CN' : l === 'pt' ? 'pt-BR' : l === 'ar' ? 'ar-u-nu-latn' : l
+}
+
+export function dirOf(l: Lang = lang): 'ltr' | 'rtl' {
+  return l === 'ar' ? 'rtl' : 'ltr'
+}
+
+/** Languages whose labels are short (CJK): the header nav fits at a smaller width. */
+export function isCompact(l: Lang = lang) {
+  return l === 'zh' || l === 'zh-TW' || l === 'ja' || l === 'ko'
 }
 
 type Tags = Record<string, (chunk: ReactNode) => ReactNode>

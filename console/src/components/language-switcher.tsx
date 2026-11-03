@@ -11,7 +11,7 @@ import {
 import { htmlLang, type Lang, languages, setLang, useLang, useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 
-/** Chinese / English menu; the choice is remembered per browser (i18n/index.ts). */
+/** Language menu; the choice is remembered per browser (i18n/index.ts). */
 export function LanguageSwitcher({
   className,
   labelClassName = 'hidden sm:inline',

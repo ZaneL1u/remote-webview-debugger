@@ -264,7 +264,7 @@ const docLink = (to: '/' | '/projects' | '/keys' | '/audit') => (s: React.ReactN
 )
 
 function Ul({ children }: { children: React.ReactNode }) {
-  return <ul className="space-y-2 pl-5 text-[15px] leading-7 text-foreground/90 marker:text-muted-foreground [&>li]:list-disc">{children}</ul>
+  return <ul className="space-y-2 ps-5 text-[15px] leading-7 text-foreground/90 marker:text-muted-foreground [&>li]:list-disc">{children}</ul>
 }
 
 function DocTable({ head, rows, className }: { head: string[]; rows: React.ReactNode[][]; className?: string }) {
@@ -274,7 +274,7 @@ function DocTable({ head, rows, className }: { head: string[]; rows: React.React
         <thead className="bg-muted/50">
           <tr>
             {head.map((h) => (
-              <th key={h} className="px-3.5 py-2.5 text-left text-xs font-medium whitespace-nowrap text-muted-foreground">
+              <th key={h} className="px-3.5 py-2.5 text-start text-xs font-medium whitespace-nowrap text-muted-foreground">
                 {h}
               </th>
             ))}
@@ -302,7 +302,7 @@ function Steps({ children }: { children: React.ReactNode }) {
 
 function Step({ title, children }: { title: React.ReactNode; children?: React.ReactNode }) {
   return (
-    <li className="relative pl-11 [counter-increment:step] before:absolute before:top-0 before:left-0 before:flex before:size-7 before:items-center before:justify-center before:rounded-full before:bg-brand before:text-xs before:font-semibold before:text-brand-foreground before:content-[counter(step)] after:absolute after:top-8 after:bottom-[-1.25rem] after:left-[13px] after:w-px after:bg-border last:after:hidden">
+    <li className="relative ps-11 [counter-increment:step] before:absolute before:top-0 before:start-0 before:flex before:size-7 before:items-center before:justify-center before:rounded-full before:bg-brand before:text-xs before:font-semibold before:text-brand-foreground before:content-[counter(step)] after:absolute after:top-8 after:bottom-[-1.25rem] after:start-[13px] after:w-px after:bg-border last:after:hidden">
       <p className="pt-0.5 font-medium">{title}</p>
       {children && <div className="mt-2 space-y-3 text-[15px] leading-7 text-foreground/90">{children}</div>}
     </li>
@@ -316,7 +316,7 @@ function DocsHero() {
   return (
     <div className="relative overflow-hidden rounded-2xl border bg-card px-5 py-6 shadow-xs sm:px-8 sm:py-10">
       <div className="bg-dots pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top_right,black,transparent_70%)]" />
-      <div className="bg-brand-gradient pointer-events-none absolute -top-24 -right-24 size-72 rounded-full opacity-[0.12] blur-3xl" />
+      <div className="bg-brand-gradient pointer-events-none absolute -top-24 -end-24 size-72 rounded-full opacity-[0.12] blur-3xl" />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
         <Logo className="size-11 drop-shadow-[0_8px_18px_rgb(93_92_245/0.35)] sm:size-16" />
         <div className="space-y-2">
@@ -387,7 +387,7 @@ function Field({ label, hint, children }: { label: string; hint: string; childre
 
 function Value({ value, muted }: { value: string; muted?: boolean }) {
   return (
-    <div className="flex h-9 items-center gap-1 rounded-md border bg-muted/40 pr-1 pl-3">
+    <div className="flex h-9 items-center gap-1 rounded-md border bg-muted/40 pe-1 ps-3">
       <span className={cn('min-w-0 flex-1 truncate font-mono text-[13px]', muted && 'text-muted-foreground')} title={value}>
         {value}
       </span>
@@ -689,10 +689,10 @@ function McpSection({ ctx }: { ctx: DocCtx }) {
       <P>{t.promptsIntro}</P>
       <div className="grid gap-2.5 sm:grid-cols-2">
         {t.prompts.map((prompt) => (
-          <div key={prompt} className="group relative rounded-xl border bg-card p-3.5 pr-11 text-sm leading-6 shadow-xs">
+          <div key={prompt} className="group relative rounded-xl border bg-card p-3.5 pe-11 text-sm leading-6 shadow-xs">
             <SparklesIcon className="mb-1.5 size-4 text-brand" />
             {prompt}
-            <CopyButton value={prompt} variant="ghost" ariaLabel={t.copyPrompt} className="absolute top-2 right-2 opacity-60 group-hover:opacity-100" />
+            <CopyButton value={prompt} variant="ghost" ariaLabel={t.copyPrompt} className="absolute top-2 end-2 opacity-60 group-hover:opacity-100" />
           </div>
         ))}
       </div>
@@ -865,7 +865,7 @@ function VerifySection({ ctx }: { ctx: DocCtx }) {
               </span>
               {it.title}
             </p>
-            <div className="mt-2.5 pl-8.5">{it.body}</div>
+            <div className="mt-2.5 ps-8.5">{it.body}</div>
           </li>
         ))}
       </ol>
@@ -931,7 +931,7 @@ function TroubleshootSection() {
           {t.viewDevices}
           <ArrowRightIcon className="size-3.5" />
         </Link>
-        <KeyRoundIcon className="ml-auto hidden size-4 text-muted-foreground sm:block" />
+        <KeyRoundIcon className="ms-auto hidden size-4 text-muted-foreground sm:block" />
       </div>
     </Section>
   )

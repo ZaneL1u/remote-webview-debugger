@@ -13,7 +13,7 @@ export function AuthLayout({ subtitle, children }: { subtitle: string; children:
   const t = useT()
   return (
     <div className="relative grid min-h-dvh lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-      <LanguageSwitcher className="absolute top-3 right-3 z-10 sm:top-4 sm:right-4" labelClassName="" />
+      <LanguageSwitcher className="absolute top-3 end-3 z-10 sm:top-4 sm:end-4" labelClassName="" />
       <aside className="bg-brand-gradient relative hidden overflow-hidden text-white lg:flex lg:flex-col lg:justify-between lg:p-12 xl:p-16">
         <div
           className="pointer-events-none absolute inset-0 opacity-30 [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_75%)]"
@@ -22,7 +22,7 @@ export function AuthLayout({ subtitle, children }: { subtitle: string; children:
             backgroundSize: '22px 22px',
           }}
         />
-        <div className="pointer-events-none absolute -right-32 -bottom-32 size-[28rem] rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -end-32 -bottom-32 size-[28rem] rounded-full bg-white/10 blur-3xl" />
         <div className="relative flex items-center gap-3">
           <Logo className="size-10 rounded-[10px] ring-1 ring-white/30" />
           <span className="text-lg font-semibold tracking-tight">{BRAND.name}</span>
@@ -51,7 +51,7 @@ export function AuthLayout({ subtitle, children }: { subtitle: string; children:
       </aside>
       <div className="flex items-center justify-center bg-background px-4 py-10 sm:px-8">
         <div className="w-full max-w-sm space-y-7">
-          <div className="flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
+          <div className="flex flex-col items-center gap-3 text-center lg:items-start lg:text-start">
             <Logo className="size-11 lg:hidden" />
             <div className="space-y-1">
               <h1 className="text-xl font-semibold tracking-tight lg:text-2xl">

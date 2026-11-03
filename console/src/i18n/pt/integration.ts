@@ -1,0 +1,248 @@
+import type { integration as en } from '../en/integration'
+
+export const integration: typeof en = {
+  key: {
+    title: 'Detalhes da integração',
+    description:
+      'A chave do app aparece no código-fonte da sua página e é pública por design: ela só consegue deixar dispositivos online, não controlá-los.',
+    gatewayUrl: 'URL do gateway',
+    appKey: 'Chave do app',
+    rotate: 'Trocar chave',
+    rotateTitle: 'Trocar a chave do app?',
+    rotateNew: 'Uma nova chave do app é gerada e a antiga para de funcionar imediatamente.',
+    rotateImpact: 'As páginas que ainda usam a chave antiga não conseguem ficar online até serem atualizadas. Faça isso só se a chave estiver sendo usada de forma abusiva.',
+    rotateConfirm: 'Trocar',
+    rotated: 'Chave do app trocada. Atualize o código de integração nas suas páginas em breve.',
+    sdkLatest: 'URL do SDK (mais recente)',
+    sdkPinned: (version) => `URL do SDK (fixada em ${version})`,
+  },
+
+  snippet: {
+    title: 'Código de integração',
+    description:
+      'Já preenchido com a URL do gateway e a chave do app deste projeto, pronto para copiar. Para aprovações nativas, a ponte de capturas de tela, tokens do dispositivo e mais, veja o <link>guia de integração</link>.',
+    tabH5: 'Página H5',
+    tabIos: 'iOS (Swift)',
+    tabAndroid: 'Android (Kotlin)',
+    sdkVersion: 'Versão do SDK',
+    latest: 'Mais recente',
+    pinned: (version) => `Fixada ${version} (SRI)`,
+    pinnedHint:
+      'Carrega uma versão fixa que o navegador confere com o hash de integridade. Bom para páginas com segurança rígida ou CSP. Atualize a versão e o integrity manualmente depois de uma atualização do gateway.',
+    latestHint: 'Sempre carrega o SDK mais recente do gateway, então as atualizações do gateway valem sem mexer na página.',
+    h5Hint: 'Adicione isto o mais cedo possível no <tag>head</tag> da página:',
+    iosHint: 'Sem mudanças no código H5: o app o injeta em documentStart com <c>WKUserScript</c>:',
+    androidHint: 'Sem mudanças no código H5: o app o injeta com <c>WebViewCompat.addDocumentStartJavaScript</c>:',
+  },
+
+  origins: {
+    title: 'Origens permitidas',
+    description: 'Quando definidas, só páginas dessas origens podem ficar online com a chave do app. Deixe em branco para não restringir.',
+    edit: 'Editar',
+    saved: 'Origens permitidas salvas',
+    invalid: (bad) => `Inválido: ${bad.join(', ')} (formato esperado: https://host[:porta]; use *. como curinga de subdomínio)`,
+    unrestricted: 'Sem restrição: páginas de qualquer origem podem ficar online.',
+  },
+
+  verify: {
+    title: 'Verificar integração',
+    description: 'Verifica em tempo real se um dispositivo fica online e se um agente consegue de fato operar a página.',
+    seen: 'Um dispositivo ficou online',
+    waiting: 'Aguardando o primeiro dispositivo',
+    firstSeen: (date, online) => `Online pela primeira vez em ${date} · ${online} online agora`,
+    waitingHint:
+      'Adicione o código de integração à sua página e abra-a no app ou em um navegador. Isto se atualiza sozinho assim que um dispositivo ficar online.',
+    projectDisabled: 'Este projeto está desativado, então os dispositivos não conseguem ficar online.',
+    deviceOnline: 'Dispositivo online',
+    deviceOffline: 'Dispositivo offline',
+    platform: 'Plataforma',
+    appVersion: 'Versão do app',
+    noApp: '— (página H5)',
+    currentPage: 'Página',
+    untitled: '(sem título)',
+    sdkVersion: 'Versão do SDK',
+    lastSeen: 'Visto por último',
+    viewDevice: 'Ver detalhes do dispositivo',
+    test: 'Testar conexão',
+    testHint:
+      'O gateway envia ao dispositivo um pedido de snapshot e mostra o tempo de ida e volta e o snapshot, provando que um agente consegue operar este dispositivo.',
+    testing: 'Testando…',
+  },
+
+  troubleshoot: {
+    title: 'O dispositivo não fica online?',
+    description: 'Verifique as causas mais comuns nesta ordem. Para mais detalhes, veja o <link>guia de solução de problemas</link>.',
+    badKey: {
+      title: 'Chave inválida ou projeto desativado',
+      body: 'O handshake WebSocket da página retorna 401. Confira se a chave no seu código de integração é igual à mostrada acima (trocar a chave invalida a antiga na hora) e se o projeto não está desativado.',
+    },
+    origin: {
+      title: 'Origem não permitida',
+      body: 'O handshake retorna 403. Adicione a origem da página (esquema + host + porta) às Origens permitidas, ou esvazie a lista para remover a restrição.',
+    },
+    csp: {
+      title: 'A CSP da página bloqueia a conexão',
+      body: 'O console do navegador mostra <c>Refused to connect</c>. Adicione o host do gateway ao <c>script-src</c> da CSP, e as URLs <c>https://</c> e <c>wss://</c> do gateway ao <c>connect-src</c>.',
+    },
+    sdkOld: {
+      title: 'Versão do SDK antiga demais',
+      body: 'Uma versão fixada do SDK pode não corresponder ao protocolo do gateway. Mude para a URL mais recente /v1/sdk.js, ou atualize para uma versão que o gateway suporte.',
+    },
+    timeout: {
+      title: 'Dispositivo online, mas o teste expira',
+      body: 'O JS da WebView fica pausado enquanto o app está em segundo plano. Peça ao usuário para trazer o app para o primeiro plano e ficar em uma página com o SDK, e tente de novo.',
+    },
+  },
+
+  invites: {
+    title: 'Convidar usuários para se conectar',
+    description:
+      'Envie ao usuário um link ou QR code com um token de convite. Quando ele abrir, o dispositivo fica online marcado como “pedindo ajuda”, então o suporte não precisa pedir o código do dispositivo.',
+    create: 'Criar convite',
+    emptyTitle: 'Ainda não há convites',
+    emptyDescription: 'Quando um usuário não consegue descrever bem o problema, envie um convite. Ele escaneia e o dispositivo se conecta.',
+    howTitle: 'Como funciona',
+    howSteps: [
+      'Crie um convite com o número do chamado ou uma descrição do usuário na observação, para encontrar o dispositivo na lista.',
+      'Envie ao usuário o QR code ou o link. Ele abre a URL de convite configurada em Configurações, ou a que você definir para esse convite.',
+      'Assim que ele abrir, o dispositivo aparece no topo da lista de Dispositivos com o selo Convidado. Passe o código do dispositivo ao seu agente.',
+      'Cada convite funciona uma vez e para de funcionar depois de usado ou expirado.',
+    ],
+    noDefaultUrl: 'Nenhuma URL de convite padrão está configurada, então todo convite precisa de um link. Você pode definir uma em <link>Configurações</link>.',
+    status: {
+      used: 'Usado',
+      expired: 'Expirado',
+      active: 'Ativo',
+    },
+    deleted: 'Convite excluído',
+    noNote: '(sem observação)',
+    createdBy: (name) => `Criado por ${name} · `,
+    usedAgo: (when) => `Usado ${when}`,
+    viewDevice: 'Ver dispositivo',
+    expiredAt: (date) => `Expirou em ${date}`,
+    expiresIn: (when) => `Expira ${when}`,
+    qrCode: 'QR code',
+    linkCopied: 'Link de convite copiado',
+    deleteLabel: 'Excluir convite',
+    deleteTitle: 'Excluir este convite?',
+    deleteActive: 'O link para de funcionar imediatamente; quem o abrir não será marcado como pedindo ajuda.',
+    deleteInactive: 'Só este registro é excluído. Os dispositivos que já se conectaram não são afetados.',
+
+    createTitle: 'Criar convite',
+    createDescription: 'Gera um link de uso único. Quando o usuário o abre, o dispositivo é marcado como pedindo ajuda.',
+    noteRequired: 'Digite uma observação',
+    badUrl: 'O link deve começar com http:// ou https://',
+    urlRequired: 'O projeto não tem uma URL de convite padrão. Digite um link.',
+    note: 'Observação',
+    notePlaceholder: 'ex.: Chamado #4821 falha no pagamento',
+    noteHint: 'Aparece na linha do tempo do dispositivo e no log de auditoria. Não inclua dados pessoais.',
+    url: 'Link',
+    optional: '(opcional)',
+    urlHint: (hasDefault) =>
+      `${hasDefault ? 'Deixe em branco para usar a URL de convite padrão do projeto.' : 'O projeto não tem uma URL de convite padrão, então este campo é obrigatório.'} A página precisa ter o SDK integrado.`,
+    expiry: 'Expira depois de',
+    expiryOptions: {
+      m30: '30 min',
+      h2: '2 horas',
+      d1: '1 dia',
+      d7: '7 dias',
+    },
+    submit: 'Criar convite',
+
+    qrTitle: 'QR code do convite',
+    qrDescription: (note, when) => `“${note}” · expira ${when} · uso único`,
+    scanHint: 'Peça ao usuário para escanear com a câmera do celular ou com o leitor do app',
+    orLink: 'Ou envie o link ao usuário',
+    done: 'Concluído',
+  },
+
+  test: {
+    failed: 'O teste falhou',
+    unknownFailure: 'O teste falhou por um motivo desconhecido.',
+    ok: 'Conectado. Um agente consegue operar este dispositivo.',
+    roundTrip: (ms) => `${ms} ms de ida e volta`,
+    untitled: '(sem título)',
+    snapshotPreview: 'Prévia do snapshot (primeiros 4.000 caracteres)',
+    emptySnapshot: '(snapshot vazio)',
+    errors: {
+      offline: 'O dispositivo não está online. Peça ao usuário para trazer o app para o primeiro plano e abrir uma página com o SDK, e tente de novo.',
+      noPage: 'O dispositivo está online, mas não tem nenhuma página conectada. Verifique se a página terminou de carregar.',
+      timeout:
+        'O dispositivo não respondeu em 15 segundos. O app pode estar em segundo plano (o JS da WebView fica pausado), ou a página travou.',
+      takeover: 'O usuário assumiu o controle, então o teste não pode ser executado agora.',
+      notFound: 'O dispositivo não existe ou não pertence mais a este projeto.',
+      badRequest: 'Parâmetros da requisição inválidos.',
+      internal: 'A página teve um erro interno. Verifique se a versão do SDK está desatualizada, ou procure erros no console da página.',
+      network: 'Não foi possível acessar o gateway. Verifique sua rede.',
+    },
+  },
+
+  snippets: {
+    sampleAppName: 'Loja',
+    usage: 'Uso:',
+    dependency: (dep) => `Dependência: ${dep}`,
+    h5Head: 'Carregue de forma síncrona, o mais cedo possível no <head>, para que o SDK registre o console e a rede desde o início',
+    h5Pinned: (version) =>
+      `Fixado na versão ${version} com Subresource Integrity (SRI). Atualize a versão e o integrity depois de uma atualização do gateway`,
+    userIdOptional: 'opcional: o ID do usuário logado, para encontrar dispositivos por usuário',
+    helpButton: 'mostrar o botão de ajuda',
+    iosInstall: 'Chame antes de webView.load(...): baixa o SDK uma vez e o injeta no frame principal em documentStart.',
+    deviceIdPerInstall: 'Um deviceId (UUID v4) fixo por instalação, para que o código do dispositivo nunca mude.',
+    androidWebViewSettings: 'A WebView precisa de settings.javaScriptEnabled = true e settings.domStorageEnabled = true',
+    androidInstall: 'Chame antes de webView.loadUrl(...): baixa o SDK uma vez e o injeta no início do documento.',
+
+    full: {
+      userId: 'opcional: o usuário logado, para que o console e os agentes encontrem dispositivos por usuário',
+      helpButton: 'opcional: mostrar o botão "pedir ajuda" (combinado com OU com a política do projeto)',
+      app: 'opcional: informações do app host; páginas H5 independentes podem omitir',
+      nativeOnly: 'Só para injeção nativa por um app; veja "Integrar um app nativo"',
+      deviceCode: 'Código do dispositivo do Remote Debugger',
+      example: 'ex.:',
+    },
+    jsApi: {
+      help: 'pedir ajuda (passe false para cancelar)',
+      setUser: 'chame depois do login / da troca de usuário; reconecta uma vez',
+      stop: 'desconecta e remove a interface, por exemplo quando o usuário desativa a depuração remota',
+    },
+    mask: {
+      masked: 'Aparece como •••• em snapshots, capturas de tela e na saída do console',
+      samplePhone: '(11) 91234-5678',
+      confirm: 'Antes que um agente clique, o dispositivo pede a confirmação do usuário',
+      placeOrder: 'Fazer pedido',
+    },
+    native: {
+      screenshotBridge: 'ponte nativa de capturas de tela',
+      swiftTrimmed: 'Uma versão resumida de examples/mock-app/Sources/RWDMockApp/RWDNative.swift.',
+      swiftInstall: 'Chame RWD.shared.install(into: configuration) antes de criar cada WKWebView.',
+      swiftOnState: 'controla a barra de status nativa e os botões assumir / devolver / encerrar',
+      swiftOnPending: 'aprovações de conexão e confirmações de ações (diálogos nativos)',
+      swiftNativeKey: [
+        'Um segredo que só o app conhece: os scripts da página (inclusive o evaluate_script de um agente) não conseguem lê-lo,',
+        'então não podem se passar pelo usuário para devolver o controle ou aprovar uma conexão.',
+      ],
+      swiftDeviceId: 'Um deviceId por instalação, compartilhado por todas as WebViews e todos os domínios → o código do dispositivo nunca muda.',
+      swiftDeviceToken:
+        'Emitido pelo gateway na primeira vez que ele vê este dispositivo. O localStorage é separado por domínio, então o app o guarda e o injeta.',
+      swiftEnable: 'Chame quando o usuário aceitar a depuração remota: baixa o SDK uma vez; as WebViews criadas depois disso recebem a injeção.',
+      swiftOwnHelp: 'o app tem a própria opção "pedir ajuda"',
+      swiftNativeApproval: 'aprovações / confirmações usam diálogos nativos',
+      swiftDocumentStart: 'documentStart: a gravação do console e da rede começa antes de qualquer script da página rodar',
+      buttons: 'Botões nativos',
+      swiftDecide:
+        'Aprovação de conexão: passe um nível (observe / interact / advanced), ou nil para negar. Confirmação de ação: passe "allow" ou nil.',
+      swiftTokenCarried: 'as páginas abertas a partir de agora (inclusive de outros domínios) o levam',
+      swiftScreenshot: 'Quando um agente chama take_screenshot, o SDK obtém os pixels reais por esta ponte.',
+      kotlinReference: 'Implementação de referência (não compilada em um projeto de app real); a API espelha a versão iOS um a um.',
+      kotlinNativeKey: 'Um segredo que só o app conhece; nunca exposto à página por nenhuma interface JS.',
+      kotlinOnState: 'controla a barra de status nativa e os botões',
+      kotlinOnPending: 'diálogos nativos de aprovação / confirmação',
+      kotlinDeviceId: 'Um deviceId por instalação, compartilhado por todas as WebViews e todos os domínios.',
+      kotlinEnable: 'Chame uma vez depois que o usuário aceitar a depuração remota.',
+      kotlinInstall: 'Chame para cada WebView antes de loadUrl. Requer javaScriptEnabled e domStorageEnabled.',
+      kotlinButtons: 'Botões nativos: takeover | handback | end; aprovações recebem um nível ou null, confirmações "allow" ou null',
+      kotlinTokenCarried: 'as WebViews criadas a partir de agora o levam',
+      kotlinScreenshot:
+        'Quando um agente chama take_screenshot, o SDK chama window.RWDAndroid.screenshot(), que retorna uma data URL JPEG.',
+    },
+  },
+}

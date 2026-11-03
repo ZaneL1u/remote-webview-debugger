@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client'
 
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
-import { onLangChange } from '@/i18n'
+import { onLangChange, ready } from '@/i18n'
 import { setUnauthorizedHandler } from '@/lib/api'
 import { createQueryClient } from '@/lib/query'
 import { createAppRouter } from '@/router'
@@ -33,13 +33,16 @@ setUnauthorizedHandler(() => {
 // Refetch after a language switch: error messages and other gateway-made text are localized server-side.
 onLangChange(() => void queryClient.invalidateQueries())
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <RouterProvider router={router} />
-        <Toaster position="top-center" richColors closeButton />
-      </TooltipProvider>
-    </QueryClientProvider>
-  </StrictMode>,
+// First paint in the user's language: its catalog is a separate chunk (i18n/index.ts).
+void ready.then(() =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <RouterProvider router={router} />
+          <Toaster position="top-center" richColors closeButton />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </StrictMode>,
+  ),
 )

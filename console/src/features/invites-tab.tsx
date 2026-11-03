@@ -80,7 +80,7 @@ export function InvitesTab({ project }: { project: Project }) {
               {Array.from({ length: 2 }, (_, i) => (
                 <div key={i} className="flex items-center gap-4 px-5 py-3.5">
                   <Skeleton className="h-4 w-40" />
-                  <Skeleton className="ml-auto h-4 w-16" />
+                  <Skeleton className="ms-auto h-4 w-16" />
                 </div>
               ))}
             </div>
@@ -115,7 +115,7 @@ export function InvitesTab({ project }: { project: Project }) {
           <CardTitle>{ti.howTitle}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="list-decimal space-y-2 pl-4 text-sm text-muted-foreground marker:text-foreground/60">
+          <ol className="list-decimal space-y-2 ps-4 text-sm text-muted-foreground marker:text-foreground/60">
             {ti.howSteps.map((step) => (
               <li key={step}>{step}</li>
             ))}
@@ -210,7 +210,7 @@ function InviteRow({
                     className="inline-flex items-center text-brand hover:underline"
                   >
                     {ti.viewDevice}
-                    <ChevronRightIcon className="size-3" />
+                    <ChevronRightIcon className="size-3 rtl:-scale-x-100" />
                   </Link>
                 </>
               )}

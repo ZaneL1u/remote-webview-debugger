@@ -75,7 +75,7 @@ export function ProjectDetailPage() {
     <div className="space-y-5">
       <div className="space-y-2">
         <Link to="/projects" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ChevronLeftIcon className="size-4" />
+          <ChevronLeftIcon className="size-4 rtl:-scale-x-100" />
           {t.projects.title}
         </Link>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

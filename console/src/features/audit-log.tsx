@@ -168,7 +168,7 @@ export function AuditLog({ projectId }: { projectId?: string }) {
                 <Skeleton className="h-4 w-28" />
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-40" />
-                <Skeleton className="ml-auto h-4 w-12" />
+                <Skeleton className="ms-auto h-4 w-12" />
               </div>
             ))}
           </div>
@@ -236,19 +236,19 @@ function AuditRow({ event: e, showProject, projectName }: { event: AuditEvent; s
     <li>
       <button
         type="button"
-        className="flex w-full items-start gap-3 px-4 py-2.5 text-left text-sm transition-colors outline-none hover:bg-muted/50 focus-visible:bg-muted/60"
+        className="flex w-full items-start gap-3 px-4 py-2.5 text-start text-sm transition-colors outline-none hover:bg-muted/50 focus-visible:bg-muted/60"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
         <ChevronRightIcon
-          className={cn('mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-90', !hasDetail && 'opacity-30')}
+          className={cn('mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90', !hasDetail && 'opacity-30')}
         />
         {/* Phones: action and result first, then time and actor. */}
         <div className="min-w-0 flex-1 space-y-0.5 md:hidden">
           <div className="flex items-start justify-between gap-2">
             <span className="min-w-0">
               <span className="font-medium">{actionLabel(e.action)}</span>
-              {e.target && <span className="ml-1.5 font-mono text-xs break-all text-muted-foreground">{e.target}</span>}
+              {e.target && <span className="ms-1.5 font-mono text-xs break-all text-muted-foreground">{e.target}</span>}
             </span>
             <ResultBadge result={e.result} />
           </div>
@@ -282,7 +282,7 @@ function AuditRow({ event: e, showProject, projectName }: { event: AuditEvent; s
         </div>
       </button>
       {open && (
-        <div className="space-y-2 border-t bg-muted/30 px-4 py-3 pl-11 text-xs">
+        <div className="space-y-2 border-t bg-muted/30 px-4 py-3 ps-11 text-xs">
           <dl className="grid grid-cols-[5rem_1fr] gap-x-3 gap-y-1">
             <dt className="text-muted-foreground">{t.detail.action}</dt>
             <dd className="font-mono">{e.action}</dd>

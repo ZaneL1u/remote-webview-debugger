@@ -103,7 +103,7 @@ function ProjectCard({ project: p }: { project: Project }) {
             </div>
             <p className="mt-1 truncate font-mono text-xs text-muted-foreground">{p.appKey}</p>
           </div>
-          <ChevronRightIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          <ChevronRightIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" />
         </div>
         <div className="flex items-center justify-between gap-3 text-sm">
           <div className="flex items-center gap-2">
