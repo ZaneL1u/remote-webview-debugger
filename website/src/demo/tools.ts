@@ -137,7 +137,7 @@ export class Tools {
   private describeDevice(): string {
     const d = this.gw.device!
     const parts = [d.code]
-    parts.push(d.help ? this.tx('asking for help', '求助中') : this.gw.online() ? this.tx('online', '在线') : this.tx('offline', '离线'))
+    parts.push(d.help ? this.tx('assisting', '协助中') : this.gw.online() ? this.tx('online', '在线') : this.tx('offline', '离线'))
     parts.push(systemLabel(d.info))
     if (d.info && d.info.app && d.info.app.name) parts.push(`${d.info.app.name} ${d.info.app.version || ''}`.trim())
     if (d.userId) parts.push(this.tx(`user ${d.userId}`, `用户 ${d.userId}`))

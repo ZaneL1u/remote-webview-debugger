@@ -145,7 +145,7 @@ export const en = {
       {
         title: 'The user shares a device code',
         body:
-          'Every phone gets a permanent code like <code>K7Q2-9M4X</code> in a small pill. Users can tap <em>Ask for help</em>, and the device jumps to the top of the agent’s list.',
+          'Every phone gets a permanent code like <code>K7Q2-9M4X</code> in a small pill. Users can tap <em>Request assistance</em>, and the device jumps to the top of the agent’s list.',
       },
       {
         title: 'Your agent connects over MCP',
@@ -153,7 +153,7 @@ export const en = {
           'Add the gateway’s hosted MCP endpoint with an API key. Then just describe the problem — the agent finds the device, asks for approval and starts working.',
       },
     ],
-    pill: { code: 'K7Q2-9M4X', online: 'Online', help: 'Ask for help' },
+    pill: { code: 'K7Q2-9M4X', online: 'Online', help: 'Request assistance' },
     chip1: 'sdk.js · console + network from line one',
     chip3: 'approved on the phone · level interact',
     prompt: 'Device K7Q2-9M4X can’t check out — the total shows “--”. Find out why.',

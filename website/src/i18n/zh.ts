@@ -143,14 +143,14 @@ export const zh: Dict = {
       },
       {
         title: '用户报出设备码',
-        body: '每台手机都有一个固定的设备码，比如 <code>K7Q2-9M4X</code>，显示在一个小胶囊里。用户点一下「求助」，这台设备就会排到 agent 列表的最前面。',
+        body: '每台手机都有一个固定的设备码，比如 <code>K7Q2-9M4X</code>，显示在一个小胶囊里。用户点一下「请求协助」，这台设备就会排到 agent 列表的最前面。',
       },
       {
         title: 'agent 通过 MCP 接入',
         body: '用 API Key 把网关的托管 MCP 地址加进你的 agent，然后直接描述问题。agent 会自己找到设备、请求用户确认，然后开始排查。',
       },
     ],
-    pill: { code: 'K7Q2-9M4X', online: '在线', help: '求助' },
+    pill: { code: 'K7Q2-9M4X', online: '在线', help: '请求协助' },
     chip1: 'sdk.js · 从第一行起记录 console 和网络',
     chip3: '用户已在手机上允许 · interact 级别',
     prompt: '设备 K7Q2-9M4X 结算不了，合计显示「--」，帮我查一下原因。',

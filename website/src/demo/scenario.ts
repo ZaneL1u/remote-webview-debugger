@@ -276,7 +276,7 @@ export async function runScenario(ctx: ScenarioCtx) {
   view.summary(summaryHtml(lang, price, highlight(fixDiff(lang), 'diff'), skipped))
 }
 
-/** The customer's side before the agent shows up: browse, pick gift box, buy, ask for help. */
+/** The customer's side before the agent shows up: browse, pick gift box, buy, request assistance. */
 export async function runPrelude(ctx: ScenarioCtx) {
   const { lang, gw, view, player, token: tk, frame } = ctx
   const t = SCRIPT_TEXT[lang]

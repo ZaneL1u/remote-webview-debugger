@@ -302,7 +302,7 @@ export class MockGateway {
     }
     if (msg.help && !d.help) {
       d.help = true
-      this.addEvent(p.label, 'help', this.tx('The user asked for help', '用户请求协助'))
+      this.addEvent(p.label, 'help', this.tx('The user requested assistance', '用户请求协助'))
     }
     const welcome: any = {
       t: 'welcome',
@@ -360,7 +360,7 @@ export class MockGateway {
       case 'help':
         if (!!msg.on !== d.help) {
           d.help = !!msg.on
-          this.addEvent(p.label, 'help', d.help ? this.tx('The user asked for help', '用户请求协助') : this.tx('The user cancelled the help request', '用户取消了协助请求'))
+          this.addEvent(p.label, 'help', d.help ? this.tx('The user requested assistance', '用户请求协助') : this.tx('The user cancelled the assistance request', '用户取消了协助请求'))
         }
         break
       case 'control':

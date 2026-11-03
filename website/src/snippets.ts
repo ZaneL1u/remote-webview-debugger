@@ -8,8 +8,8 @@ const GW = 'https://rwd.example.com/v1'
 export function h5Snippet(lang: L) {
   const c =
     lang === 'zh'
-      ? ['<!-- 放在 <head> 里，越早越好 -->', '// 可选：按用户查找设备', '// 显示「求助」按钮']
-      : ['<!-- In <head>, before your own scripts -->', '// optional: find devices by user', '// show the “Ask for help” button']
+      ? ['<!-- 放在 <head> 里，越早越好 -->', '// 可选：按用户查找设备', '// 显示「请求协助」按钮']
+      : ['<!-- In <head>, before your own scripts -->', '// optional: find devices by user', '// show the “Request assistance” button']
   return `${c[0]}
 <script src="${GW}/sdk.js"></script>
 <script>
