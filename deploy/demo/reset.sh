@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Start the public demo over: wipe the gateway's database, then create the
-# demo project and a public API key again. Publishes demo/rwd-demo.json (the
-# keys, read by the website) and demo/index.html (the entrance: it opens the
-# shop with today's AppKey, which the shop remembers for its other pages).
+# Start the public demo over: wipe the gateway's database (devices, visitors'
+# API keys, audit log), then create the demo project again. Publishes
+# demo/rwd-demo.json (when the demo started over, read by the website) and
+# demo/index.html (the entrance: it opens the shop with today's AppKey, which
+# the shop remembers for its other pages). Visitors get API keys of their own
+# from the gateway (RWD_DEMO_KEYS=1).
 #
 # Runs on the server, in the deploy directory (deploy.sh installs it there
 # and runs it from cron every day). Needs curl and jq.
@@ -38,14 +40,12 @@ app_key=$(jq -r .appKey <<<"$project")
 # Agents ask the visitor first, can't run scripts or read storage, and let go
 # of the page after 15 minutes (5 idle).
 api PATCH "/projects/$id" '{"policy": {"approval": "prompt", "maxLevel": "interact", "attachMaxMinutes": 15,
-  "agentIdleMinutes": 5, "maxOnlineDevices": 300, "maxAgents": 50}}' >/dev/null
-key=$(api POST /keys '{"name": "Public demo key", "maxLevel": "interact", "expiresInDays": 2}')
+  "agentIdleMinutes": 5, "maxOnlineDevices": 300, "maxAgents": 100}}' >/dev/null
 
 umask 022
-jq -n --arg gw "$public" --arg app "$app_key" --arg api "$(jq -r .key <<<"$key")" \
-  --argjson exp "$(jq .expiresAt <<<"$key")" --argjson now "$(date +%s000)" \
-  '{gateway: $gw, mcp: ($gw + "/mcp"), shop: ($gw | sub("/v1$"; "/demo/")),
-    appKey: $app, apiKey: $api, keyExpiresAt: $exp, resetAt: $now}' >demo/rwd-demo.json.tmp
+jq -n --arg gw "$public" --arg app "$app_key" --argjson now "$(date +%s000)" \
+  '{gateway: $gw, mcp: ($gw + "/mcp"), keys: ($gw + "/demo/keys"), shop: ($gw | sub("/v1$"; "/demo/")),
+    appKey: $app, resetAt: $now}' >demo/rwd-demo.json.tmp
 mv demo/rwd-demo.json.tmp demo/rwd-demo.json
 cat >demo/index.html.tmp <<HTML
 <!doctype html>

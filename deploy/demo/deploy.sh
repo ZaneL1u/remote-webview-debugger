@@ -22,6 +22,7 @@ cd "$DIR"
 chmod 755 reset.sh
 # Demo settings, added once (edit .env to change them).
 grep -q '^RWD_MCP_RATE_LIMIT=' .env || printf 'RWD_MCP_RATE_LIMIT=120\n' >> .env
+grep -q '^RWD_DEMO_KEYS=' .env || printf 'RWD_DEMO_KEYS=1\n' >> .env
 grep -q '^RWD_AUDIT_RETENTION_DAYS=' .env || printf 'RWD_AUDIT_RETENTION_DAYS=1\n' >> .env
 docker compose up -d >/dev/null
 ./reset.sh
