@@ -1,4 +1,4 @@
-<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
+<!-- i18n-source: d65106286935d00b9911913bf16cf2dfdf7bb300 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | 한국어 | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # 네이티브 앱 연동
@@ -15,7 +15,7 @@ H5 페이지는 `<script>` 태그로 SDK를 불러올 수 있어요. 자사 앱 
 ## 체크리스트
 
 1. **동의를 받으세요.** 사용자가 동의한 뒤에만 원격 디버깅을 켜세요(목업 앱은 먼저 네이티브 동의 대화상자를 보여 줘요). 그 위에 기기에서의 접속 승인도 여전히 적용돼요.
-2. **SDK를 준비하세요.** npm 패키지 [`remote-webview-debugger`](../sdk/README.ko.md)의 `dist/sdk.js`를 앱에 포함하면 게이트웨이도 CDN도 앱에 코드를 밀어 넣을 수 없어요. 또는 디버깅을 켤 때 한 번, 게이트웨이(`https://rwd.example.com/v1/sdk.js`)나 버전을 고정한 CDN URL(`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`)에서 다운로드하세요.
+2. **SDK를 준비하세요.** npm 패키지 [`remote-webview-debugger`](../sdk/README.ko.md)의 `dist/sdk.js`를 앱에 포함하면 게이트웨이도 CDN도 앱에 코드를 밀어 넣을 수 없어요. 또는 디버깅을 켤 때 한 번, 게이트웨이(`https://rwd.example.com/v1/sdk.js`)나 버전을 고정한 CDN URL(`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js`)에서 다운로드하세요.
 3. **부트 스크립트를 만드세요:** SDK 소스, 그다음 `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`, 그리고 (선택적으로) `status()`를 네이티브 코드에 보고하는 타이머.
 4. **문서 시작 시점에 주입하세요.** 모든 WebView의 메인 프레임에, 첫 페이지가 로드되기 전에 주입해야 페이지 스크립트가 실행되기 전에 수집이 시작돼요.
 5. **`deviceId`와 `deviceToken`을 보관하세요.** 앱 저장소에 두고 둘 다 모든 WebView에 넘기세요.

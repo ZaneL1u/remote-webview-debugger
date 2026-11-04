@@ -4,6 +4,14 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The page SDK, published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger). Tags: `sdk-vX.Y.Z`.
 
+## v0.3.0 (2026-11-04)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.1...sdk-v0.3.0)
+
+### 🚀 Enhancements
+
+- the bar and the task card let the page show through while the agent works ([297bd85](https://github.com/ZaneL1u/remote-webview-debugger/commit/297bd85))
+
 ## v0.2.1 (2026-11-04)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.0...sdk-v0.2.1)

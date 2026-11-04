@@ -66,11 +66,11 @@ Settings you may want, passed with `-e` ([all settings](gateway/README.md)):
 Create a project in the console to get an app key, then add the SDK with your gateway's address:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
 
-The SDK is the npm package [`remote-webview-debugger`](sdk/README.md): load it from jsDelivr as above or from unpkg (`https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js`), or `npm install remote-webview-debugger` and `import { run } from 'remote-webview-debugger'`. Your gateway also serves the copy it embeds at `/v1/sdk.js`.
+The SDK is the npm package [`remote-webview-debugger`](sdk/README.md): load it from jsDelivr as above or from unpkg (`https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`), or `npm install remote-webview-debugger` and `import { run } from 'remote-webview-debugger'`. Your gateway also serves the copy it embeds at `/v1/sdk.js`.
 
 In an app, inject the same script at document start from native code (iOS `WKUserScript`, Android `addDocumentStartJavaScript`): see [native integration](docs/native-integration.md) and the guide built into the console.
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: f202a982f60b27a469e6b909ccba20b7e2548596 -->
+<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -67,11 +67,11 @@ docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \
 Создайте проект в веб-консоли, чтобы получить ключ приложения, и добавьте SDK с адресом вашего шлюза:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
 
-SDK — это npm-пакет [`remote-webview-debugger`](sdk/README.ru.md): загружайте его с jsDelivr, как показано выше, или с unpkg (`https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js`), либо выполните `npm install remote-webview-debugger` и `import { run } from 'remote-webview-debugger'`. Кроме того, шлюз отдаёт встроенную в него копию по адресу `/v1/sdk.js`.
+SDK — это npm-пакет [`remote-webview-debugger`](sdk/README.ru.md): загружайте его с jsDelivr, как показано выше, или с unpkg (`https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`), либо выполните `npm install remote-webview-debugger` и `import { run } from 'remote-webview-debugger'`. Кроме того, шлюз отдаёт встроенную в него копию по адресу `/v1/sdk.js`.
 
 В приложении внедряйте тот же скрипт в самом начале загрузки документа из нативного кода (iOS `WKUserScript`, Android `addDocumentStartJavaScript`): см. [интеграцию с нативным приложением](docs/native-integration.ru.md) и руководство, встроенное в веб-консоль.
 

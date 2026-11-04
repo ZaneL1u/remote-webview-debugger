@@ -1,4 +1,4 @@
-<!-- i18n-source: 9d72ce89dfa86583d406e421998986f82d9827b1 -->
+<!-- i18n-source: dddf9c552f85175cc0df9f53d96059634d3650d4 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD 页面 SDK（`sdk/`）
@@ -6,7 +6,7 @@
 App WebView / H5 页面加载的一个 JS 文件，让 AI agent 通过 RWD 网关（`gateway/`）和 MCP 查看、操作页面。协议见 [`docs/protocol.zh-CN.md`](../docs/protocol.zh-CN.md)，架构见 [`docs/architecture.zh-CN.md`](../docs/architecture.zh-CN.md)。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 可选
@@ -24,7 +24,7 @@ npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webv
 
 | 用法 | 地址 |
 |---|---|
-| CDN `<script>` | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js` 或 `https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js`（压缩后的 IIFE，全局对象 `RemoteWebviewDebugger`；请固定版本号，需要的话加上 `integrity`） |
+| CDN `<script>` | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js` 或 `https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`（压缩后的 IIFE，全局对象 `RemoteWebviewDebugger`；请固定版本号，需要的话加上 `integrity`） |
 | 打包工具 | `npm install remote-webview-debugger`，然后 `import { run, status } from 'remote-webview-debugger'`（ES module，带类型声明）。尽量在你自己的代码之前 import，好让记录尽早开始。同一个页面不要再加载 `<script>` 版本 |
 | 你的网关 | `https://<网关>/v1/sdk.js`，网关内嵌的那一份（控制台还提供带 SRI 的按内容寻址地址） |
 | 原生 App | 把包里的 `dist/sdk.js` 打包进 App，或从以上任一地址下载，见[原生接入](../docs/native-integration.zh-CN.md) |
@@ -72,7 +72,7 @@ npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webv
 
 **怎么加载。** 英文和简体中文打包在 `sdk.js` 里。其他语言包在页面第一次用到时按需加载（加载完成前界面先用回退语言）：
 
-- `<script>` 版：从 `sdk.js` 同目录下的 `locales/<id>.js` 加载（CDN 路径如 `…/remote-webview-debugger@0.2.1/dist/locales/ja.js`，或你的网关的 `/v1/locales/ja.js`），失败时再从传给 `run()` 的网关加载。想省掉这次请求，可以自己在 `sdk.js` 之前或之后引入：`<script src="…/dist/locales/ja.js"></script>`。
+- `<script>` 版：从 `sdk.js` 同目录下的 `locales/<id>.js` 加载（CDN 路径如 `…/remote-webview-debugger@0.3.0/dist/locales/ja.js`，或你的网关的 `/v1/locales/ja.js`），失败时再从传给 `run()` 的网关加载。想省掉这次请求，可以自己在 `sdk.js` 之前或之后引入：`<script src="…/dist/locales/ja.js"></script>`。
 - ES module 版：用动态 import，打包工具会把每种语言拆成单独的 chunk。想直接打进主包：`import ja from 'remote-webview-debugger/locales/ja'`，再 `run(url, key, { locales: [ja] })`。
 
 **自定义语言包和文案。** 语言包是 `{ id, name, dir?, ui?, action?, agent? }`，没写的文案从回退语言里取：

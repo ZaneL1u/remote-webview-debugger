@@ -1,4 +1,4 @@
-<!-- i18n-source: f202a982f60b27a469e6b909ccba20b7e2548596 -->
+<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -67,11 +67,11 @@ docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \
 管理コンソールでプロジェクトを作成してアプリキーを取得し、ゲートウェイのアドレスを指定して SDK を追加します：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
 
-SDK は npm パッケージ [`remote-webview-debugger`](sdk/README.ja.md) です。上記のように jsDelivr から読み込むほか、unpkg（`https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js`）からも読み込めます。`npm install remote-webview-debugger` して `import { run } from 'remote-webview-debugger'` することもできます。ゲートウェイ自身も、埋め込んでいるコピーを `/v1/sdk.js` で配信しています。
+SDK は npm パッケージ [`remote-webview-debugger`](sdk/README.ja.md) です。上記のように jsDelivr から読み込むほか、unpkg（`https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`）からも読み込めます。`npm install remote-webview-debugger` して `import { run } from 'remote-webview-debugger'` することもできます。ゲートウェイ自身も、埋め込んでいるコピーを `/v1/sdk.js` で配信しています。
 
 アプリでは、同じスクリプトをネイティブコードからドキュメント開始時に注入します（iOS は `WKUserScript`、Android は `addDocumentStartJavaScript`）。[ネイティブ統合](docs/native-integration.ja.md)と、管理コンソールに組み込まれたガイドを参照してください。
 

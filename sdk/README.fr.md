@@ -1,4 +1,4 @@
-<!-- i18n-source: 9d72ce89dfa86583d406e421998986f82d9827b1 -->
+<!-- i18n-source: dddf9c552f85175cc0df9f53d96059634d3650d4 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # SDK de page RWD (`sdk/`)
@@ -6,7 +6,7 @@
 Un fichier JS qu'une WebView d'application ou une page H5 charge, pour qu'un agent IA puisse inspecter et piloter la page via la passerelle RWD (`gateway/`) et MCP. Protocole : [`docs/protocol.fr.md`](../docs/protocol.fr.md) ; architecture : [`docs/architecture.fr.md`](../docs/architecture.fr.md).
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // facultatif
@@ -24,7 +24,7 @@ Publié sur npm sous le nom [`remote-webview-debugger`](https://www.npmjs.com/pa
 
 | Usage | Source |
 |---|---|
-| `<script>` depuis un CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js` ou `https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js` (IIFE minifiée, global `RemoteWebviewDebugger` ; épinglez la version, et ajoutez `integrity` si vous le souhaitez) |
+| `<script>` depuis un CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js` ou `https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js` (IIFE minifiée, global `RemoteWebviewDebugger` ; épinglez la version, et ajoutez `integrity` si vous le souhaitez) |
 | Un bundler | `npm install remote-webview-debugger`, puis `import { run, status } from 'remote-webview-debugger'` (module ES avec types). Importez-le avant votre propre code pour que la capture démarre tôt. Ne chargez pas en plus la version `<script>` sur la même page |
 | Votre passerelle | `https://<gateway>/v1/sdk.js`, la copie qu'embarque la passerelle (également disponible à une URL adressée par contenu pour SRI, proposée par la console web) |
 | Une application native | Embarquez `dist/sdk.js` du paquet, ou téléchargez-le depuis l'une des sources ci-dessus ; voir [l'intégration native](../docs/native-integration.fr.md) |
@@ -72,7 +72,7 @@ Intégrées : anglais (`en`), chinois simplifié (`zh`), chinois traditionnel (
 
 **Chargement.** L'anglais et le chinois simplifié sont inclus dans `sdk.js`. Les autres packs se chargent à la demande, la première fois qu'une page en a besoin (l'interface affiche la langue de repli pendant ce court instant) :
 
-- Version `<script>` : depuis `locales/<id>.js` à côté de `sdk.js` (le chemin du CDN, par exemple `…/remote-webview-debugger@0.2.1/dist/locales/ja.js`, ou `/v1/locales/ja.js` sur votre passerelle), puis depuis la passerelle passée à `run()` en cas d'échec. Pour éviter la requête supplémentaire, chargez vous-même le pack, avant ou après `sdk.js` : `<script src="…/dist/locales/ja.js"></script>`.
+- Version `<script>` : depuis `locales/<id>.js` à côté de `sdk.js` (le chemin du CDN, par exemple `…/remote-webview-debugger@0.3.0/dist/locales/ja.js`, ou `/v1/locales/ja.js` sur votre passerelle), puis depuis la passerelle passée à `run()` en cas d'échec. Pour éviter la requête supplémentaire, chargez vous-même le pack, avant ou après `sdk.js` : `<script src="…/dist/locales/ja.js"></script>`.
 - Version module ES : un import dynamique, si bien que votre bundler place chaque langue dans son propre chunk. Pour en intégrer une d'emblée au bundle : `import ja from 'remote-webview-debugger/locales/ja'`, puis `run(url, key, { locales: [ja] })`.
 
 **Vos propres packs et formulations.** Un pack est `{ id, name, dir?, ui?, action?, agent? }` ; tout ce qui est omis provient de ses langues de repli :

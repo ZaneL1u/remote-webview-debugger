@@ -1,4 +1,4 @@
-<!-- i18n-source: f202a982f60b27a469e6b909ccba20b7e2548596 -->
+<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -67,11 +67,11 @@ docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \
 콘솔에서 프로젝트를 만들어 앱 키를 받은 뒤, 게이트웨이 주소와 함께 SDK를 추가하세요.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
 
-SDK는 npm 패키지 [`remote-webview-debugger`](sdk/README.ko.md)예요. 위처럼 jsDelivr에서 불러오거나 unpkg(`https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js`)에서 불러올 수 있고, `npm install remote-webview-debugger` 후 `import { run } from 'remote-webview-debugger'`로 써도 돼요. 게이트웨이도 내장한 사본을 `/v1/sdk.js`에서 제공해요.
+SDK는 npm 패키지 [`remote-webview-debugger`](sdk/README.ko.md)예요. 위처럼 jsDelivr에서 불러오거나 unpkg(`https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`)에서 불러올 수 있고, `npm install remote-webview-debugger` 후 `import { run } from 'remote-webview-debugger'`로 써도 돼요. 게이트웨이도 내장한 사본을 `/v1/sdk.js`에서 제공해요.
 
 앱에서는 같은 스크립트를 네이티브 코드에서 문서 시작 시점에 주입하세요(iOS는 `WKUserScript`, Android는 `addDocumentStartJavaScript`). [네이티브 앱 연동](docs/native-integration.ko.md)과 콘솔에 내장된 가이드를 참고하세요.
 

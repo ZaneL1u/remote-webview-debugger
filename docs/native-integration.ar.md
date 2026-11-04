@@ -1,4 +1,4 @@
-<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
+<!-- i18n-source: d65106286935d00b9911913bf16cf2dfdf7bb300 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | العربية
 
 <div dir="rtl">
@@ -17,7 +17,7 @@
 ## قائمة التحقق
 
 1. **اطلب الموافقة.** لا تفعّل التصحيح عن بُعد إلا بعد موافقة المستخدم (يعرض التطبيق التجريبي أولًا مربع حوار موافقة أصليًا). وتظل الموافقة على الربط على الجهاز سارية فوق ذلك.
-2. **احصل على SDK.** ضمّن `dist/sdk.js` من حزمة npm [`remote-webview-debugger`](../sdk/README.ar.md) في التطبيق، فلا تستطيع البوابة ولا أي CDN دفع شيفرة إليه أبدًا؛ أو نزّله مرة واحدة عند تفعيل التصحيح، من بوابتك (`https://rwd.example.com/v1/sdk.js`) أو من عنوان CDN مثبَّت الإصدار (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`).
+2. **احصل على SDK.** ضمّن `dist/sdk.js` من حزمة npm [`remote-webview-debugger`](../sdk/README.ar.md) في التطبيق، فلا تستطيع البوابة ولا أي CDN دفع شيفرة إليه أبدًا؛ أو نزّله مرة واحدة عند تفعيل التصحيح، من بوابتك (`https://rwd.example.com/v1/sdk.js`) أو من عنوان CDN مثبَّت الإصدار (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js`).
 3. **ابنِ سكربت الإقلاع:** مصدر SDK، ثم `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`، ثم (اختياريًا) مؤقِّت يبلّغ الشيفرة الأصلية بـ `status()`.
 4. **احقنه عند بدء المستند** في الإطار الرئيسي لكل WebView، قبل تحميل الصفحة الأولى، كي يبدأ الالتقاط قبل تشغيل أي سكربت للصفحة.
 5. **احتفظ بـ `deviceId` و `deviceToken`** في تخزين التطبيق ومرّرهما كليهما إلى كل WebView.

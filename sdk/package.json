@@ -1,6 +1,6 @@
 {
   "name": "remote-webview-debugger",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Remote WebView Debugger page SDK: lets an AI agent inspect and operate an H5 page / App WebView through the RWD gateway",
   "license": "MIT",
   "homepage": "https://debugger.site",

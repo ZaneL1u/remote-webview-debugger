@@ -1,4 +1,4 @@
-<!-- i18n-source: 9d72ce89dfa86583d406e421998986f82d9827b1 -->
+<!-- i18n-source: dddf9c552f85175cc0df9f53d96059634d3650d4 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD ページ SDK（`sdk/`）
@@ -6,7 +6,7 @@
 App WebView や H5 ページが読み込む 1 つの JS ファイルです。これにより、AI エージェントが RWD ゲートウェイ（`gateway/`）と MCP を通じてページを調べ、操作できるようになります。プロトコル：[`docs/protocol.ja.md`](../docs/protocol.ja.md)、アーキテクチャ：[`docs/architecture.ja.md`](../docs/architecture.ja.md)。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // 任意
@@ -24,7 +24,7 @@ npm に [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview
 
 | 用途 | 入手先 |
 |---|---|
-| CDN からの `<script>` | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js` または `https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js`（minify 済みの IIFE、グローバル変数 `RemoteWebviewDebugger`。バージョンを固定し、必要なら `integrity` を追加してください） |
+| CDN からの `<script>` | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js` または `https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`（minify 済みの IIFE、グローバル変数 `RemoteWebviewDebugger`。バージョンを固定し、必要なら `integrity` を追加してください） |
 | バンドラー | `npm install remote-webview-debugger` の後、`import { run, status } from 'remote-webview-debugger'`（型付きの ES モジュール）。取得を早く始められるよう、自分のコードより先に import してください。同じページで `<script>` 版を併せて読み込まないでください |
 | 自分のゲートウェイ | `https://<gateway>/v1/sdk.js`。ゲートウェイが埋め込んでいるコピーです（SRI 用のコンテンツアドレス方式の URL もあり、管理コンソールが提示します） |
 | ネイティブアプリ | パッケージの `dist/sdk.js` を同梱するか、上記のいずれかからダウンロードします。[ネイティブ統合](../docs/native-integration.ja.md)を参照してください |
@@ -72,7 +72,7 @@ npm に [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview
 
 **読み込み。** 英語と簡体字中国語は `sdk.js` に含まれています。その他の言語パックは、ページで初めて必要になったときにオンデマンドで読み込まれます（その間、UI はフォールバック先の言語で表示されます）：
 
-- `<script>` 版：`sdk.js` と同じ場所にある `locales/<id>.js` から読み込みます（CDN のパス、例えば `…/remote-webview-debugger@0.2.1/dist/locales/ja.js`、または自分のゲートウェイの `/v1/locales/ja.js`）。失敗した場合は `run()` に渡したゲートウェイから読み込みます。この追加のリクエストを避けたい場合は、`sdk.js` の前でも後でもよいので言語パックを自分で読み込んでください：`<script src="…/dist/locales/ja.js"></script>`。
+- `<script>` 版：`sdk.js` と同じ場所にある `locales/<id>.js` から読み込みます（CDN のパス、例えば `…/remote-webview-debugger@0.3.0/dist/locales/ja.js`、または自分のゲートウェイの `/v1/locales/ja.js`）。失敗した場合は `run()` に渡したゲートウェイから読み込みます。この追加のリクエストを避けたい場合は、`sdk.js` の前でも後でもよいので言語パックを自分で読み込んでください：`<script src="…/dist/locales/ja.js"></script>`。
 - ES モジュール版：動的 import を使うため、バンドラーは言語ごとに別のチャンクを作ります。最初からバンドルに含めたい場合は、`import ja from 'remote-webview-debugger/locales/ja'` とし、`run(url, key, { locales: [ja] })` に渡します。
 
 **独自の言語パックと文言。** 言語パックは `{ id, name, dir?, ui?, action?, agent? }` です。省略した部分はフォールバック先の言語から取られます：

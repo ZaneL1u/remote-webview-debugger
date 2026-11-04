@@ -1,4 +1,4 @@
-<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
+<!-- i18n-source: d65106286935d00b9911913bf16cf2dfdf7bb300 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | Deutsch | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Integration in native Apps
@@ -15,7 +15,7 @@ Die integrierte Anleitung der Konsole (**Doku → Native App integrieren**) zeig
 ## Checkliste
 
 1. **Holen Sie die Zustimmung ein.** Schalten Sie Remote-Debugging erst ein, wenn der Nutzer zugestimmt hat (die Mock-App zeigt zuerst einen nativen Zustimmungsdialog). Die Verbindungsfreigabe auf dem Gerät gilt zusätzlich weiterhin.
-2. **Besorgen Sie das SDK.** Liefern Sie `dist/sdk.js` aus dem npm-Paket [`remote-webview-debugger`](../sdk/README.de.md) mit der App aus, sodass weder das Gateway noch ein CDN ihr jemals Code unterschieben kann; oder laden Sie es einmalig beim Aktivieren des Debuggings herunter, von Ihrem Gateway (`https://rwd.example.com/v1/sdk.js`) oder von einer festen CDN-URL (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`).
+2. **Besorgen Sie das SDK.** Liefern Sie `dist/sdk.js` aus dem npm-Paket [`remote-webview-debugger`](../sdk/README.de.md) mit der App aus, sodass weder das Gateway noch ein CDN ihr jemals Code unterschieben kann; oder laden Sie es einmalig beim Aktivieren des Debuggings herunter, von Ihrem Gateway (`https://rwd.example.com/v1/sdk.js`) oder von einer festen CDN-URL (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js`).
 3. **Bauen Sie das Boot-Script:** den SDK-Quellcode, danach `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`, danach (optional) einen Timer, der `status()` an den nativen Code meldet.
 4. **Injizieren Sie es bei Dokumentbeginn** in den Hauptframe jeder WebView, bevor die erste Seite lädt, damit die Erfassung beginnt, bevor ein Seiten-Script läuft.
 5. **Bewahren Sie `deviceId` und `deviceToken`** im App-Speicher auf und übergeben Sie beide an jede WebView.

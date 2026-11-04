@@ -1,4 +1,4 @@
-<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
+<!-- i18n-source: d65106286935d00b9911913bf16cf2dfdf7bb300 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | 日本語 | [한국어](native-integration.ko.md) | [Español](native-integration.es.md) | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # ネイティブアプリへの組み込み
@@ -15,7 +15,7 @@ H5 ページなら `<script>` タグで SDK を読み込めます。自社アプ
 ## チェックリスト
 
 1. **同意を得る。** リモートデバッグは、ユーザーが同意した後でのみ有効にしてください（モックアプリは最初にネイティブの同意ダイアログを表示します）。その上で、端末上での接続承認も引き続き適用されます。
-2. **SDK を入手する。** npm パッケージ [`remote-webview-debugger`](../sdk/README.ja.md) の `dist/sdk.js` をアプリに同梱すれば、ゲートウェイも CDN もアプリにコードを送り込めなくなります。あるいは、デバッグを有効にしたときに一度だけ、ゲートウェイ（`https://rwd.example.com/v1/sdk.js`）またはバージョンを固定した CDN の URL（`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`）からダウンロードします。
+2. **SDK を入手する。** npm パッケージ [`remote-webview-debugger`](../sdk/README.ja.md) の `dist/sdk.js` をアプリに同梱すれば、ゲートウェイも CDN もアプリにコードを送り込めなくなります。あるいは、デバッグを有効にしたときに一度だけ、ゲートウェイ（`https://rwd.example.com/v1/sdk.js`）またはバージョンを固定した CDN の URL（`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js`）からダウンロードします。
 3. **起動スクリプトを組み立てる：** SDK のソース、続いて `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)`、さらに（任意で）`status()` をネイティブコードに報告するタイマー。
 4. **ドキュメント開始時に注入する。** すべての WebView のメインフレームに、最初のページが読み込まれる前に注入します。これにより、ページのスクリプトが動く前から取得が始まります。
 5. **`deviceId` と `deviceToken` を保持する。** アプリのストレージに保存し、両方をすべての WebView に渡します。

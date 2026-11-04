@@ -4,6 +4,14 @@
 
 页面 SDK，npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)。tag 形如 `sdk-vX.Y.Z`。
 
+## v0.3.0 (2026-11-04)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.1...sdk-v0.3.0)
+
+### 🚀 新功能
+
+- 智能体操作时，底栏与任务卡变为半透明，光标位于其下方，在其下方操作时自动淡化；任务卡当前步骤改为呼吸效果 ([297bd85](https://github.com/ZaneL1u/remote-webview-debugger/commit/297bd85))
+
 ## v0.2.1 (2026-11-04)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.0...sdk-v0.2.1)

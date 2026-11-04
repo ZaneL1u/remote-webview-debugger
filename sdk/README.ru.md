@@ -1,4 +1,4 @@
-<!-- i18n-source: 9d72ce89dfa86583d406e421998986f82d9827b1 -->
+<!-- i18n-source: dddf9c552f85175cc0df9f53d96059634d3650d4 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # SDK страницы RWD (`sdk/`)
@@ -6,7 +6,7 @@
 Один JS-файл, который загружает WebView приложения или H5-страница, чтобы ИИ-агент мог изучать страницу и работать с ней через шлюз RWD (`gateway/`) и MCP. Протокол: [`docs/protocol.ru.md`](../docs/protocol.ru.md); архитектура: [`docs/architecture.ru.md`](../docs/architecture.ru.md).
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
 <script>
   RemoteWebviewDebugger.run("https://rwd.example.com/v1", "rwd_pk_xxxxxxxx", {
     userId: "u-42",              // необязательно
@@ -24,7 +24,7 @@
 
 | Способ | Откуда |
 |---|---|
-| `<script>` с CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js` или `https://unpkg.com/remote-webview-debugger@0.2.1/dist/sdk.js` (минифицированный IIFE, глобальная переменная `RemoteWebviewDebugger`; закрепите версию и, если хотите, добавьте `integrity`) |
+| `<script>` с CDN | `https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js` или `https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js` (минифицированный IIFE, глобальная переменная `RemoteWebviewDebugger`; закрепите версию и, если хотите, добавьте `integrity`) |
 | Сборщик | `npm install remote-webview-debugger`, затем `import { run, status } from 'remote-webview-debugger'` (ES-модуль с типами). Импортируйте его раньше своего кода, чтобы перехват начался как можно раньше. Не подключайте на той же странице ещё и версию для `<script>` |
 | Ваш шлюз | `https://<gateway>/v1/sdk.js` — копия, встроенная в шлюз (доступна также по адресу, зависящему от содержимого, для SRI; его предлагает веб-консоль) |
 | Нативное приложение | Встройте `dist/sdk.js` из пакета или скачайте его из любого из перечисленных источников; см. [интеграцию с нативным приложением](../docs/native-integration.ru.md) |
@@ -72,7 +72,7 @@
 
 **Загрузка.** Английский и упрощённый китайский входят в `sdk.js`. Остальные пакеты загружаются по требованию, когда они впервые понадобятся странице (на это время интерфейс показывает резервный язык):
 
-- Сборка для `<script>`: из `locales/<id>.js` рядом с `sdk.js` (путь на CDN, например `…/remote-webview-debugger@0.2.1/dist/locales/ja.js`, или `/v1/locales/ja.js` вашего шлюза), а если не получилось — со шлюза, переданного в `run()`. Чтобы избежать лишнего запроса, загрузите пакет сами, до или после `sdk.js`: `<script src="…/dist/locales/ja.js"></script>`.
+- Сборка для `<script>`: из `locales/<id>.js` рядом с `sdk.js` (путь на CDN, например `…/remote-webview-debugger@0.3.0/dist/locales/ja.js`, или `/v1/locales/ja.js` вашего шлюза), а если не получилось — со шлюза, переданного в `run()`. Чтобы избежать лишнего запроса, загрузите пакет сами, до или после `sdk.js`: `<script src="…/dist/locales/ja.js"></script>`.
 - Сборка ES-модуля: динамический импорт, поэтому сборщик выносит каждый язык в отдельный чанк. Чтобы, наоборот, включить язык в бандл сразу: `import ja from 'remote-webview-debugger/locales/ja'`, затем `run(url, key, { locales: [ja] })`.
 
 **Собственные пакеты и формулировки.** Пакет — это `{ id, name, dir?, ui?, action?, agent? }`; всё, что не указано, берётся из резервных языков:

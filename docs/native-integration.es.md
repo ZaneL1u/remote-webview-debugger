@@ -1,4 +1,4 @@
-<!-- i18n-source: fdb9482854f20cbffaccb56f28fe428ffee0d6c6 -->
+<!-- i18n-source: d65106286935d00b9911913bf16cf2dfdf7bb300 -->
 [English](native-integration.md) | [简体中文](native-integration.zh-CN.md) | [繁體中文](native-integration.zh-TW.md) | [日本語](native-integration.ja.md) | [한국어](native-integration.ko.md) | Español | [Français](native-integration.fr.md) | [Deutsch](native-integration.de.md) | [Português (Brasil)](native-integration.pt-BR.md) | [Русский](native-integration.ru.md) | [العربية](native-integration.ar.md)
 
 # Integración en apps nativas
@@ -15,7 +15,7 @@ La guía integrada en la consola web (**Docs → Integrate a native app**) muest
 ## Lista de comprobación
 
 1. **Pide consentimiento.** Activa la depuración remota solo después de que el usuario esté de acuerdo (la app de prueba muestra primero un diálogo de consentimiento nativo). La aprobación de conexión en el dispositivo se sigue aplicando además de eso.
-2. **Consigue el SDK.** Empaqueta con la app el `dist/sdk.js` del paquete de npm [`remote-webview-debugger`](../sdk/README.es.md), para que ni el gateway ni un CDN puedan enviarle código nunca; o descárgalo una vez al activar la depuración, desde tu gateway (`https://rwd.example.com/v1/sdk.js`) o desde una URL de CDN con la versión fijada (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.2.1/dist/sdk.js`).
+2. **Consigue el SDK.** Empaqueta con la app el `dist/sdk.js` del paquete de npm [`remote-webview-debugger`](../sdk/README.es.md), para que ni el gateway ni un CDN puedan enviarle código nunca; o descárgalo una vez al activar la depuración, desde tu gateway (`https://rwd.example.com/v1/sdk.js`) o desde una URL de CDN con la versión fijada (`https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js`).
 3. **Construye el script de arranque:** el código del SDK, luego `RemoteWebviewDebugger.run(gatewayUrl, appKey, options)` y luego (opcionalmente) un temporizador que informe de `status()` al código nativo.
 4. **Inyéctalo al inicio del documento** en el marco principal de cada WebView, antes de que cargue la primera página, para que la captura empiece antes de que se ejecute cualquier script de la página.
 5. **Guarda `deviceId` y `deviceToken`** en el almacenamiento de la app y pasa ambos a cada WebView.
