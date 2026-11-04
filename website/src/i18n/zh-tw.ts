@@ -34,16 +34,14 @@ export const zhTW: Dict = {
     ctaLive: '用自己的 agent 試試',
     ctaGithub: '在 GitHub 上 Star',
     ctaSelfHost: '5 分鐘自行架設',
-    points: ['不用傳輸線', '不開遠端除錯連接埠', 'App 只需注入一段指令碼', '問題發生之後再接入也來得及'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'MCP 工具' },
-      { value: '11', label: '種語言' },
-      { value: '1', label: '段指令碼' },
-      { value: '0', label: '條傳輸線' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: '加到你的頁面',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: '快速開始',
+      agent: '交給 agent',
+      script: '手動接入',
+      agentHint: '貼到 Claude Code、Codex 或 Cursor',
+      prompt: '依照 https://debugger.site/llms.txt，把 Remote WebView Debugger 接入到這個專案裡。',
+    },
     flow: {
       label: 'AI agent 透過 MCP 連到你自行架設的閘道，閘道再透過 WebSocket 連到使用者手機上的頁面 SDK。',
       agent: 'AI agent',
@@ -61,7 +59,7 @@ export const zhTW: Dict = {
     kicker: '線上示範',
     title: '一個真實的 bug，在「真實」的手機上查出來',
     lead:
-      '示範裡的手機上，商城頁面載入的就是真正的頁面 SDK。閘道在你的瀏覽器裡模擬，任何資料都不會離開這個分頁；但下面每一次快照、點擊、console 輸出和即時修補都是真實的。',
+      '手機裡跑的是真實的頁面 SDK，只有閘道在這個分頁裡模擬。下面每一次快照、點擊、console 輸出和即時修補都是真實發生的。',
     agentTitle: 'AI agent',
     agentSub: '已連線 Remote WebView Debugger 的 MCP 伺服器',
     skinLabel: 'Agent 樣式',
@@ -90,8 +88,7 @@ export const zhTW: Dict = {
     customer: '使用者',
     guideTap: '點「允許」',
     guideAuto: (s: number) => `${s} 秒後自動點`,
-    footnote:
-      '完全在瀏覽器裡執行：iframe 裡是真實的 SDK（<code>sdk.js</code>），WebSocket 墊片把它的連線透過 postMessage 轉給頁面裡的模擬閘道，再由一個照腳本執行的 agent 發出真實的 RPC。agent 的話跟隨頁面語言；工具結果使用閘道語言（英文或中文）。',
+    footnote: 'iframe 內是未經修改的 <code>sdk.js</code> · 它的 WebSocket 經 postMessage 接到本頁模擬的閘道 · 每個 RPC 都真實執行。',
     stateIdle: '準備就緒',
     statePrelude: '使用者遇到了問題',
     stateRunning: 'Agent 追查中',
@@ -192,6 +189,16 @@ export const zhTW: Dict = {
       { icon: 'plug', title: '任何 MCP 用戶端', body: '<code>/v1/mcp</code> 是 Streamable HTTP，Claude Code、Codex、Cursor 直接可用；只支援 stdio 的用戶端用一個很小的橋接指令。' },
     ],
     toolsTitle: '全部工具',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: '裝置與控制', body: '找到裝置，經使用者同意接入，等使用者交還控制，結束時斷開。' },
+      { title: '頁面', body: '裝置上的每個分頁和 WebView，自動跟隨跳轉。' },
+      { title: '看頁面', body: '帶元素 ref 的結構快照、文字搜尋、截圖。' },
+      { title: '操作', body: '對 ref 執行真實輸入並先檢查可操作性；批次操作一次往返完成。' },
+      { title: '追查', body: 'console、帶內容的網路請求、儲存空間，以及在頁面裡執行指令碼。' },
+      { title: '歷史', body: '跨頁面發生過什麼，包括接入之前。' },
+    ],
+    levelsLabel: '所需等級',
   },
   highlights: {
     kicker: '亮點',
@@ -278,6 +285,8 @@ export const zhTW: Dict = {
     resultComment: '# → 主控台  https://rwd.example.com\n# → 閘道    https://rwd.example.com/v1（MCP 在 /v1/mcp）',
     requires: '伺服器上只需要 Docker；從原始碼建置需要 Go 和 Node。',
     docsLink: '部署說明',
+    agentTitle: '或者交給你的 agent',
+    agentPrompt: '依照 https://debugger.site/llms.txt，在我的伺服器上部署 Remote WebView Debugger 閘道，並把它加到你的 MCP 設定裡。',
   },
   faq: {
     kicker: '常見問題',

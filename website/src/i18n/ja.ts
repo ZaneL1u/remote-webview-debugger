@@ -34,16 +34,14 @@ export const ja: Dict = {
     ctaLive: '自分のエージェントで試す',
     ctaGithub: 'GitHub で Star',
     ctaSelfHost: '5 分でセルフホスト',
-    points: ['USB ケーブル不要', 'リモートデバッグ用ポート不要', 'アプリは script タグ 1 つの注入だけ', '不具合が起きた後からでも間に合う'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'MCP ツール' },
-      { value: '11', label: '対応言語' },
-      { value: '1', label: '追加する script タグ' },
-      { value: '0', label: 'USB ケーブル' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: 'ページに追加',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: 'クイックスタート',
+      agent: 'エージェントに頼む',
+      script: 'script タグ',
+      agentHint: 'Claude Code・Codex・Cursor に貼り付け',
+      prompt: 'https://debugger.site/llms.txt に従って、このプロジェクトに Remote WebView Debugger を導入してください。',
+    },
     flow: {
       label: 'AI エージェントは MCP でセルフホストのゲートウェイに接続し、ゲートウェイが WebSocket でユーザーのスマートフォン上のページ SDK に届きます。',
       agent: 'AI エージェント',
@@ -61,7 +59,7 @@ export const ja: Dict = {
     kicker: 'ライブデモ',
     title: '「実機」で本物の不具合を突き止める',
     lead:
-      'このデモのスマートフォンでは、デモショップの中で本物のページ SDK が動いています。ゲートウェイはブラウザ内のモックなので、このタブから出ていくものは何もありません。けれども下のスナップショット、クリック、console の 1 行、ライブパッチは、すべて本物です。',
+      'スマートフォンではデモショップの中で本物のページ SDK が動いています。シミュレートしているのはゲートウェイだけで、それもこのタブの中です。下のスナップショット、クリック、console の 1 行、ライブパッチは、すべて実際に起きています。',
     agentTitle: 'AI エージェント',
     agentSub: 'Remote WebView Debugger の MCP サーバーに接続済み',
     skinLabel: 'エージェントのスタイル',
@@ -91,8 +89,7 @@ export const ja: Dict = {
     /** The hand that points at “Allow” when nobody taps it. */
     guideTap: '「許可」をタップ',
     guideAuto: (s: number) => `${s} 秒後に自動`,
-    footnote:
-      '完全にブラウザ内で動作します：iframe の中は本物の SDK（<code>sdk.js</code>）、WebSocket のシムがその接続をページ内のモックゲートウェイにトンネルし、スクリプト化されたエージェントが本物の RPC を発行します。エージェントの発言はページの言語に従い、ツールの結果はゲートウェイの言語（英語または中国語）になります。',
+    footnote: 'iframe 内は無改変の <code>sdk.js</code> · その WebSocket は postMessage 経由でこのタブ内の模擬ゲートウェイへ · RPC はすべて実際に実行。',
     stateIdle: '準備完了',
     statePrelude: 'お客さまが不具合に遭遇',
     stateRunning: 'エージェント実行中',
@@ -193,6 +190,16 @@ export const ja: Dict = {
       { icon: 'plug', title: '任意の MCP クライアント', body: '<code>/v1/mcp</code> は Streamable HTTP で、Claude Code、Codex、Cursor などがそのまま使えます。stdio しか話さないクライアントには小さなブリッジがあります。' },
     ],
     toolsTitle: 'すべてのツール',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: 'デバイスと操作', body: 'デバイスを探し、お客さまの許可を得て接続。操作が戻るのを待ち、終わったら解放。' },
+      { title: 'ページ', body: 'デバイス上のすべてのタブと WebView。遷移にも追従。' },
+      { title: 'ページを見る', body: '要素 ref 付きの構造、テキスト検索、スクリーンショット。' },
+      { title: '操作する', body: 'ref への本物の入力を、操作できるか確かめてから。まとめて 1 往復でも。' },
+      { title: 'デバッグ', body: 'console、本文付きのネットワーク、ストレージ、ページ内のスクリプト。' },
+      { title: '履歴', body: 'ページをまたいで何が起きたか。接続する前のことも。' },
+    ],
+    levelsLabel: '必要なレベル',
   },
   highlights: {
     kicker: '注目ポイント',
@@ -279,6 +286,8 @@ export const ja: Dict = {
     resultComment: '# → 管理コンソール  https://rwd.example.com\n# → ゲートウェイ    https://rwd.example.com/v1（MCP は /v1/mcp）',
     requires: 'サーバーに必要なのは Docker だけです。ソースからビルドするには Go と Node が必要です。',
     docsLink: 'デプロイガイド',
+    agentTitle: 'またはエージェントに任せる',
+    agentPrompt: 'https://debugger.site/llms.txt に従って、私のサーバーに Remote WebView Debugger のゲートウェイをデプロイし、あなたの MCP サーバーに追加してください。',
   },
   faq: {
     kicker: 'よくある質問',

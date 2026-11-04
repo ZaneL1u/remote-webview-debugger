@@ -34,16 +34,14 @@ export const ru: Dict = {
     ctaLive: 'Попробовать со своим агентом',
     ctaGithub: 'Звезда на GitHub',
     ctaSelfHost: 'Свой хостинг за 5 минут',
-    points: ['Без USB-кабеля', 'Без порта удалённой отладки', 'В приложении — только один скрипт', 'Работает и после того, как баг случился'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'инструмента MCP' },
-      { value: '11', label: 'языков' },
-      { value: '1', label: 'скрипт для подключения' },
-      { value: '0', label: 'USB-кабелей' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: 'Добавьте на страницу',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: 'Быстрый старт',
+      agent: 'Попросить агента',
+      script: 'Тег script',
+      agentHint: 'Вставьте в Claude Code, Codex или Cursor',
+      prompt: 'Подключи Remote WebView Debugger к этому проекту по инструкции https://debugger.site/llms.txt',
+    },
     flow: {
       label: 'ИИ-агент общается по MCP с вашим собственным шлюзом, а тот по WebSocket доходит до SDK страницы на телефоне пользователя.',
       agent: 'ИИ-агент',
@@ -61,7 +59,7 @@ export const ru: Dict = {
     kicker: 'Онлайн-демо',
     title: 'Настоящий баг, найденный на «настоящем» телефоне',
     lead:
-      'Телефон в этом демо запускает настоящий SDK страницы внутри демо-магазина. Его шлюз смоделирован в вашем браузере, поэтому из этой вкладки ничего не уходит — но каждый снимок, нажатие, строка console и живой патч ниже настоящие.',
+      'Телефон запускает настоящий SDK страницы внутри демо-магазина; смоделирован только шлюз, в этой вкладке. Каждый снимок, нажатие, строка console и живой патч ниже происходят на самом деле.',
     agentTitle: 'ИИ-агент',
     agentSub: 'подключён к MCP-серверу Remote WebView Debugger',
     skinLabel: 'Стиль агента',
@@ -91,8 +89,7 @@ export const ru: Dict = {
     /** The hand that points at “Allow” when nobody taps it. */
     guideTap: 'Нажмите «Разрешить»',
     guideAuto: (s: number) => `авто через ${s} с`,
-    footnote:
-      'Всё работает в вашем браузере: настоящий SDK (<code>sdk.js</code>) в iframe, прослойка WebSocket, которая туннелирует его соединение к смоделированному шлюзу на этой же странице, и сценарный агент, отправляющий настоящие RPC. Агент говорит на языке страницы; результаты инструментов — на языке шлюза (английский или китайский).',
+    footnote: 'Неизменённый <code>sdk.js</code> в iframe · его WebSocket туннелирован через postMessage к шлюзу, смоделированному в этой вкладке · каждый RPC выполняется по-настоящему.',
     stateIdle: 'Готово к запуску',
     statePrelude: 'Покупатель натыкается на баг',
     stateRunning: 'Агент работает',
@@ -193,6 +190,16 @@ export const ru: Dict = {
       { icon: 'plug', title: 'Любой MCP-клиент', body: 'Streamable HTTP по адресу <code>/v1/mcp</code> для Claude Code, Codex, Cursor и остальных; крошечный мост через stdio для всего прочего.' },
     ],
     toolsTitle: 'Все инструменты',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: 'Устройства и управление', body: 'Найти устройство, подключиться с разрешения пользователя, дождаться, пока вернут управление, отпустить.' },
+      { title: 'Страницы', body: 'Все вкладки и WebView устройства, вслед за переходами.' },
+      { title: 'Обзор страницы', body: 'Структура с ref элементов, поиск по тексту, пиксели.' },
+      { title: 'Действия', body: 'Настоящий ввод по ref с проверкой, что элемент доступен; пакеты за один обмен.' },
+      { title: 'Отладка', body: 'Console, сеть с телами запросов, хранилище и скрипты на странице.' },
+      { title: 'История', body: 'Что происходило на разных страницах — до подключения и после.' },
+    ],
+    levelsLabel: 'Нужный уровень',
   },
   highlights: {
     kicker: 'Главное',
@@ -279,6 +286,8 @@ export const ru: Dict = {
     resultComment: '# → консоль  https://rwd.example.com\n# → шлюз     https://rwd.example.com/v1  (MCP на /v1/mcp)',
     requires: 'Серверу нужен только Docker; для сборки из исходников — Go и Node.',
     docsLink: 'Руководство по развёртыванию',
+    agentTitle: 'Или поручите это агенту',
+    agentPrompt: 'Разверни шлюз Remote WebView Debugger на моём сервере и добавь его в свои MCP-серверы по инструкции https://debugger.site/llms.txt',
   },
   faq: {
     kicker: 'Вопросы',

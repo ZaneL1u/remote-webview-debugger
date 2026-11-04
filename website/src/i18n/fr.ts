@@ -36,16 +36,14 @@ export const fr: Dict = {
     ctaLive: 'Essayer avec votre agent',
     ctaGithub: 'Mettre une étoile sur GitHub',
     ctaSelfHost: 'Auto-héberger en 5 minutes',
-    points: ['Sans câble USB', 'Sans port de débogage distant', 'Rien à reconstruire, juste un script', 'Fonctionne même après le bug'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'outils MCP' },
-      { value: '11', label: 'langues' },
-      { value: '1', label: 'script à ajouter' },
-      { value: '0', label: 'câble USB' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: 'Ajoutez-le à votre page',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: 'Démarrage rapide',
+      agent: 'Demandez à votre agent',
+      script: 'Balise script',
+      agentHint: 'À coller dans Claude Code, Codex ou Cursor',
+      prompt: 'Ajoutez Remote WebView Debugger à ce projet en suivant https://debugger.site/llms.txt',
+    },
     flow: {
       label: 'Un agent IA parle MCP à votre passerelle auto-hébergée, qui atteint le SDK de page sur le téléphone de l’utilisateur par WebSocket.',
       agent: 'Agent IA',
@@ -63,7 +61,7 @@ export const fr: Dict = {
     kicker: 'Démo en direct',
     title: 'Un vrai bug, corrigé sur un « vrai » téléphone',
     lead:
-      'Le téléphone de cette démo exécute le véritable SDK de page dans une boutique de démonstration. Sa passerelle est simulée dans votre navigateur : rien ne quitte cet onglet — mais chaque instantané, chaque clic, chaque ligne de console et chaque correctif à chaud ci-dessous est réel.',
+      'Le téléphone exécute le vrai SDK de page dans une boutique de démonstration ; seule la passerelle est simulée, dans cet onglet. Chaque instantané, clic, ligne de console et correctif à chaud ci-dessous se produit réellement.',
     agentTitle: 'Agent IA',
     agentSub: 'connecté au serveur MCP de Remote WebView Debugger',
     skinLabel: 'Style d’agent',
@@ -93,8 +91,7 @@ export const fr: Dict = {
     /** The hand that points at “Allow” when nobody taps it. */
     guideTap: 'Touchez « Autoriser »',
     guideAuto: (s: number) => `auto dans ${s} s`,
-    footnote:
-      'Tout se passe dans votre navigateur : le vrai SDK (<code>sdk.js</code>) dans une iframe, une surcouche WebSocket qui tunnelise vers une passerelle simulée dans la page, et un agent scripté qui émet de vrais RPC. Les messages de l’agent suivent la langue de la page ; les résultats des outils sont dans la langue de la passerelle (anglais ou chinois).',
+    footnote: '<code>sdk.js</code> non modifié dans une iframe · son WebSocket tunnelisé via postMessage vers une passerelle simulée dans cet onglet · chaque RPC s’exécute pour de vrai.',
     stateIdle: 'Prêt',
     statePrelude: 'Le client tombe sur le bug',
     stateRunning: 'L’agent travaille',
@@ -195,6 +192,16 @@ export const fr: Dict = {
       { icon: 'plug', title: 'Tout client MCP', body: 'Streamable HTTP sur <code>/v1/mcp</code> pour Claude Code, Codex, Cursor et compagnie ; un petit pont stdio pour tout le reste.' },
     ],
     toolsTitle: 'Tous les outils',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: 'Appareils et contrôle', body: 'Trouver un appareil, s’y connecter avec l’accord de l’utilisateur, attendre qu’il rende la main, le libérer.' },
+      { title: 'Pages', body: 'Chaque onglet et chaque WebView de l’appareil, en suivant les navigations.' },
+      { title: 'Voir la page', body: 'Structure avec ref d’éléments, recherche de texte, pixels.' },
+      { title: 'Agir', body: 'De vraies saisies sur des ref, après vérification de l’actionnabilité ; des lots en un seul aller-retour.' },
+      { title: 'Déboguer', body: 'Console, réseau avec les corps, stockage et scripts dans la page.' },
+      { title: 'Historique', body: 'Ce qui s’est passé d’une page à l’autre, avant votre connexion et depuis.' },
+    ],
+    levelsLabel: 'Niveau requis',
   },
   highlights: {
     kicker: 'Points forts',
@@ -281,6 +288,8 @@ export const fr: Dict = {
     resultComment: '# → console     https://rwd.example.com\n# → passerelle  https://rwd.example.com/v1  (MCP sur /v1/mcp)',
     requires: 'Docker suffit côté serveur ; compiler depuis les sources demande Go et Node.',
     docsLink: 'Guide de déploiement',
+    agentTitle: 'Ou confiez-le à votre agent',
+    agentPrompt: 'Déployez une passerelle Remote WebView Debugger sur mon serveur et ajoutez-la à vos serveurs MCP en suivant https://debugger.site/llms.txt',
   },
   faq: {
     kicker: 'FAQ',

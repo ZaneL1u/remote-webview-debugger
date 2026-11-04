@@ -427,6 +427,7 @@ html:is([lang='ar'], [lang='ru'], [lang='de'], [lang='fr'], [lang='es'], [lang='
   color: var(--ink-2);
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
@@ -607,90 +608,88 @@ html[lang='ar'] .hero h1 {
   align-items: center;
   gap: 12px 14px;
 }
-/* the specs line: what you don't need, in one quiet row */
-.hero-specs {
-  margin-top: 18px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 22px;
-  font: 400 12.5px/1.7 var(--font-mono);
-  color: var(--ink-3);
+/* quick start: a prompt for the visitor's agent, or the script tag */
+.quick {
+  margin-top: 30px;
+  max-width: 660px;
 }
-.hero-specs li {
+.quick-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 8px 0 6px;
+  border-bottom: 1px solid var(--code-line);
+}
+.quick-tabs {
+  display: flex;
+  min-width: 0;
+}
+.quick-tabs [role='tab'] {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
+  padding: 13px 12px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--code-ink-3);
+  font: 550 13px/1 var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s;
 }
-.hero-specs li::before {
+.quick-tabs [role='tab'] .ic {
+  width: 15px;
+  height: 15px;
+}
+.quick-tabs [role='tab']:hover {
+  color: var(--code-ink);
+}
+.quick-tabs [role='tab'][aria-selected='true'] {
+  color: var(--code-ink);
+}
+.quick-tabs [role='tab'][aria-selected='true']::after {
   content: '';
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--accent-2);
-  opacity: 0.7;
-}
-
-/* the install line: the one thing to add, ready to copy */
-.install {
-  position: relative;
-  margin-top: 28px;
-  max-width: 720px;
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 0 8px 8px 0;
-  border-radius: 12px;
-  overflow: hidden;
-}
-.install-label {
   position: absolute;
-  top: 0;
-  inset-inline-start: 0;
-  padding: 7px 12px 0 14px;
-  font: 500 10.5px/1 var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+.quick-body {
+  position: relative;
+}
+.quick .quick-body pre {
+  display: flex;
+  gap: 10px;
+  padding: 16px 18px 6px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.quick #quick-script pre {
+  display: block;
+  padding-bottom: 16px;
+  font-size: 12.5px;
+}
+.quick-caret {
+  flex: none;
+  color: var(--accent-2);
+  font-weight: 600;
+}
+.quick-hint {
+  padding: 0 18px 14px;
+  padding-inline-start: calc(18px + 1ch + 10px);
+  font: 400 12px/1.5 var(--font-mono);
   color: var(--code-ink-3);
 }
-.install pre {
-  flex: 1;
-  min-width: 0;
-  padding: 26px 0 4px 14px;
-  font-size: 12.5px;
-  white-space: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.install .copy {
-  flex: none;
-}
-
-/* figures under the hero */
-.stats {
-  margin: clamp(40px, 6vw, 64px) 0 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-block: 1px solid var(--line);
-}
-.stat {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 4px;
-  padding: 18px 20px;
-}
-.stat + .stat {
-  border-inline-start: 1px solid var(--line);
-}
-.stat dt {
-  font: 400 12.5px/1.4 var(--font-mono);
-  color: var(--ink-3);
-}
-.stat dd {
-  margin: 0;
-  font: 600 clamp(1.8rem, 3.4vw, 2.6rem) / 1 var(--font-sans);
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
+.btn-icon-text {
+  display: inline;
 }
 
 /* ------------------------------ hero flow ------------------------------ */
@@ -1182,4 +1181,13 @@ html[lang='ar'] .section-head h2 {
   background: var(--accent-soft);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 0 18px -8px color-mix(in srgb, var(--accent) 90%, transparent);
+}
+
+/* Arabic prompts: right to left, in a face that has the script */
+html[lang='ar'] :is(#quick-agent, .agent-ask) :is(pre, code, .quick-hint) {
+  direction: rtl;
+  font-family: var(--font-sans);
+}
+html[lang='ar'] :is(#quick-agent, .agent-ask) .quick-caret {
+  transform: scaleX(-1);
 }

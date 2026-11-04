@@ -97,7 +97,8 @@ export class View {
   constructor(private root: HTMLElement, private t: ViewText) {
     this.log = root.querySelector('[data-transcript]')!
     this.live = root.querySelector('[data-term-live]')!
-    this.anchor = this.live
+    // New lines go above the spinner and the input box, which stay at the bottom.
+    this.anchor = root.querySelector('[data-term-foot]')!
     this.statusEl = root.querySelector('[data-status]')!
     this.statusDot = root.querySelector('[data-status-dot]')!
     this.progressEl = root.querySelector('[data-progress]')!

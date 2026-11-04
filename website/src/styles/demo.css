@@ -296,6 +296,14 @@
 .term-lights i:nth-child(3) {
   background: #28c840;
 }
+.agent {
+  container-type: inline-size;
+}
+@container (max-width: 600px) {
+  .term-title {
+    display: none;
+  }
+}
 .term-title {
   position: absolute;
   left: 50%;
@@ -695,6 +703,12 @@
 }
 
 /* the input at the bottom */
+.term-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .term-input {
   margin-top: 2px;
 }

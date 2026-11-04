@@ -135,7 +135,9 @@ document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach(btn => {
   if (label) label.textContent = i18n.copy || 'Copy'
   btn.setAttribute('aria-label', i18n.copy || 'Copy')
   btn.addEventListener('click', async () => {
-    const code = btn.closest('.code')?.querySelector('code')?.textContent || ''
+    // In a tabbed box, the visible tab's code.
+    const box = btn.closest('.code')
+    const code = (box?.querySelector('[role=tabpanel]:not([hidden]) code') || box?.querySelector('code'))?.textContent || ''
     try {
       await navigator.clipboard.writeText(code)
       btn.classList.add('done')

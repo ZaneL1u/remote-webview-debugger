@@ -1,6 +1,6 @@
 ---
 import type { Dict } from '../i18n/en.ts'
-import { code } from '../lib/html.ts'
+import { code, copyButton } from '../lib/html.ts'
 import { REPO } from '../lib/site.ts'
 import * as S from '../lib/snippets.ts'
 import Icon from './Icon.astro'
@@ -24,6 +24,10 @@ const icons = ['server', 'db', 'chart']
     <div class="reveal">
       <Fragment set:html={code(S.selfHostSnippet(s), 'sh', s.stepsTitle, 'code-term')} />
       <p class="requires">{s.requires}</p>
+      <div class="agent-ask code">
+        <div class="code-head"><span class="code-label">{s.agentTitle}</span><Fragment set:html={copyButton()} /></div>
+        <pre dir="auto"><span class="quick-caret" aria-hidden="true">❯</span><code>{s.agentPrompt}</code></pre>
+      </div>
     </div>
   </div>
 </section>

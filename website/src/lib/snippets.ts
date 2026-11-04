@@ -150,6 +150,23 @@ export function maskedSnapshot(lang: L) {
 - button "Place order" [ref=e23]  # data-rwd-confirm`
 }
 
+/** The MCP tools by purpose, in the order of features.toolGroups. */
+export const TOOL_GROUPS: string[][] = [
+  ['list_devices', 'connect_device', 'wait_for_device', 'wait_for_control', 'set_task', 'disconnect_device'],
+  ['list_pages', 'select_page', 'wait_for_page', 'navigate_page', 'go_back', 'reload_page'],
+  ['take_snapshot', 'find_elements', 'take_screenshot', 'wait_for'],
+  ['click', 'fill', 'type_text', 'press_key', 'select_option', 'hover', 'scroll', 'drag', 'batch_actions'],
+  ['list_console_messages', 'list_network_requests', 'get_network_request', 'get_storage', 'evaluate_script'],
+  ['get_session_timeline', 'get_session_overview', 'get_session_log', 'wait_for_event'],
+]
+
+/** The permission level a tool needs; everything else is observe. */
+export function toolLevel(name: string): 'observe' | 'interact' | 'advanced' {
+  if (['evaluate_script', 'get_storage', 'get_network_request'].includes(name)) return 'advanced'
+  if (/^(click|fill|type_text|press_key|select_option|hover|scroll|drag|navigate_page|go_back|reload_page|batch_actions)$/.test(name)) return 'interact'
+  return 'observe'
+}
+
 export const TOOLS = [
   'list_devices',
   'connect_device',

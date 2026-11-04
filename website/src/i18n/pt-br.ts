@@ -34,16 +34,14 @@ export const ptBR: Dict = {
     ctaLive: 'Testar com o seu agente',
     ctaGithub: 'Dar uma estrela no GitHub',
     ctaSelfHost: 'Auto-hospedar em 5 minutos',
-    points: ['Sem cabo USB', 'Sem porta de depuração remota', 'Sem recompilar o app: só um script', 'Funciona depois que o bug aconteceu'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'ferramentas MCP' },
-      { value: '11', label: 'idiomas' },
-      { value: '1', label: 'tag script a adicionar' },
-      { value: '0', label: 'cabos USB' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: 'Adicione à sua página',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: 'Início rápido',
+      agent: 'Peça ao seu agente',
+      script: 'Tag script',
+      agentHint: 'Cole no Claude Code, Codex ou Cursor',
+      prompt: 'Adicione o Remote WebView Debugger a este projeto seguindo https://debugger.site/llms.txt',
+    },
     flow: {
       label: 'Um agente de IA fala MCP com o seu gateway auto-hospedado, que alcança o SDK da página no celular do usuário por um WebSocket.',
       agent: 'Agente de IA',
@@ -61,7 +59,7 @@ export const ptBR: Dict = {
     kicker: 'Demo ao vivo',
     title: 'Um bug real, resolvido em um celular “real”',
     lead:
-      'O celular desta demo roda o SDK de verdade dentro de uma loja de demonstração. O gateway dele é simulado no seu navegador, então nada sai desta aba — mas todo snapshot, clique, linha de console e patch ao vivo aqui embaixo é real.',
+      'O celular roda o SDK real da página dentro de uma loja de demonstração; só o gateway é simulado, nesta aba. Todo snapshot, clique, linha de console e patch ao vivo aqui embaixo acontece de verdade.',
     agentTitle: 'Agente de IA',
     agentSub: 'conectado ao servidor MCP do Remote WebView Debugger',
     skinLabel: 'Estilo do agente',
@@ -91,8 +89,7 @@ export const ptBR: Dict = {
     /** The hand that points at “Allow” when nobody taps it. */
     guideTap: 'Toque em “Permitir”',
     guideAuto: (s: number) => `automático em ${s}s`,
-    footnote:
-      'Roda inteirinho no seu navegador: o SDK de verdade (<code>sdk.js</code>) em um iframe, um shim de WebSocket que faz um túnel até um gateway simulado na própria página e um agente roteirizado emitindo RPCs reais. As mensagens do agente seguem o idioma da página; os resultados das ferramentas vêm no idioma do gateway (inglês ou chinês).',
+    footnote: '<code>sdk.js</code> sem modificações em um iframe · o WebSocket dele tunelado via postMessage até um gateway simulado nesta aba · todo RPC é executado de verdade.',
     stateIdle: 'Pronto',
     statePrelude: 'O cliente encontra o bug',
     stateRunning: 'Agente trabalhando',
@@ -193,6 +190,16 @@ export const ptBR: Dict = {
       { icon: 'plug', title: 'Qualquer cliente MCP', body: 'Streamable HTTP em <code>/v1/mcp</code> para Claude Code, Codex, Cursor e companhia; uma bridge stdio minúscula para todo o resto.' },
     ],
     toolsTitle: 'Todas as ferramentas',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: 'Dispositivos e controle', body: 'Encontre um dispositivo, conecte com a aprovação do usuário, espere ele devolver o controle, solte.' },
+      { title: 'Páginas', body: 'Cada aba e WebView do dispositivo, acompanhando as navegações.' },
+      { title: 'Ver a página', body: 'Estrutura com refs de elementos, busca de texto, pixels.' },
+      { title: 'Agir', body: 'Entrada real em refs, conferindo antes se dá para agir; lotes em uma só ida e volta.' },
+      { title: 'Depurar', body: 'Console, rede com corpos, armazenamento e scripts na página.' },
+      { title: 'Histórico', body: 'O que aconteceu entre páginas, antes de você conectar e desde então.' },
+    ],
+    levelsLabel: 'Nível necessário',
   },
   highlights: {
     kicker: 'Destaques',
@@ -279,6 +286,8 @@ export const ptBR: Dict = {
     resultComment: '# → console  https://rwd.example.com\n# → gateway  https://rwd.example.com/v1  (MCP em /v1/mcp)',
     requires: 'O servidor só precisa do Docker; compilar a partir do código-fonte exige Go e Node.',
     docsLink: 'Guia de implantação',
+    agentTitle: 'Ou deixe com o seu agente',
+    agentPrompt: 'Implante um gateway do Remote WebView Debugger no meu servidor e adicione-o aos seus servidores MCP seguindo https://debugger.site/llms.txt',
   },
   faq: {
     kicker: 'Perguntas frequentes',

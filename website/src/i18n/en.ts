@@ -34,16 +34,14 @@ export const en = {
     ctaLive: 'Try it with your agent',
     ctaGithub: 'Star on GitHub',
     ctaSelfHost: 'Self-host in 5 minutes',
-    points: ['No USB cable', 'No remote-debugging port', 'No app rebuild beyond one script', 'Works after the bug happened'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'MCP tools' },
-      { value: '11', label: 'languages' },
-      { value: '1', label: 'script tag to add' },
-      { value: '0', label: 'USB cables' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: 'Add to your page',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: 'Quick start',
+      agent: 'Ask your agent',
+      script: 'Script tag',
+      agentHint: 'Paste into Claude Code, Codex or Cursor',
+      prompt: 'Add Remote WebView Debugger to this project, following https://debugger.site/llms.txt',
+    },
     flow: {
       label: 'An AI agent talks MCP to your self-hosted gateway, which reaches the page SDK on the user’s phone over a WebSocket.',
       agent: 'AI agent',
@@ -61,7 +59,7 @@ export const en = {
     kicker: 'Live demo',
     title: 'A real bug, fixed on a “real” phone',
     lead:
-      'The phone in this demo runs the actual page SDK inside a demo shop. Its gateway is mocked in your browser, so nothing leaves this tab — but every snapshot, click, console line and live patch below is real.',
+      'The phone runs the real page SDK inside a demo shop; only the gateway is simulated, in this tab. Every snapshot, click, console line and live patch below actually happens.',
     agentTitle: 'AI agent',
     agentSub: 'connected to the Remote WebView Debugger MCP server',
     skinLabel: 'Agent style',
@@ -91,8 +89,7 @@ export const en = {
     /** The hand that points at “Allow” when nobody taps it. */
     guideTap: 'Tap “Allow”',
     guideAuto: (s: number) => `auto in ${s}s`,
-    footnote:
-      'Runs entirely in your browser: the real SDK (<code>sdk.js</code>) in an iframe, a WebSocket shim that tunnels to an in-page mock gateway, and a scripted agent issuing real RPCs. Agent messages follow the page language; tool results are in the gateway’s language (English or Chinese).',
+    footnote: 'Unmodified <code>sdk.js</code> in an iframe · its WebSocket tunnelled over postMessage to a gateway simulated in this tab · every RPC executes for real.',
     stateIdle: 'Ready',
     statePrelude: 'The customer runs into the bug',
     stateRunning: 'Agent working',
@@ -193,6 +190,16 @@ export const en = {
       { icon: 'plug', title: 'Any MCP client', body: 'Streamable HTTP at <code>/v1/mcp</code> for Claude Code, Codex, Cursor and friends; a tiny stdio bridge for everything else.' },
     ],
     toolsTitle: 'All tools',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: 'Devices & control', body: 'Find a device, connect with the user’s approval, wait out a takeover, let go.' },
+      { title: 'Pages', body: 'Every tab and WebView of the device, following navigations.' },
+      { title: 'See the page', body: 'Structure with element refs, text search, pixels.' },
+      { title: 'Act', body: 'Real input on refs, checked for actionability; batches in one round trip.' },
+      { title: 'Debug', body: 'Console, network with bodies, storage, and scripts in the page.' },
+      { title: 'History', body: 'What happened across pages, before you connected and since.' },
+    ],
+    levelsLabel: 'Needs level',
   },
   highlights: {
     kicker: 'Highlights',
@@ -279,6 +286,8 @@ export const en = {
     resultComment: '# → console  https://rwd.example.com\n# → gateway  https://rwd.example.com/v1  (MCP at /v1/mcp)',
     requires: 'Docker is all the server needs; building from source needs Go and Node.',
     docsLink: 'Deployment guide',
+    agentTitle: 'Or hand it to your agent',
+    agentPrompt: 'Deploy a Remote WebView Debugger gateway on my server and add it to your MCP servers, following https://debugger.site/llms.txt',
   },
   faq: {
     kicker: 'FAQ',

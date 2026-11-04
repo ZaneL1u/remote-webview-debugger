@@ -61,28 +61,16 @@ export function mountMotion() {
     const pick = (k: string) => hero.querySelector<HTMLElement>(`[data-hero="${k}"]`)
     const nodes = [...hero.querySelectorAll<HTMLElement>('[data-flow-node]')]
     const flow = hero.querySelector<HTMLElement>('[data-flow]')
-    const stats = pick('stats')
-    ;[pick('eyebrow'), pick('sub'), pick('cta'), pick('install'), pick('points'), flow, stats, title].forEach(el => el?.classList.add('in'))
+    ;[pick('eyebrow'), pick('sub'), pick('cta'), pick('install'), flow, title].forEach(el => el?.classList.add('in'))
     tl.from(pick('eyebrow'), { y: 14, opacity: 0, duration: 0.6 }, 0.05)
       .from(words, { y: 28, opacity: 0, rotateX: -40, duration: 0.8, stagger: 0.045 }, 0.15)
       .from(pick('sub'), { y: 16, opacity: 0, duration: 0.7 }, 0.55)
       .from(pick('cta')?.children || [], { y: 14, opacity: 0, duration: 0.5, stagger: 0.07 }, 0.75)
       .from(pick('install'), { y: 12, opacity: 0, duration: 0.6 }, 0.9)
-      .from(pick('points')?.children || [], { opacity: 0, duration: 0.5, stagger: 0.04 }, 1.05)
     if (flow) {
       tl.from(flow, { opacity: 0, scale: 0.96, duration: 0.8 }, 0.3)
         .from(nodes, { y: 18, opacity: 0, duration: 0.6, stagger: 0.14 }, 0.5)
         .from(hero.querySelectorAll('.flow-link'), { opacity: 0, scaleY: 0, transformOrigin: 'top', duration: 0.5, stagger: 0.14 }, 0.62)
-    }
-    if (stats) {
-      tl.from(stats.children, { opacity: 0, y: 10, duration: 0.6, stagger: 0.08 }, 1.1)
-      // The figures count up once, from zero.
-      stats.querySelectorAll<HTMLElement>('[data-count-to]').forEach((el, i) => {
-        const to = Number(el.dataset.countTo) || 0
-        const o = { v: 0 }
-        el.textContent = '0'
-        tl.to(o, { v: to, duration: 1.1, ease: 'power2.out', onUpdate: () => (el.textContent = String(Math.round(o.v))) }, 1.15 + i * 0.08)
-      })
     }
     // Packets travelling down the wires, forever.
     hero.querySelectorAll<HTMLElement>('[data-wire]').forEach((wire, wi) => {

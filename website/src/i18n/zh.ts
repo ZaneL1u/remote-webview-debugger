@@ -34,16 +34,14 @@ export const zh: Dict = {
     ctaLive: '用自己的 agent 试试',
     ctaGithub: '在 GitHub 上 Star',
     ctaSelfHost: '5 分钟自建部署',
-    points: ['不用数据线', '不开远程调试端口', 'App 只需注入一个脚本', '问题发生之后再接入也来得及'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'MCP 工具' },
-      { value: '11', label: '种语言' },
-      { value: '1', label: '个脚本' },
-      { value: '0', label: '根数据线' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: '加到你的页面',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: '快速开始',
+      agent: '交给 agent',
+      script: '手动接入',
+      agentHint: '粘贴到 Claude Code、Codex 或 Cursor',
+      prompt: '按照 https://debugger.site/llms.txt，把 Remote WebView Debugger 接入到这个项目里。',
+    },
     flow: {
       label: 'AI agent 通过 MCP 连接你自建的网关，网关再通过 WebSocket 连到用户手机上的页面 SDK。',
       agent: 'AI agent',
@@ -61,7 +59,7 @@ export const zh: Dict = {
     kicker: '在线演示',
     title: '一个真实的 bug，在“真实”的手机上查出来',
     lead:
-      '演示里的手机上，商城页面加载的就是真正的页面 SDK。网关在你的浏览器里模拟，任何数据都不会离开这个标签页；但下面每一次快照、点击、console 输出和热修补丁都是真实的。',
+      '手机里跑的是真实的页面 SDK，只有网关在这个标签页里模拟。下面每一次快照、点击、console 输出和热修补丁都是真实发生的。',
     agentTitle: 'AI agent',
     agentSub: '已连接 Remote WebView Debugger 的 MCP 服务',
     skinLabel: 'Agent 样式',
@@ -90,8 +88,7 @@ export const zh: Dict = {
     customer: '用户',
     guideTap: '点「允许」',
     guideAuto: (s: number) => `${s} 秒后自动点`,
-    footnote:
-      '完全在浏览器里运行：iframe 里是真实的 SDK（<code>sdk.js</code>），WebSocket 垫片把它的连接通过 postMessage 转到页面里的模拟网关，再由一个脚本化的 agent 发出真实的 RPC。agent 的话跟随页面语言；工具结果使用网关语言（英文或中文）。',
+    footnote: 'iframe 内是未经修改的 <code>sdk.js</code> · 它的 WebSocket 经 postMessage 接到本页模拟的网关 · 每个 RPC 都真实执行。',
     stateIdle: '准备就绪',
     statePrelude: '用户遇到了问题',
     stateRunning: 'Agent 排查中',
@@ -188,6 +185,16 @@ export const zh: Dict = {
       { icon: 'plug', title: '任意 MCP 客户端', body: '<code>/v1/mcp</code> 是 Streamable HTTP，Claude Code、Codex、Cursor 直接可用；只支持 stdio 的客户端用一个很小的桥接命令。' },
     ],
     toolsTitle: '全部工具',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: '设备与控制', body: '找到设备，经用户同意接入，等用户交还控制，结束时断开。' },
+      { title: '页面', body: '设备上的每个标签页和 WebView，自动跟随跳转。' },
+      { title: '看页面', body: '带元素 ref 的结构快照、文字查找、截图。' },
+      { title: '操作', body: '对 ref 执行真实输入并先检查可操作性；批量操作一次往返完成。' },
+      { title: '排查', body: 'console、带正文的网络请求、存储，以及在页面里执行脚本。' },
+      { title: '历史', body: '跨页面发生过什么，包括接入之前。' },
+    ],
+    levelsLabel: '所需级别',
   },
   highlights: {
     kicker: '亮点',
@@ -274,6 +281,8 @@ export const zh: Dict = {
     resultComment: '# → 控制台  https://rwd.example.com\n# → 网关    https://rwd.example.com/v1（MCP 在 /v1/mcp）',
     requires: '服务器上只需要 Docker；从源码构建需要 Go 和 Node。',
     docsLink: '部署说明',
+    agentTitle: '或者交给你的 agent',
+    agentPrompt: '按照 https://debugger.site/llms.txt，在我的服务器上部署 Remote WebView Debugger 网关，并把它加到你的 MCP 配置里。',
   },
   faq: {
     kicker: '常见问题',

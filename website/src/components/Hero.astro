@@ -10,6 +10,7 @@ interface Props {
 const { t } = Astro.props
 const h = t.hero
 const f = h.flow
+const q = h.quick
 ---
 
 <section class="hero" aria-labelledby="hero-title">
@@ -22,15 +23,25 @@ const f = h.flow
       <div class="cta reveal" data-hero="cta">
         <a class="btn btn-primary" href="#demo"><Icon name="play" /><span>{h.ctaDemo}</span></a>
         <a class="btn btn-ghost" href="#live"><Icon name="key" /><span>{h.ctaLive}</span></a>
-        <a class="btn btn-ghost" href={REPO}><Icon name="github" /><span>{h.ctaGithub}</span></a>
-        <a class="btn btn-link" href="#self-host"><span>{h.ctaSelfHost}</span><Icon name="arrow" /></a>
+        <a class="btn btn-ghost btn-icon" href={REPO} aria-label={h.ctaGithub} title={h.ctaGithub}><Icon name="github" /><span class="btn-icon-text">{h.ctaGithub}</span></a>
       </div>
-      <div class="install code reveal" data-hero="install">
-        <span class="install-label">{h.installLabel}</span>
-        <pre><code><span class="t-t">&lt;script</span> <span class="t-a">src</span>=<span class="t-s">"{SDK_CDN}"</span><span class="t-t">&gt;&lt;/script&gt;</span></code></pre>
-        <Fragment set:html={copyButton()} />
+      <div class="quick code reveal" data-hero="install" data-tabs>
+        <div class="quick-head">
+          <div class="quick-tabs" role="tablist" aria-label={q.label}>
+            <button role="tab" type="button" id="quick-tab-agent" aria-controls="quick-agent" aria-selected="true" tabindex="0"><Icon name="bot" />{q.agent}</button>
+            <button role="tab" type="button" id="quick-tab-script" aria-controls="quick-script" aria-selected="false" tabindex="-1"><Icon name="terminal" />{q.script}</button>
+          </div>
+          <Fragment set:html={copyButton()} />
+        </div>
+        <div class="quick-body" role="tabpanel" id="quick-agent" aria-labelledby="quick-tab-agent">
+          <pre dir="auto"><span class="quick-caret" aria-hidden="true">❯</span><code>{q.prompt}</code></pre>
+          <p class="quick-hint" dir="auto">{q.agentHint}</p>
+        </div>
+        <div class="quick-body" role="tabpanel" id="quick-script" aria-labelledby="quick-tab-script" hidden>
+          <pre><code><span class="t-t">&lt;script</span> <span class="t-a">src</span>=<span class="t-s">"{SDK_CDN}"</span><span class="t-t">&gt;&lt;/script&gt;</span>
+<span class="t-t">&lt;script&gt;</span>RemoteWebviewDebugger.<span class="t-fn">run</span>(<span class="t-s">"https://&lt;gateway&gt;/v1"</span>, <span class="t-s">"rwd_pk_…"</span>)<span class="t-t">&lt;/script&gt;</span></code></pre>
+        </div>
       </div>
-      <ul class="hero-specs reveal" data-hero="points">{h.points.map(p => <li>{p}</li>)}</ul>
     </div>
     <div class="flow reveal hud" role="img" aria-label={f.label} data-flow>
       <div class="flow-node flow-agent hud" data-flow-node><span class="flow-ic"><Icon name="bot" /></span><div><b>{f.agent}</b><small>{f.agentSub}</small></div></div>
@@ -43,15 +54,5 @@ const f = h.flow
         <span class="flow-state"><span></span>{f.state}</span><code class="flow-code">K7Q2-9M4X</code>
       </div>
     </div>
-  </div>
-  <div class="wrap">
-    <dl class="stats reveal" data-hero="stats">
-      {h.stats.map(st => (
-        <div class="stat">
-          <dt>{st.label}</dt>
-          <dd data-count-to={st.value}>{st.value}</dd>
-        </div>
-      ))}
-    </dl>
   </div>
 </section>

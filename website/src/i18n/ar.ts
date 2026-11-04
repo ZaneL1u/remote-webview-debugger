@@ -34,16 +34,14 @@ export const ar: Dict = {
     ctaLive: 'جرّبه بوكيلك',
     ctaGithub: 'أضف نجمة على GitHub',
     ctaSelfHost: 'استضفه بنفسك في 5 دقائق',
-    points: ['بلا كابل USB', 'بلا منفذ للتصحيح عن بُعد', 'بلا إعادة بناء للتطبيق، سكربت واحد يكفي', 'يعمل بعد وقوع الخلل'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'أداة MCP' },
-      { value: '11', label: 'لغة' },
-      { value: '1', label: 'سكربت تضيفه' },
-      { value: '0', label: 'كابل USB' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: 'أضفه إلى صفحتك',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: 'بداية سريعة',
+      agent: 'اطلب من وكيلك',
+      script: 'وسم script',
+      agentHint: 'الصقه في Claude Code أو Codex أو Cursor',
+      prompt: 'أضف Remote WebView Debugger إلى هذا المشروع باتباع https://debugger.site/llms.txt',
+    },
     flow: {
       label: 'يتحدث وكيل الذكاء الاصطناعي بـ MCP إلى بوابتك المستضافة ذاتيًا، وهي تصل إلى SDK الصفحة على هاتف المستخدم عبر WebSocket.',
       agent: 'وكيل الذكاء الاصطناعي',
@@ -61,7 +59,7 @@ export const ar: Dict = {
     kicker: 'عرض حي',
     title: 'خلل حقيقي، يُحَل على هاتف «حقيقي»',
     lead:
-      'الهاتف في هذا العرض يشغّل SDK الصفحة نفسه داخل متجر تجريبي. أما بوابته فمحاكاة داخل متصفحك، فلا يغادر أي شيء هذه اللسانة — ومع ذلك فكل لقطة ونقرة وسطر console وإصلاح حي تراه أدناه حقيقي.',
+      'يشغّل الهاتف SDK الصفحة الحقيقي داخل متجر تجريبي، والبوابة وحدها محاكاة داخل هذه اللسانة. كل لقطة ونقرة وسطر console وإصلاح حي تراه أدناه يحدث فعلًا.',
     agentTitle: 'وكيل الذكاء الاصطناعي',
     agentSub: 'مرتبط بخادم MCP الخاص بـ Remote WebView Debugger',
     skinLabel: 'نمط الوكيل',
@@ -91,8 +89,7 @@ export const ar: Dict = {
     /** The hand that points at “Allow” when nobody taps it. */
     guideTap: 'انقر «سماح»',
     guideAuto: (s: number) => `تلقائيًا خلال ${s} ث`,
-    footnote:
-      'يعمل كله داخل متصفحك: SDK الحقيقي (<code>sdk.js</code>) في إطار iframe، وطبقة WebSocket وسيطة تنفذ إلى بوابة محاكاة داخل الصفحة، ووكيل مكتوب مسبقًا يرسل استدعاءات RPC حقيقية. رسائل الوكيل تتبع لغة الصفحة، ونتائج الأدوات تظهر بلغة البوابة (الإنجليزية أو الصينية).',
+    footnote: '<code>sdk.js</code> دون أي تعديل داخل iframe · اتصال WebSocket الخاص به يمر عبر postMessage إلى بوابة محاكاة في هذه اللسانة · كل استدعاء RPC يُنفَّذ فعلًا.',
     stateIdle: 'جاهز',
     statePrelude: 'العميل يواجه الخلل',
     stateRunning: 'الوكيل يعمل',
@@ -193,6 +190,16 @@ export const ar: Dict = {
       { icon: 'plug', title: 'أي عميل MCP', body: 'Streamable HTTP على <code>/v1/mcp</code> لـ Claude Code وCodex وCursor وغيرها؛ وجسر stdio صغير لكل ما سواها.' },
     ],
     toolsTitle: 'كل الأدوات',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: 'الأجهزة والتحكم', body: 'ابحث عن جهاز، واتصل بموافقة المستخدم، وانتظر حتى يعيد التحكم، ثم حرّره.' },
+      { title: 'الصفحات', body: 'كل لسانة و WebView في الجهاز، مع تتبّع التنقلات.' },
+      { title: 'رؤية الصفحة', body: 'البنية مع ref للعناصر، وبحث في النص، ولقطات شاشة.' },
+      { title: 'التنفيذ', body: 'إدخال حقيقي على ref بعد التحقق من قابلية التفاعل؛ ودفعات في رحلة ذهاب وإياب واحدة.' },
+      { title: 'التصحيح', body: 'console، والشبكة مع محتوى الطلبات، والتخزين، والسكربتات داخل الصفحة.' },
+      { title: 'السجل', body: 'ما جرى عبر الصفحات، قبل اتصالك ومنذ ذلك الحين.' },
+    ],
+    levelsLabel: 'المستوى المطلوب',
   },
   highlights: {
     kicker: 'أبرز ما فيه',
@@ -279,6 +286,8 @@ export const ar: Dict = {
     resultComment: '# ← لوحة التحكم  https://rwd.example.com\n# ← البوابة  https://rwd.example.com/v1  (و MCP على /v1/mcp)',
     requires: 'لا يحتاج الخادم إلا إلى Docker؛ أما البناء من المصدر فيحتاج إلى Go و Node.',
     docsLink: 'دليل النشر',
+    agentTitle: 'أو سلّم المهمة لوكيلك',
+    agentPrompt: 'انشر بوابة Remote WebView Debugger على خادمي وأضفها إلى خوادم MCP لديك باتباع https://debugger.site/llms.txt',
   },
   faq: {
     kicker: 'الأسئلة الشائعة',

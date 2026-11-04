@@ -111,6 +111,7 @@ const footnote = escapeHtml(d.footnote).replace(/&lt;(\/?code)&gt;/g, '<$1>')
               <p>{d.startHint}</p>
               <button class="btn btn-primary" type="button" data-start><Icon name="play" /><span>{d.start}</span></button>
             </div>
+            <div class="term-foot" data-term-foot>
             <div class="term-live" data-term-live hidden>
               <span class="cc"><i class="spin" data-spin>✻</i> <b class="verb" data-verb>Pondering…</b> <span class="dim">(<span data-elapsed>0s</span> · ↓ <span data-tokens>0</span> tokens · esc to interrupt)</span></span>
               <span class="cx"><b class="shimmer">Working</b> <span class="dim">(<span data-elapsed>0s</span> • esc to interrupt)</span></span>
@@ -120,6 +121,7 @@ const footnote = escapeHtml(d.footnote).replace(/&lt;(\/?code)&gt;/g, '<$1>')
               <div class="hint cc"><span>? for shortcuts</span></div>
               <div class="box cx"><span class="pr">›</span><span class="ph">Ask Codex to do anything</span></div>
               <div class="hint cx"><span>⏎ send · ⌃J newline · ⌃T transcript · ⌃C quit</span><span>100% context left</span></div>
+            </div>
             </div>
           </div>
 

@@ -34,16 +34,14 @@ export const ko: Dict = {
     ctaLive: '내 에이전트로 해 보기',
     ctaGithub: 'GitHub에서 Star 누르기',
     ctaSelfHost: '5분 만에 셀프 호스팅',
-    points: ['데이터 케이블 불필요', '원격 디버깅 포트 불필요', '앱은 스크립트 하나만 주입', '버그가 지난 뒤에 접속해도 괜찮아요'],
-    /** Figures under the hero (the numbers are the same in every language). */
-    stats: [
-      { value: '34', label: 'MCP 도구' },
-      { value: '11', label: '지원 언어' },
-      { value: '1', label: '추가할 스크립트' },
-      { value: '0', label: '데이터 케이블' },
-    ],
-    /** The one-liner under the buttons. */
-    installLabel: '페이지에 추가',
+    /** The quick-start box under the buttons: a prompt for your agent, or the script tag. */
+    quick: {
+      label: '빠른 시작',
+      agent: '에이전트에게 맡기기',
+      script: '스크립트 태그',
+      agentHint: 'Claude Code, Codex, Cursor에 붙여 넣으세요',
+      prompt: 'https://debugger.site/llms.txt 문서를 따라 이 프로젝트에 Remote WebView Debugger를 추가해 주세요.',
+    },
     flow: {
       label: 'AI 에이전트가 MCP로 직접 운영하는 게이트웨이에 연결하고, 게이트웨이는 WebSocket으로 사용자 휴대폰의 페이지 SDK에 닿아요.',
       agent: 'AI 에이전트',
@@ -61,7 +59,7 @@ export const ko: Dict = {
     kicker: '라이브 데모',
     title: '실제 버그를 ‘실제’ 휴대폰에서 잡아내기',
     lead:
-      '데모 속 휴대폰에서 돌아가는 건 데모 쇼핑몰에 들어간 진짜 페이지 SDK예요. 게이트웨이만 브라우저 안에서 모사하니 어떤 데이터도 이 탭을 벗어나지 않아요. 그래도 아래의 스냅샷, 클릭, console 출력, 라이브 패치는 모두 진짜예요.',
+      '휴대폰에서는 데모 쇼핑몰 안에서 진짜 페이지 SDK가 돌아가요. 모사하는 건 게이트웨이뿐이고, 그것도 이 탭 안에서예요. 아래의 스냅샷, 클릭, console 출력, 라이브 패치는 모두 실제로 일어나요.',
     agentTitle: 'AI 에이전트',
     agentSub: 'Remote WebView Debugger MCP 서버에 연결됨',
     skinLabel: '에이전트 스타일',
@@ -91,8 +89,7 @@ export const ko: Dict = {
     /** The hand that points at “Allow” when nobody taps it. */
     guideTap: '“허용” 탭하기',
     guideAuto: (s: number) => `${s}초 후 자동`,
-    footnote:
-      '전부 브라우저 안에서 돌아가요. iframe 안에는 진짜 SDK(<code>sdk.js</code>)가 있고, WebSocket 심이 그 연결을 페이지 안의 모의 게이트웨이로 넘겨 주고, 스크립트화된 에이전트가 실제 RPC를 보내요. 에이전트의 말은 페이지 언어를 따르고, 도구 결과는 게이트웨이 언어(영어 또는 중국어)를 써요.',
+    footnote: 'iframe 안에는 수정하지 않은 <code>sdk.js</code> · 그 WebSocket은 postMessage를 거쳐 이 탭의 모의 게이트웨이로 · 모든 RPC는 실제로 실행돼요.',
     stateIdle: '준비됨',
     statePrelude: '고객이 버그를 만나요',
     stateRunning: '에이전트 작업 중',
@@ -193,6 +190,16 @@ export const ko: Dict = {
       { icon: 'plug', title: '어떤 MCP 클라이언트든', body: '<code>/v1/mcp</code>는 Streamable HTTP라 Claude Code, Codex, Cursor에서 바로 쓸 수 있고, stdio만 지원하는 클라이언트는 아주 작은 브리지를 쓰면 돼요.' },
     ],
     toolsTitle: '전체 도구',
+    /** The tools by what they are for (the tool names themselves are in lib/snippets.ts). */
+    toolGroups: [
+      { title: '기기와 제어', body: '기기를 찾고, 사용자의 허용을 받아 접속하고, 다시 맡겨 줄 때까지 기다리고, 끝나면 놓아줘요.' },
+      { title: '페이지', body: '기기의 모든 탭과 WebView를 이동까지 따라가요.' },
+      { title: '페이지 보기', body: '요소 ref가 붙은 구조, 텍스트 검색, 스크린샷.' },
+      { title: '조작', body: 'ref에 진짜 입력을, 조작 가능한지 확인한 뒤에. 여러 동작도 한 번의 왕복으로.' },
+      { title: '디버깅', body: 'console, 본문까지 담긴 네트워크, 저장소, 페이지 안 스크립트.' },
+      { title: '기록', body: '페이지를 넘나들며 무슨 일이 있었는지, 접속하기 전부터 지금까지.' },
+    ],
+    levelsLabel: '필요 권한',
   },
   highlights: {
     kicker: '하이라이트',
@@ -279,6 +286,8 @@ export const ko: Dict = {
     resultComment: '# → 콘솔        https://rwd.example.com\n# → 게이트웨이  https://rwd.example.com/v1  (MCP는 /v1/mcp)',
     requires: '서버에는 Docker만 있으면 되고, 소스에서 빌드할 때는 Go와 Node가 필요해요.',
     docsLink: '배포 가이드',
+    agentTitle: '아니면 에이전트에게 맡기세요',
+    agentPrompt: 'https://debugger.site/llms.txt 문서를 따라 내 서버에 Remote WebView Debugger 게이트웨이를 배포하고, MCP 서버 설정에 추가해 주세요.',
   },
   faq: {
     kicker: '자주 묻는 질문',

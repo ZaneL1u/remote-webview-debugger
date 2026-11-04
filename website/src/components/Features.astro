@@ -1,6 +1,6 @@
 ---
 import type { Dict } from '../i18n/en.ts'
-import { TOOLS } from '../lib/snippets.ts'
+import { TOOLS, TOOL_GROUPS, toolLevel } from '../lib/snippets.ts'
 import Icon from './Icon.astro'
 import SectionHead from './SectionHead.astro'
 
@@ -9,6 +9,7 @@ interface Props {
 }
 const { t } = Astro.props
 const f = t.features
+const LEVELS = ['observe', 'interact', 'advanced'] as const
 ---
 
 <section id="features" class="section" aria-labelledby="features-title">
@@ -25,8 +26,19 @@ const f = t.features
     </ul>
     <div class="tools reveal hud">
       <span class="radar" aria-hidden="true"></span>
-      <h3>{f.toolsTitle} <span class="count" data-count={TOOLS.length}>{TOOLS.length}</span></h3>
-      <ul>{TOOLS.map(n => <li><code>{n}</code></li>)}</ul>
+      <div class="tools-head">
+        <h3>{f.toolsTitle} <span class="count" data-count={TOOLS.length}>{TOOLS.length}</span></h3>
+        <p class="tools-legend"><span>{f.levelsLabel}</span>{LEVELS.map(l => <span class="lv" data-level={l}>{l}</span>)}</p>
+      </div>
+      <div class="tool-groups">
+        {f.toolGroups.map((g, i) => (
+          <section class="tool-group">
+            <h4>{g.title}</h4>
+            <p>{g.body}</p>
+            <ul>{TOOL_GROUPS[i].map(n => <li><code data-level={toolLevel(n)} title={toolLevel(n)}>{n}</code></li>)}</ul>
+          </section>
+        ))}
+      </div>
     </div>
   </div>
 </section>
