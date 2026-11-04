@@ -4,6 +4,12 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded). Tags: `gateway-vX.Y.Z`.
 
+## v0.3.1 (2026-11-04)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.3.0...gateway-v0.3.1)
+
+> Embedded page SDK: v0.3.0
+
 ## v0.3.0 (2026-11-04)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.2.0...gateway-v0.3.0)
