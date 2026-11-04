@@ -117,6 +117,7 @@ type Page struct {
 	OpenerID    string
 	ConnectedAt time.Time
 	LastActive  time.Time
+	connSince   time.Time // when the current connection began (reloads renew it)
 
 	conn  *Conn
 	grace *time.Timer
@@ -147,6 +148,8 @@ type Device struct {
 	attachedAt   time.Time // when the attached agent attached
 
 	pages     map[string]*Page
+	devtools  map[string]*DevtoolsSession // open DevTools windows (devtools.go)
+	grants    map[string]time.Time        // member id -> DevTools approved until
 	nextLabel int
 	timeline  []Event
 	seq       int64
@@ -179,6 +182,7 @@ type Pending struct {
 	Agent     string   `json:"agent"`
 	KeyHint   string   `json:"keyHint,omitempty"`
 	Levels    []string `json:"levels"`
+	Purpose   string   `json:"purpose,omitempty"` // "devtools": a member asks for DevTools
 	ExpiresAt int64    `json:"expiresAt"`
 	decision  chan *store.Level
 }
@@ -206,6 +210,7 @@ type Hub struct {
 	denials map[string]*denial // apiKeyID|deviceKey
 	grants  map[string]*grant  // apiKeyID|deviceKey
 	enum    map[string]*denial // failed device lookups per API key
+	tickets map[string]*devtoolsTicket
 
 	// Audit receives audit events (written asynchronously by the caller).
 	Audit func(store.AuditEvent)
@@ -215,7 +220,7 @@ type Hub struct {
 
 func New(st *store.Store, log *slog.Logger, pepper string, lang i18n.Lang) *Hub {
 	h := &Hub{store: st, log: log, pepper: pepper, lang: lang, devices: map[string]*Device{}, agents: map[string]*Agent{},
-		denials: map[string]*denial{}, grants: map[string]*grant{}, enum: map[string]*denial{}, subs: map[string]map[chan Update]struct{}{},
+		denials: map[string]*denial{}, grants: map[string]*grant{}, enum: map[string]*denial{}, tickets: map[string]*devtoolsTicket{}, subs: map[string]map[chan Update]struct{}{},
 		Audit: func(store.AuditEvent) {}}
 	h.stats.rpc = map[string]*rpcStat{}
 	go h.loop()
@@ -433,17 +438,18 @@ func pageName(p *Page) i18n.Msg {
 // --- views for the API and MCP layers ---
 
 type PageView struct {
-	ID          string `json:"id"`
-	ProjectID   string `json:"projectId"`
-	Label       string `json:"label"`
-	URL         string `json:"url"`
-	Title       string `json:"title"`
-	Visibility  string `json:"visibility"`
-	Focused     bool   `json:"focused"`  // the page the user is most likely looking at
-	Selected    bool   `json:"selected"` // the page the agent is working on
-	OpenerLabel any    `json:"openerLabel"`
-	ConnectedAt int64  `json:"connectedAt"`
-	Connected   bool   `json:"-"`
+	ID             string `json:"id"`
+	ProjectID      string `json:"projectId"`
+	Label          string `json:"label"`
+	URL            string `json:"url"`
+	Title          string `json:"title"`
+	Visibility     string `json:"visibility"`
+	Focused        bool   `json:"focused"`  // the page the user is most likely looking at
+	Selected       bool   `json:"selected"` // the page the agent is working on
+	OpenerLabel    any    `json:"openerLabel"`
+	ConnectedAt    int64  `json:"connectedAt"`
+	ConnectedSince int64  `json:"connectedSince"` // the current connection (renewed by reloads)
+	Connected      bool   `json:"connected"`
 }
 
 // Task is the attached agent's announced job and plan, shown at the top of
@@ -482,6 +488,7 @@ type DeviceView struct {
 	OnlineSince int64          `json:"onlineSince,omitempty"`
 	System      SystemInfo     `json:"system"`
 	ProjectName string         `json:"projectName,omitempty"`
+	Devtools    []DevtoolsView `json:"devtools"`
 }
 
 func (h *Hub) viewOf(info store.Device, d *Device) DeviceView {
@@ -512,6 +519,7 @@ func (h *Hub) viewOf(info store.Device, d *Device) DeviceView {
 		}
 		v.PendingReq = d.Pending
 		v.Task = d.Task
+		v.Devtools = devtoolsOf(d)
 		v.Invited = d.Invited
 	}
 	return v
@@ -523,7 +531,7 @@ func pagesOf(d *Device) []PageView {
 	for _, p := range d.pages {
 		pv := PageView{ID: p.ID, ProjectID: p.ProjectID, Label: p.Label, URL: p.URL, Title: p.Title, Visibility: p.Visibility,
 			Focused: p == focus, Selected: d.agent != nil && d.agent.pageID == p.ID,
-			ConnectedAt: p.ConnectedAt.UnixMilli(), Connected: p.Connected()}
+			ConnectedAt: p.ConnectedAt.UnixMilli(), ConnectedSince: p.connSince.UnixMilli(), Connected: p.Connected()}
 		if op := d.pages[p.OpenerID]; op != nil {
 			pv.OpenerLabel = op.Label
 		}
@@ -682,7 +690,8 @@ func (h *Hub) device(info store.Device) *Device {
 	k := deviceKey(info.DeviceID)
 	d := h.devices[k]
 	if d == nil {
-		d = &Device{Key: k, Info: info, hub: h, Control: ControlNone, pages: map[string]*Page{}}
+		d = &Device{Key: k, Info: info, hub: h, Control: ControlNone, pages: map[string]*Page{},
+			devtools: map[string]*DevtoolsSession{}, grants: map[string]time.Time{}}
 		h.devices[k] = d
 	} else {
 		d.Info = info

@@ -50,7 +50,7 @@ export const common: typeof en = {
   },
   roleDescriptions: {
     owner: '全部权限，包括邀请成员、修改角色和删除成员。',
-    admin: '管理项目、API Key、接入策略、设备和邀请，查看审计和成员列表。',
+    admin: '管理项目、API Key、接入策略、设备和邀请，打开调试工具，查看审计和成员列表。',
     member: '查看项目和设备；可以邀请用户接入、测试连接、结束调试、查看审计。',
   },
 
@@ -89,6 +89,7 @@ export const common: typeof en = {
     agentWithName: (label, agent) => `${label}（${agent}）`,
     waitingConfirmAction: '等待用户确认操作',
     waitingConfirm: '等待用户确认',
+    waitingDevtools: '等待用户确认调试',
     waitingTitle: (agent) => `${agent} 正在等待用户在设备上确认`,
     invited: '邀请接入',
     invitedTitle: '通过邀请链接接入的设备',

@@ -18,7 +18,9 @@
       "licia/*": ["./node_modules/licia/*"],
       "modern-screenshot": ["./node_modules/modern-screenshot"],
       "devtools-protocol": ["./node_modules/devtools-protocol"],
-      "axios": ["./node_modules/axios"]
+      "axios": ["./src/stubs/axios.ts"],
+      "html2canvas": ["./src/stubs/html2canvas.ts"],
+      "luna-dom-highlighter": ["./src/stubs/domHighlighter.ts"]
     }
   },
   "include": ["src/**/*.ts"]

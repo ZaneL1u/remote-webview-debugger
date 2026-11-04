@@ -51,6 +51,9 @@ func (h *Hub) policyFor(ctx context.Context, projectIDs []string) (store.Policy,
 			out.Approval = "prompt"
 		}
 		out.MaxLevel = store.MinLevel(out.MaxLevel, pol.MaxLevel)
+		if pol.Devtools == "off" {
+			out.Devtools = "off"
+		}
 		out.AgentIdleMinutes = min(out.AgentIdleMinutes, pol.AgentIdleMinutes)
 		out.AttachMaxMinutes = min(out.AttachMaxMinutes, pol.AttachMaxMinutes)
 		if pol.MaxAgents > 0 && (out.MaxAgents == 0 || pol.MaxAgents < out.MaxAgents) {
@@ -594,6 +597,7 @@ func (h *Hub) EndDevice(deviceID string) {
 	if d == nil {
 		return
 	}
+	h.endDevtools(d, i18n.M(i18n.EventAdminEnded))
 	if a := d.agent; a != nil {
 		h.detach(a, i18n.M(i18n.NoteAdminEnded))
 	} else {

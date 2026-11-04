@@ -69,6 +69,13 @@ const ui: UiMessages = {
   confirmText: action => `A IA quer ${action}. Permitir?`,
   allow: 'Permitir',
   deny: 'Negar',
+  developer: 'Desenvolvedor',
+  devtoolsTitle: 'Um desenvolvedor quer depurar',
+  devtoolsText: name =>
+    `“${name}” quer inspecionar esta página com o DevTools: poderá ver a estrutura, os logs, as requisições de rede e o armazenamento local, e executar scripts nela. Permitir?`,
+  devtoolsToast: name => `“${name}” abriu o DevTools`,
+  barDevtools: 'Desenvolvedor depurando',
+  nameSep: ', ',
 }
 
 const agent: AgentMessages = {
@@ -153,6 +160,8 @@ const agent: AgentMessages = {
     listitem: 'item de lista',
   },
   element: 'elemento',
+  devtoolsHistory: (count, dropped) =>
+    `—— ${count} registros de log de antes de abrir o DevTools (só texto; objetos não podem ser expandidos${dropped ? `; outros ${dropped} foram descartados` : ''}) ——`,
 }
 
 const action: ActionMessages = {

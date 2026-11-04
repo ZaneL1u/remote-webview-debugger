@@ -73,6 +73,14 @@ const ui = {
   confirmText: (action: string) => `AI wants to ${action}. Allow?`,
   allow: 'Allow',
   deny: 'Deny',
+  // DevTools for people (docs/protocol.md §17)
+  developer: 'Developer',
+  devtoolsTitle: 'A developer wants to debug',
+  devtoolsText: (name: string) =>
+    `"${name}" wants to inspect this page with DevTools: they can see its structure, logs, network requests and local storage, and run scripts in it. Allow?`,
+  devtoolsToast: (name: string) => `"${name}" opened DevTools`,
+  barDevtools: 'Developer debugging',
+  nameSep: ', ',
 }
 
 export type UiMessages = typeof ui

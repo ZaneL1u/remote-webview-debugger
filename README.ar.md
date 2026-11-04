@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 
 <div dir="rtl">
 
@@ -23,6 +23,7 @@
 
 - **وسم سكربت واحد** (أو حقن أصلي) يجعل الصفحة متصلة. يرى المستخدم شارة صغيرة تحمل رمز الجهاز، ويمكنه النقر على *طلب المساعدة*.
 - **يتصل وكيلك عبر MCP** — Claude Code أو Cursor أو أي عميل MCP — بعد أن يوافق المستخدم على الجهاز. يقرأ لقطات إمكانية الوصول، و console، والشبكة، ولقطات الشاشة، وينقر ويكتب ويمرّر كما يفعل الإنسان، عبر كل صفحة و WebView على ذلك الجهاز.
+- **Chrome DevTools حقيقية للأشخاص.** من لوحة التحكم، يفتح `admin` أداة DevTools على أي صفحة متصلة — Elements، و Console، و Network (مع ما حدث قبل فتحها)، وتخزين Application — بعد أن يوافق المستخدم على الجهاز.
 - **يبقى المستخدم متحكمًا.** يرى ما يفعله الذكاء الاصطناعي (مؤشر الوكيل، وبطاقة مهمة بالخطوات المخطط لها، وحافة متوهجة)، ويستطيع تولّي التحكم أو إنهاء الجلسة في أي وقت. وتُخفى كلمات المرور وأرقام الهواتف والبطاقات قبل أن يغادر أي شيء الهاتف.
 - **استضافة ذاتية.** ملف تنفيذي واحد بلغة Go تُضمَّن فيه لوحة التحكم و SDK؛ مع SQLite أو Postgres.
 
@@ -157,7 +158,7 @@ cd website && npm run dev                            # الموقع
 
 ## شكر وتقدير
 
-يبني المحرك العامل في جانب الصفحة على [chobitsu](https://github.com/liriliri/chobitsu) (MIT) لالتقاط console والشبكة، ويستخدم شيفرة لقطات إمكانية الوصول من [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). انظر [NOTICE](NOTICE).
+يبني المحرك العامل في جانب الصفحة على [chobitsu](https://github.com/liriliri/chobitsu) (MIT) لالتقاط console والشبكة، ويستخدم شيفرة لقطات إمكانية الوصول من [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). و DevTools الخاصة بلوحة التحكم هي الطرف الأمامي لـ Chrome DevTools كما بناه مسبقًا [chii](https://github.com/liriliri/chii) (MIT؛ و DevTools نفسها BSD-3-Clause). انظر [NOTICE](NOTICE).
 
 ## الترخيص
 

@@ -205,6 +205,12 @@ export const projects: typeof en = {
       usersEmpty: '名单为空时没有人能看到协助浮标。',
     },
 
+    devtools: {
+      title: '调试工具（DevTools）',
+      description: '管理员可以在设备详情里对在线页面打开 Chrome DevTools：元素、控制台、网络、存储，并能执行脚本。',
+      allow: '允许打开调试工具',
+      allowDescription: '只有所有者和管理员能打开；「接入审批」为需要确认时，用户在设备上同意后才会连上，同意一次在接入最长时长内有效，用户随时能结束。调试工具能看到页面的原始内容，遮盖规则对它不生效。',
+    },
     eruda: {
       title: 'eruda 联动',
       description: '页面里的 eruda 调试面板和 Remote Debugger 怎么配合。页面代码里 run({ eruda }) 的设置优先于这里。',

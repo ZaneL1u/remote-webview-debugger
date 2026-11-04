@@ -31,6 +31,8 @@ export type Policy = {
   maxAgents: number
   /** How pages combine with eruda; run({ eruda }) overrides it per field. */
   eruda: { dock: boolean; load: boolean }
+  /** Whether admins may open Chrome DevTools on the project's pages (section 17). */
+  devtools: 'on' | 'off'
 }
 
 export type Project = {
@@ -102,7 +104,14 @@ export type Device = {
   system?: DeviceSystem
   /** Only on GET /devices (the cross-project list). */
   projectName?: string
+  /** Open DevTools windows (section 17). */
+  devtools?: DevtoolsWindow[]
 }
+
+export type DevtoolsWindow = { id: string; member: string; page: string; since: number }
+
+/** POST /devices/:id/devtools (section 17). */
+export type DevtoolsGrant = { ticket: string; session: string; page: Page; frontendUrl: string }
 
 export type DeviceSystem = {
   /** iOS | iPadOS | Android | HarmonyOS | macOS | Windows | Linux | "" */
@@ -154,7 +163,14 @@ export type MeasuredStatus = GatewayStatus & {
   checkedAt: number
 }
 
-export type PendingApproval = { kind: string; agent: string | { name: string; keyHint?: string }; levels: Level[]; expiresAt: number }
+export type PendingApproval = {
+  kind: string
+  agent: string | { name: string; keyHint?: string }
+  levels: Level[]
+  /** 'devtools': a member asked for DevTools (section 17). */
+  purpose?: 'devtools'
+  expiresAt: number
+}
 
 export type Integration = {
   appKey: string
@@ -178,6 +194,10 @@ export type Page = {
   selected: boolean
   openerLabel: string | null
   connectedAt: number
+  /** Connected now (false while it reloads or navigates). */
+  connected?: boolean
+  /** When the current connection began; a reload or navigation renews it. */
+  connectedSince: number
 }
 
 export type TimelineEvent = { at: number; page: string | null; kind: string; summary: string }

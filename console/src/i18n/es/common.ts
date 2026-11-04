@@ -50,7 +50,7 @@ export const common: typeof en = {
   },
   roleDescriptions: {
     owner: 'Acceso total, incluido invitar miembros, cambiar roles y quitar miembros.',
-    admin: 'Gestiona proyectos, claves de API, políticas de acceso, dispositivos e invitaciones; puede ver el registro de auditoría y la lista de miembros.',
+    admin: 'Gestiona proyectos, claves de API, políticas de acceso, dispositivos e invitaciones; puede abrir DevTools en las páginas de los dispositivos y ver el registro de auditoría y la lista de miembros.',
     member: 'Ve proyectos y dispositivos; puede invitar a usuarios a conectarse, probar conexiones, finalizar sesiones y ver el registro de auditoría.',
   },
 
@@ -89,6 +89,7 @@ export const common: typeof en = {
     agentWithName: (label, agent) => `${label} (${agent})`,
     waitingConfirmAction: 'Esperando que el usuario confirme la acción',
     waitingConfirm: 'Esperando la aprobación del usuario',
+    waitingDevtools: 'Esperando que el usuario apruebe DevTools',
     waitingTitle: (agent) => `${agent} espera que el usuario apruebe en el dispositivo`,
     invited: 'Invitado',
     invitedTitle: 'Conectado mediante un enlace de invitación',

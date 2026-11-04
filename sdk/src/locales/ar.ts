@@ -67,6 +67,13 @@ const ui: UiMessages = {
   confirmText: action => `يريد الذكاء الاصطناعي ${action}. السماح بذلك؟`,
   allow: 'سماح',
   deny: 'رفض',
+  developer: 'مطوّر',
+  devtoolsTitle: 'مطوّر يطلب تصحيح الصفحة',
+  devtoolsText: name =>
+    `يطلب «${name}» فحص هذه الصفحة بأدوات DevTools: سيرى بنيتها وسجلاتها وطلبات الشبكة والتخزين المحلي، ويمكنه تشغيل نصوص برمجية فيها. السماح بذلك؟`,
+  devtoolsToast: name => `فتح «${name}» أدوات DevTools`,
+  barDevtools: 'مطوّر يصحّح الصفحة',
+  nameSep: '، ',
 }
 
 const agent: AgentMessages = {
@@ -149,6 +156,8 @@ const agent: AgentMessages = {
     listitem: 'عنصر قائمة',
   },
   element: 'عنصر',
+  devtoolsHistory: (count, dropped) =>
+    `—— ${count} من السجلات قبل فتح DevTools (نص فقط؛ لا يمكن توسيع الكائنات${dropped ? `؛ وأُسقط ${dropped} غيرها` : ''}) ——`,
 }
 
 const action: ActionMessages = {

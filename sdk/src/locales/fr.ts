@@ -69,6 +69,13 @@ const ui: UiMessages = {
   confirmText: action => `L’IA souhaite ${action}. Autoriser ?`,
   allow: 'Autoriser',
   deny: 'Refuser',
+  developer: 'Développeur',
+  devtoolsTitle: 'Un développeur souhaite déboguer',
+  devtoolsText: name =>
+    `« ${name} » souhaite inspecter cette page avec DevTools : il pourra voir sa structure, ses journaux, ses requêtes réseau et son stockage local, et y exécuter des scripts. Autoriser ?`,
+  devtoolsToast: name => `« ${name} » a ouvert DevTools`,
+  barDevtools: 'Débogage en cours',
+  nameSep: ', ',
 }
 
 const agent: AgentMessages = {
@@ -154,6 +161,8 @@ const agent: AgentMessages = {
     listitem: 'l’élément de liste',
   },
   element: 'l’élément',
+  devtoolsHistory: (count, dropped) =>
+    `—— ${count} entrées de journal d’avant l’ouverture de DevTools (texte seul ; les objets ne peuvent pas être dépliés${dropped ? ` ; ${dropped} autres ont été abandonnées` : ''}) ——`,
 }
 
 const action: ActionMessages = {

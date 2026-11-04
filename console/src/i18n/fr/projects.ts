@@ -224,6 +224,12 @@ export const projects: typeof en = {
       usersEmpty: 'Si la liste est vide, personne ne voit le bouton d’assistance.',
     },
 
+    devtools: {
+      title: 'DevTools',
+      description: 'Les administrateurs peuvent ouvrir Chrome DevTools sur les pages en ligne depuis le détail de l’appareil : Elements, Console, Network, stockage et exécution de scripts.',
+      allow: 'Autoriser DevTools',
+      allowDescription: 'Seuls les propriétaires et les administrateurs peuvent l’ouvrir. Si l’approbation des connexions est activée, la connexion se fait après l’accord de l’utilisateur sur l’appareil ; une approbation vaut pour la durée maximale de session, et l’utilisateur peut y mettre fin à tout moment. DevTools voit la page telle quelle : le masquage ne s’y applique pas.',
+    },
     eruda: {
       title: 'Intégration eruda',
       description:

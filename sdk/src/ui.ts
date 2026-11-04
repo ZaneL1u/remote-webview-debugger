@@ -283,7 +283,7 @@ ${CJK_FONTS}
   opacity: 0; visibility: hidden; transform: translate(-50%, 18px) scale(.96);
   transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1), visibility 0s linear .3s;
 }
-.observe .bar, .agent .bar, .user .bar {
+.observe .bar, .agent .bar, .user .bar, .devtools .bar {
   pointer-events: auto; opacity: 1; visibility: visible; transform: translateX(-50%);
   transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1);
 }
@@ -519,6 +519,8 @@ export class Ui {
   private help = false
   private agent = 'AI'
   private task: AgentTask | null = null
+  /** People with DevTools open on this page (docs/protocol.md §17). */
+  private inspectors: string[] = []
   private taskKey = ''
   private taskPct = 0
   private dragged = false
@@ -799,6 +801,12 @@ export class Ui {
     this.render()
   }
 
+  setInspectors(names: string[]) {
+    if (names.join('\n') === this.inspectors.join('\n')) return
+    this.inspectors = names.slice()
+    this.render()
+  }
+
   highlight(el: Element) {
     const r = el.getBoundingClientRect()
     if (!r.width && !r.height) return
@@ -900,7 +908,8 @@ export class Ui {
 
   private render() {
     this.host.setAttribute('data-theme', this.theme())
-    this.frame.className = `${this.control} ${this.link}${this.lockScreen() ? ' locked' : ''}`
+    const inspecting = this.control === 'none' && this.inspectors.length > 0
+    this.frame.className = `${this.control} ${this.link}${this.lockScreen() ? ' locked' : ''}${inspecting ? ' devtools' : ''}`
     const make = (tag: string, cls: string, text: string, parent: HTMLElement, action?: string) => {
       const el = document.createElement(tag)
       if (cls) el.className = cls
@@ -921,7 +930,7 @@ export class Ui {
     }
 
     // Idle floating window: the pill, and the card it expands into.
-    const idle = this.control === 'none' && !this.panel
+    const idle = this.control === 'none' && !this.panel && !inspecting
     if (!idle) this.winOpen = false
     const t = this.t
     const pill = this.pill
@@ -980,6 +989,11 @@ export class Ui {
     const text = make('span', 'text', '', status)
     const line = make('span', 'head', '', text)
     const acts = make('span', 'acts', '', bar)
+    if (inspecting) {
+      make('span', 'label', t.barDevtools, line)
+      make('span', 'who', this.inspectors.join(t.nameSep), line)
+      make('button', 'btn stop', t.end, acts, 'end')
+    }
     switch (this.control) {
       case 'observe':
         make('span', 'label', t.barViewing, line)

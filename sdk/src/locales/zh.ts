@@ -67,6 +67,12 @@ const ui: UiMessages = {
   confirmText: action => `AI 想要${action}，允许吗？`,
   allow: '允许',
   deny: '拒绝',
+  developer: '开发者',
+  devtoolsTitle: '开发者请求调试',
+  devtoolsText: name => `「${name}」请求用调试工具查看此页面：可以看到页面结构、日志、网络请求和本地存储，并能在页面里执行脚本。允许吗？`,
+  devtoolsToast: name => `「${name}」打开了调试工具`,
+  barDevtools: '开发者调试中',
+  nameSep: '、',
 }
 
 const agent: AgentMessages = {
@@ -147,6 +153,7 @@ const agent: AgentMessages = {
     listitem: '列表项',
   },
   element: '元素',
+  devtoolsHistory: (count, dropped) => `—— 打开调试工具之前的 ${count} 条日志（只有文字，对象不能展开${dropped ? `；另有 ${dropped} 条已丢弃` : ''}）——`,
 }
 
 const action: ActionMessages = {

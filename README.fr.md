@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@ Un bug qui ne survient que sur le téléphone d'un seul utilisateur, dans une su
 
 - **Une seule balise script** (ou une injection native) met une page en ligne. L'utilisateur voit une petite pastille avec un code d'appareil et peut toucher *Demander une assistance*.
 - **Votre agent se connecte via MCP** — Claude Code, Cursor ou n'importe quel client MCP — une fois que l'utilisateur a donné son accord sur l'appareil. Il lit des instantanés d'accessibilité, la console, le réseau et des captures d'écran, et il clique, saisit du texte et fait défiler la page comme une personne, sur toutes les pages et WebViews de cet appareil.
+- **De vraies Chrome DevTools pour tout le monde.** Depuis la console, un administrateur ouvre DevTools sur n'importe quelle page en ligne — Elements, Console, Network (avec ce qui s'est passé avant l'ouverture) et le stockage Application — après l'accord de l'utilisateur sur l'appareil.
 - **L'utilisateur garde la main.** Il voit ce que fait l'IA (curseur de l'agent, carte de tâche avec les étapes prévues, bordure lumineuse) et peut reprendre la main ou terminer la session à tout moment. Les mots de passe, numéros de téléphone et de carte sont masqués avant que quoi que ce soit ne quitte le téléphone.
 - **Auto-hébergé.** Un seul binaire Go qui embarque la console web et le SDK ; SQLite ou Postgres.
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # le site web
 
 ## Remerciements
 
-Le moteur côté page s'appuie sur [chobitsu](https://github.com/liriliri/chobitsu) (MIT) pour la capture de la console et du réseau, et utilise le code d'instantané d'accessibilité de [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). Voir [NOTICE](NOTICE).
+Le moteur côté page s'appuie sur [chobitsu](https://github.com/liriliri/chobitsu) (MIT) pour la capture de la console et du réseau, et utilise le code d'instantané d'accessibilité de [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). Les DevTools de la console sont le frontend Chrome DevTools tel qu'empaqueté par [chii](https://github.com/liriliri/chii) (MIT ; DevTools lui-même BSD-3-Clause). Voir [NOTICE](NOTICE).
 
 ## Licence
 

@@ -59,6 +59,7 @@ import {
   type MessageOverrides,
 } from './i18n'
 import { rememberLaunch, resolveLaunch } from './launch'
+import * as devtools from '@chobitsu/engine/devtools'
 
 // remote-webview-debugger page SDK.
 //
@@ -202,6 +203,8 @@ interface Session {
   config: RemoteConfig | null
   approvals: Approvals
   eruda: ErudaBridge
+  /** Open DevTools sessions on this page (docs/protocol.md §17): id → who. */
+  inspectors: { [session: string]: string }
   waiters: ((r: RunResult) => void)[]
 }
 
@@ -481,6 +484,7 @@ function onMessage(s: Session, msg: any) {
         write('localStorage', CODE_KEY, s.deviceCode)
       }
       s.label = msg.label || null
+      endDevtools(s) // sessions belong to a connection
       s.ui.setLink('online', s.deviceCode || undefined)
       setLevel(s, msg.level != null ? msg.level : msg.control && msg.control.level)
       applyControl(s, (msg.control && msg.control.state) || 'none', agentName(msg.control), msg.control && msg.control.attachedMs)
@@ -504,7 +508,41 @@ function onMessage(s: Session, msg: any) {
     case 'help':
       storeHelp(s, !!msg.on)
       break
+    case 'devtools':
+      onDevtools(s, msg)
+      break
+    case 'cdp':
+      if (typeof msg.s === 'string' && typeof msg.m === 'string') devtools.handle(msg.s, msg.m)
+      break
   }
+}
+
+/* -------------------------- DevTools for people --------------------------- */
+
+function onDevtools(s: Session, msg: any) {
+  const id = typeof msg.s === 'string' ? msg.s : ''
+  if (!id) return
+  if (msg.on) {
+    s.inspectors[id] = String(msg.by || s.ui.t.developer)
+    devtools.openSession(id)
+    s.ui.toast(s.ui.t.devtoolsToast(s.inspectors[id]))
+  } else {
+    delete s.inspectors[id]
+    devtools.closeSession(id)
+  }
+  showInspectors(s)
+}
+
+function endDevtools(s: Session) {
+  devtools.closeAll()
+  s.inspectors = {}
+  showInspectors(s)
+}
+
+function showInspectors(s: Session) {
+  const names: string[] = []
+  for (const id in s.inspectors) if (names.indexOf(s.inspectors[id]) < 0) names.push(s.inspectors[id])
+  s.ui.setInspectors(names)
 }
 
 /* ------------------------------- public API ------------------------------- */
@@ -576,8 +614,12 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
     transport: null as unknown as Transport,
     approvals: null as unknown as Approvals,
     eruda: new ErudaBridge(ui),
+    inspectors: {},
   }
   s.deviceToken = currentToken(s)
+  devtools.setSender((id, m) => {
+    if (session === s) s.transport.send(id ? { t: 'cdp', s: id, m } : { t: 'cdp', m })
+  })
   s.approvals = new Approvals({
     ui,
     native: !!opts.nativeApproval,
@@ -643,7 +685,10 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
     onState: state => {
       s.ui.setLink(linkView(state), s.deviceCode || undefined)
       // An RPC reply cannot reach the agent any more.
-      if (state !== 'online') s.approvals.cancelConfirm()
+      if (state !== 'online') {
+        s.approvals.cancelConfirm()
+        endDevtools(s)
+      }
       if (state === 'polling' || state === 'stopped' || state === 'rejected' || state === 'quota') {
         // No live gateway: no agent can be acting.
         if (s.control !== 'none') applyControl(s, 'none')
@@ -754,6 +799,7 @@ export function stop() {
   pending = null
   uiRef = null
   s.transport.stop()
+  devtools.closeAll()
   s.approvals.destroy()
   s.ui.unmount()
   lock().set(false)

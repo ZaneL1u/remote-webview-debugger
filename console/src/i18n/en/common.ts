@@ -49,7 +49,7 @@ export const common = {
   },
   roleDescriptions: {
     owner: 'Full access, including inviting members, changing roles and removing members.',
-    admin: 'Manages projects, API keys, access policies, devices and invites; can see the audit log and member list.',
+    admin: 'Manages projects, API keys, access policies, devices and invites; can open DevTools on devices’ pages and see the audit log and member list.',
     member: 'Sees projects and devices; can invite users to connect, test connections, end sessions and view the audit log.',
   },
 
@@ -89,6 +89,7 @@ export const common = {
     agentWithName: (label: string, agent: string) => `${label} (${agent})`,
     waitingConfirmAction: 'Waiting for user to confirm action',
     waitingConfirm: 'Waiting for user approval',
+    waitingDevtools: 'Waiting for user to approve DevTools',
     waitingTitle: (agent: string) => `${agent} is waiting for the user to approve on the device`,
     invited: 'Invited',
     invitedTitle: 'Connected through an invite link',

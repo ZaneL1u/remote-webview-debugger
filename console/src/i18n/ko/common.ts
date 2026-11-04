@@ -50,7 +50,7 @@ export const common: typeof en = {
   },
   roleDescriptions: {
     owner: '멤버 초대, 역할 변경, 멤버 삭제를 포함한 모든 권한이 있어요.',
-    admin: '프로젝트, API 키, 접근 정책, 기기, 초대를 관리하고 감사 로그와 멤버 목록을 볼 수 있어요.',
+    admin: '프로젝트, API 키, 접근 정책, 기기, 초대를 관리하고 기기 페이지에서 DevTools를 열 수 있으며, 감사 로그와 멤버 목록을 볼 수 있어요.',
     member: '프로젝트와 기기를 볼 수 있고, 사용자 접속 초대, 연결 테스트, 세션 종료, 감사 로그 보기를 할 수 있어요.',
   },
 
@@ -89,6 +89,7 @@ export const common: typeof en = {
     agentWithName: (label, agent) => `${label}(${agent})`,
     waitingConfirmAction: '사용자의 작업 확인 대기 중',
     waitingConfirm: '사용자 승인 대기 중',
+    waitingDevtools: 'DevTools 사용자 승인 대기 중',
     waitingTitle: (agent) => `${agent}: 사용자가 기기에서 승인하기를 기다리는 중`,
     invited: '초대됨',
     invitedTitle: '초대 링크로 접속한 기기',

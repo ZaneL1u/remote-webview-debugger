@@ -119,6 +119,8 @@ type fakePage struct {
 	controls chan map[string]any
 	tasks    chan map[string]any
 	requests chan map[string]any
+	devtools chan map[string]any // devtools on/off
+	cdp      chan map[string]any // CDP commands relayed to the page
 	closed   chan websocket.StatusCode
 	decide   func(req map[string]any) any // attach_request -> level (string) or nil
 }
@@ -161,7 +163,7 @@ func (f *fixture) page(o pageOpts) *fakePage {
 		"device": map[string]any{"platform": "ios", "ua": o.ua}, "deviceToken": token, "resume": o.resume, "invite": o.invite})
 	ws.Write(ctx, websocket.MessageText, hello)
 	p := &fakePage{ws: ws, controls: make(chan map[string]any, 16), tasks: make(chan map[string]any, 8), requests: make(chan map[string]any, 4),
-		closed: make(chan websocket.StatusCode, 1), decide: o.decide}
+		devtools: make(chan map[string]any, 8), cdp: make(chan map[string]any, 8), closed: make(chan websocket.StatusCode, 1), decide: o.decide}
 	ready := make(chan struct{})
 	go func() {
 		for {
@@ -185,6 +187,18 @@ func (f *fixture) page(o pageOpts) *fakePage {
 				p.controls <- m
 			case m["t"] == "task":
 				p.tasks <- m
+			case m["t"] == "devtools":
+				p.devtools <- m
+			case m["t"] == "cdp":
+				// Answer the command for its session, then an event for every session.
+				var cmd map[string]any
+				json.Unmarshal([]byte(m["m"].(string)), &cmd)
+				p.cdp <- cmd
+				answer, _ := json.Marshal(map[string]any{"id": cmd["id"], "result": map[string]any{"method": cmd["method"]}})
+				b, _ := json.Marshal(map[string]any{"t": "cdp", "s": m["s"], "m": string(answer)})
+				ws.Write(ctx, websocket.MessageText, b)
+				b, _ = json.Marshal(map[string]any{"t": "cdp", "m": `{"method":"DOM.documentUpdated","params":{}}`})
+				ws.Write(ctx, websocket.MessageText, b)
 			case m["t"] == "attach_request":
 				select {
 				case p.requests <- m:
@@ -1286,5 +1300,162 @@ func TestDemoKeys(t *testing.T) {
 	}
 	if code, _ := post(f.srv.URL); code != 429 {
 		t.Fatalf("sixth key in an hour: %d", code)
+	}
+}
+
+// --- DevTools for people (docs/protocol.md §17) ---
+
+func (f *fixture) dialDevtools(t *testing.T, ticket string) *websocket.Conn {
+	t.Helper()
+	ws, _, err := websocket.Dial(context.Background(), strings.Replace(f.srv.URL, "http", "ws", 1)+"/v1/devtools?ticket="+ticket,
+		&websocket.DialOptions{HTTPHeader: http.Header{"Origin": []string{f.srv.URL}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { ws.CloseNow() })
+	return ws
+}
+
+func readJSON(t *testing.T, ws *websocket.Conn) (map[string]any, error) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	_, data, err := ws.Read(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var m map[string]any
+	json.Unmarshal(data, &m)
+	return m, nil
+}
+
+func expectClosed(t *testing.T, ws *websocket.Conn, want websocket.StatusCode) {
+	t.Helper()
+	for {
+		if _, err := readJSON(t, ws); err != nil {
+			if got := websocket.CloseStatus(err); got != want {
+				t.Fatalf("close code %d (%v), want %d", got, err, want)
+			}
+			return
+		}
+	}
+}
+
+func TestDevtools(t *testing.T) {
+	f := setup(t, "")
+	owner := f.login("owner@test", "password1")
+	p := f.page(pageOpts{pageID: "page1", title: "结算", decide: approveAs("advanced")})
+
+	code, g := owner.do("POST", "/devices/dev-1/devtools", map[string]string{"page": "p1"})
+	if code != 200 || g["ticket"] == nil || !strings.HasPrefix(g["frontendUrl"].(string), "/devtools/chii_app.html?ws=") {
+		t.Fatalf("open: %d %v", code, g)
+	}
+	select {
+	case req := <-p.requests:
+		if req["purpose"] != "devtools" {
+			t.Fatalf("attach_request purpose = %v", req["purpose"])
+		}
+	default:
+		t.Fatal("the user was not asked")
+	}
+
+	ws := f.dialDevtools(t, g["ticket"].(string))
+	on := <-p.devtools
+	if on["on"] != true || on["s"] != g["session"] {
+		t.Fatalf("devtools on: %v (session %v)", on, g["session"])
+	}
+	cmd, _ := json.Marshal(map[string]any{"id": 7, "method": "DOM.getDocument"})
+	ws.Write(context.Background(), websocket.MessageText, cmd)
+	if got := <-p.cdp; got["method"] != "DOM.getDocument" || got["id"] != float64(7) {
+		t.Fatalf("relayed command: %v", got)
+	}
+	answer, err := readJSON(t, ws)
+	if err != nil || answer["id"] != float64(7) {
+		t.Fatalf("answer: %v %v", answer, err)
+	}
+	if ev, err := readJSON(t, ws); err != nil || ev["method"] != "DOM.documentUpdated" {
+		t.Fatalf("event: %v %v", ev, err)
+	}
+	if _, d := owner.do("GET", "/devices/dev-1", nil); len(d["devtools"].([]any)) != 1 {
+		t.Fatalf("device devtools: %v", d["devtools"])
+	}
+
+	// A ticket works once.
+	expectClosed(t, f.dialDevtools(t, g["ticket"].(string)), 4100)
+
+	// Approved once: a second window does not ask again.
+	code, g2 := owner.do("POST", "/devices/dev-1/devtools", map[string]string{"page": "p1"})
+	if code != 200 {
+		t.Fatalf("second open: %d %v", code, g2)
+	}
+	select {
+	case <-p.requests:
+		t.Fatal("asked again within the approval")
+	default:
+	}
+
+	// The user ends debugging: windows close, the approval is gone.
+	p.send(t, map[string]string{"t": "control", "action": "end"})
+	expectClosed(t, ws, 4403)
+	if off := <-p.devtools; off["on"] != false {
+		t.Fatalf("devtools off: %v", off)
+	}
+	owner.do("POST", "/devices/dev-1/devtools", map[string]string{"page": "p1"})
+	select {
+	case <-p.requests:
+	default:
+		t.Fatal("not asked after the user ended debugging")
+	}
+
+	// A reload ends the window on the old connection.
+	code, g3 := owner.do("POST", "/devices/dev-1/devtools", nil) // the page the user is looking at
+	if code != 200 {
+		t.Fatalf("open focused: %d %v", code, g3)
+	}
+	ws3 := f.dialDevtools(t, g3["ticket"].(string))
+	<-p.devtools
+	p.ws.Close(websocket.StatusNormalClosure, "reload")
+	expectClosed(t, ws3, 4100)
+}
+
+func TestDevtoolsDenied(t *testing.T) {
+	f := setup(t, "")
+	owner := f.login("owner@test", "password1")
+	f.page(pageOpts{pageID: "page1", decide: func(map[string]any) any { return nil }})
+	if code, body := owner.do("POST", "/devices/dev-1/devtools", nil); code != 403 || body["error"].(map[string]any)["code"] != "denied" {
+		t.Fatalf("denied: %d %v", code, body)
+	}
+
+	// Members (read-only) cannot open DevTools.
+	_, m := owner.do("POST", "/members", map[string]string{"email": "dev@test.com", "name": "开发", "role": "member"})
+	token := m["inviteUrl"].(string)[strings.LastIndex(m["inviteUrl"].(string), "/")+1:]
+	jar, _ := cookiejar.New(nil)
+	member := &console{t: t, base: f.srv.URL + "/v1/api", client: &http.Client{Jar: jar}}
+	member.do("POST", "/invites/"+token+"/accept", map[string]string{"password": "memberpass"})
+	if code, _ := member.do("POST", "/devices/dev-1/devtools", nil); code != 403 {
+		t.Fatalf("member: %d, want 403", code)
+	}
+
+	// The project can turn DevTools off.
+	owner.do("PATCH", "/projects/"+f.project.ID, map[string]any{"policy": map[string]any{"devtools": "off"}})
+	if code, body := owner.do("POST", "/devices/dev-1/devtools", nil); code != 403 || body["error"].(map[string]any)["code"] != "forbidden" {
+		t.Fatalf("policy off: %d %v", code, body)
+	}
+
+	// Without a valid ticket there is no WebSocket.
+	expectClosed(t, f.dialDevtools(t, "nope"), 4100)
+}
+
+func TestDevtoolsNoApproval(t *testing.T) {
+	f := setup(t, `{"approval":"none"}`)
+	owner := f.login("owner@test", "password1")
+	p := f.page(pageOpts{pageID: "page1"}) // no decide: must not be asked
+	if code, g := owner.do("POST", "/devices/dev-1/devtools", nil); code != 200 || g["ticket"] == nil {
+		t.Fatalf("open: %d %v", code, g)
+	}
+	select {
+	case <-p.requests:
+		t.Fatal("asked although the project needs no approval")
+	default:
 	}
 }

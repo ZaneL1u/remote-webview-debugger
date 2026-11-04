@@ -20,6 +20,8 @@ export interface AttachPending {
   requestId: string
   agent: { name: string; keyHint: string | null }
   levels: Level[]
+  /** 'devtools': a person asks to open Chrome DevTools on the page (protocol §17). */
+  purpose: 'agent' | 'devtools'
   expiresAt: number
 }
 
@@ -88,6 +90,7 @@ export class Approvals {
         keyHint: agent.keyHint ? String(agent.keyHint) : null,
       },
       levels,
+      purpose: msg.purpose === 'devtools' ? 'devtools' : 'agent',
       expiresAt: Date.now() + (Number(msg.expiresInSec) > 0 ? Number(msg.expiresInSec) : 30) * 1000,
     }
     const open: Open<AttachPending> = {
@@ -105,7 +108,8 @@ export class Approvals {
     }
     this.attach = open
     // The user turned on auto-approve in our window: answer at once, and say so.
-    const auto = this.opts.ui.autoLevel()
+    // That switch is about AI agents; a person's DevTools is always asked.
+    const auto = info.purpose === 'agent' ? this.opts.ui.autoLevel() : null
     if (auto) {
       const rank = (l: Level) => ['observe', 'interact', 'advanced'].indexOf(l)
       const allowed = levels.filter(l => rank(l) <= rank(auto))
@@ -114,7 +118,16 @@ export class Approvals {
       this.opts.ui.toast(t.autoAllowedToast(info.agent.name, t.attachLevels[level]))
       return
     }
-    if (!this.opts.native) {
+    if (!this.opts.native && info.purpose === 'devtools') {
+      open.dialog = this.opts.ui.dialog({
+        title: t.devtoolsTitle,
+        text: t.devtoolsText(info.agent.name),
+        okText: t.allow,
+        cancelText: t.deny,
+        expiresAt: info.expiresAt,
+        onDecide: ok => open.finish(ok ? levels[levels.length - 1] : null),
+      })
+    } else if (!this.opts.native) {
       open.dialog = this.opts.ui.dialog({
         title: t.attachTitle,
         text: t.attachText(info.agent.name),

@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@ Un bug que solo aparece en el teléfono de un usuario, dentro de una superapp al
 
 - **Una etiqueta script** (o una inyección nativa) pone una página en línea. El usuario ve una pequeña píldora con un código de dispositivo y puede tocar *Solicitar asistencia*.
 - **Tu agente se conecta por MCP** (Claude Code, Cursor o cualquier cliente MCP) después de que el usuario lo apruebe en el dispositivo. Lee instantáneas de accesibilidad, la console, la red y capturas de pantalla, y hace clic, escribe y se desplaza como lo haría una persona, en todas las páginas y WebViews de ese dispositivo.
+- **Chrome DevTools de verdad para personas.** Desde la consola web, un admin abre DevTools sobre cualquier página en línea: Elements, Console, Network (con lo que pasó antes de abrirla) y el almacenamiento de Application, después de que el usuario lo apruebe en el dispositivo.
 - **El usuario mantiene el control.** Ve lo que hace la IA (el cursor del agente, una tarjeta de tarea con los pasos previstos, un borde luminoso) y puede tomar el control o finalizar la sesión en cualquier momento. Las contraseñas y los números de teléfono y de tarjeta se enmascaran antes de que nada salga del teléfono.
 - **Autoalojado.** Un único binario de Go con la consola web y el SDK integrados; SQLite o Postgres.
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # el sitio web
 
 ## Agradecimientos
 
-El motor del lado de la página se basa en [chobitsu](https://github.com/liriliri/chobitsu) (MIT) para capturar la console y la red, y usa el código de instantáneas de accesibilidad de [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). Consulta [NOTICE](NOTICE).
+El motor del lado de la página se basa en [chobitsu](https://github.com/liriliri/chobitsu) (MIT) para capturar la console y la red, y usa el código de instantáneas de accesibilidad de [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). El DevTools de la consola web es el frontend de Chrome DevTools tal como lo compila [chii](https://github.com/liriliri/chii) (MIT; el propio DevTools es BSD-3-Clause). Consulta [NOTICE](NOTICE).
 
 ## Licencia
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
+<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -32,6 +32,7 @@
 14. [MCP](#14-mcp)
 15. [語言](#15-語言)
 16. [維運](#16-維運)
+17. [給人用的除錯工具](#17-給人用的除錯工具)
 
 ## 1. 端點一覽
 
@@ -44,12 +45,14 @@
 | `GET /v1/metrics` | Prometheus 指標（[§16](#16-維運)） |
 | `WS /v1/page?key=<appKey>` | 頁面連線（[§3](#3-頁面連線-websocket)） |
 | `POST /v1/presence` | WebSocket 連不上時的輪詢備援（[§9](#9-輪詢備援)） |
+| `WS /v1/devtools?ticket=<ticket>` | 除錯工具視窗的 CDP 連線，只接受主控台自己的來源（[§17](#17-給人用的除錯工具)） |
 | `/v1/api/…` | 主控台 REST API（[§12](#12-主控台-rest-api)） |
 | `/v1/mcp` | 託管的 MCP 伺服器，Streamable HTTP，`Authorization: Bearer rwd_sk_live_…`（[§14](#14-mcp)） |
 | `/demo/` | `--demo-dir` 指定目錄下的靜態檔案，有設定才會提供 |
+| `/devtools/…` | 主控台內嵌的 Chrome DevTools 前端（[§17.4](#174-前端)） |
 | 其他路徑 | 主控台單頁應用程式 |
 
-`/v1/` 底下的未知路徑回傳 `404 {"error":{"code":"not_found",…}}`。所有回應都帶有 `X-Content-Type-Options: nosniff` 和 `Referrer-Policy: no-referrer`；SDK 以外的回應還會帶 `X-Frame-Options: DENY`。
+`/v1/` 底下的未知路徑回傳 `404 {"error":{"code":"not_found",…}}`。所有回應都帶有 `X-Content-Type-Options: nosniff` 和 `Referrer-Policy: no-referrer`；SDK 以外的回應還會帶 `X-Frame-Options: DENY`，`/devtools/` 底下則帶 `SAMEORIGIN`。
 
 ## 2. 識別碼
 
@@ -109,6 +112,7 @@
 {"t":"help","on":true}                                              // 使用者請求協助 / 取消請求
 {"t":"control","action":"takeover"|"handback"|"end"}                // 使用者的按鈕，§4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
+{"t":"cdp","s":"<session>"|absent,"m":"<CDP JSON>"}                 // 除錯工具的回覆／事件，§17.2
 {"id":17,"result":{…}}                                              // RPC 成功，§5
 {"id":17,"error":{"code":"not_found","message":"…"}}                // RPC 失敗，§5
 ```
@@ -129,6 +133,8 @@
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"客服機器人"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7，送給前景頁面
 {"t":"attach_cancel","requestId":"…"}                         // §7，送給所有頁面
+{"t":"devtools","s":"<session>","on":true,"by":"Ann"}         // §17.2，一個除錯工具視窗開啟／關閉（"on":false）
+{"t":"cdp","s":"<session>","m":"<CDP JSON>"}                  // §17.2，來自該視窗的指令
 {"t":"hb"}
 {"t":"reconnect","afterMs":1000}                              // 保留：SDK 在 afterMs 毫秒後重新連線
 {"id":17,"method":"rwd.snapshot","params":{}}                 // RPC 請求，§5
@@ -367,7 +373,8 @@ agent 呼叫 `connect_device` 時，閘道會先合併裝置上已開啟頁面�
 ← {"t":"attach_request","requestId":"…",
    "agent":{"name":"客服機器人","keyHint":"…a91f"},
    "levels":["observe","interact"],   // 可選的等級，已依金鑰和原則裁剪；最後一個是 agent 申請的等級
-   "expiresInSec":30}
+   "expiresInSec":30,
+   "purpose":"devtools"}              // 只有主控台成員要求除錯工具時才會出現（§17.1）
 → {"t":"attach_decision","requestId":"…","level":"interact"}   // 或以 "level": null 表示拒絕
 ← {"t":"attach_cancel","requestId":"…"}                         // 逾時，或 agent 放棄了
 ```
@@ -377,8 +384,8 @@ agent 呼叫 `connect_device` 時，閘道會先合併裝置上已開啟頁面�
 - 同一把 API 金鑰在同一台裝置上 10 分鐘內被拒絕 **3 次**後，**10 分鐘**內對這台裝置的請求會直接被拒，不再詢問使用者。
 - 一台裝置同時只能有一個待處理的請求。
 - SDK 的確認對話框位於 Shadow DOM 中，只回應可信的點按，而且出現 0.4 秒後才生效，agent 無法替使用者按「允許」。同一來源的多個分頁透過 BroadcastChannel 共享決定。
-- 使用者可以在 SDK 浮動視窗中開啟**自動允許** AI 接入並設定最高等級；之後 SDK 會直接以不超過這個等級的最高可選等級回覆，並顯示提示。
-- `run({ nativeApproval: true })` 時 SDK 不跳出對話框，而是讓 `status().pending` 變成 `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`，由原生宿主呼叫 `nativeDecide(nativeKey, requestId, level | null)` 回覆。
+- 使用者可以在 SDK 浮動視窗中開啟**自動允許** AI 接入並設定最高等級；之後 SDK 會直接以不超過這個等級的最高可選等級回覆，並顯示提示。自動允許只適用於 agent：除錯工具的請求一律會詢問使用者。
+- `run({ nativeApproval: true })` 時 SDK 不跳出對話框，而是讓 `status().pending` 變成 `{kind:"attach", requestId, agent:{name, keyHint}, levels, purpose, expiresAt}`（`purpose` 為 `"agent"` 或 `"devtools"`），由原生宿主呼叫 `nativeDecide(nativeKey, requestId, level | null)` 回覆。
 - 核准後，閘道讓 agent 接入（取代裝置上的其他 agent），清除協助請求（`{"t":"help","on":false}`），並廣播 `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`；頁面隨即鎖定（[§4](#4-控制狀態)）。
 
 `approval: none` 時，agent 直接以計算出的等級接入。
@@ -486,6 +493,7 @@ type Policy = {
   maxAgents: number                // 本專案的裝置上同時接入的 agent 數；0 表示不限
   eruda: { dock: boolean; load: boolean }  // run({ eruda }) 的遠端預設值，本機選項逐項優先。
                                            // 在 welcome.config 中可能是 null 或不存在（等同兩者皆為 false），§3.4
+  devtools: 'on' | 'off'          // admin 可以從主控台開啟本專案頁面上的除錯工具（預設為開啟），§17
 }
 ```
 
@@ -558,7 +566,8 @@ API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存�
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`：最近一個頁面來自該專案的裝置（預設 `all`，最多 500 台）。請求協助的排在最前，其次是在線的，再依最近在線時間排序。`waiting` 指請求協助（介面上顯示為「協助中」） |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 一律回傳 `200`：`{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<前 4000 個字元>","error"?:{"code","message"}}`。錯誤碼：`device_offline`、`no_page`（頁面正在重新連線）、`timeout`、`takeover`、`internal`，以及 [§5.1](#51-訊息格式) 的 RPC 錯誤碼 |
-| POST | `/devices/:id/end` | member | `{"ok":true}`：中斷 agent 接入、清除協助請求，控制狀態回到 `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`：中斷 agent 接入、清除協助請求，控制狀態回到 `none`，並關閉所有除錯工具視窗（[§17](#17-給人用的除錯工具)） |
+| POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`；最長可能等待使用者 30 秒（[§17.1](#171-開啟視窗)） |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 裝置邀請
@@ -589,6 +598,7 @@ API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存�
 | `control.takeover`、`control.handback`、`control.end` | 使用者按下的按鈕 |
 | `device.end` | 主控台成員結束了工作階段 |
 | `policy.denied` | 超出等級的呼叫被拒絕 |
+| `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close` | 除錯工具視窗（[§17](#17-給人用的除錯工具)）；`close` 帶有 `detail: {page, durationSec, reason}` |
 
 稽核事件絕不包含頁面內容和參數值。預設保留 180 天（`RWD_AUDIT_RETENTION_DAYS`）。
 
@@ -623,7 +633,8 @@ type Device = {
   help: boolean; invited: boolean
   control: 'none' | 'observe' | 'agent' | 'user'
   agent: string | null; level: Level | null
-  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; expiresAt: number } | null
+  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; purpose?: 'devtools'; expiresAt: number } | null
+  devtools: { id: string; member: string; page: string /* 標籤 */; since: number }[]  // 開啟中的除錯工具視窗（§17）
   task?: Task                  // 只有已接入的 agent 設定了任務時才有
   pages: number                // 已連線的頁面數
   sdk: string                  // 頁面回報的 SDK 版本
@@ -645,6 +656,8 @@ type Page = {
   focused: boolean             // 使用者最可能正在看的頁面
   selected: boolean            // agent 目前操作的頁面
   openerLabel: string | null; connectedAt: number
+  connected: boolean           // 正在重新連線時為 false
+  connectedSince: number       // 目前這次連線開始的時間（重新載入會更新）
 }
 
 type TimelineEvent = { at: number; page: string /* 頁面標籤；裝置層級的事件為 "" */; kind: string; summary: string }
@@ -687,6 +700,7 @@ type AuditEvent = {
 | `agent` | 接入請求、拒絕、逾時、接入成功、任務變化 |
 | `control` | 控制狀態變化，摘要中會說明原因（使用者接管、AI 閒置、使用者結束等） |
 | `offline` | 有 agent 接入時，裝置的最後一個頁面中斷了 |
+| `devtools` | 除錯工具的請求、核准與拒絕、視窗開啟與關閉、授權被收回（[§17](#17-給人用的除錯工具)） |
 
 ## 13. 即時推送 SSE
 
@@ -796,3 +810,51 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **稽核保留期限。** `RWD_AUDIT_RETENTION_DAYS`（預設 180 天），每 6 小時清除一次過期的事件。
 
 閘道的所有設定項目見 [gateway/README.zh-TW.md](../gateway/README.zh-TW.md)。
+
+## 17. 給人用的除錯工具
+
+owner 和 admin 可以在主控台裡，對裝置上任何一個在線頁面開啟 **Chrome DevTools**：Elements（樣式、box model、在裝置上醒目提示）、Console（即時，可檢視物件、執行指令碼）、Network（含回應本文）和 Application 儲存空間。這是貨真價實的除錯工具前端，由 [chii](https://github.com/liriliri/chii) 預先建置；後端就是頁面 SDK 裡現成的完整 chobitsu，由閘道轉送 CDP 訊息。
+
+```
+Console /devices/:id/devtools
+  └─ iframe /devtools/chii_app.html?ws(s)=<host>/v1/devtools?ticket=…   ← DevTools frontend
+        │ CDP (WebSocket)
+        ▼
+Gateway /v1/devtools ──{"t":"cdp","s","m"}──▶ page WebSocket ──▶ SDK: one session per window ──▶ chobitsu
+```
+
+### 17.1 開啟視窗
+
+1. 主控台呼叫 `POST /v1/api/devices/:id/devtools`，帶上 `{"page":"p1"}`（省略時：使用者正在看的頁面）。僅限 owner 和 admin。
+2. 閘道會合併裝置上已開啟頁面所屬各專案的原則；只要有一個是 `devtools: "off"`，請求就會被拒絕。合併後的 `approval` 為 `prompt` 時，閘道會送給前景頁面一個 `attach_request`，帶上 `"purpose":"devtools"`、`levels: ["advanced"]`，並以該主控台成員的名字作為 `agent.name`，然後等待回覆（30 秒；HTTP 請求也會一起等）。SDK 的自動允許不適用於這種請求。使用 `nativeApproval` 時，`status().pending.purpose` 會是 `"devtools"`（[§7](#7-接入核准)）。
+3. 核准對這位成員在這台裝置上的效期是 `policy.attachMaxMinutes`，所以重新載入或導覽後重新連線不必再問一次。使用者在裝置上按**結束**，或主控台成員結束工作階段（`POST /devices/:id/end`），都會關閉所有視窗並收回核准。
+4. 回應是 `{"ticket","session","page":Page,"frontendUrl"}`。`ticket` 只能用一次，一分鐘內有效；`session` 是這個視窗在 `Device.devtools` 裡的 id。
+5. 前端會連上 `WS /v1/devtools?ticket=…`。只有主控台自己的來源才能連線（設定了 `--public-url` 時就是它的主機）。
+
+錯誤碼：`device_offline`、`no_page`（頁面已經消失或正在重新連線）、`busy`（裝置正在等使用者回覆另一個請求）、`timeout`、`denied`（403）和 `forbidden`（403，被原則關閉）。
+
+### 17.2 頁面訊息
+
+```jsonc
+← {"t":"devtools","s":"<session>","on":true,"by":"Ann"}   // 一個視窗開啟了
+← {"t":"devtools","s":"<session>","on":false}              // 視窗關閉了
+← {"t":"cdp","s":"<session>","m":"<CDP command, JSON text>"}
+→ {"t":"cdp","s":"<session>","m":"<CDP answer, JSON text>"} // 回給發問的那個視窗
+→ {"t":"cdp","m":"<CDP event, JSON text>"}                  // 送給這個頁面上的所有視窗
+```
+
+- 一個視窗只屬於一個頁面連線。頁面斷線時（重新載入、導覽、關閉），閘道會以代碼 **4100** 關閉它的視窗；頁面回來後，主控台會用新的 ticket 重新開啟它們（核准仍然有效，不會再問使用者一次）。結束工作階段會以 **4403** 關閉它們；跟不上的前端（網路差時的畫面直播）會以 **1013** 關閉。
+- 送往頁面的 CDP 訊息有自己的佇列：前端一次送出一大串指令，只會拖慢那個前端本身，不會讓頁面被當成跟不上的用戶端而斷線，agent 的 RPC 也不會受影響。
+- 在 SDK 裡，所有視窗共用同一個 chobitsu，指令 id 會依視窗重新編號。`Runtime.enable` 和 `Network.enable` 由 SDK 自己回覆：它從頁面載入起就會為 agent 收集這兩種資料，所以視窗開啟前發生的事也看得到——console 訊息（文字已遮蔽；物件無法展開）和最近的請求（回應本文還留在快取中的話也看得到）。任何視窗呼叫 `*.disable` 都不會生效；最後一個視窗關閉時，SDK 才會取消醒目提示、停止畫面直播，並釋放它為這些視窗保留的物件。
+- 只要有視窗開著，頁面底部的控制列就會顯示有開發者在除錯，列出成員名字，並提供**結束**按鈕。
+
+### 17.3 狀態與稽核
+
+- `Device.devtools` 列出目前開著的視窗；`Page.connected` 和 `Page.connectedSince` 讓主控台知道什麼時候該重新開啟視窗；`Device.pending.purpose` 標記一個除錯工具請求（[§12.8](#128-型別)）。
+- 時間軸種類 `devtools`：請求、核准與拒絕、視窗開啟與關閉、授權被收回（[§12.9](#129-時間軸事件)）。
+- 稽核動作 `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close`（[§12.7](#127-稽核記錄)）。
+- 隱私：除錯工具看到的是頁面本來的樣子，**遮蔽規則不會套用**。正因如此，它才只開放給 owner 和 admin、可以按專案關閉、會在裝置上詢問使用者，而且全程都會稽核。
+
+### 17.4 前端
+
+前端是 npm 套件 `chii` 釘死版本裡的 `public/front_end`，會先核對它的 sha512，並在建置主控台時複製到 `console/dist/devtools/`（[`console/scripts/devtools-frontend.mjs`](../console/scripts/devtools-frontend.mjs)）。閘道以 gzip 內嵌它（約 3.4 MB），回應時帶 `Content-Encoding: gzip`；`/devtools/` 底下的回應則帶有 `X-Frame-Options: SAMEORIGIN`。

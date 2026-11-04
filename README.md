@@ -19,6 +19,7 @@ A bug that only happens on one user's phone, inside a WeChat-style super app or 
 
 - **One script tag** (or a native injection) puts a page online. The user sees a small pill with a device code, and can tap *Request assistance*.
 - **Your agent connects through MCP** — Claude Code, Cursor or any MCP client — after the user approves on the device. It reads accessibility snapshots, console, network and screenshots, and clicks, types and scrolls like a person, across every page and WebView of that device.
+- **Real Chrome DevTools for people.** From the console, an admin opens DevTools on any online page — Elements, Console, Network (with what happened before it opened) and Application storage — after the user approves on the device.
 - **The user stays in control.** They see what the AI is doing (agent cursor, a task card with the planned steps, a glowing edge) and can take over or end the session at any time. Passwords, phone and card numbers are masked before anything leaves the phone.
 - **Self-hosted.** One Go binary with the console and the SDK embedded; SQLite or Postgres.
 
@@ -133,7 +134,7 @@ cd website && npm run dev                            # the website
 
 ## Acknowledgements
 
-The page-side engine builds on [chobitsu](https://github.com/liriliri/chobitsu) (MIT) for console and network capture, and uses [Playwright](https://github.com/microsoft/playwright)'s accessibility snapshot code (Apache-2.0). See [NOTICE](NOTICE).
+The page-side engine builds on [chobitsu](https://github.com/liriliri/chobitsu) (MIT) for console and network capture, and uses [Playwright](https://github.com/microsoft/playwright)'s accessibility snapshot code (Apache-2.0). The console's DevTools is the Chrome DevTools frontend as prebuilt by [chii](https://github.com/liriliri/chii) (MIT; DevTools itself BSD-3-Clause). See [NOTICE](NOTICE).
 
 ## License
 

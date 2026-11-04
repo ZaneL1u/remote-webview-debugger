@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@
 
 - **一行指令碼**（或原生注入）就能讓頁面上線。使用者會看到一個帶有裝置碼的小膠囊，遇到問題可以點「請求協助」。
 - **agent 透過 MCP 連線**：Claude Code、Cursor 或任何 MCP 用戶端，在使用者於手機上同意之後即可連線。它能讀取無障礙快照、console、網路請求和螢幕截圖，也能像真人一樣點擊、輸入、捲動，涵蓋這台裝置上的所有頁面和 WebView。
+- **真正的 Chrome DevTools，給人用。** 在主控台裡，admin 可以在裝置上任何一個在線頁面開啟除錯工具——Elements、Console、Network（含開啟前發生的事）和 Application 儲存空間——使用者在裝置上同意後即可。
 - **主控權始終在使用者手上。** AI 在做什麼一目了然（agent 游標、列出預定步驟的任務卡片、邊緣光暈），使用者隨時可以接管或結束。密碼、手機號碼、信用卡號在離開手機之前就已遮蔽。
 - **自行架設。** 單一 Go 執行檔，內嵌主控台和 SDK；資料庫可選 SQLite 或 Postgres。
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # 官方網站
 
 ## 致謝
 
-頁面端引擎以 [chobitsu](https://github.com/liriliri/chobitsu)（MIT）擷取 console 和網路資料，無障礙快照程式碼則來自 [Playwright](https://github.com/microsoft/playwright)（Apache-2.0）。詳見 [NOTICE](NOTICE)。
+頁面端引擎以 [chobitsu](https://github.com/liriliri/chobitsu)（MIT）擷取 console 和網路資料，無障礙快照程式碼則來自 [Playwright](https://github.com/microsoft/playwright)（Apache-2.0）。主控台的除錯工具是 [chii](https://github.com/liriliri/chii) 預先建置好的 Chrome DevTools 前端（MIT；Chrome DevTools 本身為 BSD-3-Clause）。詳見 [NOTICE](NOTICE)。
 
 ## 授權條款
 

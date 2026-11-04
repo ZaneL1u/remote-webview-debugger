@@ -157,6 +157,13 @@ const (
 	EventFocus            Key = "event.focus"
 	EventHandback         Key = "event.handback"
 	EventUserEnded        Key = "event.user_ended"
+	EventDevtoolsRequest  Key = "event.devtools_request"
+	EventDevtoolsNoReply  Key = "event.devtools_no_reply"
+	EventDevtoolsDenied   Key = "event.devtools_denied"
+	EventDevtoolsAllowed  Key = "event.devtools_allowed"
+	EventDevtoolsOpened   Key = "event.devtools_opened"
+	EventDevtoolsClosed   Key = "event.devtools_closed"
+	EventDevtoolsRevoked  Key = "event.devtools_revoked"
 
 	// Session-change notes for the attached agent (some are also events).
 	NoteSwitchedDevice   Key = "note.switched_device"
@@ -206,5 +213,13 @@ const (
 	APIOriginNotAllowed     Key = "api.origin_not_allowed"
 	APIStreamingUnsupported Key = "api.streaming_unsupported"
 	APIMetricsToken         Key = "api.metrics_token"
+	APIDevtoolsOffline      Key = "api.devtools_offline"
+	APIDevtoolsOff          Key = "api.devtools_off"
+	APIDevtoolsNoPage       Key = "api.devtools_no_page"
+	APIDevtoolsBusy         Key = "api.devtools_busy"
+	APIDevtoolsTimeout      Key = "api.devtools_timeout"
+	APIDevtoolsDenied       Key = "api.devtools_denied"
+	APIDevtoolsReconnecting Key = "api.devtools_reconnecting"
+	APIDevtoolsTicket       Key = "api.devtools_ticket"
 	OwnerDefaultName        Key = "owner.default_name"
 )

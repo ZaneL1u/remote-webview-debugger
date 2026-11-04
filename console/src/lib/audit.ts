@@ -25,6 +25,10 @@ export const actionGroups: { key: keyof AuditMessages['groups']; actions: Action
     actions: ['attach.request', 'attach.approve', 'attach.deny', 'attach.timeout', 'attach.start', 'attach.resume', 'attach.end'],
   },
   {
+    key: 'devtools',
+    actions: ['devtools.request', 'devtools.approve', 'devtools.deny', 'devtools.timeout', 'devtools.open', 'devtools.close'],
+  },
+  {
     key: 'control',
     actions: ['rpc', 'policy.denied', 'control.takeover', 'control.handback', 'control.end', 'device.end'],
   },

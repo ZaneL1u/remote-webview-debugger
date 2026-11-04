@@ -1,4 +1,4 @@
-<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
+<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -32,6 +32,7 @@
 14. [MCP](#14-mcp)
 15. [言語](#15-言語)
 16. [運用](#16-運用)
+17. [人のための DevTools](#17-人のための-devtools)
 
 ## 1. エンドポイント
 
@@ -44,12 +45,14 @@
 | `GET /v1/metrics` | Prometheus メトリクス（[§16](#16-運用)） |
 | `WS /v1/page?key=<appKey>` | ページ接続（[§3](#3-ページ接続websocket)） |
 | `POST /v1/presence` | WebSocket で接続できない場合のポーリングによるフォールバック（[§9](#9-プレゼンスポーリングによるフォールバック)） |
+| `WS /v1/devtools?ticket=<ticket>` | DevTools ウィンドウの CDP 接続。管理コンソールのオリジンからのみ（[§17](#17-人のための-devtools)） |
 | `/v1/api/…` | 管理コンソール REST API（[§12](#12-管理コンソール-rest-api)） |
 | `/v1/mcp` | ホスト型 MCP サーバー。Streamable HTTP、`Authorization: Bearer rwd_sk_live_…`（[§14](#14-mcp)） |
 | `/demo/` | `--demo-dir` の静的ファイル。設定した場合のみ |
+| `/devtools/…` | 管理コンソールが埋め込む Chrome DevTools のフロントエンド（[§17.4](#174-フロントエンド)） |
 | その他のパス | 管理コンソールのシングルページアプリ |
 
-`/v1/` 配下の不明なパスには `404 {"error":{"code":"not_found",…}}` を返します。すべてのレスポンスに `X-Content-Type-Options: nosniff` と `Referrer-Policy: no-referrer` が付き、SDK 以外のレスポンスにはさらに `X-Frame-Options: DENY` が付きます。
+`/v1/` 配下の不明なパスには `404 {"error":{"code":"not_found",…}}` を返します。すべてのレスポンスに `X-Content-Type-Options: nosniff` と `Referrer-Policy: no-referrer` が付き、SDK 以外のレスポンスにはさらに `X-Frame-Options: DENY`、または `/devtools/` 配下では `SAMEORIGIN` が付きます。
 
 ## 2. 識別子
 
@@ -109,6 +112,7 @@
 {"t":"help","on":true}                                              // ユーザーがサポートを依頼する / 依頼を取り消す
 {"t":"control","action":"takeover"|"handback"|"end"}                // ユーザーのボタン、§4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
+{"t":"cdp","s":"<session>"|absent,"m":"<CDP JSON>"}                 // DevTools の応答 / イベント、§17.2
 {"id":17,"result":{…}}                                              // RPC 成功、§5
 {"id":17,"error":{"code":"not_found","message":"…"}}                // RPC 失敗、§5
 ```
@@ -129,6 +133,8 @@
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7、フォアグラウンドのページへ
 {"t":"attach_cancel","requestId":"…"}                         // §7、すべてのページへ
+{"t":"devtools","s":"<session>","on":true,"by":"Ann"}         // §17.2、DevTools ウィンドウが開いた / 閉じた（"on":false）
+{"t":"cdp","s":"<session>","m":"<CDP JSON>"}                  // §17.2、そのウィンドウからのコマンド
 {"t":"hb"}
 {"t":"reconnect","afterMs":1000}                              // 予約済み: SDK は afterMs 後に再接続する
 {"id":17,"method":"rwd.snapshot","params":{}}                 // RPC リクエスト、§5
@@ -367,7 +373,8 @@ min(エージェントが要求したレベル（デフォルト interact）,
 ← {"t":"attach_request","requestId":"…",
    "agent":{"name":"Support Bot","keyHint":"…a91f"},
    "levels":["observe","interact"],   // 提示するレベル。キーとポリシーで上限が決まり、最後がエージェントの要求したレベル
-   "expiresInSec":30}
+   "expiresInSec":30,
+   "purpose":"devtools"}              // 管理コンソールのメンバーが DevTools を求めたときのみ（§17.1）
 → {"t":"attach_decision","requestId":"…","level":"interact"}   // 拒否するときは "level": null
 ← {"t":"attach_cancel","requestId":"…"}                         // タイムアウト、またはエージェントが取り下げた
 ```
@@ -377,8 +384,8 @@ min(エージェントが要求したレベル（デフォルト interact）,
 - 同じ API キーが同じデバイスで 10 分以内に **3 回**拒否されると、そのキーからそのデバイスへの要求は **10 分間**、確認なしで拒否されます。
 - 保留できる要求はデバイスごとに 1 つだけです。
 - SDK のダイアログは Shadow DOM の中にあり、信頼されたタップしか受け付けず、表示から 0.4 秒後に有効になります。そのため、エージェントが自分で承認することはできません。同じオリジンのタブは BroadcastChannel で判断を共有します。
-- ユーザーは SDK のフローティングウィンドウで、上限レベルを指定して**自動許可**をオンにできます。その場合 SDK は、その上限内で提示された最も高いレベルで即座に応答し、通知を表示します。
-- `run({ nativeApproval: true })` の場合、SDK はダイアログを表示しません。代わりに `status().pending` が `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}` になり、ネイティブホストが `nativeDecide(nativeKey, requestId, level | null)` で応答します。
+- ユーザーは SDK のフローティングウィンドウで、上限レベルを指定して**自動許可**をオンにできます。その場合 SDK は、その上限内で提示された最も高いレベルで即座に応答し、通知を表示します。自動許可はエージェント向けです。DevTools の要求には必ず確認を求めます。
+- `run({ nativeApproval: true })` の場合、SDK はダイアログを表示しません。代わりに `status().pending` が `{kind:"attach", requestId, agent:{name, keyHint}, levels, purpose, expiresAt}`（`purpose` は `"agent"` または `"devtools"`）になり、ネイティブホストが `nativeDecide(nativeKey, requestId, level | null)` で応答します。
 - 承認されると、ゲートウェイはエージェントをアタッチし（そのデバイスにいたほかのエージェントは置き換えられます）、サポート依頼を解除して（`{"t":"help","on":false}`）、`{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}` を通知します。ページはすぐにロックされます（[§4](#4-制御状態)）。
 
 `approval: none` の場合、エージェントは算出されたレベルですぐにアタッチします。
@@ -486,6 +493,7 @@ type Policy = {
   maxAgents: number                // このプロジェクトのデバイスに同時にアタッチできるエージェント数。0 = 無制限
   eruda: { dock: boolean; load: boolean }  // run({ eruda }) のリモートのデフォルト。ローカルのオプションがフィールド単位で優先される。
                                            // welcome.config では null や欠落の場合がある（= 両方 false）、§3.4
+  devtools: 'on' | 'off'          // admin は管理コンソールからこのプロジェクトのページで DevTools を開ける（デフォルト on、§17）
 }
 ```
 
@@ -558,7 +566,8 @@ API キーはプロジェクトではなくゲートウェイに属します。1
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: 最新のページがそのプロジェクトのものであるデバイス（デフォルト `all`、最大 500）。サポート依頼中、オンライン、最終確認が新しい順。`waiting` はサポート依頼中（表示は「対応中」）を意味する |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 常に `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`。コード: `device_offline`、`no_page`（ページが再接続中）、`timeout`、`takeover`、`internal`、および [§5.1](#51-エンベロープ) の RPC コード |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: エージェントをデタッチし、サポート依頼を解除し、制御を `none` に戻す |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: エージェントをデタッチし、サポート依頼を解除し、制御を `none` に戻し、DevTools ウィンドウを閉じる（[§17](#17-人のための-devtools)） |
+| POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`。ユーザーの応答を最大 30 秒待つことがある（[§17.1](#171-ウィンドウを開く)） |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 デバイス招待
@@ -589,6 +598,7 @@ API キーはプロジェクトではなくゲートウェイに属します。1
 | `control.takeover`、`control.handback`、`control.end` | ユーザーのボタン操作 |
 | `device.end` | 管理コンソールのメンバーがセッションを終了した |
 | `policy.denied` | 許可されたレベルを超える呼び出しが拒否された |
+| `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close` | DevTools ウィンドウ（[§17](#17-人のための-devtools)）。`close` には `detail: {page, durationSec, reason}` が付く |
 
 イベントにページの内容やパラメーターの値が含まれることはありません。デフォルトでは 180 日間保持されます（`RWD_AUDIT_RETENTION_DAYS`）。
 
@@ -623,7 +633,8 @@ type Device = {
   help: boolean; invited: boolean
   control: 'none' | 'observe' | 'agent' | 'user'
   agent: string | null; level: Level | null
-  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; expiresAt: number } | null
+  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; purpose?: 'devtools'; expiresAt: number } | null
+  devtools: { id: string; member: string; page: string /* ラベル */; since: number }[]  // 開いている DevTools ウィンドウ（§17）
   task?: Task                  // アタッチ中のエージェントがタスクを設定している間のみ
   pages: number                // 接続中のページ数
   sdk: string                  // ページが報告した SDK のバージョン
@@ -645,6 +656,8 @@ type Page = {
   focused: boolean             // ユーザーが見ている可能性が最も高いページ
   selected: boolean            // エージェントが操作対象にしているページ
   openerLabel: string | null; connectedAt: number
+  connected: boolean           // 再接続中は false
+  connectedSince: number       // 現在の接続の開始時刻（リロードごとに更新される）
 }
 
 type TimelineEvent = { at: number; page: string /* ラベル。デバイス全体のイベントは "" */; kind: string; summary: string }
@@ -687,6 +700,7 @@ type AuditEvent = {
 | `agent` | アタッチ要求、拒否、タイムアウト、アタッチ、タスクの変更 |
 | `control` | 制御状態の変化。summary に理由が入る（ユーザーが引き継いだ、AI がアイドル、ユーザーが終了した、…） |
 | `offline` | エージェントのアタッチ中に、デバイスの最後のページが消えた |
+| `devtools` | DevTools の要求、承認と拒否、ウィンドウの開閉、承認の撤回（[§17](#17-人のための-devtools)） |
 
 ## 13. ライブ更新（SSE）
 
@@ -796,3 +810,51 @@ stdio をホスト型の `/v1/mcp` に中継します。`--gateway` は `RWD_GAT
 - **監査ログの保持期間。** `RWD_AUDIT_RETENTION_DAYS`（デフォルト 180）。古いイベントは 6 時間ごとに削除されます。
 
 ゲートウェイのすべての設定は [gateway/README.ja.md](../gateway/README.ja.md) に記載されています。
+
+## 17. 人のための DevTools
+
+owner と admin は、管理コンソールからデバイスの任意のオンラインページで **Chrome DevTools** を開けます。Elements（スタイル、ボックスモデル、端末上でのハイライト表示）、Console（ライブで、オブジェクトの検査とスクリプト実行付き）、Network（レスポンスボディ付き）、Application のストレージです。これは本物の DevTools フロントエンドで、[chii](https://github.com/liriliri/chii) がビルド済みで提供するものを使い、バックエンドはページ SDK に既にある完全な chobitsu で、ゲートウェイが CDP のメッセージを中継します。
+
+```
+Console /devices/:id/devtools
+  └─ iframe /devtools/chii_app.html?ws(s)=<host>/v1/devtools?ticket=…   ← DevTools frontend
+        │ CDP (WebSocket)
+        ▼
+Gateway /v1/devtools ──{"t":"cdp","s","m"}──▶ page WebSocket ──▶ SDK: one session per window ──▶ chobitsu
+```
+
+### 17.1 ウィンドウを開く
+
+1. 管理コンソールが `POST /v1/api/devices/:id/devtools` を `{"page":"p1"}`（省略した場合はユーザーが見ているページ）で呼び出します。owner と admin のみ。
+2. ゲートウェイは、そのデバイスで開いているページのプロジェクトのポリシーをマージします。いずれかが `devtools: "off"` であれば、要求は拒否されます。マージ後の `approval` が `prompt` なら、ゲートウェイはフォアグラウンドのページに `"purpose":"devtools"`、`levels: ["advanced"]`、エージェント名としてそのメンバーの名前を持つ `attach_request` を送り、応答を待ちます（30 秒。HTTP リクエストもそのぶん待ちます）。SDK の自動許可は適用されません。`nativeApproval` の場合、`status().pending.purpose` は `"devtools"` になります（[§7](#7-アタッチの承認)）。
+3. 承認は、そのデバイス上のそのメンバーについて `policy.attachMaxMinutes` の間持続するので、リロードや遷移をしても再度確認されずに再接続します。ユーザーがデバイス上で**終了**をタップした場合、または管理コンソールのメンバーがセッションを終了した場合（`POST /devices/:id/end`）、すべてのウィンドウが閉じられ、承認は取り消されます。
+4. レスポンスは `{"ticket","session","page":Page,"frontendUrl"}` です。`ticket` は 1 回限り有効で、1 分間だけ有効です。`session` は、そのウィンドウが `Device.devtools` の中で持つ ID です。
+5. フロントエンドは `WS /v1/devtools?ticket=…` に接続します。接続できるのは管理コンソール自身のオリジンだけです（`--public-url` を設定している場合はそのホスト）。
+
+エラーコード: `device_offline`、`no_page`（ページが消えた、または再接続中）、`busy`（デバイスがほかの要求へのユーザーの応答を待っている）、`timeout`、`denied`（403）、`forbidden`（403、ポリシーでオフにされている）。
+
+### 17.2 ページのメッセージ
+
+```jsonc
+← {"t":"devtools","s":"<session>","on":true,"by":"Ann"}   // ウィンドウが開いた
+← {"t":"devtools","s":"<session>","on":false}              // ウィンドウが閉じた
+← {"t":"cdp","s":"<session>","m":"<CDP command, JSON text>"}
+→ {"t":"cdp","s":"<session>","m":"<CDP answer, JSON text>"} // 要求したウィンドウへ返す
+→ {"t":"cdp","m":"<CDP event, JSON text>"}                  // このページのすべてのウィンドウへ
+```
+
+- ウィンドウは 1 つのページ接続に属します。ページが切断すると（リロード、遷移、クローズ）、ゲートウェイはそのウィンドウをコード **4100** で閉じます。管理コンソールは、ページが戻ってきたら新しいチケットで再度開きます（承認はそのまま残るので、ユーザーに再度確認することはありません）。セッションを終了すると **4403** で閉じられ、追いつけないフロントエンド（低速な接続上のスクリーンキャスト）は **1013** で閉じられます。
+- ページ宛ての CDP メッセージには専用のキューがあります。フロントエンドからのコマンドのバーストは、そのフロントエンド自身を遅らせるだけで、ページを遅い受信者として切断することはないので、エージェントの RPC には影響しません。
+- SDK の中では、ウィンドウは 1 つの chobitsu を共有し、コマンド ID はウィンドウごとに書き換えられます。`Runtime.enable` と `Network.enable` には SDK が応答し、ページ読み込み以降の両方をエージェント向けにまとめて収集するのに加えて、ウィンドウが開く前に起きたこと（console のメッセージ（マスクされたテキスト。オブジェクトは展開できない）と、まだキャッシュされている間のレスポンスボディ付きの最近のリクエスト）も渡します。どのウィンドウの `*.disable` も効果を持ちません。最後のウィンドウが閉じると、SDK はハイライトを隠し、スクリーンキャストを止め、ウィンドウのために保持していたオブジェクトを解放します。
+- ウィンドウが開いている間、ページの下部バーには開発者がデバッグ中であることが、メンバーの名前と**終了**ボタンとともに表示されます。
+
+### 17.3 状態と監査
+
+- `Device.devtools` は開いているウィンドウを一覧にします。`Page.connected` と `Page.connectedSince` は、管理コンソールがいつウィンドウを再度開くべきかを示します。`Device.pending.purpose` は DevTools の要求であることを示します（[§12.8](#128-型)）。
+- タイムラインの `kind` が `devtools`: 要求、承認と拒否、ウィンドウの開閉、承認の撤回（[§12.9](#129-タイムラインイベント)）。
+- 監査アクション `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close`（[§12.7](#127-監査ログ)）。
+- プライバシー: DevTools はページをそのまま見るので、**マスクは適用されません**。そのため owner と admin に限定され、プロジェクトごとにオフにでき、端末上でユーザーに確認し、監査されます。
+
+### 17.4 フロントエンド
+
+フロントエンドは、固定されたバージョンの npm パッケージ `chii` の `public/front_end` で、その sha512 で検証され、管理コンソールのビルド時に `console/dist/devtools/` へコピーされます（[`console/scripts/devtools-frontend.mjs`](../console/scripts/devtools-frontend.mjs)）。ゲートウェイはこれを gzip 圧縮した状態（約 3.4 MB）で埋め込み、`Content-Encoding: gzip` で配信します。`/devtools/` 配下のレスポンスには `X-Frame-Options: SAMEORIGIN` が付きます。

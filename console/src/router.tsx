@@ -14,6 +14,7 @@ import { ApiError } from '@/lib/api'
 import { meQuery } from '@/lib/queries'
 import { AuditPage } from '@/routes/audit'
 import { DeviceDetailPage } from '@/routes/device-detail'
+import { DeviceDevtoolsPage } from '@/routes/device-devtools'
 import { DevicesPage, validateDevicesSearch } from '@/routes/devices'
 import { KeysPage } from '@/routes/keys'
 import { AcceptInvitePage } from '@/routes/invite'
@@ -50,19 +51,21 @@ const inviteRoute = createRoute({
   component: AcceptInvitePage,
 })
 
+async function requireSignIn({ context, location }: { context: RouterContext; location: { href: string } }) {
+  try {
+    await context.queryClient.ensureQueryData(meQuery)
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) {
+      throw redirect({ to: '/login', search: { redirect: location.href }, replace: true })
+    }
+    throw err
+  }
+}
+
 const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'auth',
-  beforeLoad: async ({ context, location }) => {
-    try {
-      await context.queryClient.ensureQueryData(meQuery)
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        throw redirect({ to: '/login', search: { redirect: location.href }, replace: true })
-      }
-      throw err
-    }
-  },
+  beforeLoad: requireSignIn,
   component: AppShell,
   errorComponent: RouteError,
 })
@@ -110,6 +113,19 @@ const deviceRoute = createRoute({
   component: DeviceDetailPage,
 })
 
+// Chrome DevTools on a page of the device (docs/protocol.md section 17): full
+// window, outside the app shell.
+const deviceDevtoolsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/devices/$deviceId/devtools',
+  validateSearch: (search: Record<string, unknown>): { page?: string } => ({
+    page: typeof search.page === 'string' && search.page ? search.page : undefined,
+  }),
+  beforeLoad: requireSignIn,
+  component: DeviceDevtoolsPage,
+  errorComponent: RouteError,
+})
+
 // Old links (before devices became first-class) keep working.
 const legacyDeviceRoute = createRoute({
   getParentRoute: () => authRoute,
@@ -141,6 +157,7 @@ const auditRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   inviteRoute,
+  deviceDevtoolsRoute,
   authRoute.addChildren([
     devicesRoute,
     projectsRoute,

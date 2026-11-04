@@ -101,6 +101,10 @@ export const AGENT_EN = {
     listitem: 'list item',
   } as { [role: string]: string },
   element: 'element',
+
+  // DevTools for people (docs/protocol.md §17): above the console history it replays
+  devtoolsHistory: (count: number, dropped: number) =>
+    `—— ${count} log entries from before DevTools opened (text only; objects cannot be expanded${dropped ? `; ${dropped} more were dropped` : ''}) ——`,
 }
 
 export type AgentText = typeof AGENT_EN

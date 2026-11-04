@@ -3,6 +3,7 @@
 package server
 
 import (
+	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"crypto/sha512"
@@ -13,9 +14,12 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
+	"mime"
 	"net/http"
+	"net/url"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -122,6 +126,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/locales/{file}", s.serveLocale)
 	mux.HandleFunc("GET /v1/sdk/{version}/locales/{file}", s.serveLocale)
 	mux.HandleFunc("GET /v1/page", s.servePage)
+	mux.HandleFunc("GET /v1/devtools", s.serveDevtools)
 	mux.HandleFunc("POST /v1/presence", s.presence)
 	mux.HandleFunc("OPTIONS /v1/presence", s.presence)
 	mux.Handle("/v1/mcp", s.mcp)
@@ -146,7 +151,12 @@ func securityHeaders(next http.Handler) http.Handler {
 		h := w.Header()
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("Referrer-Policy", "no-referrer")
-		if !strings.HasPrefix(r.URL.Path, "/v1/sdk") {
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/v1/sdk"):
+		case strings.HasPrefix(r.URL.Path, "/devtools/"):
+			// The DevTools frontend runs in an iframe of the console.
+			h.Set("X-Frame-Options", "SAMEORIGIN")
+		default:
 			h.Set("X-Frame-Options", "DENY")
 		}
 		next.ServeHTTP(w, r)
@@ -279,6 +289,26 @@ func (s *Server) servePage(w http.ResponseWriter, r *http.Request) {
 	s.hub.ServePage(context.WithoutCancel(r.Context()), ws, p.ID)
 }
 
+// serveDevtools is the WebSocket of a DevTools frontend embedded in the
+// console. The one-time ticket from POST /api/devices/:id/devtools is the
+// credential; only the console's own origin may connect.
+func (s *Server) serveDevtools(w http.ResponseWriter, r *http.Request) {
+	ticket := r.URL.Query().Get("ticket")
+	if ticket == "" {
+		s.fail(w, r, http.StatusUnauthorized, "unauthorized", i18n.APIDevtoolsTicket)
+		return
+	}
+	opts := &websocket.AcceptOptions{}
+	if u, err := url.Parse(s.cfg.PublicURL); err == nil && u.Host != "" {
+		opts.OriginPatterns = []string{u.Host}
+	}
+	ws, err := websocket.Accept(w, r, opts)
+	if err != nil {
+		return
+	}
+	s.hub.ServeDevtools(context.WithoutCancel(r.Context()), ws, ticket)
+}
+
 type presenceReq struct {
 	Key         string `json:"key"`
 	DeviceID    string `json:"deviceId"`
@@ -368,6 +398,9 @@ func (s *Server) spa(root fs.FS) http.Handler {
 			files.ServeHTTP(w, r)
 			return
 		}
+		if serveGzipped(w, r, root, name) {
+			return
+		}
 		// A missing file (it has an extension) is a 404, not the app shell.
 		if path.Ext(name) != "" {
 			http.NotFound(w, r)
@@ -383,6 +416,47 @@ func (s *Server) spa(root fs.FS) http.Handler {
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Write(b)
 	})
+}
+
+// serveGzipped serves name from its embedded name.gz (the DevTools frontend
+// is stored compressed, see scripts/embed.sh).
+func serveGzipped(w http.ResponseWriter, r *http.Request, root fs.FS, name string) bool {
+	if !strings.HasPrefix(name, "devtools/") {
+		return false
+	}
+	f, err := root.Open(name + ".gz")
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+	h := w.Header()
+	ctype := mime.TypeByExtension(path.Ext(name))
+	if ctype == "" {
+		ctype = "application/octet-stream"
+	}
+	h.Set("Content-Type", ctype)
+	h.Set("Cache-Control", "public, max-age=3600")
+	h.Set("Vary", "Accept-Encoding")
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		h.Set("Content-Encoding", "gzip")
+		if st, err := f.Stat(); err == nil {
+			h.Set("Content-Length", strconv.FormatInt(st.Size(), 10))
+		}
+		if r.Method != http.MethodHead {
+			io.Copy(w, f)
+		}
+		return true
+	}
+	zr, err := gzip.NewReader(f)
+	if err != nil {
+		http.Error(w, "bad file", http.StatusInternalServerError)
+		return true
+	}
+	defer zr.Close()
+	if r.Method != http.MethodHead {
+		io.Copy(w, zr)
+	}
+	return true
 }
 
 // --- helpers ---

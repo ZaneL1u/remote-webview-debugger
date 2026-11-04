@@ -1,4 +1,4 @@
-<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
+<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | Русский | [العربية](protocol.ar.md)
 
 # Протокол RWD (v1)
@@ -32,6 +32,7 @@
 14. [MCP](#14-mcp)
 15. [Языки](#15-языки)
 16. [Эксплуатация](#16-эксплуатация)
+17. [DevTools для людей](#17-devtools-для-людей)
 
 ## 1. Эндпоинты
 
@@ -44,12 +45,14 @@
 | `GET /v1/metrics` | Метрики Prometheus ([§16](#16-эксплуатация)) |
 | `WS /v1/page?key=<appKey>` | Соединение страницы ([§3](#3-соединение-страницы-websocket)) |
 | `POST /v1/presence` | Резервный опрос, когда WebSocket не подключается ([§9](#9-резервный-опрос-присутствия)) |
+| `WS /v1/devtools?ticket=<ticket>` | CDP-соединение окна DevTools, только с origin консоли ([§17](#17-devtools-для-людей)) |
 | `/v1/api/…` | REST API веб-консоли ([§12](#12-rest-api-веб-консоли)) |
 | `/v1/mcp` | MCP-сервер на шлюзе, Streamable HTTP, `Authorization: Bearer rwd_sk_live_…` ([§14](#14-mcp)) |
 | `/demo/` | Статические файлы из `--demo-dir`, только если он задан |
+| `/devtools/…` | Фронтенд Chrome DevTools, который встраивает консоль ([§17.4](#174-фронтенд)) |
 | любой другой путь | Одностраничное приложение веб-консоли |
 
-Неизвестные пути под `/v1/` возвращают `404 {"error":{"code":"not_found",…}}`. Все ответы содержат заголовки `X-Content-Type-Options: nosniff` и `Referrer-Policy: no-referrer`; все, кроме SDK, также содержат `X-Frame-Options: DENY`.
+Неизвестные пути под `/v1/` возвращают `404 {"error":{"code":"not_found",…}}`. Все ответы содержат заголовки `X-Content-Type-Options: nosniff` и `Referrer-Policy: no-referrer`; все, кроме SDK, также содержат `X-Frame-Options: DENY`, а под `/devtools/` — `SAMEORIGIN`.
 
 ## 2. Идентификаторы
 
@@ -109,6 +112,7 @@
 {"t":"help","on":true}                                              // пользователь запрашивает поддержку / отменяет запрос
 {"t":"control","action":"takeover"|"handback"|"end"}                // кнопки пользователя, §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
+{"t":"cdp","s":"<session>"|absent,"m":"<CDP JSON>"}                 // ответ / событие DevTools, §17.2
 {"id":17,"result":{…}}                                              // успешный RPC, §5
 {"id":17,"error":{"code":"not_found","message":"…"}}                // ошибка RPC, §5
 ```
@@ -129,6 +133,8 @@
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, активной странице
 {"t":"attach_cancel","requestId":"…"}                         // §7, всем страницам
+{"t":"devtools","s":"<session>","on":true,"by":"Ann"}         // §17.2, окно DevTools открылось / закрылось ("on":false)
+{"t":"cdp","s":"<session>","m":"<CDP JSON>"}                  // §17.2, команда из этого окна
 {"t":"hb"}
 {"t":"reconnect","afterMs":1000}                              // зарезервировано: SDK переподключается через afterMs
 {"id":17,"method":"rwd.snapshot","params":{}}                 // RPC-запрос, §5
@@ -367,7 +373,8 @@ min(уровень, запрошенный агентом (по умолчани
 ← {"t":"attach_request","requestId":"…",
    "agent":{"name":"Support Bot","keyHint":"…a91f"},
    "levels":["observe","interact"],   // предлагаемые уровни, ограниченные ключом и политикой; последний — тот, что запросил агент
-   "expiresInSec":30}
+   "expiresInSec":30,
+   "purpose":"devtools"}              // только когда участник веб-консоли запрашивает DevTools (§17.1)
 → {"t":"attach_decision","requestId":"…","level":"interact"}   // или "level": null для отказа
 ← {"t":"attach_cancel","requestId":"…"}                         // истекло время или агент отказался от запроса
 ```
@@ -377,8 +384,8 @@ min(уровень, запрошенный агентом (по умолчани
 - Если одному и тому же API-ключу отказали **3 раза** на одном устройстве в течение 10 минут, его запросы к этому устройству **10 минут** отклоняются без вопроса пользователю.
 - На одном устройстве ответа может ожидать только один запрос.
 - Диалог SDK живёт в Shadow DOM, принимает только доверенные нажатия и становится активным через 0,4 с после появления, поэтому агент не может одобрить сам себя. Вкладки одного origin делятся решением через BroadcastChannel.
-- Пользователь может включить **автоматическое разрешение** с максимальным уровнем в плавающем окне SDK; тогда SDK сразу отвечает наивысшим из предложенных уровней в этих пределах и показывает уведомление.
-- С `run({ nativeApproval: true })` SDK не показывает диалог. Вместо этого `status().pending` становится `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`, и нативное хост-приложение отвечает через `nativeDecide(nativeKey, requestId, level | null)`.
+- Пользователь может включить **автоматическое разрешение** с максимальным уровнем в плавающем окне SDK; тогда SDK сразу отвечает наивысшим из предложенных уровней в этих пределах и показывает уведомление. Автоматическое разрешение предназначено для агентов: запрос DevTools всегда задаётся пользователю.
+- С `run({ nativeApproval: true })` SDK не показывает диалог. Вместо этого `status().pending` становится `{kind:"attach", requestId, agent:{name, keyHint}, levels, purpose, expiresAt}` (`purpose` — это `"agent"` или `"devtools"`), и нативное хост-приложение отвечает через `nativeDecide(nativeKey, requestId, level | null)`.
 - После одобрения шлюз подключает агента (заменяя любого другого агента на устройстве), снимает запрос поддержки (`{"t":"help","on":false}`) и рассылает `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`; страница сразу блокируется ([§4](#4-состояние-управления)).
 
 При `approval: none` агент подключается сразу с вычисленным уровнем.
@@ -486,6 +493,7 @@ type Policy = {
   maxAgents: number                // агентов, одновременно подключённых к устройствам проекта; 0 = без ограничений
   eruda: { dock: boolean; load: boolean }  // удалённое значение по умолчанию для run({ eruda }); локальные параметры имеют приоритет для каждого поля.
                                            // В welcome.config может быть null или отсутствовать (= оба false), §3.4
+  devtools: 'on' | 'off'          // администраторы могут открывать DevTools на страницах проекта из консоли (по умолчанию on, §17)
 }
 ```
 
@@ -558,7 +566,8 @@ API-ключи принадлежат шлюзу, а не проекту: оди
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: устройства, последняя страница которых пришла из проекта (по умолчанию `all`, до 500); сначала запрашивающие поддержку, затем находящиеся в сети, затем по времени последнего появления. `waiting` означает «запрашивает поддержку» (отображается как «Идёт поддержка») |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | Всегда `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. Коды: `device_offline`, `no_page` (страница переподключается), `timeout`, `takeover`, `internal` и коды RPC из [§5.1](#51-конверт-сообщения) |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: отключает агента, снимает запрос поддержки, управление возвращается в `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: отключает агента, снимает запрос поддержки, управление возвращается в `none`, закрывает окна DevTools ([§17](#17-devtools-для-людей)) |
+| POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; может ждать ответа пользователя до 30 с ([§17.1](#171-открытие-окна)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 Приглашения устройств
@@ -589,6 +598,7 @@ API-ключи принадлежат шлюзу, а не проекту: оди
 | `control.takeover`, `control.handback`, `control.end` | Кнопки пользователя |
 | `device.end` | Участник веб-консоли завершил сеанс |
 | `policy.denied` | Вызов выше выданного уровня был отклонён |
+| `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | Окна DevTools ([§17](#17-devtools-для-людей)); у `close` есть `detail: {page, durationSec, reason}` |
 
 События никогда не содержат содержимого страниц или значений параметров. По умолчанию они хранятся 180 дней (`RWD_AUDIT_RETENTION_DAYS`).
 
@@ -623,7 +633,8 @@ type Device = {
   help: boolean; invited: boolean
   control: 'none' | 'observe' | 'agent' | 'user'
   agent: string | null; level: Level | null
-  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; expiresAt: number } | null
+  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; purpose?: 'devtools'; expiresAt: number } | null
+  devtools: { id: string; member: string; page: string /* метка */; since: number }[]  // открытые окна DevTools (§17)
   task?: Task                  // только пока подключённый агент её задал
   pages: number                // число подключённых страниц
   sdk: string                  // версия SDK, сообщённая страницей
@@ -645,6 +656,8 @@ type Page = {
   focused: boolean             // страница, на которую пользователь, скорее всего, смотрит
   selected: boolean            // страница, с которой работает агент
   openerLabel: string | null; connectedAt: number
+  connected: boolean           // false, пока страница переподключается
+  connectedSince: number       // начало текущего соединения (обновляется при перезагрузках)
 }
 
 type TimelineEvent = { at: number; page: string /* метка; "" для событий всего устройства */; kind: string; summary: string }
@@ -687,6 +700,7 @@ type AuditEvent = {
 | `agent` | Запросы на подключение, отказы, тайм-ауты, подключения, изменения задачи |
 | `control` | Изменения состояния управления; summary называет причину (пользователь взял управление, ИИ бездействует, пользователь завершил сеанс, …) |
 | `offline` | Последняя страница устройства пропала, пока был подключён агент |
+| `devtools` | Запросы DevTools, одобрения и отказы, окна открыты и закрыты, одобрения отозваны ([§17](#17-devtools-для-людей)) |
 
 ## 13. Обновления в реальном времени (SSE)
 
@@ -796,3 +810,51 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **Хранение аудита.** `RWD_AUDIT_RETENTION_DAYS` (по умолчанию 180); старые события удаляются каждые 6 часов.
 
 Все настройки шлюза перечислены в [gateway/README.ru.md](../gateway/README.ru.md).
+
+## 17. DevTools для людей
+
+Владельцы и администраторы могут открыть **Chrome DevTools** на любой подключённой странице устройства из консоли: Elements (стили, box model, подсветка на устройстве), Console (в реальном времени, с просмотром объектов и выполнением скриптов), Network (с телами ответов) и хранилище Application. Это настоящий фронтенд DevTools — собранный заранее в [chii](https://github.com/liriliri/chii); бэкенд — это уже имеющийся в SDK страницы полный chobitsu, а сообщения CDP передаёт шлюз.
+
+```
+Console /devices/:id/devtools
+  └─ iframe /devtools/chii_app.html?ws(s)=<host>/v1/devtools?ticket=…   ← DevTools frontend
+        │ CDP (WebSocket)
+        ▼
+Gateway /v1/devtools ──{"t":"cdp","s","m"}──▶ page WebSocket ──▶ SDK: one session per window ──▶ chobitsu
+```
+
+### 17.1 Открытие окна
+
+1. Консоль вызывает `POST /v1/api/devices/:id/devtools` с `{"page":"p1"}` (если не указано — страница, на которую смотрит пользователь). Только владельцы и администраторы.
+2. Шлюз объединяет политики проектов, страницы которых открыты на устройстве; если хотя бы у одного `devtools: "off"`, запрос отклоняется. Если объединённое `approval` равно `prompt`, шлюз отправляет активной странице `attach_request` с `"purpose":"devtools"`, `levels: ["advanced"]` и именем участника в `agent.name`, и ждёт ответа (30 секунд; HTTP-запрос тоже ждёт). Автоматическое разрешение SDK здесь не действует. При `nativeApproval` `status().pending.purpose` равно `"devtools"` ([§7](#7-одобрение-подключения)).
+3. Одобрение действует `policy.attachMaxMinutes` для этого участника на этом устройстве, поэтому перезагрузка или переход переподключаются без повторного вопроса. Если пользователь нажимает **Завершить** на устройстве или участник веб-консоли завершает сеанс (`POST /devices/:id/end`), закрываются все окна и одобрения отзываются.
+4. Ответ — `{"ticket","session","page":Page,"frontendUrl"}`. `ticket` одноразовый и действителен одну минуту; `session` — идентификатор, который окно будет иметь в `Device.devtools`.
+5. Фронтенд подключается к `WS /v1/devtools?ticket=…`. Подключиться может только собственный origin консоли (хост из `--public-url`, если он задан).
+
+Коды ошибок: `device_offline`, `no_page` (страница пропала или переподключается), `busy` (устройство ждёт ответа пользователя на другой запрос), `timeout`, `denied` (403) и `forbidden` (403, отключено политикой).
+
+### 17.2 Сообщения страницы
+
+```jsonc
+← {"t":"devtools","s":"<session>","on":true,"by":"Ann"}   // окно открылось
+← {"t":"devtools","s":"<session>","on":false}              // окно закрылось
+← {"t":"cdp","s":"<session>","m":"<CDP command, JSON text>"}
+→ {"t":"cdp","s":"<session>","m":"<CDP answer, JSON text>"} // обратно тому окну, которое спросило
+→ {"t":"cdp","m":"<CDP event, JSON text>"}                  // всем окнам этой страницы
+```
+
+- Окно относится к одному соединению страницы. Когда страница отключается (перезагрузка, переход, закрытие), шлюз закрывает её окна с кодом **4100**; консоль переоткрывает их с новым тикетом, когда страница возвращается (одобрение всё ещё действует, поэтому пользователя не спрашивают снова). Завершение сеанса закрывает их с **4403**; фронтенд, который не успевает (screencast на медленной связи), закрывается с **1013**.
+- У сообщений CDP к странице своя очередь: всплеск команд от фронтенда замедляет сам этот фронтенд, а не приводит к отключению страницы как медленного получателя, поэтому RPC агентов не страдают.
+- В SDK все окна делят один chobitsu, а идентификаторы команд переписываются для каждого окна отдельно. На `Runtime.enable` и `Network.enable` отвечает сам SDK, который и так собирает то и другое для агентов с момента загрузки страницы, вместе с тем, что произошло до открытия окна: сообщения console (текст замаскирован; объекты не раскрываются) и недавние запросы (тела ответов, пока они ещё кэшированы). `*.disable` любого окна не действует; когда закрывается последнее окно, SDK скрывает подсветку, останавливает screencast и освобождает объекты, которые держал для окон.
+- Пока окно открыто, нижняя панель страницы показывает, что идёт отладка разработчиком, с именами участников и кнопкой **Завершить**.
+
+### 17.3 Состояние и аудит
+
+- `Device.devtools` перечисляет открытые окна; `Page.connected` и `Page.connectedSince` сообщают консоли, когда переоткрыть окно; `Device.pending.purpose` отмечает запрос DevTools ([§12.8](#128-типы)).
+- Вид хронологии `devtools`: запросы, одобрения и отказы, окна открыты и закрыты, одобрения отозваны ([§12.9](#129-события-хронологии)).
+- Действия аудита `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` ([§12.7](#127-журнал-аудита)).
+- Конфиденциальность: DevTools видит страницу как она есть, и **маскирование не применяется**. Поэтому доступ ограничен владельцами и администраторами, может быть отключён для каждого проекта, спрашивает пользователя на устройстве и фиксируется в аудите.
+
+### 17.4 Фронтенд
+
+Фронтенд — это `public/front_end` из npm-пакета `chii` закреплённой версии, проверенный по его sha512, и копируется в `console/dist/devtools/` при сборке консоли ([`console/scripts/devtools-frontend.mjs`](../console/scripts/devtools-frontend.mjs)). Шлюз встраивает его в сжатом виде (около 3,4 МБ) и отдаёт с `Content-Encoding: gzip`; ответы под `/devtools/` несут `X-Frame-Options: SAMEORIGIN`.

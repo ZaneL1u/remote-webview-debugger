@@ -10,6 +10,11 @@ case "${1:-}" in
 stage)
   find "$web/console" "$web/sdk" -mindepth 1 -delete
   cp -R "$2"/. "$web/console/"
+  # The DevTools frontend (~14 MB, docs/protocol.md §17) is embedded gzipped
+  # and served with Content-Encoding: gzip.
+  if [ -d "$web/console/devtools" ]; then
+    find "$web/console/devtools" -type f ! -name '*.gz' -exec gzip -9 -n {} +
+  fi
   cp "$3" "$web/sdk/sdk.js"
   if [ -d "$(dirname "$3")/locales" ]; then
     mkdir "$web/sdk/locales"

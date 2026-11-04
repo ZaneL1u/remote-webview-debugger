@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@ Ein Bug, der nur auf dem Smartphone eines einzigen Nutzers auftritt – in einer
 
 - **Ein einziges Script-Tag** (oder eine native Injektion) bringt eine Seite online. Der Nutzer sieht ein kleines Badge mit einem Gerätecode und kann auf *Unterstützung anfordern* tippen.
 - **Ihr Agent verbindet sich über MCP** – Claude Code, Cursor oder ein beliebiger MCP-Client –, nachdem der Nutzer auf dem Gerät zugestimmt hat. Er liest Barrierefreiheits-Snapshots, Console, Netzwerk und Screenshots, und er klickt, tippt und scrollt wie ein Mensch, über alle Seiten und WebViews dieses Geräts hinweg.
+- **Echtes Chrome DevTools für Menschen.** Von der Konsole aus öffnet ein Admin DevTools auf jeder Online-Seite – Elements, Console, Network (mit dem, was vor dem Öffnen geschah) und Application-Speicher –, nachdem der Nutzer auf dem Gerät zugestimmt hat.
 - **Der Nutzer behält die Kontrolle.** Er sieht, was die KI tut (Agent-Cursor, eine Aufgabenkarte mit den geplanten Schritten, ein leuchtender Rand), und kann jederzeit übernehmen oder die Sitzung beenden. Passwörter, Telefon- und Kartennummern werden maskiert, bevor irgendetwas das Smartphone verlässt.
 - **Selbst gehostet.** Ein einziges Go-Binary mit eingebetteter Konsole und eingebettetem SDK; SQLite oder Postgres.
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # die Website
 
 ## Danksagungen
 
-Die seitenseitige Engine baut für die Erfassung von Console und Netzwerk auf [chobitsu](https://github.com/liriliri/chobitsu) (MIT) auf und verwendet den Barrierefreiheits-Snapshot-Code von [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). Siehe [NOTICE](NOTICE).
+Die seitenseitige Engine baut für die Erfassung von Console und Netzwerk auf [chobitsu](https://github.com/liriliri/chobitsu) (MIT) auf und verwendet den Barrierefreiheits-Snapshot-Code von [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). Das DevTools der Konsole ist das Chrome-DevTools-Frontend, wie es von [chii](https://github.com/liriliri/chii) vorgebaut wird (MIT; DevTools selbst BSD-3-Clause). Siehe [NOTICE](NOTICE).
 
 ## Lizenz
 

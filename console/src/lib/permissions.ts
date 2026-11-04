@@ -14,6 +14,7 @@ export type Permission =
   | 'member.view'
   | 'member.manage'
   | 'audit.org' // the organization-wide audit page
+  | 'devtools.open' // Chrome DevTools on a device's page (section 17)
 
 const grants: Record<Role, ReadonlySet<Permission>> = {
   owner: new Set<Permission>([
@@ -24,8 +25,17 @@ const grants: Record<Role, ReadonlySet<Permission>> = {
     'member.view',
     'member.manage',
     'audit.org',
+    'devtools.open',
   ]),
-  admin: new Set<Permission>(['project.manage', 'policy.manage', 'key.manage', 'invite.manage', 'member.view', 'audit.org']),
+  admin: new Set<Permission>([
+    'project.manage',
+    'policy.manage',
+    'key.manage',
+    'invite.manage',
+    'member.view',
+    'audit.org',
+    'devtools.open',
+  ]),
   member: new Set<Permission>(['invite.manage']),
 }
 

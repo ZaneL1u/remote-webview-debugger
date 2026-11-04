@@ -20,6 +20,7 @@ const (
 	heartbeatEvery = 25 * time.Second
 	pingTimeout    = 10 * time.Second
 	sendQueue      = 64
+	cdpQueue       = 256      // DevTools traffic to the page, its own lane (devtools.go)
 	readLimit      = 16 << 20 // screenshots come back base64 encoded
 
 	followAfterGone = 1500 * time.Millisecond
@@ -31,6 +32,7 @@ const (
 type Conn struct {
 	ws     *websocket.Conn
 	send   chan []byte
+	cdp    chan []byte
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -78,16 +80,41 @@ func (c *Conn) writer() {
 		case <-c.ctx.Done():
 			return
 		case b := <-c.send:
-			ctx, cancel := context.WithTimeout(c.ctx, 10*time.Second)
-			err := c.ws.Write(ctx, websocket.MessageText, b)
-			cancel()
-			if err != nil {
-				c.mu.Lock()
-				c.closeLocked(websocket.StatusGoingAway, "write failed")
-				c.mu.Unlock()
+			if !c.write(b) {
+				return
+			}
+		case b := <-c.cdp:
+			if !c.write(b) {
 				return
 			}
 		}
+	}
+}
+
+func (c *Conn) write(b []byte) bool {
+	ctx, cancel := context.WithTimeout(c.ctx, 10*time.Second)
+	err := c.ws.Write(ctx, websocket.MessageText, b)
+	cancel()
+	if err != nil {
+		c.mu.Lock()
+		c.closeLocked(websocket.StatusGoingAway, "write failed")
+		c.mu.Unlock()
+		return false
+	}
+	return true
+}
+
+// pushCDP queues a DevTools message for the page, waiting while its lane is
+// full: a burst from the DevTools frontend slows that frontend down instead of
+// dropping the page as a slow consumer.
+func (c *Conn) pushCDP(ctx context.Context, b []byte) error {
+	select {
+	case c.cdp <- b:
+		return nil
+	case <-c.ctx.Done():
+		return ErrPageGone
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 
@@ -214,6 +241,9 @@ type inbound struct {
 	// attach_decision
 	RequestID string  `json:"requestId"`
 	Level     *string `json:"level"`
+	// cdp (DevTools session id; empty for an event to every session)
+	S string `json:"s"`
+	M string `json:"m"`
 	// rpc reply
 	ID     int64           `json:"id"`
 	Result json.RawMessage `json:"result"`
@@ -244,7 +274,7 @@ func clip(s string, n int) string {
 func (h *Hub) ServePage(ctx context.Context, ws *websocket.Conn, projectID string) {
 	ws.SetReadLimit(readLimit)
 	cctx, cancel := context.WithCancel(ctx)
-	c := &Conn{ws: ws, send: make(chan []byte, sendQueue), ctx: cctx, cancel: cancel, pending: map[int64]chan rpcResult{}}
+	c := &Conn{ws: ws, send: make(chan []byte, sendQueue), cdp: make(chan []byte, cdpQueue), ctx: cctx, cancel: cancel, pending: map[int64]chan rpcResult{}}
 	defer func() {
 		c.mu.Lock()
 		c.closeLocked(websocket.StatusNormalClosure, "")
@@ -314,6 +344,10 @@ func (h *Hub) ServePage(ctx context.Context, ws *websocket.Conn, projectID strin
 					ch <- rpcResult{result: m.Result}
 				}
 			}
+			continue
+		}
+		if m.T == "cdp" {
+			h.relayCDP(hello.DeviceID, c, m.S, m.M)
 			continue
 		}
 		h.onMessage(hello.DeviceID, page, &m)
@@ -401,7 +435,7 @@ func (h *Hub) attach(ctx context.Context, projectID string, hello *Hello, c *Con
 		}
 		prevURL := p.URL
 		p.ProjectID = projectID
-		p.conn, p.URL, p.Title, p.Visibility, p.LastActive = c, clip(hello.Page.URL, 2048), clip(hello.Page.Title, 256), hello.Page.Visibility, now
+		p.conn, p.URL, p.Title, p.Visibility, p.LastActive, p.connSince = c, clip(hello.Page.URL, 2048), clip(hello.Page.Title, 256), hello.Page.Visibility, now, now
 		if prevURL != p.URL {
 			d.addEvent(p.Label, "navigated", i18n.M(i18n.EventNavigated, pageName(p), shortURL(p.URL)))
 		} else {
@@ -411,7 +445,7 @@ func (h *Hub) attach(ctx context.Context, projectID string, hello *Hello, c *Con
 		d.nextLabel++
 		p = &Page{ID: hello.PageID, ProjectID: projectID, Label: fmt.Sprintf("p%d", d.nextLabel), URL: clip(hello.Page.URL, 2048),
 			Title: clip(hello.Page.Title, 256), Visibility: hello.Page.Visibility, OpenerID: hello.OpenerID,
-			ConnectedAt: now, LastActive: now, conn: c}
+			ConnectedAt: now, LastActive: now, connSince: now, conn: c}
 		d.pages[p.ID] = p
 		summary := i18n.M(i18n.EventOpened, pageName(p))
 		if op := d.pages[p.OpenerID]; op != nil {
@@ -468,9 +502,13 @@ func pageConfig(p store.Policy, userID string) map[string]any {
 }
 
 func attachRequestMsg(pd *Pending) []byte {
-	b, _ := json.Marshal(map[string]any{"t": "attach_request", "requestId": pd.RequestID,
+	m := map[string]any{"t": "attach_request", "requestId": pd.RequestID,
 		"agent": map[string]string{"name": pd.Agent, "keyHint": pd.KeyHint}, "levels": pd.Levels,
-		"expiresInSec": max(1, int(time.Until(time.UnixMilli(pd.ExpiresAt)).Seconds()))})
+		"expiresInSec": max(1, int(time.Until(time.UnixMilli(pd.ExpiresAt)).Seconds()))}
+	if pd.Purpose != "" {
+		m["purpose"] = pd.Purpose
+	}
+	b, _ := json.Marshal(m)
 	return b
 }
 
@@ -492,6 +530,7 @@ func (h *Hub) detachPage(deviceID string, p *Page, c *Conn) {
 		return
 	}
 	p.conn = nil
+	h.closeDevtoolsOn(d, c, websocket.StatusCode(4100), "page_gone")
 	d.Info.LastSeen = time.Now().UnixMilli()
 	d.notify()
 	if a := d.agent; a != nil && a.Follow && a.pageID == p.ID {
@@ -644,6 +683,7 @@ func (h *Hub) onMessage(deviceID string, p *Page, m *inbound) {
 				}
 			}
 		case "end":
+			h.endDevtools(d, i18n.M(i18n.EventUserEnded))
 			if a := d.agent; a != nil {
 				h.detach(a, i18n.M(i18n.EventUserEnded))
 			} else {

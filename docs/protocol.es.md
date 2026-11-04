@@ -1,4 +1,4 @@
-<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
+<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | Español | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -32,6 +32,7 @@ Convenciones:
 14. [MCP](#14-mcp)
 15. [Idiomas](#15-idiomas)
 16. [Operación](#16-operación)
+17. [DevTools para personas](#17-devtools-para-personas)
 
 ## 1. Endpoints
 
@@ -44,12 +45,14 @@ Convenciones:
 | `GET /v1/metrics` | Métricas de Prometheus ([§16](#16-operación)) |
 | `WS /v1/page?key=<appKey>` | Conexión de la página ([§3](#3-conexión-de-la-página-websocket)) |
 | `POST /v1/presence` | Sondeo de respaldo cuando el WebSocket no logra conectar ([§9](#9-sondeo-de-presencia-como-respaldo)) |
+| `WS /v1/devtools?ticket=<ticket>` | La conexión CDP de una ventana de DevTools, solo desde el origen de la consola web ([§17](#17-devtools-para-personas)) |
 | `/v1/api/…` | API REST de la consola web ([§12](#12-api-rest-de-la-consola-web)) |
 | `/v1/mcp` | Servidor MCP alojado, Streamable HTTP, `Authorization: Bearer rwd_sk_live_…` ([§14](#14-mcp)) |
 | `/demo/` | Archivos estáticos de `--demo-dir`, solo si está configurado |
+| `/devtools/…` | El frontend de Chrome DevTools que integra la consola web ([§17.4](#174-frontend)) |
 | cualquier otra ruta | Aplicación de una sola página de la consola web |
 
-Las rutas desconocidas bajo `/v1/` devuelven `404 {"error":{"code":"not_found",…}}`. Todas las respuestas llevan `X-Content-Type-Options: nosniff` y `Referrer-Policy: no-referrer`; todo salvo el SDK lleva además `X-Frame-Options: DENY`.
+Las rutas desconocidas bajo `/v1/` devuelven `404 {"error":{"code":"not_found",…}}`. Todas las respuestas llevan `X-Content-Type-Options: nosniff` y `Referrer-Policy: no-referrer`; todo salvo el SDK lleva además `X-Frame-Options: DENY`, o `SAMEORIGIN` bajo `/devtools/`.
 
 ## 2. Identificadores
 
@@ -109,6 +112,7 @@ Cada conexión tiene una cola de envío de 64 mensajes. Una página que no da ab
 {"t":"help","on":true}                                              // el usuario solicita asistencia / cancela la solicitud
 {"t":"control","action":"takeover"|"handback"|"end"}                // los botones del usuario, §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
+{"t":"cdp","s":"<session>"|absent,"m":"<CDP JSON>"}                 // respuesta / evento de DevTools, §17.2
 {"id":17,"result":{…}}                                              // RPC correcta, §5
 {"id":17,"error":{"code":"not_found","message":"…"}}                // RPC fallida, §5
 ```
@@ -129,6 +133,8 @@ Cada conexión tiene una cola de envío de 64 mensajes. Una página que no da ab
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, a la página en primer plano
 {"t":"attach_cancel","requestId":"…"}                         // §7, a todas las páginas
+{"t":"devtools","s":"<session>","on":true,"by":"Ann"}         // §17.2, se abrió o se cerró una ventana de DevTools ("on":false)
+{"t":"cdp","s":"<session>","m":"<CDP JSON>"}                  // §17.2, un comando que viene de esa ventana
 {"t":"hb"}
 {"t":"reconnect","afterMs":1000}                              // reservado: el SDK se reconecta pasados afterMs
 {"id":17,"method":"rwd.snapshot","params":{}}                 // petición RPC, §5
@@ -367,7 +373,8 @@ Cuando un agente llama a `connect_device`, el gateway combina las políticas de 
 ← {"t":"attach_request","requestId":"…",
    "agent":{"name":"Support Bot","keyHint":"…a91f"},
    "levels":["observe","interact"],   // niveles ofrecidos, limitados por la clave y la política; el último es el que pidió el agente
-   "expiresInSec":30}
+   "expiresInSec":30,
+   "purpose":"devtools"}              // solo cuando un miembro de la consola web pide DevTools (§17.1)
 → {"t":"attach_decision","requestId":"…","level":"interact"}   // o "level": null para denegar
 ← {"t":"attach_cancel","requestId":"…"}                         // se agotó el tiempo o el agente desistió
 ```
@@ -377,8 +384,8 @@ Cuando un agente llama a `connect_device`, el gateway combina las políticas de 
 - Si a la misma clave de API se le deniega **3 veces** en el mismo dispositivo en 10 minutos, sus solicitudes a ese dispositivo se rechazan sin preguntar durante **10 minutos**.
 - Solo puede haber una solicitud pendiente por dispositivo.
 - El diálogo del SDK vive en un Shadow DOM, solo acepta toques de confianza y se activa 0,4 s después de aparecer, para que un agente no pueda aprobarse a sí mismo. Las pestañas del mismo origen comparten la decisión mediante BroadcastChannel.
-- El usuario puede activar **permitir automáticamente** con un nivel máximo en la ventana flotante del SDK; entonces el SDK responde al instante con el nivel ofrecido más alto dentro de ese máximo y muestra un aviso.
-- Con `run({ nativeApproval: true })` el SDK no muestra ningún diálogo. En su lugar, `status().pending` pasa a ser `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}` y el host nativo responde con `nativeDecide(nativeKey, requestId, level | null)`.
+- El usuario puede activar **permitir automáticamente** con un nivel máximo en la ventana flotante del SDK; entonces el SDK responde al instante con el nivel ofrecido más alto dentro de ese máximo y muestra un aviso. El permitir automáticamente es para agentes: una solicitud de DevTools siempre se pregunta.
+- Con `run({ nativeApproval: true })` el SDK no muestra ningún diálogo. En su lugar, `status().pending` pasa a ser `{kind:"attach", requestId, agent:{name, keyHint}, levels, purpose, expiresAt}` (`purpose` es `"agent"` o `"devtools"`) y el host nativo responde con `nativeDecide(nativeKey, requestId, level | null)`.
 - Tras la aprobación, el gateway vincula al agente (sustituyendo a cualquier otro agente del dispositivo), retira la solicitud de asistencia (`{"t":"help","on":false}`) y difunde `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`; la página se bloquea de inmediato ([§4](#4-estado-de-control)).
 
 Con `approval: none` el agente se vincula de inmediato al nivel calculado.
@@ -486,6 +493,7 @@ type Policy = {
   maxAgents: number                // agentes vinculados a la vez a los dispositivos de este proyecto; 0 = ilimitado
   eruda: { dock: boolean; load: boolean }  // valor remoto por defecto para run({ eruda }); las opciones locales mandan campo a campo.
                                            // En welcome.config puede ser null o faltar (= ambos false), §3.4
+  devtools: 'on' | 'off'          // los admin pueden abrir DevTools en las páginas del proyecto desde la consola web (por defecto on, §17)
 }
 ```
 
@@ -558,7 +566,8 @@ Las claves de API pertenecen al gateway, no a un proyecto: una clave llega a tod
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: dispositivos cuya última página vino del proyecto (por defecto `all`, hasta 500); primero los que solicitan asistencia, luego los que están en línea y luego los vistos más recientemente. `waiting` significa que el usuario solicitó asistencia (se muestra como En asistencia) |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | Siempre `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. Códigos: `device_offline`, `no_page` (la página se está reconectando), `timeout`, `takeover`, `internal` y los códigos RPC de [§5.1](#51-envoltorio) |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: desvincula al agente, retira la solicitud de asistencia y el control vuelve a `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: desvincula al agente, retira la solicitud de asistencia, el control vuelve a `none` y cierra las ventanas de DevTools ([§17](#17-devtools-para-personas)) |
+| POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; puede esperar hasta 30 s a que responda el usuario ([§17.1](#171-abrir-una-ventana)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 Invitaciones de dispositivo
@@ -589,6 +598,7 @@ Una invitación permite a un usuario poner su dispositivo en línea, con la asis
 | `control.takeover`, `control.handback`, `control.end` | Los botones del usuario |
 | `device.end` | Un miembro de la consola terminó una sesión |
 | `policy.denied` | Se rechazó una llamada por encima del nivel concedido |
+| `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | Ventanas de DevTools ([§17](#17-devtools-para-personas)); `close` lleva `detail: {page, durationSec, reason}` |
 
 Los eventos nunca contienen contenido de la página ni valores de parámetros. Se conservan 180 días por defecto (`RWD_AUDIT_RETENTION_DAYS`).
 
@@ -623,7 +633,8 @@ type Device = {
   help: boolean; invited: boolean
   control: 'none' | 'observe' | 'agent' | 'user'
   agent: string | null; level: Level | null
-  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; expiresAt: number } | null
+  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; purpose?: 'devtools'; expiresAt: number } | null
+  devtools: { id: string; member: string; page: string /* etiqueta */; since: number }[]  // ventanas de DevTools abiertas (§17)
   task?: Task                  // solo mientras el agente vinculado haya definido una
   pages: number                // páginas conectadas
   sdk: string                  // versión del SDK que informa la página
@@ -645,6 +656,8 @@ type Page = {
   focused: boolean             // la página que el usuario probablemente está mirando
   selected: boolean            // la página sobre la que trabaja el agente
   openerLabel: string | null; connectedAt: number
+  connected: boolean           // false mientras se reconecta
+  connectedSince: number       // inicio de la conexión actual (se renueva con las recargas)
 }
 
 type TimelineEvent = { at: number; page: string /* etiqueta; "" para eventos de todo el dispositivo */; kind: string; summary: string }
@@ -687,6 +700,7 @@ Cada dispositivo guarda en memoria sus 300 últimos eventos de la línea de tiem
 | `agent` | Solicitudes de vinculación, denegaciones, tiempos agotados, vinculaciones, cambios de tarea |
 | `control` | Cambios del estado de control; el resumen da el motivo (el usuario tomó el control, IA inactiva, el usuario finalizó, …) |
 | `offline` | La última página del dispositivo desapareció mientras había un agente vinculado |
+| `devtools` | Solicitudes de DevTools, aprobaciones y denegaciones, ventanas abiertas y cerradas, aprobaciones retiradas ([§17](#17-devtools-para-personas)) |
 
 ## 13. Actualizaciones en vivo (SSE)
 
@@ -796,3 +810,51 @@ Así, un usuario que habla chino puede trabajar con un agente que habla inglés:
 - **Retención de la auditoría.** `RWD_AUDIT_RETENTION_DAYS` (por defecto 180); los eventos antiguos se purgan cada 6 horas.
 
 Todos los ajustes del gateway están en [gateway/README.es.md](../gateway/README.es.md).
+
+## 17. DevTools para personas
+
+Los miembros `owner` o `admin` pueden abrir **Chrome DevTools** sobre cualquier página en línea de un dispositivo desde la consola web: Elements (estilos, modelo de caja, resaltado en el dispositivo), Console (en vivo, con inspección de objetos y ejecución de scripts), Network (con los cuerpos de las respuestas) y el almacenamiento de Application. Es el frontend real de DevTools, tal como lo compila [chii](https://github.com/liriliri/chii); el backend es el chobitsu completo que ya lleva el SDK de página, y el gateway retransmite los mensajes CDP.
+
+```
+Console /devices/:id/devtools
+  └─ iframe /devtools/chii_app.html?ws(s)=<host>/v1/devtools?ticket=…   ← DevTools frontend
+        │ CDP (WebSocket)
+        ▼
+Gateway /v1/devtools ──{"t":"cdp","s","m"}──▶ page WebSocket ──▶ SDK: one session per window ──▶ chobitsu
+```
+
+### 17.1 Abrir una ventana
+
+1. La consola web llama a `POST /v1/api/devices/:id/devtools` con `{"page":"p1"}` (si se omite: la página que está mirando el usuario). Solo para `owner` y `admin`.
+2. El gateway combina las políticas de los proyectos cuyas páginas están abiertas en el dispositivo; si alguna tiene `devtools: "off"`, la solicitud se rechaza. Si el `approval` combinado es `prompt`, el gateway envía a la página en primer plano un `attach_request` con `"purpose":"devtools"`, `levels: ["advanced"]` y el nombre del miembro como `agent.name`, y espera la respuesta (30 segundos; la petición HTTP también espera). El permitir automáticamente del SDK no se aplica aquí. Con `nativeApproval`, `status().pending.purpose` es `"devtools"` ([§7](#7-aprobación-de-la-vinculación)).
+3. Una aprobación dura `policy.attachMaxMinutes` para ese miembro en ese dispositivo, así que una recarga o una navegación se reconecta sin preguntar otra vez. Que el usuario toque **Finalizar** en el dispositivo, o que un miembro de la consola web termine la sesión (`POST /devices/:id/end`), cierra todas las ventanas y retira las aprobaciones.
+4. La respuesta es `{"ticket","session","page":Page,"frontendUrl"}`. `ticket` es de un solo uso y vale un minuto; `session` es el id que tendrá la ventana en `Device.devtools`.
+5. El frontend se conecta a `WS /v1/devtools?ticket=…`. Solo puede conectarse el propio origen de la consola web (el host de `--public-url` cuando está definido).
+
+Códigos de error: `device_offline`, `no_page` (la página desapareció o se está reconectando), `busy` (el dispositivo está esperando a que el usuario responda a otra solicitud), `timeout`, `denied` (403) y `forbidden` (403, desactivado por la política).
+
+### 17.2 Mensajes de la página
+
+```jsonc
+← {"t":"devtools","s":"<session>","on":true,"by":"Ann"}   // se abrió una ventana
+← {"t":"devtools","s":"<session>","on":false}              // la ventana se cerró
+← {"t":"cdp","s":"<session>","m":"<CDP command, JSON text>"}
+→ {"t":"cdp","s":"<session>","m":"<CDP answer, JSON text>"} // de vuelta a la ventana que preguntó
+→ {"t":"cdp","m":"<CDP event, JSON text>"}                  // a todas las ventanas de esta página
+```
+
+- Una ventana pertenece a una sola conexión de página. Cuando la página se desconecta (recarga, navegación, cierre) el gateway cierra sus ventanas con el código **4100**; la consola web las vuelve a abrir con un ticket nuevo en cuanto la página regresa (la aprobación sigue valiendo, así que no se vuelve a preguntar al usuario). Terminar la sesión las cierra con **4403**; un frontend que no da abasto (una grabación de pantalla en una conexión lenta) se cierra con **1013**.
+- Los mensajes CDP hacia la página tienen su propia cola: una ráfaga de comandos del frontend frena a ese frontend en vez de hacer que la página se descarte como consumidor lento, así que las RPC de los agentes no se ven afectadas.
+- En el SDK, las ventanas comparten un único chobitsu y los ids de comando se reescriben por ventana. `Runtime.enable` y `Network.enable` los responde el SDK, que recoge ambos desde que carga la página para los agentes, junto con lo que pasó antes de que se abriera la ventana: mensajes de console (texto enmascarado; los objetos no se pueden expandir) y peticiones recientes (cuerpos de respuesta mientras sigan en caché). El `*.disable` de ninguna ventana tiene efecto; cuando se cierra la última ventana, el SDK oculta el resaltado, detiene la grabación de pantalla y libera los objetos que guardaba para las ventanas.
+- Mientras una ventana está abierta, la barra inferior de la página muestra que un desarrollador está depurando, con los nombres de los miembros y un botón **Finalizar**.
+
+### 17.3 Estado y auditoría
+
+- `Device.devtools` lista las ventanas abiertas; `Page.connected` y `Page.connectedSince` le dicen a la consola web cuándo volver a abrir una ventana; `Device.pending.purpose` marca una solicitud de DevTools ([§12.8](#128-tipos)).
+- Tipo de línea de tiempo `devtools`: solicitudes, aprobaciones y denegaciones, ventanas abiertas y cerradas, aprobaciones retiradas ([§12.9](#129-eventos-de-la-línea-de-tiempo)).
+- Acciones de auditoría `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` ([§12.7](#127-registro-de-auditoría)).
+- Privacidad: DevTools ve la página tal cual está, y **el enmascaramiento no se aplica**. Por eso está limitado a `owner` y `admin`, se puede desactivar por proyecto, pregunta al usuario en el dispositivo y queda auditado.
+
+### 17.4 Frontend
+
+El frontend es `public/front_end` del paquete de npm `chii` en una versión fijada, comprobado contra su sha512, y se copia a `console/dist/devtools/` cuando se compila la consola web ([`console/scripts/devtools-frontend.mjs`](../console/scripts/devtools-frontend.mjs)). El gateway lo integra comprimido con gzip (unos 3,4 MB) y lo sirve con `Content-Encoding: gzip`; las respuestas bajo `/devtools/` llevan `X-Frame-Options: SAMEORIGIN`.

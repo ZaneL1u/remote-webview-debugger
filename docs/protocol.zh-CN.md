@@ -1,4 +1,4 @@
-<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
+<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -32,6 +32,7 @@
 14. [MCP](#14-mcp)
 15. [语言](#15-语言)
 16. [运维](#16-运维)
+17. [给人用的 DevTools](#17-给人用的-devtools)
 
 ## 1. 地址一览
 
@@ -44,12 +45,14 @@
 | `GET /v1/metrics` | Prometheus 指标（§16） |
 | `WS /v1/page?key=<appKey>` | 页面连接（§3） |
 | `POST /v1/presence` | WebSocket 连不上时的轮询兜底（§9） |
+| `WS /v1/devtools?ticket=<ticket>` | DevTools 窗口的 CDP 连接，只接受控制台自己来源发来的连接（[§17](#17-给人用的-devtools)） |
 | `/v1/api/…` | 控制台 REST API（§12） |
 | `/v1/mcp` | 托管 MCP，Streamable HTTP，`Authorization: Bearer rwd_sk_live_…`（§14） |
 | `/demo/` | `--demo-dir` 指定目录下的静态文件，配置了才有 |
+| `/devtools/…` | 控制台内嵌的 Chrome DevTools 前端（[§17.4](#174-前端)） |
 | 其他路径 | 控制台单页应用 |
 
-`/v1/` 下的未知路径返回 `404 {"error":{"code":"not_found",…}}`。所有响应都带 `X-Content-Type-Options: nosniff` 和 `Referrer-Policy: no-referrer`；除 SDK 外还带 `X-Frame-Options: DENY`。
+`/v1/` 下的未知路径返回 `404 {"error":{"code":"not_found",…}}`。所有响应都带 `X-Content-Type-Options: nosniff` 和 `Referrer-Policy: no-referrer`；除 SDK 外还带 `X-Frame-Options: DENY`，`/devtools/` 下则是 `SAMEORIGIN`。
 
 ## 2. 标识
 
@@ -109,6 +112,7 @@
 {"t":"help","on":true}                                              // 用户请求协助 / 取消请求
 {"t":"control","action":"takeover"|"handback"|"end"}                // 用户的按钮，§4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
+{"t":"cdp","s":"<session>"|absent,"m":"<CDP JSON>"}                 // DevTools 的回复 / 事件，§17.2
 {"id":17,"result":{…}}                                              // RPC 成功，§5
 {"id":17,"error":{"code":"not_found","message":"…"}}                // RPC 失败，§5
 ```
@@ -129,6 +133,8 @@
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"客服机器人"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7，发给前台页面
 {"t":"attach_cancel","requestId":"…"}                         // §7，发给所有页面
+{"t":"devtools","s":"<session>","on":true,"by":"Ann"}         // §17.2，DevTools 窗口打开 / 关闭（"on":false 表示关闭）
+{"t":"cdp","s":"<session>","m":"<CDP JSON>"}                  // §17.2，来自该窗口的一条命令
 {"t":"hb"}
 {"t":"reconnect","afterMs":1000}                              // 保留：SDK 在 afterMs 毫秒后重连
 {"id":17,"method":"rwd.snapshot","params":{}}                 // RPC 请求，§5
@@ -367,7 +373,8 @@ agent 调用 `connect_device` 时，网关先合并设备上已打开页面所�
 ← {"t":"attach_request","requestId":"…",
    "agent":{"name":"客服机器人","keyHint":"…a91f"},
    "levels":["observe","interact"],   // 可选的级别，已按 Key 和策略裁剪；最后一个是 agent 申请的
-   "expiresInSec":30}
+   "expiresInSec":30,
+   "purpose":"devtools"}              // 只有控制台成员请求 DevTools 时才有，§17.1
 → {"t":"attach_decision","requestId":"…","level":"interact"}   // 或 "level": null 表示拒绝
 ← {"t":"attach_cancel","requestId":"…"}                         // 超时，或 agent 放弃了
 ```
@@ -377,8 +384,8 @@ agent 调用 `connect_device` 时，网关先合并设备上已打开页面所�
 - 同一个 API Key 在同一台设备上 10 分钟内被拒 **3 次**后，**10 分钟**内对这台设备的请求直接被拒，不再询问用户。
 - 一台设备同时只能有一个待处理的请求。
 - SDK 的确认框在 Shadow DOM 里，只响应可信点击，并且出现 0.4 秒后才生效，agent 没法替用户点「允许」。同源的多个标签页通过 BroadcastChannel 共享决定。
-- 用户可以在 SDK 悬浮窗里开启「自动允许 AI 接入」并设定最高级别；之后 SDK 直接以不超过这个级别的最高可选级别答复，并弹出提示。
-- `run({ nativeApproval: true })` 时 SDK 不弹窗，而是让 `status().pending` 变成 `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`，由原生宿主调用 `nativeDecide(nativeKey, requestId, level | null)` 答复。
+- 用户可以在 SDK 悬浮窗里开启「自动允许 AI 接入」并设定最高级别；之后 SDK 直接以不超过这个级别的最高可选级别答复，并弹出提示。自动允许只对 agent 生效：DevTools 请求总是会询问用户。
+- `run({ nativeApproval: true })` 时 SDK 不弹窗，而是让 `status().pending` 变成 `{kind:"attach", requestId, agent:{name, keyHint}, levels, purpose, expiresAt}`（`purpose` 取 `"agent"` 或 `"devtools"`），由原生宿主调用 `nativeDecide(nativeKey, requestId, level | null)` 答复。
 - 批准后，网关让 agent 接入（顶替设备上的其他 agent），清除协助请求（`{"t":"help","on":false}`），并广播 `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`；页面随即上锁（§4）。
 
 `approval: none` 时，agent 直接按计算出的级别接入。
@@ -486,6 +493,7 @@ type Policy = {
   maxAgents: number                // 本项目设备上同时接入的 agent 数；0 表示不限
   eruda: { dock: boolean; load: boolean }  // run({ eruda }) 的远程默认值，本地选项逐项优先。
                                            // 在 welcome.config 里可能是 null 或不存在（等同于两者都为 false），§3.4
+  devtools: 'on' | 'off'          // 管理员能否在控制台对本项目的页面打开 DevTools（默认开启，§17）
 }
 ```
 
@@ -558,7 +566,8 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`：最近一个页面来自该项目的设备（默认 `all`，最多 500 台）。请求协助的在前，其次在线，再按最近在线时间。`waiting` 指请求协助（界面上显示为「协助中」） |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 始终返回 `200`：`{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<前 4000 个字符>","error"?:{"code","message"}}`。错误码：`device_offline`、`no_page`（页面正在重连）、`timeout`、`takeover`、`internal`，以及 §5.1 的 RPC 错误码 |
-| POST | `/devices/:id/end` | member | `{"ok":true}`：断开 agent，清除协助请求，控制状态回到 `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`：断开 agent，清除协助请求，控制状态回到 `none`，关闭 DevTools 窗口（§17） |
+| POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`；可能会等用户确认最多 30 秒（§17.1） |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 设备邀请
@@ -589,6 +598,7 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 | `control.takeover`、`control.handback`、`control.end` | 用户点了按钮 |
 | `device.end` | 控制台成员结束了调试 |
 | `policy.denied` | 超出级别的调用被拒绝 |
+| `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close` | DevTools 窗口（§17）；`close` 带 `detail: {page, durationSec, reason}` |
 
 审计记录从不包含页面内容和参数值。默认保留 180 天（`RWD_AUDIT_RETENTION_DAYS`）。
 
@@ -623,7 +633,8 @@ type Device = {
   help: boolean; invited: boolean
   control: 'none' | 'observe' | 'agent' | 'user'
   agent: string | null; level: Level | null
-  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; expiresAt: number } | null
+  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; purpose?: 'devtools'; expiresAt: number } | null
+  devtools: { id: string; member: string; page: string /* label */; since: number }[]  // 打开着的 DevTools 窗口（§17）
   task?: Task                  // 只有已接入的 agent 设置了任务时才有
   pages: number                // 已连接的页面数
   sdk: string                  // 页面上报的 SDK 版本
@@ -645,6 +656,8 @@ type Page = {
   focused: boolean             // 用户最可能正在看的页面
   selected: boolean            // agent 当前操作的页面
   openerLabel: string | null; connectedAt: number
+  connected: boolean           // 正在重连时为 false
+  connectedSince: number       // 当前这次连接开始的时间（重连会刷新）
 }
 
 type TimelineEvent = { at: number; page: string /* 页面标签；设备级事件为 "" */; kind: string; summary: string }
@@ -687,6 +700,7 @@ type AuditEvent = {
 | `agent` | 接入请求、拒绝、超时、接入成功、任务变化 |
 | `control` | 控制状态变化，摘要里说明原因（用户接管、AI 空闲、用户结束等） |
 | `offline` | 有 agent 接入时，设备的最后一个页面断开了 |
+| `devtools` | DevTools 请求、批准和拒绝，窗口打开和关闭，批准被撤回（§17） |
 
 ## 13. 实时推送 SSE
 
@@ -796,3 +810,51 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **审计保留。** `RWD_AUDIT_RETENTION_DAYS`（默认 180 天），每 6 小时清理一次过期记录。
 
 网关的全部配置项见 [gateway/README.zh-CN.md](../gateway/README.zh-CN.md)。
+
+## 17. 给人用的 DevTools
+
+`owner` 和 `admin` 可以从控制台对设备上任意一个在线页面打开**Chrome DevTools**：Elements（样式、盒模型，并能在设备上高亮元素）、Console（实时，支持展开对象和执行脚本）、Network（带响应体）和 Application 存储。这就是真正的 DevTools 前端，由 [chii](https://github.com/liriliri/chii) 预先构建；后端用的就是页面 SDK 里已经有的完整 chobitsu，网关负责转发 CDP 消息。
+
+```
+Console /devices/:id/devtools
+  └─ iframe /devtools/chii_app.html?ws(s)=<host>/v1/devtools?ticket=…   ← DevTools frontend
+        │ CDP (WebSocket)
+        ▼
+Gateway /v1/devtools ──{"t":"cdp","s","m"}──▶ page WebSocket ──▶ SDK: one session per window ──▶ chobitsu
+```
+
+### 17.1 开启窗口
+
+1. 控制台调用 `POST /v1/api/devices/:id/devtools`，带上 `{"page":"p1"}`（不传则是用户正在看的页面）。仅 `owner` 和 `admin` 可用。
+2. 网关合并设备上已打开页面所属各项目的策略；只要其中一个项目的 `devtools` 为 `"off"`，请求就会被拒绝。合并后的 `approval` 为 `prompt` 时，网关会给前台页面发一个 `attach_request`，带上 `"purpose":"devtools"`、`levels: ["advanced"]` 和这名成员的名字（作为 `agent.name`），然后等待答复（最多 30 秒；这次 HTTP 请求本身也会等这么久）。SDK 的自动允许在这里不生效。开启了 `nativeApproval` 时，`status().pending.purpose` 为 `"devtools"`（[§7](#7-接入审批)）。
+3. 批准对这名成员在这台设备上持续 `policy.attachMaxMinutes`，所以刷新或跳转页面不会重新询问。用户在设备上点「结束」，或控制台成员结束调试（`POST /devices/:id/end`），都会关闭所有窗口并撤回这些批准。
+4. 响应是 `{"ticket","session","page":Page,"frontendUrl"}`。`ticket` 只能用一次，一分钟内有效；`session` 是这个窗口在 `Device.devtools` 里的 id。
+5. 前端连接 `WS /v1/devtools?ticket=…`。只有控制台自己的来源能连接（设置了 `--public-url` 时，取它的域名）。
+
+错误码：`device_offline`、`no_page`（页面已消失或正在重连）、`busy`（设备正在等用户回答另一个请求）、`timeout`、`denied`（403）和 `forbidden`（403，被策略关闭）。
+
+### 17.2 页面消息
+
+```jsonc
+← {"t":"devtools","s":"<session>","on":true,"by":"Ann"}   // 窗口打开
+← {"t":"devtools","s":"<session>","on":false}              // 窗口关闭
+← {"t":"cdp","s":"<session>","m":"<CDP command, JSON text>"}
+→ {"t":"cdp","s":"<session>","m":"<CDP answer, JSON text>"} // 发给提出请求的那个窗口
+→ {"t":"cdp","m":"<CDP event, JSON text>"}                  // 发给这个页面上的所有窗口
+```
+
+- 一个窗口属于一个页面连接。页面断开时（刷新、跳转、关闭），网关用 **4100** 关闭它的窗口；页面回来后，控制台会用新的 ticket 重新打开（批准还在，所以不会再问用户）。结束调试会用 **4403** 关闭窗口；跟不上节奏的前端（比如慢网络上的屏幕录制）会被 **1013** 关闭。
+- 发给页面的 CDP 消息有自己的队列：前端发来一阵命令只会拖慢这个前端，不会把页面当成慢消费者断开，所以不影响 agent 的 RPC。
+- 在 SDK 里，所有窗口共用一个 chobitsu，命令 id 按窗口改写。`Runtime.enable` 和 `Network.enable` 由 SDK 自己应答：它从页面加载起就为 agent 收集这两类数据，窗口打开之前发生的内容也一并给出——console 消息（文本已遮盖，对象不能展开）和最近的请求（响应体仍缓存着时可用）。任何窗口的 `*.disable` 都不会生效；最后一个窗口关闭时，SDK 才会去掉高亮、停止屏幕录制、释放它为这些窗口保留的对象。
+- 窗口打开期间，页面底部的控制条会显示有开发者在调试，带上成员的名字和一个「结束」按钮。
+
+### 17.3 状态与审计
+
+- `Device.devtools` 列出打开着的窗口；`Page.connected` 和 `Page.connectedSince` 让控制台知道什么时候该重新打开窗口；`Device.pending.purpose` 标出这是一次 DevTools 请求（[§12.8](#128-类型)）。
+- 时间线里的 `devtools` 类型：请求、批准和拒绝，窗口打开和关闭，批准被撤回（[§12.9](#129-时间线事件)）。
+- 审计动作 `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close`（[§12.7](#127-审计日志)）。
+- 隐私：DevTools 看到的就是页面本来的样子，**遮盖规则不生效**。正因为如此，它只对 `owner` 和 `admin` 开放，可以按项目关闭，会在设备上询问用户，并且会被审计记录。
+
+### 17.4 前端
+
+前端是 npm 包 `chii` 里固定版本的 `public/front_end`，会校验它的 sha512；控制台构建时会把它复制到 `console/dist/devtools/`（[`console/scripts/devtools-frontend.mjs`](../console/scripts/devtools-frontend.mjs)）。网关把它以 gzip 形式内嵌（约 3.4 MB），响应带 `Content-Encoding: gzip`；`/devtools/` 下的响应带 `X-Frame-Options: SAMEORIGIN`。

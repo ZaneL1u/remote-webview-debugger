@@ -70,6 +70,12 @@ const ui: UiMessages = {
   confirmText: action => `AI が${latin(action) ? ' ' : ''}${action}しようとしています。許可しますか？`,
   allow: '許可',
   deny: '拒否',
+  developer: '開発者',
+  devtoolsTitle: '開発者がデバッグを求めています',
+  devtoolsText: name => `「${name}」が DevTools でこのページを調べようとしています。ページの構造、ログ、ネットワークリクエスト、ローカルストレージを見たり、ページ内でスクリプトを実行したりできます。許可しますか？`,
+  devtoolsToast: name => `「${name}」が DevTools を開きました`,
+  barDevtools: '開発者がデバッグ中',
+  nameSep: '、',
 }
 
 const agent: AgentMessages = {
@@ -154,6 +160,7 @@ const agent: AgentMessages = {
     listitem: 'リスト項目',
   },
   element: '要素',
+  devtoolsHistory: (count, dropped) => `—— DevTools を開く前のログ ${count} 件（テキストのみ。オブジェクトは展開できません${dropped ? `。ほかに ${dropped} 件を破棄済み` : ''}）——`,
 }
 
 // Completes 「AI が…しようとしています」 (ui.confirmText). The target is a

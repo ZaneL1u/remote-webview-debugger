@@ -65,6 +65,7 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /v1/api/devices/{id}", member(s.deviceDetail))
 	mux.HandleFunc("POST /v1/api/devices/{id}/test", member(s.testDevice))
 	mux.HandleFunc("POST /v1/api/devices/{id}/end", member(s.endDevice))
+	mux.HandleFunc("POST /v1/api/devices/{id}/devtools", admin(s.openDevtools))
 	mux.HandleFunc("GET /v1/api/audit", member(s.listAudit))
 	mux.HandleFunc("GET /v1/api/stream", member(s.stream))
 }
@@ -625,6 +626,57 @@ func (s *Server) endDevice(w http.ResponseWriter, r *http.Request) {
 	s.hub.EndDevice(id)
 	s.auditMember(r, d.ProjectID, "device.end", d.Code, "ok", nil)
 	writeJSON(w, map[string]bool{"ok": true})
+}
+
+// openDevtools asks for a DevTools window on a page of the device
+// (docs/protocol.md §17); it waits while the user is asked on the device.
+func (s *Server) openDevtools(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Page string `json:"page"`
+	}
+	if r.ContentLength != 0 && decode(r, &req) != nil {
+		s.fail(w, r, http.StatusBadRequest, "bad_request", i18n.APIInvalidBody)
+		return
+	}
+	id := r.PathValue("id")
+	if _, err := s.store.Device(r.Context(), id); err != nil {
+		s.storeErr(w, r, err)
+		return
+	}
+	u := currentUser(r)
+	name := u.Name
+	if name == "" {
+		name = u.Email
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 40*time.Second)
+	defer cancel()
+	g, err := s.hub.OpenDevtools(ctx, id, req.Page, hub.Inspector{ID: u.ID, Name: name})
+	if err != nil {
+		var de *hub.DevtoolsError
+		if errors.As(err, &de) {
+			status := http.StatusConflict
+			if de.Code == "forbidden" || de.Code == "denied" {
+				status = http.StatusForbidden
+			}
+			s.fail(w, r, status, de.Code, de.Message)
+			return
+		}
+		s.storeErr(w, r, err)
+		return
+	}
+	// The DevTools frontend (served at /devtools/) connects to ws(s)=<host/path>.
+	gw, _ := url.Parse(s.GatewayURL(r))
+	scheme := "ws"
+	if gw.Scheme == "https" {
+		scheme = "wss"
+	}
+	target := gw.Host + strings.TrimRight(gw.Path, "/") + "/devtools?ticket=" + g.Ticket
+	writeJSON(w, map[string]any{
+		"ticket":      g.Ticket,
+		"session":     g.Session,
+		"page":        g.Page,
+		"frontendUrl": "/devtools/chii_app.html?" + scheme + "=" + url.QueryEscape(target) + "&rtc=false",
+	})
 }
 
 // --- device invites ---

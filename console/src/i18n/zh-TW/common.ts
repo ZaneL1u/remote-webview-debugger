@@ -50,7 +50,7 @@ export const common: typeof en = {
   },
   roleDescriptions: {
     owner: '擁有全部權限，包括邀請成員、變更角色和移除成員。',
-    admin: '管理專案、API 金鑰、連線策略、裝置和邀請，可查看稽核記錄和成員清單。',
+    admin: '管理專案、API 金鑰、連線策略、裝置和邀請，可開啟除錯工具，查看稽核記錄和成員清單。',
     member: '可查看專案和裝置；可以邀請使用者連線、測試連線、結束除錯，以及查看稽核記錄。',
   },
 
@@ -89,6 +89,7 @@ export const common: typeof en = {
     agentWithName: (label, agent) => `${label}（${agent}）`,
     waitingConfirmAction: '等待使用者確認操作',
     waitingConfirm: '等待使用者核准',
+    waitingDevtools: '等待使用者核准除錯',
     waitingTitle: (agent) => `${agent} 正在等待使用者在裝置上核准`,
     invited: '邀請連線',
     invitedTitle: '透過邀請連結連線的裝置',

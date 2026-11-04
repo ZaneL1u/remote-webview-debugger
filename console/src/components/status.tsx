@@ -96,7 +96,12 @@ export function pendingAgentName(pending: PendingApproval) {
 export function PendingBadge({ pending }: { pending: PendingApproval }) {
   const t = useT()
   const agent = pendingAgentName(pending)
-  const label = pending.kind === 'confirm' ? t.common.badges.waitingConfirmAction : t.common.badges.waitingConfirm
+  const label =
+    pending.kind === 'confirm'
+      ? t.common.badges.waitingConfirmAction
+      : pending.purpose === 'devtools'
+        ? t.common.badges.waitingDevtools
+        : t.common.badges.waitingConfirm
   return (
     <Badge variant="warning" className="animate-pulse" title={t.common.badges.waitingTitle(agent)}>
       <HourglassIcon />

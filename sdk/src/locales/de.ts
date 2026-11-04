@@ -68,6 +68,13 @@ const ui: UiMessages = {
   confirmText: action => `Die KI möchte ${action}. Zulassen?`,
   allow: 'Zulassen',
   deny: 'Ablehnen',
+  developer: 'Entwickler',
+  devtoolsTitle: 'Ein Entwickler möchte debuggen',
+  devtoolsText: name =>
+    `„${name}“ möchte diese Seite mit DevTools untersuchen: Struktur, Logs, Netzwerkanfragen und lokaler Speicher werden sichtbar, und Skripte können auf der Seite ausgeführt werden. Zulassen?`,
+  devtoolsToast: name => `„${name}“ hat DevTools geöffnet`,
+  barDevtools: 'Entwickler debuggt',
+  nameSep: ', ',
 }
 
 const agent: AgentMessages = {
@@ -152,6 +159,8 @@ const agent: AgentMessages = {
     listitem: 'Listeneintrag',
   },
   element: 'Element',
+  devtoolsHistory: (count, dropped) =>
+    `—— ${count} Logeinträge von vor dem Öffnen der DevTools (nur Text; Objekte lassen sich nicht aufklappen${dropped ? `; ${dropped} weitere wurden verworfen` : ''}) ——`,
 }
 
 const action: ActionMessages = {

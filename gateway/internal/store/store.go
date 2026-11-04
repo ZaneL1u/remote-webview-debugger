@@ -328,6 +328,9 @@ type Policy struct {
 	MaxOnlineDevices int           `json:"maxOnlineDevices"`
 	MaxAgents        int           `json:"maxAgents"`
 	Eruda            ErudaPolicy   `json:"eruda"`
+	// Devtools: whether admins may open Chrome DevTools on the project's pages
+	// from the console ("on" / "off", docs/protocol.md §17).
+	Devtools string `json:"devtools"`
 }
 
 // ErudaPolicy: how pages combine with eruda (run() options override it).
@@ -338,7 +341,7 @@ type ErudaPolicy struct {
 
 // DefaultPolicy is what new projects get: approval on, interact at most.
 func DefaultPolicy() Policy {
-	return Policy{Approval: "prompt", MaxLevel: LevelInteract, HelpButton: "off", AgentIdleMinutes: 2, AttachMaxMinutes: 60}
+	return Policy{Approval: "prompt", MaxLevel: LevelInteract, HelpButton: "off", AgentIdleMinutes: 2, AttachMaxMinutes: 60, Devtools: "on"}
 }
 
 // Normalize fills defaults and clamps values.
@@ -351,6 +354,9 @@ func (p *Policy) Normalize() {
 	}
 	if p.HelpButton != "all" && p.HelpButton != "listed" {
 		p.HelpButton = "off"
+	}
+	if p.Devtools != "off" {
+		p.Devtools = "on"
 	}
 	if p.AgentIdleMinutes <= 0 {
 		p.AgentIdleMinutes = 2

@@ -1,4 +1,4 @@
-<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
+<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | العربية
 
 <div dir="rtl">
@@ -34,6 +34,7 @@
 14. [MCP](#14-mcp)
 15. [اللغات](#15-اللغات)
 16. [التشغيل والصيانة](#16-التشغيل-والصيانة)
+17. [DevTools للأشخاص](#17-devtools-للأشخاص)
 
 ## 1. نقاط النهاية
 
@@ -46,12 +47,14 @@
 | `GET /v1/metrics` | مقاييس Prometheus ([§16](#16-التشغيل-والصيانة)) |
 | `WS /v1/page?key=<appKey>` | اتصال الصفحة ([§3](#3-اتصال-الصفحة-websocket)) |
 | `POST /v1/presence` | بديل بالاستطلاع الدوري عندما يتعذّر اتصال WebSocket ([§9](#9-الاستطلاع-الدوري-كبديل)) |
+| `WS /v1/devtools?ticket=<ticket>` | اتصال CDP الخاص بنافذة DevTools، من أصل لوحة التحكم نفسها فقط ([§17](#17-devtools-للأشخاص)) |
 | `/v1/api/…` | واجهة REST للوحة التحكم ([§12](#12-واجهة-rest-للوحة-التحكم)) |
 | `/v1/mcp` | خادم MCP مستضاف، عبر Streamable HTTP، مع `Authorization: Bearer rwd_sk_live_…` ([§14](#14-mcp)) |
 | `/demo/` | ملفات ثابتة من `--demo-dir`، فقط عند ضبطه |
+| `/devtools/…` | الطرف الأمامي لـ Chrome DevTools الذي تُضمِّنه لوحة التحكم ([§17.4](#174-الطرف-الأمامي)) |
 | أي مسار آخر | تطبيق لوحة التحكم أحادي الصفحة |
 
-المسارات غير المعروفة تحت `/v1/` تُرجع `404 {"error":{"code":"not_found",…}}`. تحمل كل الاستجابات `X-Content-Type-Options: nosniff` و `Referrer-Policy: no-referrer`، وتحمل كلها باستثناء SDK أيضًا `X-Frame-Options: DENY`.
+المسارات غير المعروفة تحت `/v1/` تُرجع `404 {"error":{"code":"not_found",…}}`. تحمل كل الاستجابات `X-Content-Type-Options: nosniff` و `Referrer-Policy: no-referrer`، وتحمل كلها باستثناء SDK أيضًا `X-Frame-Options: DENY`، أو `SAMEORIGIN` تحت `/devtools/`.
 
 ## 2. المعرفات
 
@@ -113,6 +116,7 @@
 {"t":"help","on":true}                                              // المستخدم يطلب المساعدة / يلغي الطلب
 {"t":"control","action":"takeover"|"handback"|"end"}                // أزرار المستخدم، §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
+{"t":"cdp","s":"<session>"|absent,"m":"<CDP JSON>"}                  // ردّ أو حدث DevTools، §17.2
 {"id":17,"result":{…}}                                              // نجاح RPC، §5
 {"id":17,"error":{"code":"not_found","message":"…"}}                // فشل RPC، §5
 ```
@@ -137,6 +141,8 @@
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7، إلى الصفحة في الواجهة الأمامية
 {"t":"attach_cancel","requestId":"…"}                         // §7، إلى كل الصفحات
+{"t":"devtools","s":"<session>","on":true,"by":"Ann"}         // §17.2، نافذة DevTools فُتحت / أُغلقت (`"on":false`)
+{"t":"cdp","s":"<session>","m":"<CDP JSON>"}                  // §17.2، أمر من تلك النافذة
 {"t":"hb"}
 {"t":"reconnect","afterMs":1000}                              // محجوز: يعيد SDK الاتصال بعد afterMs
 {"id":17,"method":"rwd.snapshot","params":{}}                 // طلب RPC، §5
@@ -391,7 +397,8 @@ min(level requested by the agent (default interact),
 ← {"t":"attach_request","requestId":"…",
    "agent":{"name":"Support Bot","keyHint":"…a91f"},
    "levels":["observe","interact"],   // المستويات المعروضة، مقيّدة بالمفتاح والسياسة؛ الأخير هو ما طلبه الوكيل
-   "expiresInSec":30}
+   "expiresInSec":30,
+   "purpose":"devtools"}              // فقط عندما يطلب عضو في لوحة التحكم DevTools (§17.1)
 → {"t":"attach_decision","requestId":"…","level":"interact"}   // أو "level": null للرفض
 ← {"t":"attach_cancel","requestId":"…"}                         // انتهت المهلة، أو تراجع الوكيل
 ```
@@ -403,8 +410,8 @@ min(level requested by the agent (default interact),
 - إذا رُفض مفتاح API نفسه **3 مرات** على الجهاز نفسه خلال 10 دقائق، تُرفض طلباته إلى ذلك الجهاز دون سؤال لمدة **10 دقائق**.
 - لا يمكن أن يكون هناك إلا طلب واحد معلّق لكل جهاز.
 - يعيش مربع حوار SDK داخل Shadow DOM، ولا يقبل إلا النقرات الموثوقة، ولا يصبح فعّالًا إلا بعد 0.4 ثانية من ظهوره، حتى لا يستطيع الوكيل الموافقة على نفسه. تتشارك التبويبات من الأصل نفسه القرار عبر BroadcastChannel.
-- يستطيع المستخدم تفعيل **السماح التلقائي** مع مستوى أقصى في النافذة العائمة لـ SDK؛ عندها يردّ SDK فورًا بأعلى مستوى معروض ضمن ذلك الحد ويعرض إشعارًا.
-- مع `run({ nativeApproval: true })` لا يعرض SDK أي مربع حوار. بدلًا من ذلك تصبح `status().pending` هي `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}` ويجيب المضيف الأصلي بـ `nativeDecide(nativeKey, requestId, level | null)`.
+- يستطيع المستخدم تفعيل **السماح التلقائي** مع مستوى أقصى في النافذة العائمة لـ SDK؛ عندها يردّ SDK فورًا بأعلى مستوى معروض ضمن ذلك الحد ويعرض إشعارًا. السماح التلقائي للوكلاء فقط: يُسأل المستخدم دائمًا عن طلب DevTools.
+- مع `run({ nativeApproval: true })` لا يعرض SDK أي مربع حوار. بدلًا من ذلك تصبح `status().pending` هي `{kind:"attach", requestId, agent:{name, keyHint}, levels, purpose, expiresAt}` (و `purpose` هي `"agent"` أو `"devtools"`) ويجيب المضيف الأصلي بـ `nativeDecide(nativeKey, requestId, level | null)`.
 - بعد الموافقة تربط البوابة الوكيل (وتستبدل أي وكيل آخر على الجهاز)، وتلغي طلب المساعدة (`{"t":"help","on":false}`)، وتبث `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`؛ فتُقفل الصفحة فورًا ([§4](#4-حالة-التحكم)).
 
 مع `approval: none` يرتبط الوكيل فورًا بالمستوى المحسوب.
@@ -522,6 +529,7 @@ type Policy = {
   maxAgents: number                // عدد الوكلاء المرتبطين في الوقت نفسه بأجهزة هذا المشروع؛ 0 = بلا حد
   eruda: { dock: boolean; load: boolean }  // القيمة الافتراضية البعيدة لـ run({ eruda })؛ الخيارات المحلية تغلب حقلًا بحقل.
                                            // في welcome.config قد تكون null أو غائبة (= كلاهما false)، §3.4
+  devtools: 'on' | 'off'          // يستطيع `admin` فتح DevTools على صفحات المشروع من لوحة التحكم (الافتراضي on، §17)
 }
 ```
 
@@ -596,7 +604,8 @@ type Policy = {
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: الأجهزة التي جاءت أحدث صفحاتها من المشروع (الافتراضي `all`، حتى 500)، الأجهزة قيد المساعدة أولًا، ثم المتصلة، ثم الأحدث ظهورًا. `waiting` تعني الأجهزة التي طلبت المساعدة (وتظهر بحالة «قيد المساعدة») |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | دائمًا `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. الرموز: `device_offline`، و `no_page` (الصفحة تعيد الاتصال)، و `timeout`، و `takeover`، و `internal`، ورموز RPC في [§5.1](#51-غلاف-الرسالة) |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: يفصل الوكيل، ويلغي طلب المساعدة، ويعيد التحكم إلى `none` |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: يفصل الوكيل، ويلغي طلب المساعدة، ويعيد التحكم إلى `none`، ويغلق نوافذ DevTools ([§17](#17-devtools-للأشخاص)) |
+| POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`؛ قد تنتظر حتى 30 ثانية لرد المستخدم ([§17.1](#171-فتح-نافذة)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 دعوات الأجهزة
@@ -627,6 +636,7 @@ type Policy = {
 | `control.takeover`، `control.handback`، `control.end` | أزرار المستخدم |
 | `device.end` | أنهى عضو في لوحة التحكم جلسة |
 | `policy.denied` | رُفض استدعاء يتجاوز المستوى الممنوح |
+| `devtools.request`، `devtools.approve`، `devtools.deny`، `devtools.timeout`، `devtools.open`، `devtools.close` | نوافذ DevTools ([§17](#17-devtools-للأشخاص))؛ لـ `close` حقل `detail: {page, durationSec, reason}` |
 
 لا تحتوي الأحداث أبدًا على محتوى الصفحة أو قيم المعاملات. تُحفظ لمدة 180 يومًا افتراضيًا (`RWD_AUDIT_RETENTION_DAYS`).
 
@@ -663,7 +673,8 @@ type Device = {
   help: boolean; invited: boolean
   control: 'none' | 'observe' | 'agent' | 'user'
   agent: string | null; level: Level | null
-  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; expiresAt: number } | null
+  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; purpose?: 'devtools'; expiresAt: number } | null
+  devtools: { id: string; member: string; page: string /* التسمية */; since: number }[]  // نوافذ DevTools المفتوحة (§17)
   task?: Task                  // فقط ما دام الوكيل المرتبط قد عيّن مهمة
   pages: number                // الصفحات المتصلة
   sdk: string                  // إصدار SDK الذي أبلغت عنه الصفحة
@@ -685,6 +696,8 @@ type Page = {
   focused: boolean             // الصفحة التي يُرجَّح أن المستخدم ينظر إليها
   selected: boolean            // الصفحة التي يعمل عليها الوكيل
   openerLabel: string | null; connectedAt: number
+  connected: boolean           // false ما دامت تعيد الاتصال
+  connectedSince: number       // بداية الاتصال الحالي (يتجدد مع إعادة التحميل)
 }
 
 type TimelineEvent = { at: number; page: string /* التسمية؛ "" للأحداث على مستوى الجهاز */; kind: string; summary: string }
@@ -729,6 +742,7 @@ type AuditEvent = {
 | `agent` | طلبات الارتباط، وحالات الرفض، وانتهاء المهل، والارتباطات، وتغييرات المهمة |
 | `control` | تغيّرات حالة التحكم؛ ويذكر الملخص السبب (تولّى المستخدم التحكم، خمول الذكاء الاصطناعي، أنهى المستخدم، …) |
 | `offline` | ذهبت آخر صفحة للجهاز بينما كان هناك وكيل مرتبط |
+| `devtools` | طلبات DevTools، والموافقات والرفض، والنوافذ المفتوحة والمغلقة، والموافقات المسحوبة ([§17](#17-devtools-للأشخاص)) |
 
 ## 13. التحديثات الحية (SSE)
 
@@ -850,5 +864,61 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **الاحتفاظ بسجل التدقيق.** `RWD_AUDIT_RETENTION_DAYS` (الافتراضي 180)؛ وتُحذف الأحداث القديمة كل 6 ساعات.
 
 كل إعدادات البوابة مدرجة في [gateway/README.ar.md](../gateway/README.ar.md).
+
+## 17. DevTools للأشخاص
+
+يستطيع `owner` و `admin` فتح **Chrome DevTools** من لوحة التحكم على أي صفحة متصلة بجهاز: Elements (الأنماط، ونموذج الصندوق، والإبراز على الجهاز)، و Console (حيّة، مع فحص الكائنات وتنفيذ الشيفرة)، و Network (مع أجسام الاستجابات)، وتخزين Application. إنه الطرف الأمامي الحقيقي لـ DevTools، كما بناه مسبقًا [chii](https://github.com/liriliri/chii)؛ والطرف الخلفي هو chobitsu الكامل الموجود بالفعل في SDK الصفحة، وتُرحِّل البوابة رسائل CDP.
+
+<div dir="ltr">
+
+```
+Console /devices/:id/devtools
+  └─ iframe /devtools/chii_app.html?ws(s)=<host>/v1/devtools?ticket=…   ← DevTools frontend
+        │ CDP (WebSocket)
+        ▼
+Gateway /v1/devtools ──{"t":"cdp","s","m"}──▶ page WebSocket ──▶ SDK: one session per window ──▶ chobitsu
+```
+
+</div>
+
+### 17.1 فتح نافذة
+
+1. تستدعي لوحة التحكم `POST /v1/api/devices/:id/devtools` مع `{"page":"p1"}` (وإن حُذفت: الصفحة التي ينظر إليها المستخدم). لـ `owner` و `admin` فقط.
+2. تدمج البوابة سياسات المشاريع التي صفحاتها مفتوحة على الجهاز؛ وإذا كانت قيمة `devtools` لأحدها `"off"`، يُرفض الطلب. وإذا كانت قيمة `approval` المدمجة هي `prompt`، ترسل البوابة إلى الصفحة في الواجهة الأمامية رسالة `attach_request` تحمل `"purpose":"devtools"` و `levels: ["advanced"]` واسم العضو كـ `agent.name`، وتنتظر الرد (30 ثانية؛ وينتظرها طلب HTTP أيضًا). لا ينطبق هنا السماح التلقائي لـ SDK. مع `nativeApproval`، تصبح `status().pending.purpose` هي `"devtools"` ([§7](#7-الموافقة-على-الارتباط)).
+3. تدوم الموافقة طوال `policy.attachMaxMinutes` لذلك العضو على ذلك الجهاز، فإعادة التحميل أو التنقل تعيد الاتصال دون سؤال مرة أخرى. نقر المستخدم على **إنهاء** على الجهاز، أو إنهاء عضو في لوحة التحكم للجلسة (`POST /devices/:id/end`)، يغلق كل نافذة ويسحب الموافقات.
+4. الاستجابة هي `{"ticket","session","page":Page,"frontendUrl"}`. `ticket` صالحة لاستخدام واحد ولمدة دقيقة واحدة؛ و `session` هو المعرّف الذي ستحمله النافذة في `Device.devtools`.
+5. يتصل الطرف الأمامي بـ `WS /v1/devtools?ticket=…`. لا يستطيع الاتصال إلا أصل لوحة التحكم نفسها (مضيف `--public-url` عندما يكون مضبوطًا).
+
+رموز الأخطاء: `device_offline`، و `no_page` (اختفت الصفحة أو تعيد الاتصال)، و `busy` (الجهاز ينتظر رد المستخدم على طلب آخر)، و `timeout`، و `denied` (403)، و `forbidden` (403، معطَّل بواسطة السياسة).
+
+### 17.2 رسائل الصفحة
+
+<div dir="ltr">
+
+```jsonc
+← {"t":"devtools","s":"<session>","on":true,"by":"Ann"}   // فُتحت نافذة
+← {"t":"devtools","s":"<session>","on":false}              // أُغلقت النافذة
+← {"t":"cdp","s":"<session>","m":"<CDP command, JSON text>"}
+→ {"t":"cdp","s":"<session>","m":"<CDP answer, JSON text>"} // إلى النافذة التي سألت
+→ {"t":"cdp","m":"<CDP event, JSON text>"}                  // إلى كل نافذة في هذه الصفحة
+```
+
+</div>
+
+- تنتمي النافذة إلى اتصال صفحة واحد. عندما تنقطع الصفحة (إعادة تحميل، تنقل، إغلاق) تُغلق البوابة نوافذها بالرمز **4100**؛ وتعيد لوحة التحكم فتحها بتذكرة جديدة بمجرد عودة الصفحة (الموافقة ما زالت قائمة، فلا يُسأل المستخدم مرة أخرى). إنهاء الجلسة يغلقها بالرمز **4403**؛ والطرف الأمامي الذي لا يستطيع المواكبة (تسجيل شاشة على شبكة بطيئة) يُغلق بالرمز **1013**.
+- لرسائل CDP الموجّهة إلى الصفحة طابورها الخاص: دفعة من الأوامر من الطرف الأمامي تُبطّئ ذلك الطرف الأمامي فقط، بدلًا من إسقاط الصفحة كمستهلك بطيء، فلا تتأثر استدعاءات RPC الخاصة بالوكلاء.
+- في SDK، تتشارك النوافذ chobitsu واحدًا وتُعاد كتابة معرّفات الأوامر لكل نافذة. يردّ SDK على `Runtime.enable` و `Network.enable`: فيجمع كلاهما منذ تحميل الصفحة لأجل الوكلاء، إلى جانب ما حدث قبل فتح النافذة: رسائل console (نص مخفى؛ لا يمكن توسيع الكائنات) والطلبات الأخيرة (أجسام الاستجابات ما دامت مخزَّنة مؤقتًا). لا يُفعِّل أي `*.disable` من أي نافذة شيئًا؛ وعندما تُغلق آخر نافذة، يُخفي SDK الإبراز، ويوقف تسجيل الشاشة، ويُحرِّر الكائنات التي احتفظ بها لأجل النوافذ.
+- ما دامت نافذة مفتوحة، يُظهر الشريط السفلي للصفحة أن مطوّرًا يصحّح الأخطاء، مع أسماء الأعضاء وزر **إنهاء**.
+
+### 17.3 الحالة والتدقيق
+
+- يسرد `Device.devtools` النوافذ المفتوحة؛ و `Page.connected` و `Page.connectedSince` يُعلمان لوحة التحكم بموعد إعادة فتح نافذة؛ و `Device.pending.purpose` يُعلِّم طلب DevTools ([§12.8](#128-الأنواع)).
+- نوع الخط الزمني `devtools`: الطلبات والموافقات والرفض، والنوافذ المفتوحة والمغلقة، والموافقات المسحوبة ([§12.9](#129-أحداث-الخط-الزمني)).
+- إجراءات التدقيق `devtools.request`، و `devtools.approve`، و `devtools.deny`، و `devtools.timeout`، و `devtools.open`، و `devtools.close` ([§12.7](#127-سجل-التدقيق)).
+- الخصوصية: يرى DevTools الصفحة كما هي، و**لا ينطبق الإخفاء**. ولهذا السبب هو مقصور على `owner` و `admin`، ويمكن إيقافه لكل مشروع على حدة، ويسأل المستخدم على الجهاز، ويُدقَّق.
+
+### 17.4 الطرف الأمامي
+
+الطرف الأمامي هو `public/front_end` من حزمة npm المسمّاة `chii` بإصدار مثبّت، يُتحقق منه مقابل sha512 الخاص به، ويُنسخ إلى `console/dist/devtools/` عند بناء لوحة التحكم ([`console/scripts/devtools-frontend.mjs`](../console/scripts/devtools-frontend.mjs)). تُضمِّن البوابة هذا الطرف مضغوطًا بـ gzip (نحو 3.4 ميغابايت) وتقدّمه مع `Content-Encoding: gzip`؛ وتحمل الاستجابات تحت `/devtools/` ترويسة `X-Frame-Options: SAMEORIGIN`.
 
 </div>

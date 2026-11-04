@@ -205,6 +205,12 @@ export const projects: typeof en = {
       usersEmpty: '목록이 비어 있으면 아무도 지원 요청 버튼을 볼 수 없어요.',
     },
 
+    devtools: {
+      title: 'DevTools',
+      description: '관리자는 기기 상세에서 온라인 페이지에 Chrome DevTools를 열 수 있어요: 요소, 콘솔, 네트워크, 저장소, 스크립트 실행.',
+      allow: 'DevTools 허용',
+      allowDescription: '소유자와 관리자만 열 수 있어요. 접속 승인이 켜져 있으면 사용자가 기기에서 동의한 뒤에 연결돼요. 한 번 승인하면 최대 세션 시간 동안 유효하고, 사용자는 언제든 종료할 수 있어요. DevTools는 페이지를 있는 그대로 보므로 마스킹이 적용되지 않아요.',
+    },
     eruda: {
       title: 'eruda 연동',
       description: '페이지의 eruda 디버그 패널이 Remote Debugger와 함께 동작하는 방식을 정해요. 페이지 코드의 run({ eruda })가 이 설정보다 우선해요.',

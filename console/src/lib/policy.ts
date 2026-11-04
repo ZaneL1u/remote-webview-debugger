@@ -18,6 +18,7 @@ export const DEFAULT_POLICY: Policy = {
   maxOnlineDevices: 0,
   maxAgents: 0,
   eruda: { dock: false, load: false },
+  devtools: 'on',
 }
 
 export function resolvePolicy(policy: Partial<Policy> | undefined): Policy {

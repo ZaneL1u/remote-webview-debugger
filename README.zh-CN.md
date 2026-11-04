@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@
 
 - **一行脚本**（或原生注入）就能让页面上线。用户会看到一个带设备码的小胶囊，遇到问题可以点「请求协助」。
 - **agent 通过 MCP 接入**：Claude Code、Cursor 或任何 MCP 客户端，在用户于手机上同意之后即可连接。它能读取无障碍快照、console、网络请求和截图，也能像人一样点击、输入、滚动，覆盖这台设备上的所有页面和 WebView。
+- **真正的 Chrome DevTools，给人用。** 管理员可以在控制台里对任意一个在线页面打开 DevTools——Elements、Console、Network（能看到打开之前发生的事）和 Application 存储——同样需要用户先在设备上同意。
 - **用户始终掌握主动权。** AI 在做什么一目了然（agent 光标、列出计划步骤的任务卡片、边缘光圈），用户随时可以接管或结束。密码、手机号、银行卡号在离开手机之前就已打码。
 - **自托管。** 一个 Go 二进制文件，内嵌控制台和 SDK；数据库可选 SQLite 或 Postgres。
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # 官网
 
 ## 致谢
 
-页面端引擎基于 [chobitsu](https://github.com/liriliri/chobitsu)（MIT）采集 console 和网络数据，无障碍快照代码来自 [Playwright](https://github.com/microsoft/playwright)（Apache-2.0）。详见 [NOTICE](NOTICE)。
+页面端引擎基于 [chobitsu](https://github.com/liriliri/chobitsu)（MIT）采集 console 和网络数据，无障碍快照代码来自 [Playwright](https://github.com/microsoft/playwright)（Apache-2.0）。控制台的 DevTools 用的是 [chii](https://github.com/liriliri/chii) 预先构建的 Chrome DevTools 前端（MIT；DevTools 本身是 BSD-3-Clause）。详见 [NOTICE](NOTICE)。
 
 ## 许可证
 

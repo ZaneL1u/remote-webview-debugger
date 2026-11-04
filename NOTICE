@@ -15,3 +15,8 @@ This project includes third-party software:
   in that directory.
 
 The page SDK bundle (sdk.js) also includes licia (MIT) and modern-screenshot (MIT).
+
+The console serves the Chrome DevTools frontend (https://github.com/ChromeDevTools/devtools-frontend,
+BSD 3-Clause License, Copyright 2014 The Chromium Authors) as prebuilt by chii
+(https://github.com/liriliri/chii), MIT License, Copyright (c) 2020-present liriliri.
+It is fetched from chii's npm package at build time (console/scripts/devtools-frontend.mjs).

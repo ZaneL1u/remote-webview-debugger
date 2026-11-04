@@ -42,6 +42,8 @@ export interface NetworkEntry {
 
 interface NetworkRecord extends NetworkEntry {
   requestId: string
+  /** CDP resource type (XHR, Fetch, …), for replaying to DevTools. */
+  cdpType: string
   start: number
   reqHeaders: { [name: string]: string }
   resHeaders: { [name: string]: string }
@@ -77,6 +79,14 @@ let consoleSeq = 0
 let networkSeq = 0
 let emit: EmitEvent = () => {}
 let started = false
+// A DevTools session holds the objectIds of the events it was sent (console
+// arguments it may expand), so we must not release them while one is open.
+let retain = false
+
+/** While true, CDP objects stay pinned for an open DevTools session. */
+export function retainObjects(on: boolean) {
+  retain = on
+}
 
 /** Start collecting; safe to call more than once. */
 export function startObserving(onEvent: EmitEvent) {
@@ -96,7 +106,7 @@ export function startObserving(onEvent: EmitEvent) {
     } catch (e) {
       // Never let our bookkeeping break the page's console or requests.
     } finally {
-      release(msg.params, 0)
+      if (!retain) release(msg.params, 0)
     }
   })
   Runtime.enable()
@@ -188,6 +198,7 @@ function onNetwork(method: string, p: any) {
       size: 0,
       at: Math.round(start),
       requestId: p.requestId,
+      cdpType: ws ? 'WebSocket' : String(p.type || 'Other'),
       start,
       reqHeaders: plainHeaders(request.headers),
       resHeaders: {},
@@ -395,6 +406,28 @@ export function networkDetail(params: any = {}) {
   const body = Network.getResponseBody({ requestId: record.requestId }).body
   if (typeof body === 'string' && body) response.body = clip(body)
   return { request, response }
+}
+
+/** What happened before a DevTools session opened (docs/protocol.md §17). */
+export function history() {
+  const consoleItems = consoleRing.items.map(it => ({ type: it.type, text: scrubPatterns(it.text), at: it.at, source: it.source }))
+  const network = networkRing.items
+    .filter(r => r.type !== 'websocket')
+    .map(r => ({
+      requestId: r.requestId,
+      method: r.method,
+      url: r.url,
+      type: r.cdpType,
+      start: r.start,
+      status: r.status,
+      durationMs: r.durationMs,
+      size: r.size,
+      error: r.error,
+      reqHeaders: r.reqHeaders,
+      resHeaders: r.resHeaders,
+      postData: r.postData,
+    }))
+  return { console: consoleItems, network, dropped: consoleRing.dropped }
 }
 
 /* --------------------------------- helpers -------------------------------- */

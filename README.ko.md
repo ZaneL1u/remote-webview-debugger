@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@
 
 - **script 태그 하나**(또는 네이티브 주입)로 페이지가 온라인이 돼요. 사용자에게는 기기 코드가 적힌 작은 배지가 보이고, *지원 요청*을 탭할 수 있어요.
 - **에이전트는 MCP로 접속해요.** Claude Code, Cursor 등 어떤 MCP 클라이언트든, 사용자가 기기에서 승인하면 접속해요. 접근성 스냅샷, console, 네트워크, 스크린샷을 읽고, 사람처럼 클릭하고 입력하고 스크롤해요. 그 기기의 모든 페이지와 WebView를 넘나들면서요.
+- **사람을 위한 진짜 Chrome DevTools예요.** 콘솔에서 관리자가 온라인 페이지 어디서든 DevTools를 열어요 — Elements, Console, Network(열리기 전에 있었던 일까지 포함), Application 스토리지 — 사용자가 기기에서 승인한 뒤에요.
 - **주도권은 늘 사용자에게 있어요.** AI가 무엇을 하는지(에이전트 커서, 계획한 단계를 보여 주는 작업 카드, 빛나는 화면 테두리) 볼 수 있고, 언제든 직접 조작하거나 세션을 종료할 수 있어요. 비밀번호, 전화번호, 카드 번호는 휴대폰 밖으로 나가기 전에 마스킹돼요.
 - **셀프 호스팅.** 콘솔과 SDK를 내장한 Go 바이너리 하나로 돌아가고, 데이터베이스는 SQLite나 Postgres를 써요.
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # 웹사이트
 
 ## 감사의 말
 
-페이지 측 엔진은 console과 네트워크 수집에 [chobitsu](https://github.com/liriliri/chobitsu)(MIT)를 기반으로 하고, [Playwright](https://github.com/microsoft/playwright)의 접근성 스냅샷 코드(Apache-2.0)를 사용해요. [NOTICE](NOTICE)를 참고하세요.
+페이지 측 엔진은 console과 네트워크 수집에 [chobitsu](https://github.com/liriliri/chobitsu)(MIT)를 기반으로 하고, [Playwright](https://github.com/microsoft/playwright)의 접근성 스냅샷 코드(Apache-2.0)를 사용해요. 콘솔의 DevTools는 [chii](https://github.com/liriliri/chii)가 미리 빌드한 Chrome DevTools 프런트엔드예요(MIT; DevTools 자체는 BSD-3-Clause). [NOTICE](NOTICE)를 참고하세요.
 
 ## 라이선스
 

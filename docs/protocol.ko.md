@@ -1,4 +1,4 @@
-<!-- i18n-source: 35a16a79efa3edc10d542a5bacddd6081aec3a24 -->
+<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -32,6 +32,7 @@
 14. [MCP](#14-mcp)
 15. [언어](#15-언어)
 16. [운영](#16-운영)
+17. [사람을 위한 DevTools](#17-사람을-위한-devtools)
 
 ## 1. 엔드포인트
 
@@ -44,12 +45,14 @@
 | `GET /v1/metrics` | Prometheus 메트릭([§16](#16-운영)) |
 | `WS /v1/page?key=<appKey>` | 페이지 연결([§3](#3-페이지-연결websocket)) |
 | `POST /v1/presence` | WebSocket에 연결할 수 없을 때 쓰는 폴링 폴백([§9](#9-프레즌스-폴링-폴백)) |
+| `WS /v1/devtools?ticket=<ticket>` | DevTools 창의 CDP 연결로, 콘솔의 출처에서만 가능해요([§17](#17-사람을-위한-devtools)) |
 | `/v1/api/…` | 콘솔 REST API([§12](#12-콘솔-rest-api)) |
 | `/v1/mcp` | 호스팅 MCP 서버, Streamable HTTP, `Authorization: Bearer rwd_sk_live_…`([§14](#14-mcp)) |
 | `/demo/` | `--demo-dir`의 정적 파일. 설정한 경우에만 제공 |
+| `/devtools/…` | 콘솔이 내장하는 Chrome DevTools 프런트엔드([§17.4](#174-프런트엔드)) |
 | 그 밖의 경로 | 콘솔 싱글 페이지 앱 |
 
-`/v1/` 아래의 알 수 없는 경로는 `404 {"error":{"code":"not_found",…}}`를 반환해요. 모든 응답에는 `X-Content-Type-Options: nosniff`와 `Referrer-Policy: no-referrer`가 붙고, SDK를 제외한 모든 응답에는 `X-Frame-Options: DENY`도 붙어요.
+`/v1/` 아래의 알 수 없는 경로는 `404 {"error":{"code":"not_found",…}}`를 반환해요. 모든 응답에는 `X-Content-Type-Options: nosniff`와 `Referrer-Policy: no-referrer`가 붙고, SDK를 제외한 모든 응답에는 `X-Frame-Options: DENY`도 붙으며, `/devtools/` 아래에서는 `SAMEORIGIN`이 붙어요.
 
 ## 2. 식별자
 
@@ -109,6 +112,7 @@
 {"t":"help","on":true}                                              // 사용자가 지원을 요청 / 요청 취소
 {"t":"control","action":"takeover"|"handback"|"end"}                // 사용자의 버튼, §4
 {"t":"attach_decision","requestId":"…","level":"interact"|null}     // §7
+{"t":"cdp","s":"<session>"|absent,"m":"<CDP JSON>"}                 // DevTools 응답 / 이벤트, §17.2
 {"id":17,"result":{…}}                                              // RPC 성공, §5
 {"id":17,"error":{"code":"not_found","message":"…"}}                // RPC 실패, §5
 ```
@@ -129,6 +133,8 @@
 {"t":"task","task":{"title":"…","steps":["…"],"current":0,"agent":"Support Bot"}|null}  // §14.3 set_task
 {"t":"attach_request", …}                                     // §7, 포그라운드 페이지로
 {"t":"attach_cancel","requestId":"…"}                         // §7, 모든 페이지로
+{"t":"devtools","s":"<session>","on":true,"by":"Ann"}         // §17.2, DevTools 창이 열림 / 닫힘("on":false)
+{"t":"cdp","s":"<session>","m":"<CDP JSON>"}                  // §17.2, 그 창에서 온 명령
 {"t":"hb"}
 {"t":"reconnect","afterMs":1000}                              // 예약됨: SDK가 afterMs 뒤에 다시 연결
 {"id":17,"method":"rwd.snapshot","params":{}}                 // RPC 요청, §5
@@ -367,7 +373,8 @@ min(에이전트가 요청한 수준(기본값 interact),
 ← {"t":"attach_request","requestId":"…",
    "agent":{"name":"Support Bot","keyHint":"…a91f"},
    "levels":["observe","interact"],   // 제안하는 수준. 키와 정책이 상한이며, 마지막 값이 에이전트가 요청한 수준
-   "expiresInSec":30}
+   "expiresInSec":30,
+   "purpose":"devtools"}              // 콘솔 멤버가 DevTools를 요청했을 때만(§17.1)
 → {"t":"attach_decision","requestId":"…","level":"interact"}   // 거부하려면 "level": null
 ← {"t":"attach_cancel","requestId":"…"}                         // 시간 초과, 또는 에이전트가 포기함
 ```
@@ -377,8 +384,8 @@ min(에이전트가 요청한 수준(기본값 interact),
 - 같은 API 키가 같은 기기에서 10분 안에 **3번** 거부되면, 그 키가 해당 기기에 보내는 요청은 **10분** 동안 묻지 않고 거부돼요.
 - 기기마다 대기 중인 요청은 하나만 있을 수 있어요.
 - SDK의 대화 상자는 Shadow DOM 안에 있고, 신뢰된 탭만 받으며, 나타난 지 0.4초 뒤에야 활성화돼요. 그래서 에이전트가 스스로 승인할 수 없어요. 같은 출처의 탭들은 BroadcastChannel로 결정을 공유해요.
-- 사용자는 SDK의 플로팅 창에서 최대 수준을 정해 **자동 허용**을 켤 수 있어요. 그러면 SDK는 그 범위 안에서 제안된 가장 높은 수준으로 즉시 응답하고 알림을 보여 줘요.
-- `run({ nativeApproval: true })`이면 SDK는 대화 상자를 보여 주지 않아요. 대신 `status().pending`이 `{kind:"attach", requestId, agent:{name, keyHint}, levels, expiresAt}`가 되고, 네이티브 호스트가 `nativeDecide(nativeKey, requestId, level | null)`로 응답해요.
+- 사용자는 SDK의 플로팅 창에서 최대 수준을 정해 **자동 허용**을 켤 수 있어요. 그러면 SDK는 그 범위 안에서 제안된 가장 높은 수준으로 즉시 응답하고 알림을 보여 줘요. 자동 허용은 에이전트를 위한 것이라, DevTools 요청은 항상 물어봐요.
+- `run({ nativeApproval: true })`이면 SDK는 대화 상자를 보여 주지 않아요. 대신 `status().pending`이 `{kind:"attach", requestId, agent:{name, keyHint}, levels, purpose, expiresAt}`가 되고(`purpose`는 `"agent"` 또는 `"devtools"`예요), 네이티브 호스트가 `nativeDecide(nativeKey, requestId, level | null)`로 응답해요.
 - 승인되면 게이트웨이는 에이전트를 접속시키고(그 기기에 다른 에이전트가 있으면 대체해요), 지원 요청을 해제하고(`{"t":"help","on":false}`), `{"t":"control","state":"observe","agent":{…},"level":"interact","attachedMs":0}`를 브로드캐스트해요. 페이지는 즉시 잠겨요([§4](#4-제어-상태)).
 
 `approval: none`이면 에이전트는 계산된 수준으로 바로 접속해요.
@@ -486,6 +493,7 @@ type Policy = {
   maxAgents: number                // 이 프로젝트의 기기에 동시에 접속할 수 있는 에이전트 수. 0 = 무제한
   eruda: { dock: boolean; load: boolean }  // run({ eruda })의 원격 기본값. 로컬 옵션이 필드 단위로 우선.
                                            // welcome.config에서는 null이거나 없을 수 있음(= 둘 다 false), §3.4
+  devtools: 'on' | 'off'          // 관리자가 콘솔에서 이 프로젝트의 페이지에 DevTools를 열 수 있음(기본값 on, §17)
 }
 ```
 
@@ -558,7 +566,8 @@ API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로
 | GET | `/projects/:id/devices?status=all\|online\|waiting` | member | `{"devices":[Device]}`: 최신 페이지가 이 프로젝트에서 온 기기(기본값 `all`, 최대 500대)를 지원을 요청한 기기, 온라인 기기, 가장 최근에 본 기기 순으로 반환해요. `waiting`은 지원을 요청한 상태(화면에는 “지원 중”으로 표시)를 뜻해요 |
 | GET | `/devices/:id` | member | `DeviceDetail` |
 | POST | `/devices/:id/test` | member | 항상 `200`: `{"ok","latencyMs"?,"page"?:{"label","url","title"},"snapshot"?:"<first 4000 characters>","error"?:{"code","message"}}`. 코드: `device_offline`, `no_page`(페이지가 다시 연결 중), `timeout`, `takeover`, `internal`, 그리고 [§5.1](#51-엔벨로프)의 RPC 코드 |
-| POST | `/devices/:id/end` | member | `{"ok":true}`: 에이전트 접속을 해제하고, 지원 요청을 해제하고, 제어 상태를 `none`으로 되돌려요 |
+| POST | `/devices/:id/end` | member | `{"ok":true}`: 에이전트 접속을 해제하고, 지원 요청을 해제하고, 제어 상태를 `none`으로 되돌리고, DevTools 창을 모두 닫아요([§17](#17-사람을-위한-devtools)) |
+| POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; 사용자를 최대 30초 기다릴 수 있어요([§17.1](#171-창-열기)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
 
 ### 12.6 기기 초대
@@ -589,6 +598,7 @@ API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로
 | `control.takeover`, `control.handback`, `control.end` | 사용자의 버튼 |
 | `device.end` | 콘솔 멤버가 세션을 종료함 |
 | `policy.denied` | 부여된 수준을 넘는 호출이 거부됨 |
+| `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | DevTools 창([§17](#17-사람을-위한-devtools)); `close`에는 `detail: {page, durationSec, reason}`이 있어요 |
 
 이벤트에는 페이지 내용이나 매개변수 값이 절대 들어가지 않아요. 기본적으로 180일 동안 보관해요(`RWD_AUDIT_RETENTION_DAYS`).
 
@@ -623,7 +633,8 @@ type Device = {
   help: boolean; invited: boolean
   control: 'none' | 'observe' | 'agent' | 'user'
   agent: string | null; level: Level | null
-  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; expiresAt: number } | null
+  pending: { kind: 'attach'; agent: string; keyHint?: string; levels: Level[]; purpose?: 'devtools'; expiresAt: number } | null
+  devtools: { id: string; member: string; page: string /* label */; since: number }[]  // 열린 DevTools 창 (§17)
   task?: Task                  // 접속한 에이전트가 작업을 설정한 동안에만
   pages: number                // 연결된 페이지 수
   sdk: string                  // 페이지가 보고한 SDK 버전
@@ -645,6 +656,8 @@ type Page = {
   focused: boolean             // 사용자가 보고 있을 가능성이 가장 높은 페이지
   selected: boolean            // 에이전트가 작업하는 페이지
   openerLabel: string | null; connectedAt: number
+  connected: boolean           // 다시 연결하는 동안에는 false
+  connectedSince: number       // 현재 연결이 시작된 시각(새로고침마다 갱신됨)
 }
 
 type TimelineEvent = { at: number; page: string /* 라벨. 기기 전체 이벤트는 "" */; kind: string; summary: string }
@@ -687,6 +700,7 @@ type AuditEvent = {
 | `agent` | 접속 요청, 거부, 시간 초과, 접속, 작업 변경 |
 | `control` | 제어 상태 변경. 요약에 이유가 나와요(사용자가 직접 조작으로 전환, AI 유휴, 사용자가 종료 등) |
 | `offline` | 에이전트가 접속해 있는 동안 기기의 마지막 페이지가 사라짐 |
+| `devtools` | DevTools 요청, 승인과 거부, 창 열림과 닫힘, 승인 철회([§17](#17-사람을-위한-devtools)) |
 
 ## 13. 실시간 업데이트(SSE)
 
@@ -796,3 +810,51 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **감사 로그 보관.** `RWD_AUDIT_RETENTION_DAYS`(기본값 180). 오래된 이벤트는 6시간마다 삭제돼요.
 
 모든 게이트웨이 설정은 [gateway/README.ko.md](../gateway/README.ko.md)에 정리되어 있어요.
+
+## 17. 사람을 위한 DevTools
+
+소유자와 관리자는 콘솔에서 기기의 온라인 페이지 어디서든 **Chrome DevTools**를 열 수 있어요: Elements(스타일, 박스 모델, 기기에서의 강조 표시), Console(실시간, 객체 조사와 스크립트 실행 포함), Network(응답 본문 포함), Application 스토리지예요. 이것은 [chii](https://github.com/liriliri/chii)가 미리 빌드한 진짜 DevTools 프런트엔드이고, 백엔드는 페이지 SDK에 이미 있는 전체 chobitsu이며, 게이트웨이가 CDP 메시지를 중계해요.
+
+```
+Console /devices/:id/devtools
+  └─ iframe /devtools/chii_app.html?ws(s)=<host>/v1/devtools?ticket=…   ← DevTools frontend
+        │ CDP (WebSocket)
+        ▼
+Gateway /v1/devtools ──{"t":"cdp","s","m"}──▶ page WebSocket ──▶ SDK: one session per window ──▶ chobitsu
+```
+
+### 17.1 창 열기
+
+1. 콘솔이 `{"page":"p1"}`과 함께 `POST /v1/api/devices/:id/devtools`를 호출해요(생략하면 사용자가 보고 있는 페이지가 돼요). 소유자와 관리자만 할 수 있어요.
+2. 게이트웨이는 그 기기에 열려 있는 페이지들의 프로젝트 정책을 병합해요. 그중 하나라도 `devtools: "off"`이면 요청은 거부돼요. 병합된 `approval`이 `prompt`이면, 게이트웨이는 포그라운드 페이지로 `"purpose":"devtools"`, `levels: ["advanced"]`, 그리고 멤버의 이름을 `agent.name`으로 담은 `attach_request`를 보내고 응답을 기다려요(30초; HTTP 요청도 함께 기다려요). SDK의 자동 허용은 적용되지 않아요. `nativeApproval`이면 `status().pending.purpose`가 `"devtools"`가 돼요([§7](#7-접속-승인)).
+3. 승인은 그 기기에서 그 멤버에게 `policy.attachMaxMinutes` 동안 유지되므로, 새로고침이나 페이지 이동은 다시 묻지 않고 재연결돼요. 사용자가 기기에서 **종료**를 탭하거나 콘솔 멤버가 세션을 종료하면(`POST /devices/:id/end`) 모든 창이 닫히고 승인도 철회돼요.
+4. 응답은 `{"ticket","session","page":Page,"frontendUrl"}`예요. `ticket`은 한 번만 쓸 수 있고 1분 동안 유효해요. `session`은 그 창이 `Device.devtools`에서 가질 id예요.
+5. 프런트엔드는 `WS /v1/devtools?ticket=…`에 연결해요. 콘솔 자신의 출처만 연결할 수 있어요(설정되어 있다면 `--public-url`의 호스트).
+
+오류 코드: `device_offline`, `no_page`(페이지가 사라졌거나 다시 연결 중), `busy`(기기가 다른 요청에 대한 사용자의 응답을 기다리는 중), `timeout`, `denied`(403), `forbidden`(403, 정책으로 꺼짐).
+
+### 17.2 페이지 메시지
+
+```jsonc
+← {"t":"devtools","s":"<session>","on":true,"by":"Ann"}   // 창이 열림
+← {"t":"devtools","s":"<session>","on":false}              // 창이 닫힘
+← {"t":"cdp","s":"<session>","m":"<CDP command, JSON text>"}
+→ {"t":"cdp","s":"<session>","m":"<CDP answer, JSON text>"} // 요청한 창으로 돌아감
+→ {"t":"cdp","m":"<CDP event, JSON text>"}                  // 이 페이지의 모든 창으로
+```
+
+- 창은 하나의 페이지 연결에 속해요. 페이지가 연결을 끊으면(새로고침, 페이지 이동, 닫기) 게이트웨이는 그 창들을 코드 **4100**으로 닫고, 페이지가 돌아오면 콘솔이 새 ticket으로 다시 열어요(승인은 그대로 유지되므로 사용자에게 다시 묻지 않아요). 세션을 종료하면 **4403**으로 닫히고, 따라오지 못하는 프런트엔드(느린 연결에서의 스크린캐스트 등)는 **1013**으로 닫혀요.
+- 페이지로 가는 CDP 메시지는 자신만의 큐를 가져요. 프런트엔드에서 명령이 몰리면 페이지를 느린 소비자로 끊는 대신 그 프런트엔드 자체를 느리게 만들므로, 에이전트의 RPC는 영향을 받지 않아요.
+- SDK 안에서는 모든 창이 chobitsu 하나를 공유하고, 명령 id는 창마다 다시 씌워져요. `Runtime.enable`과 `Network.enable`은 SDK가 직접 응답하는데, SDK는 에이전트를 위해 페이지가 로드된 순간부터 이 둘을 수집하고 있고, 창이 열리기 전에 일어난 일도 함께 보여 줘요: console 메시지(마스킹된 텍스트; 객체는 펼칠 수 없음)와 최근 요청(아직 캐시에 있는 동안의 응답 본문). 어떤 창의 `*.disable`도 적용되지 않고, 마지막 창이 닫히면 SDK는 강조 표시를 지우고 스크린캐스트를 멈추고 창들을 위해 보관하던 객체를 해제해요.
+- 창이 열려 있는 동안, 페이지의 하단 바에는 개발자가 디버깅 중이라는 표시와 멤버들의 이름, **종료** 버튼이 나타나요.
+
+### 17.3 상태와 감사
+
+- `Device.devtools`는 열린 창 목록을 보여주고, `Page.connected`와 `Page.connectedSince`는 콘솔에 창을 언제 다시 열지 알려주고, `Device.pending.purpose`는 DevTools 요청을 표시해요([§12.8](#128-타입)).
+- 타임라인 kind `devtools`: 요청, 승인과 거부, 창 열림과 닫힘, 승인 철회([§12.9](#129-타임라인-이벤트)).
+- 감사 동작 `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close`([§12.7](#127-감사-로그)).
+- 개인정보 보호: DevTools는 페이지를 있는 그대로 보여주고, **마스킹이 적용되지 않아요**. 그래서 소유자와 관리자로만 제한되고, 프로젝트별로 끌 수 있고, 기기에서 사용자에게 묻고, 감사 로그에 남아요.
+
+### 17.4 프런트엔드
+
+프런트엔드는 npm 패키지 `chii`의 고정된 버전에서 가져온 `public/front_end`로, sha512로 검증하며, 콘솔을 빌드할 때 `console/dist/devtools/`로 복사돼요([`console/scripts/devtools-frontend.mjs`](../console/scripts/devtools-frontend.mjs)). 게이트웨이는 이를 gzip으로 압축해(약 3.4 MB) 내장하고 `Content-Encoding: gzip`으로 제공해요. `/devtools/` 아래의 응답에는 `X-Frame-Options: SAMEORIGIN`이 붙어요.

@@ -205,6 +205,12 @@ export const projects: typeof en = {
       usersEmpty: '清單為空時，沒有人會看到協助按鈕。',
     },
 
+    devtools: {
+      title: '除錯工具（DevTools）',
+      description: '管理員可以在裝置詳情中對線上頁面開啟 Chrome DevTools：元素、主控台、網路、儲存空間，並能執行指令碼。',
+      allow: '允許開啟除錯工具',
+      allowDescription: '只有擁有者和管理員能開啟；「連線核准」需要確認時，使用者在裝置上同意後才會連上，同意一次在單次連線最長時間內有效，使用者隨時能結束。除錯工具能看到頁面的原始內容，遮蔽規則對它無效。',
+    },
     eruda: {
       title: 'eruda 整合',
       description: '頁面中的 eruda 除錯面板如何與 Remote Debugger 搭配。頁面程式碼中 run({ eruda }) 的設定會覆寫這裡的設定。',

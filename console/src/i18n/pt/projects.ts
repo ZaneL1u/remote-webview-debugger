@@ -223,6 +223,12 @@ export const projects: typeof en = {
       usersEmpty: 'Com a lista vazia, ninguém vê o botão de assistência.',
     },
 
+    devtools: {
+      title: 'DevTools',
+      description: 'Administradores podem abrir o Chrome DevTools em páginas online pelos detalhes do dispositivo: Elements, Console, Network, armazenamento e execução de scripts.',
+      allow: 'Permitir o DevTools',
+      allowDescription: 'Só proprietários e administradores podem abrir. Com a aprovação de conexão ativada, ele conecta depois que o usuário concorda no dispositivo; uma aprovação vale pela duração máxima da sessão, e o usuário pode encerrar a qualquer momento. O DevTools vê a página como ela é: o mascaramento não se aplica a ele.',
+    },
     eruda: {
       title: 'Integração com o eruda',
       description: 'Como o painel de depuração eruda na página funciona com o Remote Debugger. run({ eruda }) no código da página tem prioridade sobre estas configurações.',

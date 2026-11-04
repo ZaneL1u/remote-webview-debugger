@@ -68,6 +68,13 @@ const ui: UiMessages = {
   confirmText: action => `ИИ хочет ${action}. Разрешить?`,
   allow: 'Разрешить',
   deny: 'Отклонить',
+  developer: 'Разработчик',
+  devtoolsTitle: 'Разработчик хочет отладить страницу',
+  devtoolsText: name =>
+    `«${name}» хочет изучить эту страницу в DevTools: будут видны её структура, логи, сетевые запросы и локальное хранилище, и можно будет выполнять на ней скрипты. Разрешить?`,
+  devtoolsToast: name => `«${name}» открыл DevTools`,
+  barDevtools: 'Идёт отладка',
+  nameSep: ', ',
 }
 
 const agent: AgentMessages = {
@@ -152,6 +159,8 @@ const agent: AgentMessages = {
     listitem: 'элемент списка',
   },
   element: 'элемент',
+  devtoolsHistory: (count, dropped) =>
+    `—— Записей лога до открытия DevTools: ${count} (только текст, объекты не раскрываются${dropped ? `; ещё ${dropped} отброшено` : ''}) ——`,
 }
 
 const action: ActionMessages = {

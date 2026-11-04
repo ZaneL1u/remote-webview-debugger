@@ -23,6 +23,7 @@ import {
   SquareTerminalIcon,
   UnplugIcon,
   WifiOffIcon,
+  WrenchIcon,
   XIcon,
   ZapIcon,
 } from 'lucide-react'
@@ -55,10 +56,11 @@ import { TestResultView } from '@/features/test-result'
 import { rich, useT } from '@/i18n'
 import { ApiError, api } from '@/lib/api'
 import { formatClock, formatDate, relativeTime } from '@/lib/format'
+import { useCan } from '@/lib/permissions'
 import { levelMeta } from '@/lib/policy'
 import { deviceQuery, projectsQuery } from '@/lib/queries'
 import { type StreamStatus, useOrgStream } from '@/lib/stream'
-import type { DeviceDetail, Page, PendingApproval, TimelineEvent } from '@/lib/types'
+import type { DeviceDetail, PendingApproval, TimelineEvent } from '@/lib/types'
 import { useNow } from '@/lib/use-now'
 import { cn } from '@/lib/utils'
 import { lastDevicesSearch } from '@/routes/devices'
@@ -123,7 +125,7 @@ export function DeviceDetailPage() {
       <DeviceHeader device={d} stream={stream} />
       {d.pending && <PendingCallout pending={d.pending} />}
       <div className="grid gap-5 lg:grid-cols-5">
-        <PagesCard pages={d.pages} online={d.online} className="lg:col-span-2" />
+        <PagesCard device={d} className="lg:col-span-2" />
         <TimelineCard events={d.timeline} className="lg:col-span-3" />
       </div>
     </div>
@@ -139,11 +141,12 @@ function PendingCallout({ pending }: { pending: PendingApproval }) {
   return (
     <Callout tone="warning">
       <p className="font-medium">
-        {pending.kind === 'confirm' ? t.confirm(agent) : t.attach(agent)}
+        {pending.kind === 'confirm' ? t.confirm(agent) : pending.purpose === 'devtools' ? t.devtools(agent) : t.attach(agent)}
       </p>
       <p className="text-muted-foreground">
         {requested &&
           pending.kind !== 'confirm' &&
+          pending.purpose !== 'devtools' &&
           rich(t.requested(levelMeta[requested].label, requested), {
             b: (s) => <span className="font-medium text-foreground">{s}</span>,
           })}
@@ -184,6 +187,13 @@ function DeviceHeader({ device: d, stream }: { device: DeviceDetail; stream: Str
             {d.invited && <InvitedBadge />}
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {!!d.devtools?.length && (
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <WrenchIcon className="size-4" />
+                {t.devtools}
+                <span className="text-foreground">{d.devtools.map((w) => t.devtoolsWindow(w.member, w.page)).join(t.nameSep)}</span>
+              </p>
+            )}
             {d.agent && d.control !== 'none' && (
               <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <BotIcon className="size-4" />
@@ -210,7 +220,7 @@ function DeviceHeader({ device: d, stream }: { device: DeviceDetail; stream: Str
           </Button>
           <ConfirmDialog
             trigger={<Button variant="outline" className="flex-1 text-destructive hover:text-destructive sm:flex-none" />}
-            disabled={d.control === 'none'}
+            disabled={d.control === 'none' && !d.devtools?.length}
             title={t.endTitle}
             description={t.endDescription}
             confirmLabel={t.end}
@@ -307,9 +317,12 @@ function Meta({ label, value, mono, title }: { label: string; value: string; mon
   )
 }
 
-function PagesCard({ pages, online, className }: { pages: Page[]; online: boolean; className?: string }) {
+function PagesCard({ device, className }: { device: DeviceDetail; className?: string }) {
+  const { pages, online } = device
+  const canDevtools = useCan('devtools.open')
   const sorted = [...pages].sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }))
   const t = useT().devices.detail.pages
+  const inspecting = (label: string) => (device.devtools ?? []).filter((w) => w.page === label).map((w) => w.member)
   return (
     <Card className={cn('gap-0 pb-0', className)}>
       <CardHeader className="pb-4">
@@ -348,12 +361,26 @@ function PagesCard({ pages, online, className }: { pages: Page[]; online: boolea
                 <Badge variant={p.visibility === 'visible' ? 'success' : 'muted'}>
                   {p.visibility === 'visible' ? t.foreground : t.background}
                 </Badge>
+                {canDevtools && (
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    disabled={p.connected === false}
+                    title={t.devtoolsTitle}
+                    nativeButton={false}
+                    render={<Link to="/devices/$deviceId/devtools" params={{ deviceId: device.id }} search={{ page: p.label }} />}
+                  >
+                    <WrenchIcon />
+                    {t.devtools}
+                  </Button>
+                )}
               </div>
               <p className="truncate font-mono text-xs text-muted-foreground" title={p.url}>
                 {p.url}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t.connected(relativeTime(p.connectedAt), p.openerLabel || undefined)}
+                {inspecting(p.label).length > 0 && t.inspecting(inspecting(p.label).join(t.nameSep))}
               </p>
             </li>
           ))}
@@ -372,6 +399,7 @@ const kindMeta: Record<string, { icon: React.ReactNode; tone: string }> = {
   closed: { icon: <XIcon />, tone: 'text-muted-foreground' },
   focus: { icon: <AppWindowIcon />, tone: 'text-foreground' },
   agent: { icon: <PlugIcon />, tone: 'text-brand' },
+  devtools: { icon: <WrenchIcon />, tone: 'text-brand' },
   offline: { icon: <UnplugIcon />, tone: 'text-muted-foreground' },
   error: { icon: <CircleXIcon />, tone: 'text-destructive' },
   console_error: { icon: <SquareTerminalIcon />, tone: 'text-destructive' },

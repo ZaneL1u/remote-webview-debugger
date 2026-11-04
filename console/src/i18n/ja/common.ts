@@ -50,7 +50,7 @@ export const common: typeof en = {
   },
   roleDescriptions: {
     owner: 'メンバーの招待、ロールの変更、メンバーの削除を含むすべての権限があります。',
-    admin: 'プロジェクト、API キー、アクセスポリシー、デバイス、招待を管理し、監査ログとメンバー一覧を閲覧できます。',
+    admin: 'プロジェクト、API キー、アクセスポリシー、デバイス、招待を管理し、デバイスのページで DevTools を開き、監査ログとメンバー一覧を閲覧できます。',
     member: 'プロジェクトとデバイスを閲覧し、ユーザーへの接続の招待、接続テスト、セッションの終了、監査ログの閲覧ができます。',
   },
 
@@ -89,6 +89,7 @@ export const common: typeof en = {
     agentWithName: (label, agent) => `${label}（${agent}）`,
     waitingConfirmAction: 'ユーザーの操作確認待ち',
     waitingConfirm: 'ユーザーの承認待ち',
+    waitingDevtools: 'DevTools の承認待ち',
     waitingTitle: (agent) => `${agent} はユーザーがデバイス上で承認するのを待っています`,
     invited: '招待',
     invitedTitle: '招待リンクから接続したデバイス',

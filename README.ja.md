@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@
 
 - **script タグ 1 つ**（またはネイティブからの注入）でページがオンラインになります。ユーザーにはデバイスコード付きの小さなピルが表示され、*サポートを依頼* をタップできます。
 - **エージェントは MCP で接続します**。Claude Code、Cursor など任意の MCP クライアントが、端末上でユーザーが承認した後に接続します。アクセシビリティスナップショット、console、ネットワーク、スクリーンショットを読み取り、人と同じようにクリック・入力・スクロールでき、その端末のすべてのページと WebView をまたいで操作します。
+- **人のための本物の Chrome DevTools。** 管理コンソールから、ユーザーが端末上で承認した後、admin がオンラインの任意のページで DevTools を開けます — Elements、Console、Network（開く前に何が起きていたかも含む）、Application のストレージです。
 - **主導権は常にユーザーにあります。** AI が何をしているか（エージェントのカーソル、予定の手順を示すタスクカード、光る画面の縁）が見え、いつでも引き継いだりセッションを終了したりできます。パスワード、電話番号、カード番号は、端末から何かが送られる前にマスクされます。
 - **セルフホスト。** 管理コンソールと SDK を埋め込んだ Go のバイナリ 1 つで動き、データベースは SQLite または Postgres です。
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # Web サイト
 
 ## 謝辞
 
-ページ側エンジンは、console とネットワークの取得に [chobitsu](https://github.com/liriliri/chobitsu)（MIT）を土台とし、[Playwright](https://github.com/microsoft/playwright) のアクセシビリティスナップショットのコード（Apache-2.0）を使用しています。[NOTICE](NOTICE) を参照してください。
+ページ側エンジンは、console とネットワークの取得に [chobitsu](https://github.com/liriliri/chobitsu)（MIT）を土台とし、[Playwright](https://github.com/microsoft/playwright) のアクセシビリティスナップショットのコード（Apache-2.0）を使用しています。管理コンソールの DevTools は、[chii](https://github.com/liriliri/chii)（MIT；DevTools 自体は BSD-3-Clause）がビルド済みで提供する Chrome DevTools のフロントエンドです。[NOTICE](NOTICE) を参照してください。
 
 ## ライセンス
 

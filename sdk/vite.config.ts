@@ -34,19 +34,39 @@ const uiCss = {
 // from source; its third-party imports resolve to this package's node_modules
 // so `npm ci` here is all a build needs.
 export default defineConfig(({ mode }) => ({
-  plugins: [uiCss],
   define: {
     __RWD_VERSION__: JSON.stringify(pkg.version),
   },
   resolve: {
-    alias: {
-      '@chobitsu': here('../packages/chobitsu/src'),
-      'rwd:locale-loader': here(mode === 'esm' ? './src/localeLoader.esm.ts' : './src/localeLoader.ts'),
-      licia: here('./node_modules/licia'),
-      'modern-screenshot': here('./node_modules/modern-screenshot'),
-      axios: here('./src/stubs/axios.ts'),
-    },
+    alias: [
+      { find: '@chobitsu', replacement: here('../packages/chobitsu/src') },
+      { find: 'rwd:locale-loader', replacement: here(mode === 'esm' ? './src/localeLoader.esm.ts' : './src/localeLoader.ts') },
+      { find: /^licia\/uuid$/, replacement: here('./src/stubs/uuid.ts') },
+      { find: 'licia', replacement: here('./node_modules/licia') },
+      { find: 'modern-screenshot', replacement: here('./node_modules/modern-screenshot') },
+      { find: 'axios', replacement: here('./src/stubs/axios.ts') },
+      // The full chobitsu (DevTools sessions, docs/protocol.md §13): no
+      // polyfills, and screencast frames drawn with modern-screenshot.
+      { find: /^core-js\/.*/, replacement: here('./src/stubs/empty.ts') },
+      { find: 'html2canvas', replacement: here('./src/stubs/html2canvas.ts') },
+      { find: /^luna-dom-highlighter$/, replacement: here('./src/stubs/domHighlighter.ts') },
+    ],
   },
+  plugins: [
+    uiCss,
+    {
+      // Overlay.ts does require('luna-dom-highlighter/luna-dom-highlighter.css')
+      // and expects CSS text; the stand-in highlighter styles itself.
+      name: 'rwd-highlighter-css',
+      enforce: 'pre',
+      resolveId(source) {
+        return source.endsWith('luna-dom-highlighter.css') ? '\0rwd-highlighter-css' : null
+      },
+      load(id) {
+        return id === '\0rwd-highlighter-css' ? 'module.exports = ""' : null
+      },
+    },
+  ],
   build: {
     target: 'es2017',
     outDir: 'dist',

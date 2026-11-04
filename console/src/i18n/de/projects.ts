@@ -232,6 +232,12 @@ export const projects: typeof en = {
       usersEmpty: 'Bei leerer Liste sieht niemand den Unterstützungs-Button.',
     },
 
+    devtools: {
+      title: 'DevTools',
+      description: 'Admins können in den Gerätedetails Chrome DevTools auf Online-Seiten öffnen: Elements, Console, Network, Speicher und Skripte ausführen.',
+      allow: 'DevTools erlauben',
+      allowDescription: 'Nur Eigentümer und Admins können es öffnen. Ist die Verbindungsfreigabe an, verbindet es sich erst, wenn der Nutzer auf dem Gerät zustimmt; eine Freigabe gilt für die maximale Sitzungsdauer, und der Nutzer kann jederzeit beenden. DevTools sieht die Seite, wie sie ist: Maskierung greift dort nicht.',
+    },
     eruda: {
       title: 'eruda-Integration',
       description:

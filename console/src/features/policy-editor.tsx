@@ -49,6 +49,7 @@ type Draft = {
   maxAgents: string
   erudaDock: boolean
   erudaLoad: boolean
+  devtools: boolean
   inviteUrl: string
 }
 
@@ -72,6 +73,7 @@ function toDraft(project: Project): Draft {
     maxAgents: String(p.maxAgents),
     erudaDock: p.eruda.dock,
     erudaLoad: p.eruda.load,
+    devtools: p.devtools !== 'off',
     inviteUrl: project.inviteUrl ?? '',
   }
 }
@@ -129,6 +131,7 @@ function parseDraft(d: Draft, t: Messages): Parsed {
       helpUsers: parseLines(d.helpUsers),
       ...nums,
       eruda: { dock: d.erudaDock, load: d.erudaLoad },
+      devtools: d.devtools ? 'on' : 'off',
     },
     inviteUrl,
     errors,
@@ -366,6 +369,18 @@ export function PolicyEditor({ project }: { project: Project }) {
                   )}
                 </Field>
               )}
+            </Section>
+
+            <Separator />
+
+            <Section title={m.devtools.title} description={m.devtools.description}>
+              <label className="flex items-start justify-between gap-4 rounded-lg border p-3">
+                <span className="space-y-0.5">
+                  <span className="block text-sm font-medium">{m.devtools.allow}</span>
+                  <span className="block text-xs text-muted-foreground">{m.devtools.allowDescription}</span>
+                </span>
+                <Switch checked={draft.devtools} onCheckedChange={(v) => set('devtools', v)} aria-label={m.devtools.allow} />
+              </label>
             </Section>
 
             <Separator />

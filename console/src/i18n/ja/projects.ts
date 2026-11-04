@@ -205,6 +205,12 @@ export const projects: typeof en = {
       usersEmpty: 'リストが空の場合、誰にもサポート依頼ボタンは表示されません。',
     },
 
+    devtools: {
+      title: 'DevTools',
+      description: '管理者はデバイス詳細からオンラインのページで Chrome DevTools を開けます：要素、コンソール、ネットワーク、ストレージ、スクリプトの実行。',
+      allow: 'DevTools を許可',
+      allowDescription: '開けるのはオーナーと管理者だけです。接続の承認がオンのときは、ユーザーがデバイス上で同意してから接続します。1 回の承認は最大セッション時間のあいだ有効で、ユーザーはいつでも終了できます。DevTools はページをそのまま見るため、マスクは適用されません。',
+    },
     eruda: {
       title: 'eruda 連携',
       description: 'ページ内の eruda デバッグパネルと Remote Debugger の連携方法です。ページのコードの run({ eruda }) がこの設定より優先されます。',

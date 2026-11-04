@@ -1,4 +1,4 @@
-<!-- i18n-source: 97148877150ebf8994ca9848eae39bddac0070b4 -->
+<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -20,6 +20,7 @@ Um bug que só acontece no celular de um usuário, dentro de um superapp no esti
 
 - **Uma tag script** (ou uma injeção nativa) coloca a página online. O usuário vê uma pequena pílula com o código do dispositivo e pode tocar em *Solicitar assistência*.
 - **Seu agente se conecta via MCP** — Claude Code, Cursor ou qualquer cliente MCP — depois que o usuário aprova no dispositivo. Ele lê snapshots de acessibilidade, console, rede e capturas de tela, e clica, digita e rola como uma pessoa, em todas as páginas e WebViews daquele dispositivo.
+- **O Chrome DevTools de verdade para pessoas.** A partir do console, um admin abre o DevTools em qualquer página online — Elements, Console, Network (com o que aconteceu antes dele abrir) e o armazenamento do Application — depois que o usuário aprova no dispositivo.
 - **O usuário continua no controle.** Ele vê o que a IA está fazendo (o cursor do agente, um cartão de tarefa com os passos planejados, uma borda luminosa) e pode assumir o controle ou encerrar a sessão a qualquer momento. Senhas e números de telefone e de cartão são mascarados antes de qualquer coisa sair do celular.
 - **Auto-hospedado.** Um único binário Go com o console e o SDK embutidos; SQLite ou Postgres.
 
@@ -134,7 +135,7 @@ cd website && npm run dev                            # o site
 
 ## Agradecimentos
 
-O motor do lado da página se apoia no [chobitsu](https://github.com/liriliri/chobitsu) (MIT) para a captura de console e de rede, e usa o código de snapshot de acessibilidade do [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). Veja o [NOTICE](NOTICE).
+O motor do lado da página se apoia no [chobitsu](https://github.com/liriliri/chobitsu) (MIT) para a captura de console e de rede, e usa o código de snapshot de acessibilidade do [Playwright](https://github.com/microsoft/playwright) (Apache-2.0). O DevTools do console é o frontend do Chrome DevTools, prebuilt pelo [chii](https://github.com/liriliri/chii) (MIT; o próprio DevTools é BSD-3-Clause). Veja o [NOTICE](NOTICE).
 
 ## Licença
 

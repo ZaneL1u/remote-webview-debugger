@@ -13,6 +13,7 @@ import type {
   DeviceListPage,
   DeviceListParams,
   DeviceStatusFilter,
+  DevtoolsGrant,
   GatewayConfig,
   GatewayStatus,
   Integration,
@@ -167,6 +168,8 @@ export const api = {
   device: (id: string) => request<DeviceDetail>(`/devices/${enc(id)}`),
   testDevice: (id: string) => request<TestResult>(`/devices/${enc(id)}/test`, { method: 'POST' }),
   endDevice: (id: string) => request<{ ok: true }>(`/devices/${enc(id)}/end`, { method: 'POST' }),
+  openDevtools: (id: string, page?: string) =>
+    request<DevtoolsGrant>(`/devices/${enc(id)}/devtools`, { method: 'POST', body: { page: page ?? '' } }),
 
   deviceInvites: (projectId: string) =>
     request<{ invites: DeviceInvite[] }>(`/projects/${enc(projectId)}/invites`).then((r) => r.invites),

@@ -210,6 +210,12 @@ export const projects = {
       usersEmpty: 'With an empty list, nobody sees the assistance button.',
     },
 
+    devtools: {
+      title: 'DevTools',
+      description: 'Admins can open Chrome DevTools on online pages from the device details: Elements, Console, Network, storage, and running scripts.',
+      allow: 'Allow DevTools',
+      allowDescription: 'Only owners and admins can open it. When connection approval is on, it connects after the user agrees on the device; one approval lasts for the max session length, and the user can end it anytime. DevTools sees the page as it is: masking doesn’t apply to it.',
+    },
     eruda: {
       title: 'eruda integration',
       description: 'How the eruda debug panel in the page works with Remote Debugger. run({ eruda }) in the page code overrides these settings.',

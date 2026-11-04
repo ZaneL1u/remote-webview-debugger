@@ -67,6 +67,12 @@ const ui: UiMessages = {
   confirmText: action => `AI 想要${action}，要允許嗎？`,
   allow: '允許',
   deny: '拒絕',
+  developer: '開發者',
+  devtoolsTitle: '開發者請求除錯',
+  devtoolsText: name => `「${name}」想用除錯工具檢視這個頁面：可以看到頁面結構、日誌、網路請求和本機儲存空間，並能在頁面中執行指令碼。要允許嗎？`,
+  devtoolsToast: name => `「${name}」開啟了除錯工具`,
+  barDevtools: '開發者除錯中',
+  nameSep: '、',
 }
 
 const agent: AgentMessages = {
@@ -147,6 +153,7 @@ const agent: AgentMessages = {
     listitem: '清單項目',
   },
   element: '元素',
+  devtoolsHistory: (count, dropped) => `—— 開啟除錯工具之前的 ${count} 筆日誌（只有文字，物件無法展開${dropped ? `；另有 ${dropped} 筆已捨棄` : ''}）——`,
 }
 
 const action: ActionMessages = {

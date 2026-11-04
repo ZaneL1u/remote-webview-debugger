@@ -98,14 +98,18 @@ export const devices = {
     copyId: 'Copy device ID',
     idCopied: 'Device ID copied',
     agent: 'Agent:',
+    devtools: 'DevTools:',
+    devtoolsWindow: (member: string, page: string) => `${member} (${page})`,
+    nameSep: ', ',
     test: 'Test connection',
     endTitle: 'End session?',
-    endDescription: 'Disconnects the connected agent right away and sets the device back to Idle. The page itself isn’t affected.',
+    endDescription: 'Disconnects the connected agent right away, closes every DevTools window and withdraws its approval, and sets the device back to Idle. The page itself isn’t affected.',
     end: 'End session',
 
     pending: {
       confirm: (agent: string) => `Waiting for the user to confirm an action by ${agent}`,
       attach: (agent: string) => `${agent} asked to connect; waiting for the user to approve on the device`,
+      devtools: (agent: string) => `${agent} asked to open DevTools; waiting for the user to approve on the device`,
       /** `<b>` wraps the level label. Sentences are concatenated, so each ends with its own separator. */
       requested: (label: string, level: string) => `Requested level: <b>${label}</b> (${level}). `,
       left: (n: number) => `${n}s left; no answer counts as a denial. `,
@@ -153,6 +157,11 @@ export const devices = {
       foreground: 'Foreground',
       background: 'Background',
       connected: (ago: string, opener?: string) => (opener ? `Opened by ${opener} · connected ${ago}` : `Connected ${ago}`),
+      devtools: 'DevTools',
+      devtoolsTitle: 'Debug this page with Chrome DevTools: Elements, Console, Network, storage',
+      /** After "connected …": who has DevTools open on the page. */
+      inspecting: (names: string) => ` · DevTools: ${names}`,
+      nameSep: ', ',
     },
 
     timeline: {
@@ -170,6 +179,7 @@ export const devices = {
         closed: 'Page closed',
         focus: 'Back in foreground',
         agent: 'Agent connected',
+        devtools: 'DevTools',
         offline: 'Device offline',
         error: 'Error',
         console_error: 'Console error',
@@ -191,6 +201,50 @@ export const devices = {
         confirm: 'Confirmation',
         denied: 'Denied',
       },
+    },
+  },
+
+  // Chrome DevTools on a page (routes/device-devtools.tsx)
+  devtools: {
+    title: 'DevTools',
+    device: 'Device',
+    page: 'Page',
+    userPage: 'The page the user is viewing',
+    window: (member: string, page: string) => `${member} (${page})`,
+    nameSep: ', ',
+    windows: (n: number) => `${n} DevTools windows`,
+    reconnect: 'Reconnect',
+    end: 'End',
+    endTitle: 'End session?',
+    endDescription: 'Closes every DevTools window on this device and withdraws their approval; a connected agent is disconnected too. The page itself isn’t affected.',
+    endConfirm: 'End session',
+    endedToast: 'Session ended',
+    ended: {
+      title: 'Session ended',
+      description: 'The user ended it on the device, or an admin did. If the project needs approval, reconnecting asks the user again.',
+    },
+    waiting: {
+      title: 'Waiting for the user to approve on the device',
+      description: (n: number) => `The device shows a DevTools request. This connects as soon as the user taps “Allow” (${n}s left).`,
+    },
+    connecting: {
+      title: 'Connecting…',
+      description: 'Asking the device for a DevTools session.',
+    },
+    reloading: {
+      title: 'The page is reloading',
+      description: 'DevTools resumes once the page reconnects.',
+      slow: 'The page hasn’t reconnected. It may have closed or moved to a page without the SDK.',
+    },
+    retry: 'Retry',
+    failed: 'Couldn’t open DevTools',
+    errors: {
+      device_offline: 'Device offline',
+      no_page: 'The page is gone or reconnecting',
+      forbidden: 'Not allowed',
+      denied: 'The user denied DevTools',
+      timeout: 'The user didn’t approve',
+      busy: 'The device is waiting for another approval',
     },
   },
 

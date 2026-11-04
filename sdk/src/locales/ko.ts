@@ -80,6 +80,13 @@ const ui: UiMessages = {
   confirmText: action => `AI가 ${action}${josa(action, '을', '를')} 요청했어요. 허용할까요?`,
   allow: '허용',
   deny: '거부',
+  developer: '개발자',
+  devtoolsTitle: '개발자 디버깅 요청',
+  devtoolsText: name =>
+    `“${name}”${josa(name, '이', '가')} DevTools로 이 페이지를 살펴보려고 해요. 페이지 구조, 로그, 네트워크 요청, 로컬 저장소를 볼 수 있고 페이지에서 스크립트를 실행할 수 있어요. 허용할까요?`,
+  devtoolsToast: name => `“${name}”${josa(name, '이', '가')} DevTools를 열었어요`,
+  barDevtools: '개발자 디버깅 중',
+  nameSep: ', ',
 }
 
 const agent: AgentMessages = {
@@ -163,6 +170,7 @@ const agent: AgentMessages = {
     listitem: '목록 항목',
   },
   element: '요소',
+  devtoolsHistory: (count, dropped) => `—— DevTools를 열기 전의 로그 ${count}개 (텍스트만 있으며 객체는 펼칠 수 없습니다${dropped ? `. 그 밖에 ${dropped}개는 버려졌습니다` : ''}) ——`,
 }
 
 const action: ActionMessages = {
