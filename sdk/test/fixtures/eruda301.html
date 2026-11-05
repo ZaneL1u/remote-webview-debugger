@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>eruda 3.0.1</title>
+    <!-- An older eruda that lowercases tool names, as some production apps still ship. -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda@3.0.1/eruda.min.js"></script>
+    <script>eruda.init();</script>
+    <script src="/v1/sdk.js"></script>
+    <script>
+      // Tests set window.__rwdOpts (addInitScript) for run() options.
+      window.runResult = RemoteWebviewDebugger.run(
+        location.origin + '/v1',
+        'rwd_pk_test0000000000000000000',
+        Object.assign({ helpButton: false }, window.__rwdOpts || {})
+      )
+    </script>
+    <style>
+      body { font: 16px sans-serif; margin: 0; padding: 16px; }
+    </style>
+  </head>
+  <body>
+    <h1>旧版 eruda</h1>
+  </body>
+</html>

@@ -91,20 +91,22 @@ export class ErudaBridge {
       this.stopWaiting()
       const ui = this.ui
       try {
-        if (typeof eruda.get === 'function' && eruda.get(name)) return
+        if (toolKey(eruda, name)) return
         eruda.add({
           name,
-          init($el: any) {
+          init($el: any, devTools: any) {
             this._$el = $el
-            const el = $el && typeof $el.get === 'function' ? $el.get(0) : $el && $el[0]
-            if (el) ui.dock(el)
+            this._el = first($el) || justAdded(devTools)
+            if (this._el) ui.dock(this._el)
           },
           show() {
-            if (this._$el) this._$el.show()
+            if (first(this._$el)) this._$el.show()
+            else if (this._el) this._el.style.display = 'block'
             return this
           },
           hide() {
-            if (this._$el) this._$el.hide()
+            if (first(this._$el)) this._$el.hide()
+            else if (this._el) this._el.style.display = 'none'
             return this
           },
           destroy() {
@@ -125,7 +127,8 @@ export class ErudaBridge {
     this.docked = null
     try {
       const eruda = (window as any).eruda
-      if (eruda && typeof eruda.remove === 'function') eruda.remove(name)
+      const key = eruda && toolKey(eruda, name)
+      if (key && typeof eruda.remove === 'function') eruda.remove(key)
     } catch (e) {
       // Ignore.
     }
@@ -136,4 +139,30 @@ export class ErudaBridge {
     if (this.timer) clearInterval(this.timer)
     this.timer = undefined
   }
+}
+
+// eruda before 3.4 lowercases a tool's name: it files the tool under the
+// lowercased name (get / remove need that key), and finds the tool's container
+// with `.eruda-<name>.eruda-tool`, which a name with a space turns into a
+// descendant selector, so init() receives an empty selection.
+
+/** The key eruda filed the tool under: the name as given, or lowercased (eruda < 3.4). */
+function toolKey(eruda: any, name: string): string | null {
+  if (typeof eruda.get !== 'function') return null
+  if (eruda.get(name)) return name
+  const lower = name.toLowerCase()
+  return lower !== name && eruda.get(lower) ? lower : null
+}
+
+function first($el: any): HTMLElement | null {
+  if (!$el) return null
+  const el = typeof $el.get === 'function' ? $el.get(0) : $el[0]
+  return el || null
+}
+
+/** eruda prepends the tool's container right before init(); recover it when the selection came back empty. */
+function justAdded(devTools: any): HTMLElement | null {
+  const tools = devTools && first(devTools._$tools)
+  const el = tools && (tools.firstElementChild as HTMLElement | null)
+  return el && /(^|\s)eruda-tool(\s|$)/.test(el.className) && !el.firstChild ? el : null
 }

@@ -69,3 +69,43 @@ test('the project policy can dock into eruda remotely; run({ eruda: false }) win
   await expect.poll(() => page.evaluate(() => !!(window as any).eruda.get('Remote Debugger')), { timeout: 5000 }).toBe(true)
   await expect(page.locator('#__rwd .pill')).toBeHidden()
 })
+
+// eruda < 3.4 files tools under their lowercased name and finds the container
+// with `.eruda-<name>.eruda-tool`, which the space in "Remote Debugger" breaks.
+test('docks into eruda 3.0.1 with the default name: the panel renders, get / remove use the lowercased key', async ({ page, gw, errors }) => {
+  await page.addInitScript(() => {
+    ;(window as any).__rwdOpts = { eruda: true }
+  })
+  await page.goto('/test/eruda301.html')
+  const s = await waitOnline(page, gw)
+  await expect.poll(() => page.evaluate(() => (window as any).eruda.version)).toBe('3.0.1')
+  await expect.poll(() => page.evaluate(() => !!(window as any).eruda.get('remote debugger')), { timeout: 5000 }).toBe(true)
+  await expect(page.locator('#__rwd .pill')).toBeHidden()
+  await page.evaluate(() => {
+    ;(window as any).eruda.show()
+    ;(window as any).eruda.show('remote debugger')
+  })
+  const tab = page.locator('#eruda .eruda-tool').filter({ hasText: s.deviceCode! })
+  await expect(tab).toHaveCount(1)
+  await expect(tab).toBeVisible()
+  await page.evaluate(() => (window as any).eruda.show('console'))
+  await expect(tab).toBeHidden()
+  // One tab only, even after the page reconnects and applies the config again.
+  gw.closePage(s.pageId!, 1012, 'restart')
+  await waitOnline(page, gw)
+  await page.waitForTimeout(1200)
+  expect(await page.evaluate(() => Object.keys((window as any).eruda._devTools._tools).filter((k) => k === 'remote debugger').length)).toBe(1)
+  expect(errors).toEqual([])
+})
+
+test('eruda 3.0.1: the policy turning dock off removes the lowercased tab and brings the floating window back', async ({ page, gw }) => {
+  gw.setConfig({ helpButton: false, maskSelectors: [], maskPatterns: [], confirmSelectors: [], eruda: { dock: true, load: false } })
+  await page.goto('/test/eruda301.html')
+  const s = await waitOnline(page, gw)
+  await expect.poll(() => page.evaluate(() => !!(window as any).eruda.get('remote debugger')), { timeout: 5000 }).toBe(true)
+  await expect(page.locator('#__rwd .pill')).toBeHidden()
+  gw.setConfig({ helpButton: false, maskSelectors: [], maskPatterns: [], confirmSelectors: [], eruda: { dock: false, load: false } })
+  gw.closePage(s.pageId!, 1012, 'restart')
+  await expect.poll(() => page.evaluate(() => !!(window as any).eruda.get('remote debugger')), { timeout: 15000 }).toBe(false)
+  await expect(page.locator('#__rwd .pill')).toBeVisible()
+})
