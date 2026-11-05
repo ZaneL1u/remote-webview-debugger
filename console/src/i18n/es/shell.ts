@@ -56,6 +56,19 @@ export const shell: typeof en = {
     tooManyAttempts: 'Demasiados intentos. Vuelve a intentarlo más tarde.',
     emailRequired: 'Introduce tu correo electrónico',
     passwordRequired: 'Introduce tu contraseña',
+    providers: { feishu: 'Feishu', lark: 'Lark', oidc: 'SSO' },
+    sso: (name) => `Iniciar sesión con ${name}`,
+    or: 'o',
+    ssoErrors: {
+      provider:
+        'Falló el inicio de sesión único: el gateway no pudo contactar con el proveedor de identidad o el proveedor rechazó el inicio de sesión. Vuelve a intentarlo o pide a un propietario que revise el registro del gateway.',
+      denied: 'Se canceló el inicio de sesión en el proveedor de identidad.',
+      state: 'El inicio de sesión caducó o se empezó en otro navegador. Vuelve a intentarlo.',
+      not_allowed: 'El dominio de tu correo electrónico no puede iniciar sesión en esta consola.',
+      no_account: 'Todavía no tienes cuenta en esta consola. Pide a un propietario que invite tu correo electrónico.',
+      disabled: 'Esta cuenta está desactivada. Ponte en contacto con el propietario del proyecto.',
+      rate_limited: 'Demasiados intentos. Vuelve a intentarlo más tarde.',
+    },
   },
 
   invite: {

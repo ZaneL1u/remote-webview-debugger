@@ -1,4 +1,4 @@
-<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+<!-- i18n-source: 633220a8fe1b3ddd3a313fd33ae0414507b2953f -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # Развёртывание через Docker Compose
@@ -49,6 +49,7 @@
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Сколько дней хранить журнал аудита |
 | `RWD_LANG` | `en` | Язык текстов для агента: `en`, `zh`, `zh-TW`, `fr`, `es`, `ru`, `ar`, `ja`, `ko`, `de` или `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | MCP-запросов в минуту с одного IP клиента (если не задано — без ограничения); для публичного демо см. [deploy/demo](../demo/README.md) |
+| `RWD_OIDC_PROVIDER`, `RWD_OIDC_*` | — | Единый вход через Feishu, Lark или OpenID Connect, см. [gateway/README](../../gateway/README.ru.md#единый-вход) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Диапазоны адресов (CIDR через пробел или `private_ranges` из Caddy) прокси, стоящего перед Caddy; см. ниже |
 | `BIND` | `127.0.0.1` | Адрес, на котором публикуется Caddy |
 | `PORT` | `18788` | Порт, на котором публикуется Caddy |

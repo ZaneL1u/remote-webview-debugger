@@ -52,6 +52,8 @@ type Config struct {
 	// DemoKeys runs a public demo: anyone can get a short-lived interact key
 	// of their own (POST /v1/demo/keys), and list_devices needs a device code.
 	DemoKeys bool
+	// OIDC, if set, adds single sign-on next to password sign-in.
+	OIDC *OIDCConfig
 	// Lang is the language of agent-facing text (MCP, page SDK errors) and
 	// the console's fallback (RWD_LANG; default English).
 	Lang    i18n.Lang
@@ -84,6 +86,11 @@ type Server struct {
 func New(ctx context.Context, cfg Config, st *store.Store, log *slog.Logger) (*Server, error) {
 	if cfg.Lang == "" {
 		cfg.Lang = i18n.Default
+	}
+	if cfg.OIDC != nil {
+		if err := cfg.OIDC.validate(); err != nil {
+			return nil, err
+		}
 	}
 	s := &Server{cfg: cfg, store: st, log: log, audit: make(chan store.AuditEvent, 1024), started: time.Now(),
 		loginLimit: newLimiter(10, time.Minute), pageLimit: newLimiter(120, time.Minute)}

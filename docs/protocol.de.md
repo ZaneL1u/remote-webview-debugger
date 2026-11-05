@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | Deutsch | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD-Protokoll (v1)
@@ -522,7 +522,9 @@ Rollen: `owner` (alles, einschließlich Mitgliedern), `admin` (Projekte, Keys, R
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Das neue Passwort muss 8–256 Zeichen lang sein; `400 bad_password`, wenn das alte falsch ist |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` zum Single-Sign-on-Anbieter, mit einem signierten Cookie `rwd_oidc` (State und PKCE-Verifier, 10 Minuten). `404` ohne Single Sign-on |
+| GET | `/auth/oidc/callback` | — | `code` und `state` des Anbieters | Meldet an und `302` zu `redirect` (ein Konsolenpfad, sonst `/`). Bei einem Fehler `302` zu `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` ist `null` oder `{"provider","name","defaultRole","inviteOnly"}`, wenn Single Sign-on eingeschaltet ist |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (7 Tage gültig, einmalig). `409 conflict`, wenn die E-Mail-Adresse bereits existiert |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner`, wenn kein aktiver Inhaber übrig bliebe |
@@ -531,6 +533,8 @@ Rollen: `owner` (alles, einschließlich Mitgliedern), `admin` (Projekte, Keys, R
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` und meldet an. Ratenbegrenzt wie die Anmeldung |
 
 Der erste Inhaber wird beim Start aus `RWD_ADMIN_EMAIL` (Standard `admin`) und `RWD_ADMIN_PASSWORD` angelegt (siehe [gateway/README.de.md](../gateway/README.de.md)). Die Konsolenseite `/invite/:token` nimmt eine Mitgliedereinladung an.
+
+Single Sign-on mit Feishu, Lark oder einem OpenID-Connect-Anbieter (`RWD_OIDC_*`, siehe [gateway/README.de.md](../gateway/README.de.md#single-sign-on)) funktioniert neben Passwörtern. Die Schaltfläche der Anmeldeseite öffnet `/auth/oidc/start`; der Anbieter schickt den Browser zurück an `/auth/oidc/callback`, das dasselbe Cookie `rwd_session` setzt. Eine Identität wird über das Subject des Anbieters gefunden, sonst mit dem Mitglied mit derselben E-Mail-Adresse verknüpft (was auch eine offene Einladung annimmt), sonst erhält sie ein neues Konto mit der Standardrolle, es sei denn, das Gateway ist nur auf Einladung zugänglich. Solche Konten sind gewöhnliche Mitglieder: Inhaber ändern ihre Rolle, deaktivieren oder entfernen sie wie oben.
 
 ### 12.3 Projekte
 
@@ -589,7 +593,7 @@ Mit einer Einladung bringt ein Nutzer sein Gerät online, und zwar gleich mit ei
 | Aktion | Wann |
 |---|---|
 | `auth.login`, `auth.login_failed` | Anmeldung an der Konsole |
-| `member.invite`, `member.accept`, `member.update`, `member.delete` | Mitgliederverwaltung |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Mitgliederverwaltung (`member.sso_join`: ein Konto, das bei einer ersten Single-Sign-on-Anmeldung angelegt wurde; `auth.login` hat dann `"method":"sso"`) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projekte |
 | `key.create`, `key.revoke` | API-Keys |
 | `invite.create`, `invite.delete`, `invite.use` | Geräteeinladungen |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* Einladung noch nicht angenommen */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // false bei Konten, die per Single Sign-on angelegt wurden
+  sso: string[]                // verknüpfte Anbieter: "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

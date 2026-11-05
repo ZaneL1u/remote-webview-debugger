@@ -125,6 +125,10 @@ func (s *Store) migrate(ctx context.Context) error {
 			id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, name TEXT NOT NULL DEFAULT '',
 			password_hash TEXT NOT NULL DEFAULT '', role TEXT NOT NULL, disabled INTEGER NOT NULL DEFAULT 0,
 			invite_hash TEXT NOT NULL DEFAULT '', invite_expires BIGINT, created_at BIGINT NOT NULL, last_login_at BIGINT)`,
+		`CREATE TABLE IF NOT EXISTS user_identities (
+			provider TEXT NOT NULL, subject TEXT NOT NULL, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			created_at BIGINT NOT NULL, PRIMARY KEY (provider, subject))`,
+		`CREATE INDEX IF NOT EXISTS user_identities_user ON user_identities (user_id)`,
 		`CREATE TABLE IF NOT EXISTS device_invites (
 			id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
 			token_hash TEXT NOT NULL UNIQUE, note TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '',

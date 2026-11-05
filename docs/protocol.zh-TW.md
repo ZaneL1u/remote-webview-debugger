@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -522,7 +522,9 @@ type Policy = {
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新密碼須為 8–256 個字元；舊密碼不正確時 `400 bad_password` |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` 重新導向到單一登入的提供者，同時寫入簽章 cookie `rwd_oidc`（存放 state 和 PKCE verifier，10 分鐘有效）。未啟用單一登入時 `404` |
+| GET | `/auth/oidc/callback` | — | 提供者傳回的 `code` 和 `state` | 完成登入並 `302` 重新導向到 `redirect`（須為主控台路徑，否則導向 `/`）。失敗時 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`disabled`、`rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` 為 `null`；啟用單一登入時為 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<主機>/invite/<token>"}`（7 天內有效，只能使用一次）。電子郵件已存在時 `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`。會導致沒有可用 owner 時 `409 last_owner` |
@@ -531,6 +533,8 @@ type Policy = {
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` 並登入。與登入共用速率限制 |
 
 第一個 owner 會在閘道啟動時依 `RWD_ADMIN_EMAIL`（預設 `admin`）和 `RWD_ADMIN_PASSWORD` 建立（見 [gateway/README.zh-TW.md](../gateway/README.zh-TW.md)）。主控台頁面 `/invite/:token` 用來接受成員邀請。
+
+除了密碼，也可以用飛書、Lark 或 OpenID Connect 提供者單一登入（`RWD_OIDC_*`，見 [gateway/README.zh-TW.md](../gateway/README.zh-TW.md#單一登入)）。登入頁上的按鈕會開啟 `/auth/oidc/start`；提供者把瀏覽器送回 `/auth/oidc/callback`，由它寫入同一個 `rwd_session` cookie。身分會先依提供者的 subject 查找；找不到就連結到電子郵件相同的成員（同時接受該成員尚未接受的邀請）；仍然沒有的話，就以預設角色建立新帳號，除非閘道設為僅限受邀成員。這些帳號就是一般成員：owner 可以照上面的方式變更角色、停用或刪除。
 
 ### 12.3 專案
 
@@ -589,7 +593,7 @@ API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存�
 | action | 時機 |
 |---|---|
 | `auth.login`、`auth.login_failed` | 主控台登入 |
-| `member.invite`、`member.accept`、`member.update`、`member.delete` | 成員管理 |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成員管理（`member.sso_join`：首次單一登入時建立的帳號；之後的 `auth.login` 會帶 `"method":"sso"`） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 專案 |
 | `key.create`、`key.revoke` | API 金鑰 |
 | `invite.create`、`invite.delete`、`invite.use` | 裝置邀請 |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* 尚未接受邀請 */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // 單一登入建立的帳號為 false
+  sso: string[]                // 已連結的提供者："feishu"、"lark"、"oidc"
 }
 
 type DeviceInvite = {

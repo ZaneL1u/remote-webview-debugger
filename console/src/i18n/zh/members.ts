@@ -1,5 +1,8 @@
 import type { members as en } from '../en/members'
 
+/** A space around Latin names, none around Chinese ones (使用 SSO 登录, 使用飞书登录). */
+const pad = (name: string) => (/^[\x00-\x7f]/.test(name) ? ` ${name} ` : name)
+
 export const members: typeof en = {
   title: '成员',
   description: '可以登录控制台的同事。角色决定能看到和修改什么。',
@@ -34,6 +37,9 @@ export const members: typeof en = {
   noName: '（未设置名字）',
   you: '你',
   neverSignedIn: '从未登录',
+  ssoBadgeTitle: (name) => `通过${pad(name)}登录`,
+  ssoHint: (name, role) => `同事也可以直接用${pad(name)}登录：首次登录会关联同邮箱的成员，没有的话自动创建一个「${role}」角色的账号。`,
+  ssoInviteOnlyHint: (name) => `邀请过邮箱的同事也可以用${pad(name)}登录。`,
   signedInAgo: (ago) => `${ago}登录`,
   cantEditSelf: '不能修改自己',
   changeRole: (name) => `修改「${name}」的角色`,
@@ -120,6 +126,7 @@ export const members: typeof en = {
       'auth.login_failed': '登录失败',
       'member.invite': '邀请成员',
       'member.accept': '接受成员邀请',
+      'member.sso_join': '通过单点登录加入',
       'member.update': '修改成员',
       'member.delete': '删除成员',
       'project.create': '创建项目',

@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 閘道
@@ -51,12 +51,47 @@ rwd version                             顯示版本號
 | `RWD_ADMIN_PASSWORD` | — | owner 密碼。建立 owner 時使用；之後**每次啟動**都會重設 `RWD_ADMIN_EMAIL` 所指 owner 的密碼，因此也可以用來救回帳號。如果這個電子郵件不屬於 owner（是其他成員，或根本不存在），就會忽略並在記錄中說明，同時列出現有的 owner。未設定且資料庫是空的時，會隨機產生一組密碼，並在記錄中印出一次 |
 | `RWD_METRICS_TOKEN` | — | 設定後，存取 `/v1/metrics` 需要 `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 稽核記錄保留天數 |
+| `RWD_OIDC_*` | — | 單一登入，見[下文](#單一登入) |
 
 其他值得注意的事項：
 
 - 閘道所需的機密資料（API 金鑰的 pepper 和主控台工作階段密鑰）會在第一次啟動時產生，並存放在資料庫裡。請備份資料庫，並妥善保管備份。
 - 閘道把即時狀態（已連線的頁面、控制狀態、時間軸）放在記憶體裡，因此一個資料庫只能執行一個執行個體。
 - 健康檢查：`GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`。
+
+## 單一登入
+
+成員也可以用飛書、Lark 或任何 OpenID Connect 提供者（Keycloak、Okta、Microsoft Entra ID、Google、Authing 等）登入，電子郵件加密碼的方式照常可用。設定好提供者和它的用戶端憑證後，登入頁會出現「使用 … 登入」按鈕。
+
+| 環境變數 | 預設值 | 說明 |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`、`lark` 或 `oidc`，設定後即啟用單一登入。只設定 `RWD_OIDC_ISSUER` 時視為 `oidc` |
+| `RWD_OIDC_CLIENT_ID`、`RWD_OIDC_CLIENT_SECRET` | — | 應用程式的憑證（飛書和 Lark 即 App ID 和 App Secret）。必填 |
+| `RWD_OIDC_ISSUER` | — | OpenID Connect issuer，例如 `https://sso.example.com/realms/acme`；各端點從它的 `/.well-known/openid-configuration` 讀取（僅限 `oidc`） |
+| `RWD_OIDC_AUTH_URL`、`RWD_OIDC_TOKEN_URL`、`RWD_OIDC_USERINFO_URL` | 提供者的預設端點 | 覆寫端點；OpenID Connect 提供者不支援自動探索時，三個都要設定 |
+| `RWD_OIDC_SCOPES` | `openid profile email`（`oidc`），飛書和 Lark 為空 | 以空格分隔的 scope。飛書和 Lark 請加上 `contact:user.email:readonly`（要取得企業信箱再加上 `contact:user.employee:readonly`），帳號才會有電子郵件 |
+| `RWD_OIDC_NAME` | 提供者名稱 | 登入按鈕上顯示的名稱，例如 `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | 首次登入時建立的帳號的角色：`member` 或 `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | 關閉 | 不建立新帳號：只有現有成員或受邀成員（電子郵件相同）能登入 |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | 允許登入的電子郵件網域，以逗號分隔，例如 `example.com` |
+
+請在提供者那邊登記下面這個重新導向 URL，必須完全相符：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未設定時取請求的 origin）再加上 `/v1/api/auth/oidc/callback`。放在代理後面時請設定 `RWD_PUBLIC_URL`，讓這個 URL 保持固定。
+
+一個身分第一次登入時，會連結到電子郵件相同的成員（受邀成員保留邀請時的角色，邀請也隨之用掉）；沒有的話就以 `RWD_OIDC_DEFAULT_ROLE` 建立新帳號，除非設定了 `RWD_OIDC_INVITE_ONLY=1`。之後的登入會依提供者的 subject（飛書和 Lark 為 `open_id`）找到帳號，所以電子郵件改了也沒關係。OpenID Connect 提供者標示為 `email_verified: false` 的電子郵件會被忽略；沒有電子郵件的帳號，登入名稱為 `<provider>:<subject>`。owner 在「成員」頁面像管理其他人一樣管理這些成員：變更角色、停用或刪除；被停用的成員用哪種方式都無法登入。單一登入建立的帳號沒有密碼。閘道會用剛取得的 access token 從提供者的 userinfo 端點讀取使用者資料（搭配 PKCE 的授權碼流程），不使用 ID token。
+
+**飛書或 Lark。** 在[飛書開放平台](https://open.feishu.cn/app)（Lark 為 [open.larksuite.com](https://open.larksuite.com/app)）建立一個企業自建應用（只有你的組織成員能使用），然後：
+
+1. 把「憑證與基礎資訊」裡的 App ID 和 App Secret 填到 `RWD_OIDC_CLIENT_ID` 和 `RWD_OIDC_CLIENT_SECRET`。
+2. 在「安全設定 → 重新導向 URL」中加入上面的重新導向 URL。
+3. 在「權限管理」中開通 `contact:user.email:readonly`（要取得企業信箱再開通 `contact:user.employee:readonly`），並在 `RWD_OIDC_SCOPES` 裡列出同樣的 scope。
+4. 把應用的「可用範圍」設為需要登入的人，然後「建立版本並發佈」，設定才會生效。
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## 接入 agent
 

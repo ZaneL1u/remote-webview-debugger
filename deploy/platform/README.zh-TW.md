@@ -1,4 +1,4 @@
-<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+<!-- i18n-source: 633220a8fe1b3ddd3a313fd33ae0414507b2953f -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose 部署
@@ -49,6 +49,7 @@
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 稽核記錄保留天數 |
 | `RWD_LANG` | `en` | 給 agent 看的文字所用的語言：`en`、`zh`、`zh-TW`、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de` 或 `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | 每個用戶端 IP 每分鐘的 MCP 請求數（未設定則不限制）；公開示範的用法見 [deploy/demo](../demo/README.md) |
+| `RWD_OIDC_PROVIDER`、`RWD_OIDC_*` | — | 以飛書、Lark 或 OpenID Connect 單一登入，見 [gateway/README](../../gateway/README.zh-TW.md#單一登入) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Caddy 前面那層代理的位址範圍（以空格分隔的 CIDR，或 Caddy 的 `private_ranges`），見下文 |
 | `BIND` | `127.0.0.1` | Caddy 公開在哪個位址 |
 | `PORT` | `18788` | Caddy 公開在哪個連接埠 |

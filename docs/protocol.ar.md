@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | العربية
 
 <div dir="rtl">
@@ -560,7 +560,9 @@ type Policy = {
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. يجب أن تكون كلمة المرور الجديدة من 8 إلى 256 حرفًا؛ و `400 bad_password` إذا كانت القديمة خاطئة |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` إلى مزوّد تسجيل الدخول الموحّد، مع ملف تعريف ارتباط موقَّع باسم `rwd_oidc` (قيمة state ومتحقِّق PKCE، لمدة 10 دقائق). `404` إذا لم يكن تسجيل الدخول الموحّد مفعَّلًا |
+| GET | `/auth/oidc/callback` | — | قيمتا `code` و `state` من المزوّد | يسجّل الدخول ويعيد `302` إلى `redirect` (مسار في لوحة التحكم، وإلا `/`). عند الفشل `302` إلى `/login?sso_error=<code>`: `provider`، `denied`، `state`، `not_allowed`، `no_account`، `disabled`، `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. قيمة `sso` هي `null`، أو `{"provider","name","defaultRole","inviteOnly"}` عند تفعيل تسجيل الدخول الموحّد |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (صالح لمدة 7 أيام، لمرة واحدة). `409 conflict` إذا كان البريد الإلكتروني موجودًا |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` إذا لم يكن سيبقى أي مالك نشط |
@@ -569,6 +571,8 @@ type Policy = {
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` ويسجّل الدخول. يخضع لحد المعدل مثل تسجيل الدخول |
 
 يُنشأ المالك الأول عند بدء التشغيل من `RWD_ADMIN_EMAIL` (الافتراضي `admin`) و `RWD_ADMIN_PASSWORD` (راجع [gateway/README.ar.md](../gateway/README.ar.md)). تقبل صفحة لوحة التحكم `/invite/:token` دعوة العضو.
+
+يعمل تسجيل الدخول الموحّد عبر Feishu أو Lark أو مزوّد OpenID Connect (`RWD_OIDC_*`، راجع [gateway/README.ar.md](../gateway/README.ar.md#تسجيل-الدخول-الموحّد)) إلى جانب كلمات المرور. يفتح زر صفحة تسجيل الدخول `/auth/oidc/start`؛ ويعيد المزوّد المتصفح إلى `/auth/oidc/callback`، الذي يضبط ملف تعريف الارتباط نفسه `rwd_session`. يُعثر على الهوية بمعرّف subject لدى المزوّد، وإلا تُربط بالعضو صاحب البريد الإلكتروني نفسه (وهذا يقبل أيضًا دعوة معلّقة)، وإلا يُنشأ لها حساب جديد بالدور الافتراضي ما لم تكن البوابة مقتصرة على المدعوين. هذه الحسابات أعضاء عاديون: يغيّر المالكون دورهم أو يعطّلونهم أو يحذفونهم كما سبق.
 
 ### 12.3 المشاريع
 
@@ -627,7 +631,7 @@ type Policy = {
 | الإجراء | متى |
 |---|---|
 | `auth.login`، `auth.login_failed` | تسجيل الدخول إلى لوحة التحكم |
-| `member.invite`، `member.accept`، `member.update`، `member.delete` | إدارة الأعضاء |
+| `member.invite`، `member.accept`، `member.sso_join`، `member.update`، `member.delete` | إدارة الأعضاء (`member.sso_join`: حساب أُنشئ عند أول تسجيل دخول موحّد؛ وعندها يحمل `auth.login` القيمة `"method":"sso"`) |
 | `project.create`، `project.update`، `project.delete`، `project.rotate_app_key` | المشاريع |
 | `key.create`، `key.revoke` | مفاتيح API |
 | `invite.create`، `invite.delete`، `invite.use` | دعوات الأجهزة |
@@ -711,6 +715,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* لم تُقبل الدعوة بعد */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // false للحسابات التي أنشأها تسجيل الدخول الموحّد
+  sso: string[]                // المزوّدون المرتبطون: "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

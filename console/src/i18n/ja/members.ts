@@ -34,6 +34,10 @@ export const members: typeof en = {
   noName: '（名前なし）',
   you: 'あなた',
   neverSignedIn: '未ログイン',
+  ssoBadgeTitle: (name) => `${name} でログイン`,
+  ssoHint: (name, role) =>
+    `メンバーは ${name} でもログインできます。初回ログインでは同じメールアドレスのメンバーに紐づき、いなければ「${role}」ロールのアカウントが作成されます。`,
+  ssoInviteOnlyHint: (name) => `メールアドレスを招待済みのメンバーは ${name} でもログインできます。`,
   signedInAgo: (ago) => `ログイン ${ago}`,
   cantEditSelf: '自分自身は編集できません',
   changeRole: (name) => `${name} のロールを変更`,
@@ -123,6 +127,7 @@ export const members: typeof en = {
       'auth.login_failed': 'ログイン失敗',
       'member.invite': 'メンバーを招待',
       'member.accept': 'メンバー招待を承諾',
+      'member.sso_join': 'シングルサインオンで参加',
       'member.update': 'メンバーを更新',
       'member.delete': 'メンバーを削除',
       'project.create': 'プロジェクトを作成',

@@ -71,7 +71,8 @@ func usage() {
 
 environment: RWD_ADDR, RWD_DATA or RWD_DATABASE_URL, RWD_PUBLIC_URL, RWD_TRUST_PROXY=1,
              RWD_ADMIN_EMAIL, RWD_ADMIN_PASSWORD, RWD_METRICS_TOKEN, RWD_AUDIT_RETENTION_DAYS, RWD_DEMO_DIR,
-             RWD_MCP_RATE_LIMIT, RWD_DEMO_KEYS=1, RWD_LANG
+             RWD_MCP_RATE_LIMIT, RWD_DEMO_KEYS=1, RWD_LANG,
+             RWD_OIDC_PROVIDER (oidc, feishu or lark) and the other RWD_OIDC_* (see gateway/README.md)
 `)
 }
 
@@ -102,10 +103,11 @@ func serve(args []string) error {
 	defer st.Close()
 
 	retention, _ := strconv.Atoi(os.Getenv("RWD_AUDIT_RETENTION_DAYS"))
+	oidc := oidcConfig()
 	srv, err := server.New(ctx, server.Config{PublicURL: *public, TrustProxy: *trust,
 		AdminEmail: os.Getenv("RWD_ADMIN_EMAIL"), AdminPassword: os.Getenv("RWD_ADMIN_PASSWORD"),
 		MetricsToken: os.Getenv("RWD_METRICS_TOKEN"), AuditRetentionDays: retention,
-		DemoDir: *demo, MCPRateLimit: *mcpRate, DemoKeys: *demoKeys, Lang: lang, Version: version}, st, log)
+		DemoDir: *demo, MCPRateLimit: *mcpRate, DemoKeys: *demoKeys, Lang: lang, OIDC: oidc, Version: version}, st, log)
 	if err != nil {
 		return err
 	}
@@ -127,6 +129,27 @@ func serve(args []string) error {
 		return err
 	}
 	return nil
+}
+
+// oidcConfig reads RWD_OIDC_*; single sign-on is on once RWD_OIDC_PROVIDER
+// (or RWD_OIDC_ISSUER, meaning oidc) is set.
+func oidcConfig() *server.OIDCConfig {
+	provider := os.Getenv("RWD_OIDC_PROVIDER")
+	if provider == "" && os.Getenv("RWD_OIDC_ISSUER") != "" {
+		provider = server.ProviderOIDC
+	}
+	if provider == "" {
+		return nil
+	}
+	var domains []string
+	if d := os.Getenv("RWD_OIDC_ALLOWED_DOMAINS"); d != "" {
+		domains = strings.Split(d, ",")
+	}
+	return &server.OIDCConfig{Provider: provider, Name: os.Getenv("RWD_OIDC_NAME"), Issuer: os.Getenv("RWD_OIDC_ISSUER"),
+		AuthURL: os.Getenv("RWD_OIDC_AUTH_URL"), TokenURL: os.Getenv("RWD_OIDC_TOKEN_URL"), UserInfoURL: os.Getenv("RWD_OIDC_USERINFO_URL"),
+		ClientID: os.Getenv("RWD_OIDC_CLIENT_ID"), ClientSecret: os.Getenv("RWD_OIDC_CLIENT_SECRET"),
+		Scopes: os.Getenv("RWD_OIDC_SCOPES"), DefaultRole: os.Getenv("RWD_OIDC_DEFAULT_ROLE"),
+		InviteOnly: os.Getenv("RWD_OIDC_INVITE_ONLY") == "1", AllowedDomains: domains}
 }
 
 type bearer struct {

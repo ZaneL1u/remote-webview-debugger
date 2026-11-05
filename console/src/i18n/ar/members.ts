@@ -35,6 +35,10 @@ export const members: typeof en = {
   noName: '(بلا اسم)',
   you: 'أنت',
   neverSignedIn: 'لم يسجّل الدخول قط',
+  ssoBadgeTitle: (name) => `يسجّل الدخول عبر ${name}`,
+  ssoHint: (name, role) =>
+    `يمكن للزملاء أيضًا تسجيل الدخول عبر ${name}: أول تسجيل دخول يرتبط بالعضو صاحب البريد الإلكتروني نفسه، أو يُنشئ حسابًا بدور ${role}.`,
+  ssoInviteOnlyHint: (name) => `يمكن للزملاء الذين دعوت بريدهم الإلكتروني تسجيل الدخول أيضًا عبر ${name}.`,
   signedInAgo: (ago) => `سجّل الدخول ${ago}`,
   cantEditSelf: 'لا يمكنك تعديل نفسك',
   changeRole: (name) => `تغيير دور ${name}`,
@@ -124,6 +128,7 @@ export const members: typeof en = {
       'auth.login_failed': 'فشل تسجيل الدخول',
       'member.invite': 'دعوة عضو',
       'member.accept': 'قبول دعوة العضوية',
+      'member.sso_join': 'انضمام عبر تسجيل الدخول الموحّد',
       'member.update': 'تحديث عضو',
       'member.delete': 'إزالة عضو',
       'project.create': 'إنشاء مشروع',

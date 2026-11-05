@@ -48,6 +48,7 @@ On the server, `deploy.sh` produces:
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Days to keep the audit log |
 | `RWD_LANG` | `en` | Language of agent-facing text: `en`, `zh`, `zh-TW`, `fr`, `es`, `ru`, `ar`, `ja`, `ko`, `de` or `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | MCP requests per client IP per minute (no limit when unset); for a public demo, see [deploy/demo](../demo/README.md) |
+| `RWD_OIDC_PROVIDER`, `RWD_OIDC_*` | — | Single sign-on with Feishu, Lark or OpenID Connect, see [gateway/README](../../gateway/README.md#single-sign-on) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Address ranges (space-separated CIDRs, or Caddy's `private_ranges`) of the proxy in front of Caddy; see below |
 | `BIND` | `127.0.0.1` | Address Caddy is published on |
 | `PORT` | `18788` | Port Caddy is published on |

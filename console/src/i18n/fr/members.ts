@@ -37,6 +37,10 @@ export const members: typeof en = {
   noName: '(sans nom)',
   you: 'Vous',
   neverSignedIn: 'Jamais connecté',
+  ssoBadgeTitle: (name) => `Se connecte avec ${name}`,
+  ssoHint: (name, role) =>
+    `Vos collègues peuvent aussi se connecter avec ${name} : la première connexion rejoint le membre ayant la même adresse e-mail, ou crée un compte avec le rôle ${role}.`,
+  ssoInviteOnlyHint: (name) => `Les collègues dont vous avez invité l’adresse e-mail peuvent aussi se connecter avec ${name}.`,
   signedInAgo: (ago) => `Connecté ${ago}`,
   cantEditSelf: 'Vous ne pouvez pas modifier votre propre compte',
   changeRole: (name) => `Changer le rôle de ${name}`,
@@ -130,6 +134,7 @@ export const members: typeof en = {
       'auth.login_failed': 'Échec de connexion',
       'member.invite': 'Invitation d’un membre',
       'member.accept': 'Acceptation d’une invitation de membre',
+      'member.sso_join': 'Arrivée par authentification unique',
       'member.update': 'Modification d’un membre',
       'member.delete': 'Retrait d’un membre',
       'project.create': 'Création d’un projet',

@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -522,7 +522,9 @@ type Policy = {
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. 새 비밀번호는 8–256자여야 해요. 기존 비밀번호가 틀리면 `400 bad_password` |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302`로 SSO 공급자에게 보내고, 서명된 쿠키 `rwd_oidc`(state와 PKCE verifier, 10분)를 설정해요. SSO가 꺼져 있으면 `404` |
+| GET | `/auth/oidc/callback` | — | 공급자가 보낸 `code`와 `state` | 로그인한 뒤 `redirect`(콘솔 경로, 아니면 `/`)로 `302`. 실패하면 `/login?sso_error=<code>`로 `302`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso`는 `null`이거나, SSO가 켜져 있으면 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}`(7일 동안 한 번 유효). 이메일이 이미 있으면 `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. 활성 소유자가 한 명도 남지 않게 되면 `409 last_owner` |
@@ -531,6 +533,8 @@ type Policy = {
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}`, 그리고 로그인돼요. 로그인과 같은 속도 제한 적용 |
 
 첫 소유자는 게이트웨이가 시작할 때 `RWD_ADMIN_EMAIL`(기본값 `admin`)과 `RWD_ADMIN_PASSWORD`로 만들어져요([gateway/README.ko.md](../gateway/README.ko.md) 참고). 콘솔 페이지 `/invite/:token`에서 멤버 초대를 수락해요.
+
+Feishu, Lark 또는 OpenID Connect 공급자를 통한 SSO 로그인(`RWD_OIDC_*`, [gateway/README.ko.md](../gateway/README.ko.md#sso-로그인) 참고)은 비밀번호와 함께 쓸 수 있어요. 로그인 페이지의 버튼은 `/auth/oidc/start`를 열고, 공급자는 브라우저를 `/auth/oidc/callback`으로 돌려보내며, 여기서 같은 `rwd_session` 쿠키가 설정돼요. ID는 먼저 공급자의 subject로 찾고, 없으면 같은 이메일의 멤버와 연결하며(대기 중인 초대도 이때 수락돼요), 그것도 없으면 기본 역할로 새 계정을 만들어요. 단, 게이트웨이가 초대 전용이면 만들지 않아요. 이렇게 만든 계정도 일반 멤버라서, 소유자가 위와 같이 역할을 바꾸거나 비활성화하거나 삭제할 수 있어요.
 
 ### 12.3 프로젝트
 
@@ -589,7 +593,7 @@ API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로
 | 동작 | 시점 |
 |---|---|
 | `auth.login`, `auth.login_failed` | 콘솔 로그인 |
-| `member.invite`, `member.accept`, `member.update`, `member.delete` | 멤버 관리 |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | 멤버 관리 (`member.sso_join`: 첫 SSO 로그인 때 만들어진 계정. SSO로 로그인하면 `auth.login`에 `"method":"sso"`가 들어가요) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | 프로젝트 |
 | `key.create`, `key.revoke` | API 키 |
 | `invite.create`, `invite.delete`, `invite.use` | 기기 초대 |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* 초대를 아직 수락하지 않음 */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // SSO로 만든 계정은 false
+  sso: string[]                // 연결된 공급자: "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

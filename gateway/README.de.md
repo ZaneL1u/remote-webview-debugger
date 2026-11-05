@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | Deutsch | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd-Gateway
@@ -51,12 +51,47 @@ Jede Option hat eine Umgebungsvariable; eine auf der Kommandozeile angegebene Op
 | `RWD_ADMIN_PASSWORD` | — | Passwort des Inhabers. Wird beim Anlegen des Inhabers verwendet und setzt bei **jedem** weiteren Start das Passwort des durch `RWD_ADMIN_EMAIL` benannten Inhabers zurück, was zugleich als Kontowiederherstellung dient. Gehört diese E-Mail-Adresse keinem Inhaber (einem anderen Mitglied oder niemandem), wird sie ignoriert, und das Log sagt das und nennt die Inhaber. Ist sie bei leerer Datenbank nicht gesetzt, wird ein zufälliges Passwort erzeugt und einmalig ins Log geschrieben |
 | `RWD_METRICS_TOKEN` | — | Wenn gesetzt, verlangt `/v1/metrics` den Header `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Wie viele Tage das Audit-Log aufbewahrt wird |
+| `RWD_OIDC_*` | — | Single Sign-on, siehe [unten](#single-sign-on) |
 
 Außerdem wissenswert:
 
 - Geheimnisse, die das Gateway braucht (der Pepper für API-Keys und das Sitzungsgeheimnis der Konsole), werden beim ersten Start erzeugt und in der Datenbank gespeichert. Sichern Sie die Datenbank und halten Sie die Backups unter Verschluss.
 - Das Gateway hält den Live-Zustand (verbundene Seiten, Zustand der Steuerung, Zeitleisten) im Speicher; betreiben Sie daher eine Instanz pro Datenbank.
 - Healthcheck: `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## Single Sign-on
+
+Mitglieder können sich auch mit Feishu, Lark oder einem beliebigen OpenID-Connect-Anbieter (Keycloak, Okta, Microsoft Entra ID, Google, Authing, …) anmelden; E-Mail-Adresse und Passwort funktionieren weiterhin. Setzen Sie den Anbieter und seine Client-Zugangsdaten, dann zeigt die Anmeldeseite **Mit … anmelden**.
+
+| Umgebungsvariable | Standard | Beschreibung |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`, `lark` oder `oidc`; schaltet Single Sign-on ein. Ist nur `RWD_OIDC_ISSUER` gesetzt, gilt `oidc` |
+| `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | Zugangsdaten der App (App ID und App Secret bei Feishu und Lark). Erforderlich |
+| `RWD_OIDC_ISSUER` | — | OpenID-Connect-Issuer, z. B. `https://sso.example.com/realms/acme`; die Endpunkte werden aus seiner `/.well-known/openid-configuration` gelesen (nur `oidc`) |
+| `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | die des Anbieters | Überschreiben die Endpunkte; setzen Sie alle drei für einen OpenID-Connect-Anbieter ohne Discovery |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), keine (Feishu, Lark) | Durch Leerzeichen getrennte Scopes. Fügen Sie bei Feishu und Lark `contact:user.email:readonly` hinzu (und `contact:user.employee:readonly` für die Firmen-E-Mail-Adresse), damit Konten eine E-Mail-Adresse bekommen |
+| `RWD_OIDC_NAME` | der Name des Anbieters | Beschriftung der Anmeldeschaltfläche, z. B. `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | Rolle der Konten, die bei einer ersten Anmeldung angelegt werden: `member` oder `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | aus | Legt keine Konten an: Nur bestehende oder eingeladene Mitglieder (gleiche E-Mail-Adresse) können sich anmelden |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | Durch Kommas getrennte E-Mail-Domains, die sich anmelden dürfen, z. B. `example.com` |
+
+Registrieren Sie diese Weiterleitungs-URL beim Anbieter; sie muss exakt übereinstimmen: `https://<host>/v1/api/auth/oidc/callback`, also der Origin von `RWD_PUBLIC_URL` (ohne Wert der Origin der Anfrage), gefolgt von `/v1/api/auth/oidc/callback`. Setzen Sie hinter einem Proxy `RWD_PUBLIC_URL`, damit die URL stabil bleibt.
+
+Die erste Anmeldung einer Identität verknüpft sie mit dem Mitglied mit derselben E-Mail-Adresse (ein eingeladenes Mitglied behält die Rolle aus der Einladung, und die Einladung ist damit verbraucht) oder legt ein Konto mit `RWD_OIDC_DEFAULT_ROLE` an, außer bei `RWD_OIDC_INVITE_ONLY=1`. Spätere Anmeldungen finden das Konto über das Subject des Anbieters (`open_id` bei Feishu und Lark), sodass eine geänderte E-Mail-Adresse keine Rolle spielt. Eine E-Mail-Adresse, die ein OpenID-Connect-Anbieter mit `email_verified: false` kennzeichnet, wird ignoriert, und ein Konto ohne E-Mail-Adresse erhält den Anmeldenamen `<provider>:<subject>`. Inhaber verwalten diese Mitglieder auf der Seite **Mitglieder** wie alle anderen: Rolle ändern, deaktivieren oder entfernen; ein deaktiviertes Mitglied kann sich auf keinem der beiden Wege anmelden. Per Single Sign-on angelegte Konten haben kein Passwort. Das Gateway liest den Benutzer mit dem gerade erhaltenen Access Token vom Userinfo-Endpunkt des Anbieters (Authorization Code Flow mit PKCE); das ID-Token verwendet es nicht.
+
+**Feishu oder Lark.** Legen Sie auf der [Feishu Open Platform](https://open.feishu.cn/app) (Lark: [open.larksuite.com](https://open.larksuite.com/app)) eine eigene App (企业自建应用) an, die nur Personen in Ihrer Organisation nutzen können, und gehen Sie dann so vor:
+
+1. Kopieren Sie App ID und App Secret aus **Credentials & Basic Info** in `RWD_OIDC_CLIENT_ID` und `RWD_OIDC_CLIENT_SECRET`.
+2. Fügen Sie unter **Security Settings → Redirect URLs** die Weiterleitungs-URL von oben hinzu.
+3. Fügen Sie unter **Permissions & Scopes** `contact:user.email:readonly` hinzu (und `contact:user.employee:readonly` für die Firmen-E-Mail-Adresse), und tragen Sie dieselben Scopes in `RWD_OIDC_SCOPES` ein.
+4. Beschränken Sie die Verfügbarkeit der App auf die Personen, die sich anmelden sollen, und erstellen und veröffentlichen Sie eine Version, damit die Einstellungen wirksam werden.
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## Einen Agent verbinden
 

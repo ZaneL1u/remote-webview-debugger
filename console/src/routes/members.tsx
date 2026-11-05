@@ -31,7 +31,8 @@ import { useT } from '@/i18n'
 import { api } from '@/lib/api'
 import { formatDate, formatDay, relativeTime } from '@/lib/format'
 import { can, roleDescriptions, roleLabels, useMe } from '@/lib/permissions'
-import { membersQuery } from '@/lib/queries'
+import { configQuery, membersQuery } from '@/lib/queries'
+import { ssoName } from '@/lib/sso'
 import type { CreatedMember, Member, Role } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -45,6 +46,7 @@ export function MembersPage() {
   const manage = can(me, 'member.manage')
   const members = useQuery({ ...membersQuery, enabled: allowed })
   const [inviteOpen, setInviteOpen] = useState(false)
+  const sso = useQuery(configQuery).data?.sso
 
   const sorted = members.data
     ? [...members.data].sort(
@@ -78,6 +80,14 @@ export function MembersPage() {
             <CardTitle>{t.allMembers}</CardTitle>
             <CardDescription>
               {manage ? t.manageHint : t.viewHint}
+              {manage && sso && (
+                <>
+                  {' '}
+                  {sso.inviteOnly
+                    ? t.ssoInviteOnlyHint(ssoName(sso))
+                    : t.ssoHint(ssoName(sso), roleLabels[sso.defaultRole])}
+                </>
+              )}
             </CardDescription>
             {members.data && (
               <CardAction>
@@ -208,6 +218,7 @@ function MemberList({ members, selfId, manage }: { members: Member[]; selfId?: s
 
 function Identity({ m, self }: { m: Member; self: boolean }) {
   const t = useT().members
+  const sso = useQuery(configQuery).data?.sso
   return (
     <div className="flex min-w-0 items-center gap-3">
       <Avatar m={m} />
@@ -215,6 +226,11 @@ function Identity({ m, self }: { m: Member; self: boolean }) {
         <p className={cn('flex items-center gap-1.5 truncate font-medium', m.disabled && 'text-muted-foreground')}>
           <span className="truncate">{m.name || t.noName}</span>
           {self && <Badge variant="outline">{t.you}</Badge>}
+          {m.sso?.map((kind) => (
+            <Badge key={kind} variant="muted" title={t.ssoBadgeTitle(ssoName(sso, kind))}>
+              {ssoName(sso, kind)}
+            </Badge>
+          ))}
         </p>
         <p className="truncate text-xs text-muted-foreground">{m.email}</p>
       </div>

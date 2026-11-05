@@ -521,7 +521,9 @@ Roles: `owner` (everything, including members), `admin` (projects, keys, policie
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. The new password must be 8–256 characters; `400 bad_password` if the old one is wrong |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` to the single sign-on provider, with a signed cookie `rwd_oidc` (state and PKCE verifier, 10 minutes). `404` without single sign-on |
+| GET | `/auth/oidc/callback` | — | the provider's `code` and `state` | Signs in and `302` to `redirect` (a console path, else `/`). On failure `302` to `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` is `null`, or `{"provider","name","defaultRole","inviteOnly"}` when single sign-on is on |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (valid for 7 days, once). `409 conflict` if the email exists |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` if no active owner would be left |
@@ -530,6 +532,8 @@ Roles: `owner` (everything, including members), `admin` (projects, keys, policie
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` and signs in. Rate-limited like login |
 
 The first owner is created at startup from `RWD_ADMIN_EMAIL` (default `admin`) and `RWD_ADMIN_PASSWORD` (see [gateway/README.md](../gateway/README.md)). The console page `/invite/:token` accepts a member invite.
+
+Single sign-on with Feishu, Lark or an OpenID Connect provider (`RWD_OIDC_*`, see [gateway/README.md](../gateway/README.md#single-sign-on)) works next to passwords. The login page's button opens `/auth/oidc/start`; the provider sends the browser back to `/auth/oidc/callback`, which sets the same `rwd_session` cookie. An identity is found by the provider's subject, else linked to the member with the same email (which also accepts a pending invite), else gets a new account with the default role unless the gateway is invite-only. Such accounts are ordinary members: owners change their role, disable or remove them as above.
 
 ### 12.3 Projects
 
@@ -588,7 +592,7 @@ An invite lets a user bring their device online, already requesting assistance, 
 | Action | When |
 |---|---|
 | `auth.login`, `auth.login_failed` | Console sign-in |
-| `member.invite`, `member.accept`, `member.update`, `member.delete` | Member management |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Member management (`member.sso_join`: an account created at a first single sign-on; `auth.login` then has `"method":"sso"`) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projects |
 | `key.create`, `key.revoke` | API keys |
 | `invite.create`, `invite.delete`, `invite.use` | Device invites |
@@ -670,6 +674,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* invite not accepted yet */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // false for accounts created by single sign-on
+  sso: string[]                // linked providers: "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

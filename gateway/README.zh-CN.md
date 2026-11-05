@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
@@ -51,12 +51,47 @@ rwd version                             打印版本号
 | `RWD_ADMIN_PASSWORD` | — | owner 密码。创建 owner 时使用；之后**每次启动**都会重设 `RWD_ADMIN_EMAIL` 所指 owner 的密码，所以也能用来找回账号。如果这个邮箱不是 owner 的（是别的成员，或者不存在），则忽略并在日志里说明，同时列出现有 owner。没有设置且数据库为空时，会随机生成一个密码，并在日志里打印一次 |
 | `RWD_METRICS_TOKEN` | — | 设置后，访问 `/v1/metrics` 需要 `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 审计日志保留天数 |
+| `RWD_OIDC_*` | — | 单点登录，见[下文](#单点登录) |
 
 其他需要知道的：
 
 - 网关需要的密钥（API Key 的 pepper 和控制台会话密钥）在首次启动时生成并保存在数据库里。请备份数据库，并妥善保管备份。
 - 网关把实时状态（已连接的页面、控制状态、时间线）放在内存里，所以一个数据库只运行一个实例。
 - 健康检查：`GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`。
+
+## 单点登录
+
+成员也可以用飞书、Lark 或任意 OpenID Connect 提供方（Keycloak、Okta、Microsoft Entra ID、Google、Authing 等）登录，邮箱加密码照常可用。设置好提供方和它的客户端凭证后，登录页会出现「使用 … 登录」按钮。
+
+| 环境变量 | 默认值 | 说明 |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`、`lark` 或 `oidc`，设置后开启单点登录。只设置 `RWD_OIDC_ISSUER` 时视为 `oidc` |
+| `RWD_OIDC_CLIENT_ID`、`RWD_OIDC_CLIENT_SECRET` | — | 应用的凭证（飞书和 Lark 即 App ID 和 App Secret）。必填 |
+| `RWD_OIDC_ISSUER` | — | OpenID Connect issuer，如 `https://sso.example.com/realms/acme`；各端点从它的 `/.well-known/openid-configuration` 读取（仅 `oidc`） |
+| `RWD_OIDC_AUTH_URL`、`RWD_OIDC_TOKEN_URL`、`RWD_OIDC_USERINFO_URL` | 提供方的默认端点 | 覆盖端点；OpenID Connect 提供方不支持自动发现时，三个都要设置 |
+| `RWD_OIDC_SCOPES` | `openid profile email`（`oidc`），飞书和 Lark 为空 | 空格分隔的 scope。飞书和 Lark 请加上 `contact:user.email:readonly`（要拿企业邮箱再加 `contact:user.employee:readonly`），账号才有邮箱 |
+| `RWD_OIDC_NAME` | 提供方名称 | 登录按钮上显示的名字，如 `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | 首次登录时新建账号的角色：`member` 或 `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | 关闭 | 不新建账号：只有已有成员或受邀成员（邮箱相同）能登录 |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | 允许登录的邮箱域名，逗号分隔，如 `example.com` |
+
+在提供方那里登记下面这个重定向 URL，必须完全一致：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未设置时取请求的 origin）加上 `/v1/api/auth/oidc/callback`。放在代理后面时请设置 `RWD_PUBLIC_URL`，让这个 URL 保持不变。
+
+一个身份第一次登录时，会关联到同邮箱的成员（受邀成员保留邀请时的角色，邀请随即用掉）；没有的话就以 `RWD_OIDC_DEFAULT_ROLE` 新建账号，除非设置了 `RWD_OIDC_INVITE_ONLY=1`。之后的登录按提供方的 subject（飞书和 Lark 为 `open_id`）找到账号，所以邮箱改了也不影响。OpenID Connect 提供方标为 `email_verified: false` 的邮箱会被忽略；没有邮箱的账号，登录名是 `<provider>:<subject>`。owner 在「成员」页面像管理其他人一样管理这些成员：修改角色、停用或删除；被停用的成员两种方式都登录不了。单点登录创建的账号没有密码。网关用刚拿到的 access token 从提供方的 userinfo 端点读取用户信息（带 PKCE 的授权码流程），不使用 ID token。
+
+**飞书或 Lark。** 在[飞书开放平台](https://open.feishu.cn/app)（Lark 为 [open.larksuite.com](https://open.larksuite.com/app)）创建一个企业自建应用，只有本组织的人能用，然后：
+
+1. 把「凭证与基础信息」里的 App ID 和 App Secret 填到 `RWD_OIDC_CLIENT_ID` 和 `RWD_OIDC_CLIENT_SECRET`。
+2. 在「安全设置 → 重定向 URL」里添加上面的重定向 URL。
+3. 在「权限管理」里开通 `contact:user.email:readonly`（要拿企业邮箱再开通 `contact:user.employee:readonly`），并在 `RWD_OIDC_SCOPES` 里写上同样的 scope。
+4. 把应用的「可用范围」设为需要登录的人，然后「创建版本并发布」，配置才会生效。
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## 接入 agent
 

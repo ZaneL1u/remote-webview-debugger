@@ -1,4 +1,4 @@
-<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+<!-- i18n-source: 633220a8fe1b3ddd3a313fd33ae0414507b2953f -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose 배포
@@ -49,6 +49,7 @@ Docker 호스트에서 게이트웨이를 실행하고, 그 앞에 작은 [Caddy
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 감사 로그 보관 일수 |
 | `RWD_LANG` | `en` | 에이전트용 문구의 언어: `en`, `zh`, `zh-TW`, `fr`, `es`, `ru`, `ar`, `ja`, `ko`, `de` 또는 `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | 클라이언트 IP당 분당 MCP 요청 수 (설정하지 않으면 제한 없음). 공개 데모용이에요. [deploy/demo](../demo/README.md) 참고 |
+| `RWD_OIDC_PROVIDER`, `RWD_OIDC_*` | — | Feishu, Lark 또는 OpenID Connect를 통한 SSO 로그인. [gateway/README](../../gateway/README.ko.md#sso-로그인) 참고 |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Caddy 앞에 있는 프록시의 주소 대역 (공백으로 구분한 CIDR, 또는 Caddy의 `private_ranges`). 아래 참고 |
 | `BIND` | `127.0.0.1` | Caddy를 공개할 주소 |
 | `PORT` | `18788` | Caddy를 공개할 포트 |

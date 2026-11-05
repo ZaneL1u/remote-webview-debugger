@@ -1,4 +1,4 @@
-<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+<!-- i18n-source: 633220a8fe1b3ddd3a313fd33ae0414507b2953f -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Implantação com Docker Compose
@@ -49,6 +49,7 @@ No servidor, o `deploy.sh` gera:
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Dias de retenção do log de auditoria |
 | `RWD_LANG` | `en` | Idioma dos textos voltados ao agente: `en`, `zh`, `zh-TW`, `fr`, `es`, `ru`, `ar`, `ja`, `ko`, `de` ou `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | Requisições MCP por IP de cliente por minuto (sem limite quando não definida); para uma demo pública, veja [deploy/demo](../demo/README.md) |
+| `RWD_OIDC_PROVIDER`, `RWD_OIDC_*` | — | Login único com Feishu, Lark ou OpenID Connect, veja o [gateway/README](../../gateway/README.pt-BR.md#login-único) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Faixas de endereços (CIDRs separados por espaço, ou o `private_ranges` do Caddy) do proxy que fica na frente do Caddy; veja abaixo |
 | `BIND` | `127.0.0.1` | Endereço em que o Caddy é publicado |
 | `PORT` | `18788` | Porta em que o Caddy é publicado |

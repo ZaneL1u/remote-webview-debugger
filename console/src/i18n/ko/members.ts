@@ -34,6 +34,10 @@ export const members: typeof en = {
   noName: '(이름 없음)',
   you: '나',
   neverSignedIn: '로그인한 적 없음',
+  ssoBadgeTitle: (name) => `${name}(으)로 로그인`,
+  ssoHint: (name, role) =>
+    `동료는 ${name}(으)로도 로그인할 수 있어요. 처음 로그인하면 같은 이메일의 멤버와 연결되고, 없으면 ${role} 역할의 계정이 만들어져요.`,
+  ssoInviteOnlyHint: (name) => `이메일을 초대한 동료는 ${name}(으)로도 로그인할 수 있어요.`,
   signedInAgo: (ago) => `${ago} 로그인`,
   cantEditSelf: '자기 자신은 편집할 수 없어요',
   changeRole: (name) => `${name} 님의 역할 변경`,
@@ -123,6 +127,7 @@ export const members: typeof en = {
       'auth.login_failed': '로그인 실패',
       'member.invite': '멤버 초대',
       'member.accept': '멤버 초대 수락',
+      'member.sso_join': 'SSO로 참여',
       'member.update': '멤버 변경',
       'member.delete': '멤버 삭제',
       'project.create': '프로젝트 만들기',

@@ -33,6 +33,10 @@ export const members = {
   noName: '(no name)',
   you: 'You',
   neverSignedIn: 'Never signed in',
+  ssoBadgeTitle: (name: string) => `Signs in with ${name}`,
+  ssoHint: (name: string, role: string) =>
+    `Colleagues can also sign in with ${name}: a first sign-in joins the member with the same email, or creates an account with the ${role} role.`,
+  ssoInviteOnlyHint: (name: string) => `Colleagues can also sign in with ${name}, once you’ve invited their email.`,
   signedInAgo: (ago: string) => `Signed in ${ago}`,
   cantEditSelf: 'Can’t edit yourself',
   changeRole: (name: string) => `Change role for ${name}`,
@@ -122,6 +126,7 @@ export const members = {
       'auth.login_failed': 'Failed sign-in',
       'member.invite': 'Invite member',
       'member.accept': 'Accept member invite',
+      'member.sso_join': 'Joined via single sign-on',
       'member.update': 'Update member',
       'member.delete': 'Remove member',
       'project.create': 'Create project',

@@ -56,6 +56,19 @@ export const shell: typeof en = {
     tooManyAttempts: '시도 횟수가 너무 많아요. 잠시 후 다시 시도해 주세요.',
     emailRequired: '이메일을 입력해 주세요',
     passwordRequired: '비밀번호를 입력해 주세요',
+    providers: { feishu: 'Feishu', lark: 'Lark', oidc: 'SSO' },
+    sso: (name) => `${name}(으)로 로그인`,
+    or: '또는',
+    ssoErrors: {
+      provider:
+        'SSO 로그인에 실패했어요. 게이트웨이가 ID 공급자에 연결하지 못했거나 공급자가 로그인을 거부했어요. 다시 시도하거나 소유자에게 게이트웨이 로그를 확인해 달라고 요청하세요.',
+      denied: 'ID 공급자에서 로그인을 취소했어요.',
+      state: '로그인이 만료됐거나 다른 브라우저에서 시작됐어요. 다시 시도해 주세요.',
+      not_allowed: '이 이메일 도메인으로는 이 콘솔에 로그인할 수 없어요.',
+      no_account: '아직 이 콘솔에 계정이 없어요. 소유자에게 이메일 초대를 요청하세요.',
+      disabled: '이 계정은 비활성화됐어요. 프로젝트 소유자에게 문의해 주세요.',
+      rate_limited: '시도 횟수가 너무 많아요. 잠시 후 다시 시도해 주세요.',
+    },
   },
 
   invite: {

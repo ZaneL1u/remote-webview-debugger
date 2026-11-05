@@ -1,21 +1,25 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { LoaderCircleIcon, LockKeyholeIcon, MailIcon } from 'lucide-react'
+import { LoaderCircleIcon, LockKeyholeIcon, LogInIcon, MailIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { AuthLayout } from '@/components/auth-layout'
-import { Button } from '@/components/ui/button'
+import { Callout } from '@/components/callout'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
 import { ApiError, api, errorMessage } from '@/lib/api'
-import { meQuery } from '@/lib/queries'
+import { configQuery, meQuery } from '@/lib/queries'
+import { ssoName, ssoStartUrl } from '@/lib/sso'
+import { cn } from '@/lib/utils'
 
 const route = getRouteApi('/login')
 
 export function LoginPage() {
-  const { redirect } = route.useSearch()
+  const { redirect, sso_error: ssoError } = route.useSearch()
+  const sso = useQuery(configQuery).data?.sso
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const t = useT()
@@ -51,7 +55,26 @@ export function LoginPage() {
             <CardTitle>{t.shell.login.title}</CardTitle>
             <CardDescription>{t.shell.login.description}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {ssoError && (
+              <Callout tone="destructive">
+                <p>{(t.shell.login.ssoErrors as Record<string, string>)[ssoError] ?? t.shell.login.ssoErrors.provider}</p>
+              </Callout>
+            )}
+            {sso && (
+              <>
+                {/* A full page load: the gateway redirects to the provider and back (docs/protocol.md section 12.2). */}
+                <a href={ssoStartUrl(redirect)} className={cn(buttonVariants(), 'w-full')}>
+                  <LogInIcon />
+                  {t.shell.login.sso(ssoName(sso))}
+                </a>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground" role="separator">
+                  <span className="h-px flex-1 bg-border" />
+                  {t.shell.login.or}
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              </>
+            )}
             <form
               className="space-y-4"
               onSubmit={(e) => {
@@ -99,7 +122,7 @@ export function LoginPage() {
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
               </div>
-              <Button type="submit" className="w-full" disabled={login.isPending}>
+              <Button type="submit" variant={sso ? 'outline' : 'default'} className="w-full" disabled={login.isPending}>
                 {login.isPending && <LoaderCircleIcon className="animate-spin" />}
                 {t.shell.login.submit}
               </Button>

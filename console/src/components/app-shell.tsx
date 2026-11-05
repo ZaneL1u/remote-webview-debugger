@@ -162,10 +162,13 @@ export function AppShell() {
                   </DropdownMenuRadioGroup>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setPasswordOpen(true)}>
-                  <KeyRoundIcon />
-                  {t.shell.nav.changePassword}
-                </DropdownMenuItem>
+                {/* Single sign-on accounts have no password to change. */}
+                {me?.hasPassword !== false && (
+                  <DropdownMenuItem onClick={() => setPasswordOpen(true)}>
+                    <KeyRoundIcon />
+                    {t.shell.nav.changePassword}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => logout.mutate()}>
                   <LogOutIcon />
                   {t.shell.nav.logout}

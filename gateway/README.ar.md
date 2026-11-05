@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -61,12 +61,51 @@ rwd version                             print the version
 | `RWD_ADMIN_PASSWORD` | — | كلمة مرور المالك. تُستخدم عند إنشاء المالك، ثم عند **كل** تشغيل لاحق لإعادة تعيين كلمة مرور المالك المحدد بـ `RWD_ADMIN_EMAIL`، وهو ما يصلح أيضًا لاستعادة الحساب. إذا لم يكن هذا البريد لمالك (بل لعضو آخر، أو لا يخص أحدًا)، تُتجاهل القيمة ويذكر السجل ذلك مع أسماء المالكين. وإذا لم تُضبط وكانت قاعدة البيانات فارغة، تُولَّد كلمة مرور عشوائية وتُطبع مرة واحدة في السجل |
 | `RWD_METRICS_TOKEN` | — | عند ضبطه، يتطلب `/v1/metrics` الترويسة `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | عدد أيام الاحتفاظ بسجل التدقيق |
+| `RWD_OIDC_*` | — | تسجيل الدخول الموحّد، راجع [أدناه](#تسجيل-الدخول-الموحّد) |
 
 أمور أخرى تستحق المعرفة:
 
 - الأسرار التي تحتاجها البوابة (قيمة pepper لمفاتيح API وسرّ جلسات لوحة التحكم) تُولَّد عند أول تشغيل وتُخزَّن في قاعدة البيانات. احتفظ بنسخ احتياطية من قاعدة البيانات وأبقِها خاصة.
 - تحتفظ البوابة بالحالة الحية (الصفحات المتصلة، وحالة التحكم، والخطوط الزمنية) في الذاكرة، لذا شغّل نسخة واحدة فقط لكل قاعدة بيانات.
 - فحص السلامة: `GET /v1/healthz` ← `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## تسجيل الدخول الموحّد
+
+يمكن للأعضاء أيضًا تسجيل الدخول عبر Feishu أو Lark أو أي مزوّد OpenID Connect (Keycloak، وOkta، وMicrosoft Entra ID، وGoogle، وAuthing، …)؛ ويظل تسجيل الدخول بالبريد الإلكتروني وكلمة المرور متاحًا. اضبط المزوّد وبيانات اعتماد العميل الخاصة به، فتعرض صفحة تسجيل الدخول الزر **تسجيل الدخول عبر …**.
+
+| متغير البيئة | القيمة الافتراضية | الوصف |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu` أو `lark` أو `oidc`؛ يفعّل تسجيل الدخول الموحّد. ضبط `RWD_OIDC_ISSUER` وحده يعني `oidc` |
+| `RWD_OIDC_CLIENT_ID`، `RWD_OIDC_CLIENT_SECRET` | — | بيانات اعتماد التطبيق (App ID و App Secret في Feishu و Lark). إلزامية |
+| `RWD_OIDC_ISSUER` | — | جهة الإصدار (issuer) في OpenID Connect، مثل `https://sso.example.com/realms/acme`؛ وتُقرأ نقاط النهاية من `/.well-known/openid-configuration` الخاص بها (لـ `oidc` فقط) |
+| `RWD_OIDC_AUTH_URL`، `RWD_OIDC_TOKEN_URL`، `RWD_OIDC_USERINFO_URL` | نقاط نهاية المزوّد | تتجاوز نقاط النهاية؛ اضبط الثلاثة جميعًا لمزوّد OpenID Connect لا يدعم الاكتشاف (discovery) |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`)، ولا شيء (Feishu، Lark) | نطاقات صلاحيات (scopes) مفصولة بمسافات. في Feishu و Lark أضف `contact:user.email:readonly` (و `contact:user.employee:readonly` للبريد الإلكتروني المؤسسي) كي تحصل الحسابات على بريد إلكتروني |
+| `RWD_OIDC_NAME` | اسم المزوّد | تسمية زر تسجيل الدخول، مثل `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | دور الحسابات التي تُنشأ عند أول تسجيل دخول: `member` أو `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | معطَّل | لا تُنشأ أي حسابات: لا يستطيع تسجيل الدخول إلا الأعضاء الحاليون أو المدعوون (بالبريد الإلكتروني نفسه) |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | نطاقات البريد الإلكتروني المسموح لها بتسجيل الدخول، مفصولة بفواصل، مثل `example.com` |
+
+سجّل عنوان إعادة التوجيه هذا لدى المزوّد، ويجب أن يتطابق تمامًا: `https://<host>/v1/api/auth/oidc/callback`، أي أصل (origin) `RWD_PUBLIC_URL` (أو أصل الطلب إن لم يُضبط) متبوعًا بـ `/v1/api/auth/oidc/callback`. وخلف بروكسي، اضبط `RWD_PUBLIC_URL` كي يبقى العنوان ثابتًا.
+
+عند أول تسجيل دخول لهوية ما، تنضم إلى العضو صاحب البريد الإلكتروني نفسه (ويحتفظ العضو المدعو بالدور الذي دُعي به، وتُستهلك الدعوة)، أو يُنشأ حساب بالدور `RWD_OIDC_DEFAULT_ROLE` ما لم يُضبط `RWD_OIDC_INVITE_ONLY=1`. وفي المرات التالية يُعثر على الحساب بمعرّف subject لدى المزوّد (`open_id` في Feishu و Lark)، فلا يضر تغيّر البريد الإلكتروني. يُتجاهل البريد الإلكتروني الذي يصفه مزوّد OpenID Connect بأنه `email_verified: false`، ويحصل الحساب الذي لا بريد له على اسم الدخول `<provider>:<subject>`. يدير المالكون هؤلاء الأعضاء في صفحة **الأعضاء** كغيرهم: يغيّرون دورهم أو يعطّلونهم أو يحذفونهم؛ والعضو المعطَّل لا يستطيع تسجيل الدخول بأي من الطريقتين. الحسابات التي أنشأها تسجيل الدخول الموحّد ليست لها كلمة مرور. تقرأ البوابة بيانات المستخدم من نقطة النهاية userinfo لدى المزوّد باستخدام access token الذي تلقّته للتو (تدفق authorization code مع PKCE)؛ ولا تستخدم ID token.
+
+**Feishu أو Lark.** على [Feishu Open Platform](https://open.feishu.cn/app) (وفي Lark: [open.larksuite.com](https://open.larksuite.com/app))، أنشئ تطبيقًا مخصّصًا (企业自建应用) لا يستخدمه إلا أفراد مؤسستك، ثم:
+
+1. انسخ App ID و App Secret من **Credentials & Basic Info** إلى `RWD_OIDC_CLIENT_ID` و `RWD_OIDC_CLIENT_SECRET`.
+2. في **Security Settings → Redirect URLs**، أضف عنوان إعادة التوجيه المذكور أعلاه.
+3. في **Permissions & Scopes**، أضف `contact:user.email:readonly` (و `contact:user.employee:readonly` للبريد الإلكتروني المؤسسي)، وأدرج النطاقات نفسها في `RWD_OIDC_SCOPES`.
+4. اجعل التطبيق متاحًا للأشخاص الذين ينبغي أن يسجّلوا الدخول، ثم أنشئ إصدارًا وانشره كي تسري الإعدادات.
+
+<div dir="ltr">
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
+
+</div>
 
 ## ربط الوكيل
 

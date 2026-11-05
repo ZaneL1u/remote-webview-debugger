@@ -34,6 +34,10 @@ export const members: typeof en = {
   noName: '(sin nombre)',
   you: 'Tú',
   neverSignedIn: 'Nunca ha iniciado sesión',
+  ssoBadgeTitle: (name) => `Inicia sesión con ${name}`,
+  ssoHint: (name, role) =>
+    `Tus compañeros también pueden iniciar sesión con ${name}: la primera vez se vinculan al miembro con el mismo correo electrónico o se crea una cuenta con el rol ${role}.`,
+  ssoInviteOnlyHint: (name) => `Los compañeros cuyo correo electrónico hayas invitado también pueden iniciar sesión con ${name}.`,
   signedInAgo: (ago) => `Inició sesión ${ago}`,
   cantEditSelf: 'No puedes editarte a ti mismo',
   changeRole: (name) => `Cambiar el rol de ${name}`,
@@ -124,6 +128,7 @@ export const members: typeof en = {
       'auth.login_failed': 'Inicio de sesión fallido',
       'member.invite': 'Invitar a un miembro',
       'member.accept': 'Aceptar invitación de miembro',
+      'member.sso_join': 'Unirse con inicio de sesión único',
       'member.update': 'Actualizar miembro',
       'member.delete': 'Quitar miembro',
       'project.create': 'Crear proyecto',

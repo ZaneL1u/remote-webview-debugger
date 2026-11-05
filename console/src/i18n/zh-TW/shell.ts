@@ -1,5 +1,8 @@
 import type { shell as en } from '../en/shell'
 
+/** A space around Latin names, none around Chinese ones (使用 SSO 登录, 使用飞书登录). */
+const pad = (name: string) => (/^[\x00-\x7f]/.test(name) ? ` ${name} ` : name)
+
 export const shell: typeof en = {
   tagline: '讓 AI 遠端除錯 App 裡的每一個 WebView',
   language: '語言',
@@ -46,6 +49,18 @@ export const shell: typeof en = {
     tooManyAttempts: '嘗試次數過多，請稍後再試',
     emailRequired: '請輸入電子郵件',
     passwordRequired: '請輸入密碼',
+    providers: { feishu: '飛書', lark: 'Lark', oidc: 'SSO' },
+    sso: (name) => `使用${pad(name)}登入`,
+    or: '或',
+    ssoErrors: {
+      provider: '單一登入失敗：閘道連不上身分提供者，或身分提供者拒絕了這次登入。請重試，或請擁有者查看閘道記錄。',
+      denied: '已在身分提供者取消登入',
+      state: '登入已過期，或是在另一個瀏覽器發起的，請重試',
+      not_allowed: '你的電子郵件網域不允許登入這個主控台',
+      no_account: '你在這個主控台還沒有帳號，請擁有者先邀請你的電子郵件',
+      disabled: '這個帳號已停用，請聯絡專案擁有者',
+      rate_limited: '嘗試次數過多，請稍後再試',
+    },
   },
 
   invite: {

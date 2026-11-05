@@ -29,11 +29,20 @@ func (s *Server) routes(mux *http.ServeMux) {
 		s.clearSession(w, r)
 		writeJSON(w, map[string]bool{"ok": true})
 	})
-	mux.HandleFunc("GET /v1/api/me", member(func(w http.ResponseWriter, r *http.Request) { writeJSON(w, currentUser(r)) }))
+	mux.HandleFunc("GET /v1/api/auth/oidc/start", s.oidcStart)
+	mux.HandleFunc("GET /v1/api/auth/oidc/callback", s.oidcCallback)
+	mux.HandleFunc("GET /v1/api/me", member(func(w http.ResponseWriter, r *http.Request) {
+		u := currentUser(r)
+		if err := s.store.AttachSSO(r.Context(), u); err != nil {
+			s.storeErr(w, r, err)
+			return
+		}
+		writeJSON(w, u)
+	}))
 	mux.HandleFunc("POST /v1/api/me/password", member(s.changePassword))
 	mux.HandleFunc("GET /v1/api/config", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, map[string]string{"gatewayUrl": s.GatewayURL(r), "version": s.cfg.Version,
-			"sdkVersion": s.sdkVersion, "sdkIntegrity": s.sdkIntegrity})
+		writeJSON(w, map[string]any{"gatewayUrl": s.GatewayURL(r), "version": s.cfg.Version,
+			"sdkVersion": s.sdkVersion, "sdkIntegrity": s.sdkIntegrity, "sso": s.ssoConfig()})
 	})
 
 	mux.HandleFunc("GET /v1/api/members", admin(s.listMembers))
@@ -131,6 +140,9 @@ func (s *Server) changePassword(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) listMembers(w http.ResponseWriter, r *http.Request) {
 	users, err := s.store.Users(r.Context())
+	if err == nil {
+		err = s.store.AttachSSO(r.Context(), users...)
+	}
 	if err != nil {
 		s.storeErr(w, r, err)
 		return
@@ -205,6 +217,9 @@ func (s *Server) updateMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u, err := s.store.UpdateUser(r.Context(), target.ID, p)
+	if err == nil {
+		err = s.store.AttachSSO(r.Context(), u)
+	}
 	if err != nil {
 		s.storeErr(w, r, err)
 		return

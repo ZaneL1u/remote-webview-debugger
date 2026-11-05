@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 게이트웨이
@@ -51,12 +51,47 @@ rwd version                             버전 출력
 | `RWD_ADMIN_PASSWORD` | — | 소유자 비밀번호. 소유자를 만들 때 쓰이고, 이후 **매번** 시작할 때 `RWD_ADMIN_EMAIL`로 지정한 소유자의 비밀번호를 재설정해요. 계정 복구 수단도 겸해요. 그 이메일이 소유자의 것이 아니면(다른 멤버이거나 아무도 아니면) 무시되고, 로그에 그 사실과 소유자 목록이 남아요. 빈 데이터베이스에서 설정하지 않으면 무작위 비밀번호를 만들어 로그에 한 번 출력해요 |
 | `RWD_METRICS_TOKEN` | — | 설정하면 `/v1/metrics`에 `Authorization: Bearer <token>`이 필요해요 |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 감사 로그 보관 일수 |
+| `RWD_OIDC_*` | — | SSO 로그인. [아래](#sso-로그인) 참고 |
 
 그 밖에 알아 둘 것:
 
 - 게이트웨이에 필요한 비밀 값(API 키 pepper와 콘솔 세션 비밀 값)은 첫 시작 때 생성돼 데이터베이스에 저장돼요. 데이터베이스를 백업하고, 백업은 외부에 노출되지 않게 보관하세요.
 - 게이트웨이는 실시간 상태(연결된 페이지, 제어 상태, 타임라인)를 메모리에 두므로, 데이터베이스 하나당 인스턴스는 하나만 실행하세요.
 - 헬스 체크: `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## SSO 로그인
+
+멤버는 Feishu, Lark 또는 임의의 OpenID Connect 공급자(Keycloak, Okta, Microsoft Entra ID, Google, Authing 등)로도 로그인할 수 있어요. 이메일과 비밀번호 로그인도 그대로 쓸 수 있어요. 공급자와 클라이언트 자격 증명을 설정하면 로그인 페이지에 **…(으)로 로그인** 버튼이 나타나요.
+
+| 환경 변수 | 기본값 | 설명 |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`, `lark` 또는 `oidc`. 설정하면 SSO가 켜져요. `RWD_OIDC_ISSUER`만 설정하면 `oidc`로 간주해요 |
+| `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | 앱의 자격 증명(Feishu와 Lark에서는 App ID와 App Secret). 필수예요 |
+| `RWD_OIDC_ISSUER` | — | OpenID Connect issuer. 예: `https://sso.example.com/realms/acme`. 엔드포인트는 issuer의 `/.well-known/openid-configuration`에서 읽어요 (`oidc` 전용) |
+| `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | 공급자 기본값 | 엔드포인트를 덮어써요. 디스커버리를 지원하지 않는 OpenID Connect 공급자라면 세 개 모두 설정하세요 |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), 없음 (Feishu, Lark) | 공백으로 구분한 scope. Feishu와 Lark에서는 계정에 이메일이 들어가도록 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하세요 |
+| `RWD_OIDC_NAME` | 공급자 이름 | 로그인 버튼에 표시할 이름. 예: `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | 첫 로그인 때 만들어지는 계정의 역할: `member` 또는 `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | 꺼짐 | 계정을 만들지 않아요. 기존 멤버나 초대받은 멤버(같은 이메일)만 로그인할 수 있어요 |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | 로그인을 허용할 이메일 도메인(쉼표로 구분). 예: `example.com` |
+
+공급자에 다음 리디렉션 URL을 등록하세요. 정확히 일치해야 해요: `https://<host>/v1/api/auth/oidc/callback`. 즉 `RWD_PUBLIC_URL`의 origin(설정하지 않았으면 요청의 origin) 뒤에 `/v1/api/auth/oidc/callback`을 붙인 주소예요. 프록시 뒤에서는 URL이 바뀌지 않도록 `RWD_PUBLIC_URL`을 설정하세요.
+
+어떤 ID로 처음 로그인하면 같은 이메일의 멤버와 연결되거나(초대받은 멤버는 초대된 역할을 유지하고, 초대는 사용 처리돼요), `RWD_OIDC_INVITE_ONLY=1`이 아니면 `RWD_OIDC_DEFAULT_ROLE` 역할로 계정이 만들어져요. 이후 로그인에서는 공급자의 subject(Feishu와 Lark에서는 `open_id`)로 계정을 찾으므로, 이메일이 바뀌어도 상관없어요. OpenID Connect 공급자가 `email_verified: false`로 표시한 이메일은 무시하고, 이메일이 없는 계정은 로그인 이름이 `<provider>:<subject>`가 돼요. 소유자는 이 멤버들도 다른 멤버처럼 **멤버** 페이지에서 관리해요. 역할을 바꾸거나 비활성화하거나 삭제할 수 있고, 비활성화된 멤버는 어느 방식으로도 로그인할 수 없어요. SSO로 만든 계정에는 비밀번호가 없어요. 게이트웨이는 방금 받은 액세스 토큰으로 공급자의 userinfo 엔드포인트에서 사용자 정보를 읽어요(PKCE를 쓰는 authorization code flow). ID 토큰은 쓰지 않아요.
+
+**Feishu 또는 Lark.** [Feishu Open Platform](https://open.feishu.cn/app)(Lark는 [open.larksuite.com](https://open.larksuite.com/app))에서 조직 구성원만 쓸 수 있는 사내 앱(custom app, 企业自建应用)을 만든 다음:
+
+1. **Credentials & Basic Info**에서 App ID와 App Secret을 복사해 `RWD_OIDC_CLIENT_ID`와 `RWD_OIDC_CLIENT_SECRET`에 넣으세요.
+2. **Security Settings → Redirect URLs**에 위의 리디렉션 URL을 추가하세요.
+3. **Permissions & Scopes**에서 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하고, 같은 scope를 `RWD_OIDC_SCOPES`에 나열하세요.
+4. 앱의 사용 가능 범위를 로그인할 사람들로 설정하고, 버전을 만들어 게시하세요. 그래야 설정이 적용돼요.
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## 에이전트 연결
 

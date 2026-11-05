@@ -12,6 +12,8 @@
 #   RWD_LANG=en|zh                                     (agent-facing language, default en)
 #   RWD_MCP_RATE_LIMIT=<MCP requests per IP per minute> (default: no limit)
 #   RWD_DEMO_KEYS=1                                    (public demo: a key per visitor)
+#   RWD_OIDC_PROVIDER=feishu|lark|oidc, RWD_OIDC_CLIENT_ID, RWD_OIDC_CLIENT_SECRET, …
+#                                                      (single sign-on, see gateway/README.md)
 #   BIND=<address to publish on>   (default 127.0.0.1)
 #   PORT=<published port>          (default 18788)
 #   RWD_DOMAIN=<public host name>  (compose.tls.yml only)
@@ -32,6 +34,18 @@ services:
       RWD_LANG: ${RWD_LANG:-}
       RWD_MCP_RATE_LIMIT: ${RWD_MCP_RATE_LIMIT:-}
       RWD_DEMO_KEYS: ${RWD_DEMO_KEYS:-}
+      RWD_OIDC_PROVIDER: ${RWD_OIDC_PROVIDER:-}
+      RWD_OIDC_NAME: ${RWD_OIDC_NAME:-}
+      RWD_OIDC_ISSUER: ${RWD_OIDC_ISSUER:-}
+      RWD_OIDC_AUTH_URL: ${RWD_OIDC_AUTH_URL:-}
+      RWD_OIDC_TOKEN_URL: ${RWD_OIDC_TOKEN_URL:-}
+      RWD_OIDC_USERINFO_URL: ${RWD_OIDC_USERINFO_URL:-}
+      RWD_OIDC_CLIENT_ID: ${RWD_OIDC_CLIENT_ID:-}
+      RWD_OIDC_CLIENT_SECRET: ${RWD_OIDC_CLIENT_SECRET:-}
+      RWD_OIDC_SCOPES: ${RWD_OIDC_SCOPES:-}
+      RWD_OIDC_DEFAULT_ROLE: ${RWD_OIDC_DEFAULT_ROLE:-}
+      RWD_OIDC_INVITE_ONLY: ${RWD_OIDC_INVITE_ONLY:-}
+      RWD_OIDC_ALLOWED_DOMAINS: ${RWD_OIDC_ALLOWED_DOMAINS:-}
     volumes:
       - ./data:/data
 

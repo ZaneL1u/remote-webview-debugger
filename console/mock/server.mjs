@@ -14,6 +14,9 @@
 // no devices gets its first device ~6 seconds after its integration endpoint is first polled, to exercise
 // the 接入验证 flow. A device invite is "used" by a fake device 20 seconds after it is created.
 //
+// MOCK_SSO=feishu (or lark, oidc) turns on single sign-on: the login page shows the button, and
+// GET /v1/api/auth/oidc/start signs in sso@example.com (created as a member on first use) without a provider.
+//
 // Mock-only control endpoints (not part of the protocol): POST /__mock/sse?down=1 drops every stream and
 // answers new ones with 503, to exercise the polling fallback; ?down=0 restores it. POST /__mock/status?down=1
 // makes GET /v1/api/status answer 503 (the header's "disconnected" state).
@@ -74,6 +77,7 @@ let auditSeq = 0
 const streams = new Set() // { res, projectId (null: every project) }
 let sseDown = false
 let statusDown = false
+const MOCK_SSO = process.env.MOCK_SSO || ''
 const startedAt = now() - (3 * 86_400_000 + 4 * 3_600_000 + 17 * 60_000)
 
 const DEFAULT_POLICY = {
@@ -105,6 +109,7 @@ function createUser({ email, name, role, password = null, pending = false, disab
     _password: password,
     _inviteToken: null,
     _inviteExpiresAt: 0,
+    _sso: [],
   }
   users.set(u.id, u)
   return u
@@ -119,6 +124,8 @@ const memberOut = (u) => ({
   pending: u.pending,
   createdAt: u.createdAt,
   lastLoginAt: u.lastLoginAt,
+  hasPassword: !!u._password,
+  sso: u._sso,
 })
 
 function issueMemberInvite(u, host) {
@@ -948,7 +955,24 @@ async function handleApi(req, res, url) {
   let m
 
   if (method === 'GET' && path === '/config') {
-    return send(res, 200, { gatewayUrl: `http://${host}/v1`, version: VERSION, sdkVersion: SDK_VERSION, sdkIntegrity: SDK_INTEGRITY })
+    const sso = MOCK_SSO ? { provider: MOCK_SSO, name: '', defaultRole: 'member', inviteOnly: false } : null
+    return send(res, 200, { gatewayUrl: `http://${host}/v1`, version: VERSION, sdkVersion: SDK_VERSION, sdkIntegrity: SDK_INTEGRITY, sso })
+  }
+
+  if (method === 'GET' && path === '/auth/oidc/start' && MOCK_SSO) {
+    let u = [...users.values()].find((x) => x.email === 'sso@example.com')
+    if (!u) {
+      u = createUser({ email: 'sso@example.com', name: 'SSO 同事', role: 'member' })
+      u._sso = [MOCK_SSO]
+      audit({ ...memberActor(u), action: 'member.sso_join', target: u.email, detail: { role: u.role, provider: MOCK_SSO } })
+    }
+    if (u.disabled) return send(res, 302, null, { Location: '/login?sso_error=disabled' })
+    u.lastLoginAt = now()
+    audit({ ...memberActor(u), action: 'auth.login', target: u.email, detail: { method: 'sso', provider: MOCK_SSO } })
+    const t = base62(32)
+    sessions.set(t, u.id)
+    const to = url.searchParams.get('redirect') || '/'
+    return send(res, 302, null, { Location: to.startsWith('/') && !to.startsWith('//') ? to : '/', 'Set-Cookie': `rwd_session=${t}; Path=/; HttpOnly; SameSite=Lax` })
   }
 
   if (method === 'POST' && path === '/auth/login') {
@@ -1005,7 +1029,7 @@ async function handleApi(req, res, url) {
 
   await sleep(60 + Math.floor(Math.random() * 120))
 
-  if (method === 'GET' && path === '/me') return send(res, 200, { id: user.id, email: user.email, name: user.name, role: user.role })
+  if (method === 'GET' && path === '/me') return send(res, 200, memberOut(user))
   if (method === 'GET' && path === '/status') {
     if (statusDown) return fail(res, 503, 'unavailable', '网关不可用（mock）')
     return send(res, 200, gatewayStatus(host))

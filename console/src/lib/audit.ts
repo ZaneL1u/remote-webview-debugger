@@ -10,7 +10,7 @@ type Action = keyof AuditMessages['actions']
 export const actionGroups: { key: keyof AuditMessages['groups']; actions: Action[] }[] = [
   {
     key: 'auth',
-    actions: ['auth.login', 'auth.login_failed', 'member.invite', 'member.accept', 'member.update', 'member.delete'],
+    actions: ['auth.login', 'auth.login_failed', 'member.invite', 'member.accept', 'member.sso_join', 'member.update', 'member.delete'],
   },
   {
     key: 'projects',

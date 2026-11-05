@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | Português (Brasil) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -522,7 +522,9 @@ Papéis: `owner` (tudo, incluindo membros), `admin` (projetos, chaves, política
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. A nova senha precisa ter 8–256 caracteres; `400 bad_password` se a antiga estiver errada |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` para o provedor de login único, com um cookie assinado `rwd_oidc` (state e verificador PKCE, 10 minutos). `404` sem login único |
+| GET | `/auth/oidc/callback` | — | o `code` e o `state` do provedor | Faz o login e `302` para `redirect` (um caminho do console; senão, `/`). Em caso de falha, `302` para `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` é `null`, ou `{"provider","name","defaultRole","inviteOnly"}` quando o login único está ligado |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (válido por 7 dias, uma vez). `409 conflict` se o e-mail já existir |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` se não sobrar nenhum proprietário ativo |
@@ -531,6 +533,8 @@ Papéis: `owner` (tudo, incluindo membros), `admin` (projetos, chaves, política
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` e faz o login. Limite de taxa igual ao do login |
 
 O primeiro proprietário é criado na inicialização a partir de `RWD_ADMIN_EMAIL` (padrão `admin`) e `RWD_ADMIN_PASSWORD` (veja [gateway/README.pt-BR.md](../gateway/README.pt-BR.md)). A página do console `/invite/:token` aceita um convite de membro.
+
+O login único com Feishu, Lark ou um provedor OpenID Connect (`RWD_OIDC_*`, veja [gateway/README.pt-BR.md](../gateway/README.pt-BR.md#login-único)) funciona junto com as senhas. O botão da página de login abre `/auth/oidc/start`; o provedor manda o navegador de volta para `/auth/oidc/callback`, que define o mesmo cookie `rwd_session`. Uma identidade é encontrada pelo subject do provedor; se não for, é vinculada ao membro com o mesmo e-mail (o que também aceita um convite pendente); se não houver, ganha uma conta nova com o papel padrão, a menos que o gateway seja só por convite. Essas contas são membros comuns: os proprietários mudam o papel delas, as desativam ou as removem como descrito acima.
 
 ### 12.3 Projetos
 
@@ -589,7 +593,7 @@ Um convite permite que um usuário coloque o dispositivo online, com a assistên
 | Ação | Quando |
 |---|---|
 | `auth.login`, `auth.login_failed` | Login no console |
-| `member.invite`, `member.accept`, `member.update`, `member.delete` | Gestão de membros |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestão de membros (`member.sso_join`: uma conta criada num primeiro login único; o `auth.login` então tem `"method":"sso"`) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projetos |
 | `key.create`, `key.revoke` | Chaves de API |
 | `invite.create`, `invite.delete`, `invite.use` | Convites de dispositivo |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* convite ainda não aceito */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // false para contas criadas por login único
+  sso: string[]                // provedores vinculados: "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

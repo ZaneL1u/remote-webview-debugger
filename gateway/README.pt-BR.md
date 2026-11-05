@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Gateway do rwd
@@ -51,12 +51,47 @@ Toda flag tem uma variável de ambiente correspondente; a flag passada na linha 
 | `RWD_ADMIN_PASSWORD` | — | Senha do proprietário. Usada quando o proprietário é criado e em **toda** inicialização posterior para redefinir a senha do proprietário indicado por `RWD_ADMIN_EMAIL`, o que também serve como recuperação de conta. Se esse e-mail não for de um proprietário (outro membro, ou ninguém), ele é ignorado e o log avisa, listando os proprietários. Quando não está definida num banco de dados vazio, uma senha aleatória é gerada e impressa uma única vez no log |
 | `RWD_METRICS_TOKEN` | — | Quando definida, `/v1/metrics` exige `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Dias de retenção do log de auditoria |
+| `RWD_OIDC_*` | — | Login único, veja [abaixo](#login-único) |
 
 Outras coisas que vale saber:
 
 - Os segredos de que o gateway precisa (o pepper das chaves de API e o segredo de sessão do console) são gerados na primeira inicialização e guardados no banco de dados. Faça backup do banco e mantenha os backups privados.
 - O gateway mantém o estado ao vivo (páginas conectadas, estado de controle, linhas do tempo) em memória, então rode uma única instância por banco de dados.
 - Health check: `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## Login único
+
+Os membros também podem entrar com Feishu, Lark ou qualquer provedor OpenID Connect (Keycloak, Okta, Microsoft Entra ID, Google, Authing, …); e-mail e senha continuam funcionando. Defina o provedor e as credenciais de cliente dele, e a página de login passa a mostrar **Entrar com …**.
+
+| Variável de ambiente | Padrão | Descrição |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`, `lark` ou `oidc`; liga o login único. Definir só `RWD_OIDC_ISSUER` equivale a `oidc` |
+| `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | As credenciais do app (App ID e App Secret no Feishu e no Lark). Obrigatórias |
+| `RWD_OIDC_ISSUER` | — | Issuer do OpenID Connect, por exemplo `https://sso.example.com/realms/acme`; os endpoints são lidos do `/.well-known/openid-configuration` dele (só `oidc`) |
+| `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | os do provedor | Substituem os endpoints; defina os três para um provedor OpenID Connect sem discovery |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), nenhum (Feishu, Lark) | Escopos separados por espaço. No Feishu e no Lark, adicione `contact:user.email:readonly` (e `contact:user.employee:readonly` para o e-mail corporativo) para que as contas recebam um e-mail |
+| `RWD_OIDC_NAME` | o nome do provedor | Rótulo do botão de login, por exemplo `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | Papel das contas criadas num primeiro login: `member` ou `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | desligado | Não cria contas: só membros existentes ou convidados (com o mesmo e-mail) conseguem entrar |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | Domínios de e-mail autorizados a entrar, separados por vírgula, por exemplo `example.com` |
+
+Registre esta URL de redirecionamento no provedor; ela precisa coincidir exatamente: `https://<host>/v1/api/auth/oidc/callback`, ou seja, a origem de `RWD_PUBLIC_URL` (ou da requisição, quando ela não está definida) seguida de `/v1/api/auth/oidc/callback`. Atrás de um proxy, defina `RWD_PUBLIC_URL` para que a URL seja estável.
+
+O primeiro login de uma identidade a junta ao membro com o mesmo e-mail (um membro convidado mantém o papel do convite, e o convite é consumido) ou cria uma conta com `RWD_OIDC_DEFAULT_ROLE`, a menos que `RWD_OIDC_INVITE_ONLY=1`. Os logins seguintes encontram a conta pelo subject do provedor (`open_id` no Feishu e no Lark), então uma mudança de e-mail não atrapalha. Um e-mail que um provedor OpenID Connect marca com `email_verified: false` é ignorado, e uma conta sem e-mail recebe o nome de login `<provider>:<subject>`. Os proprietários gerenciam esses membros na página **Membros** como qualquer outro: mudam o papel, desativam ou removem; um membro desativado não consegue entrar de nenhuma das formas. Contas criadas por login único não têm senha. O gateway lê o usuário no endpoint userinfo do provedor com o access token que acabou de receber (fluxo authorization code com PKCE); ele não usa o ID token.
+
+**Feishu ou Lark.** Na [Feishu Open Platform](https://open.feishu.cn/app) (Lark: [open.larksuite.com](https://open.larksuite.com/app)), crie um app personalizado (企业自建应用), que só pessoas da sua organização podem usar, e depois:
+
+1. Copie o App ID e o App Secret de **Credentials & Basic Info** para `RWD_OIDC_CLIENT_ID` e `RWD_OIDC_CLIENT_SECRET`.
+2. Em **Security Settings → Redirect URLs**, adicione a URL de redirecionamento acima.
+3. Em **Permissions & Scopes**, adicione `contact:user.email:readonly` (e `contact:user.employee:readonly` para o e-mail corporativo) e liste os mesmos escopos em `RWD_OIDC_SCOPES`.
+4. Torne o app disponível para as pessoas que devem entrar, e crie e publique uma versão para que as configurações entrem em vigor.
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## Conectando um agente
 

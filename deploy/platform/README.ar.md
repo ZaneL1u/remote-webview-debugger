@@ -1,4 +1,4 @@
-<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+<!-- i18n-source: 633220a8fe1b3ddd3a313fd33ae0414507b2953f -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -55,6 +55,7 @@
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | عدد أيام الاحتفاظ بسجل التدقيق |
 | `RWD_LANG` | `en` | لغة النصوص الموجّهة إلى الوكيل: `en`، `zh`، `zh-TW`، `fr`، `es`، `ru`، `ar`، `ja`، `ko`، `de` أو `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | عدد طلبات MCP لكل عنوان IP للعميل في الدقيقة (بلا حد إن لم يُضبط)؛ للعرض التوضيحي العلني، راجع [deploy/demo](../demo/README.md) |
+| `RWD_OIDC_PROVIDER`، `RWD_OIDC_*` | — | تسجيل الدخول الموحّد عبر Feishu أو Lark أو OpenID Connect، راجع [gateway/README](../../gateway/README.ar.md#تسجيل-الدخول-الموحّد) |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | نطاقات عناوين البروكسي الموجود أمام Caddy (نطاقات CIDR مفصولة بمسافات، أو `private_ranges` الخاصة بـ Caddy)؛ راجع ما يلي |
 | `BIND` | `127.0.0.1` | العنوان الذي يُتاح عليه Caddy |
 | `PORT` | `18788` | المنفذ الذي يُتاح عليه Caddy |

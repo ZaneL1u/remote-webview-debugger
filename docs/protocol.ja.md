@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -522,7 +522,9 @@ type Policy = {
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新しいパスワードは 8〜256 文字。古いパスワードが誤っていれば `400 bad_password` |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | シングルサインオンのプロバイダーへ `302`。署名付き Cookie `rwd_oidc`（state と PKCE verifier、10 分間有効）を設定する。シングルサインオンが無効なら `404` |
+| GET | `/auth/oidc/callback` | — | プロバイダーからの `code` と `state` | サインインして `redirect`（管理コンソールのパス。それ以外なら `/`）へ `302`。失敗時は `/login?sso_error=<code>` へ `302`: `provider`、`denied`、`state`、`not_allowed`、`no_account`、`disabled`、`rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` は `null`、シングルサインオンが有効なら `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}`（7 日間有効、1 回限り）。メールアドレスが既存なら `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`。有効な owner がいなくなる場合は `409 last_owner` |
@@ -531,6 +533,8 @@ type Policy = {
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` を返してサインインする。レート制限はログインと同じ |
 
 最初の owner は、起動時に `RWD_ADMIN_EMAIL`（デフォルト `admin`）と `RWD_ADMIN_PASSWORD` から作成されます（[gateway/README.ja.md](../gateway/README.ja.md) を参照）。メンバー招待は管理コンソールのページ `/invite/:token` で受け付けます。
+
+パスワードと並行して、Feishu、Lark、または OpenID Connect プロバイダーによるシングルサインオン（`RWD_OIDC_*`、[gateway/README.ja.md](../gateway/README.ja.md#シングルサインオン) を参照）も使えます。ログインページのボタンが `/auth/oidc/start` を開き、プロバイダーがブラウザーを `/auth/oidc/callback` に戻すと、同じ `rwd_session` Cookie が設定されます。ID はまずプロバイダーの subject で検索され、見つからなければ同じメールアドレスのメンバーに紐付けられ（保留中の招待もあわせて受け入れられます）、それもなければデフォルトのロールで新しいアカウントが作成されます。ただし、ゲートウェイが招待制の場合は作成されません。こうしたアカウントは通常のメンバーと同じで、owner は上記のとおりロールの変更、無効化、削除ができます。
 
 ### 12.3 プロジェクト
 
@@ -589,7 +593,7 @@ API キーはプロジェクトではなくゲートウェイに属します。1
 | アクション | タイミング |
 |---|---|
 | `auth.login`、`auth.login_failed` | 管理コンソールへのサインイン |
-| `member.invite`、`member.accept`、`member.update`、`member.delete` | メンバー管理 |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | メンバー管理（`member.sso_join` は初回のシングルサインオンで作成されたアカウント。その後の `auth.login` には `"method":"sso"` が付く） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | プロジェクト |
 | `key.create`、`key.revoke` | API キー |
 | `invite.create`、`invite.delete`、`invite.use` | デバイス招待 |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* 招待がまだ受け入れられていない */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // シングルサインオンで作成されたアカウントでは false
+  sso: string[]                // 紐付けられたプロバイダー: "feishu"、"lark"、"oidc"
 }
 
 type DeviceInvite = {

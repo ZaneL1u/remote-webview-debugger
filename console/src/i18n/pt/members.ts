@@ -34,6 +34,10 @@ export const members: typeof en = {
   noName: '(sem nome)',
   you: 'Você',
   neverSignedIn: 'Nunca entrou',
+  ssoBadgeTitle: (name) => `Entra com ${name}`,
+  ssoHint: (name, role) =>
+    `Colegas também podem entrar com ${name}: o primeiro login se vincula ao membro com o mesmo e-mail ou cria uma conta com a função ${role}.`,
+  ssoInviteOnlyHint: (name) => `Colegas cujo e-mail você convidou também podem entrar com ${name}.`,
   signedInAgo: (ago) => `Entrou ${ago}`,
   cantEditSelf: 'Você não pode editar a si mesmo',
   changeRole: (name) => `Alterar o papel de ${name}`,
@@ -123,6 +127,7 @@ export const members: typeof en = {
       'auth.login_failed': 'Falha no login',
       'member.invite': 'Convidar membro',
       'member.accept': 'Aceitar convite de membro',
+      'member.sso_join': 'Entrou por login único',
       'member.update': 'Atualizar membro',
       'member.delete': 'Remover membro',
       'project.create': 'Criar projeto',

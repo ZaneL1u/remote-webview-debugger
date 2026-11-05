@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | Español | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Gateway rwd
@@ -51,12 +51,47 @@ Cada flag tiene su variable de entorno; si se pasa el flag en la línea de coman
 | `RWD_ADMIN_PASSWORD` | — | Contraseña del propietario. Se usa al crear el propietario y en **cada** arranque posterior para restablecer la contraseña del propietario indicado por `RWD_ADMIN_EMAIL`, lo que sirve también para recuperar la cuenta. Si ese correo no es de un propietario (es de otro miembro o de nadie), se ignora y el log lo indica, con los nombres de los propietarios. Si no está definida y la base de datos está vacía, se genera una contraseña aleatoria y se muestra una sola vez en el log |
 | `RWD_METRICS_TOKEN` | — | Si está definida, `/v1/metrics` exige `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Días que se conserva el registro de auditoría |
+| `RWD_OIDC_*` | — | Inicio de sesión único, ver [más abajo](#inicio-de-sesión-único) |
 
 Otras cosas que conviene saber:
 
 - Los secretos que necesita el gateway (el pepper de las claves de API y el secreto de sesión de la consola) se generan en el primer arranque y se guardan en la base de datos. Haz copias de seguridad de la base de datos y guárdalas en privado.
 - El gateway mantiene el estado en vivo (páginas conectadas, estado de control, líneas de tiempo) en memoria, así que ejecuta una sola instancia por base de datos.
 - Comprobación de estado: `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## Inicio de sesión único
+
+Los miembros también pueden iniciar sesión con Feishu, Lark o cualquier proveedor OpenID Connect (Keycloak, Okta, Microsoft Entra ID, Google, Authing, …); el correo y la contraseña siguen funcionando. Define el proveedor y sus credenciales de cliente, y la página de inicio de sesión mostrará **Iniciar sesión con …**.
+
+| Variable de entorno | Valor por defecto | Descripción |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`, `lark` u `oidc`; activa el inicio de sesión único. Definir solo `RWD_OIDC_ISSUER` equivale a `oidc` |
+| `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | Credenciales de la aplicación (App ID y App Secret en Feishu y Lark). Obligatorias |
+| `RWD_OIDC_ISSUER` | — | Issuer de OpenID Connect, p. ej. `https://sso.example.com/realms/acme`; los endpoints se leen de su `/.well-known/openid-configuration` (solo `oidc`) |
+| `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | los del proveedor | Sustituyen los endpoints; define los tres para un proveedor OpenID Connect sin descubrimiento |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), ninguno (Feishu, Lark) | Scopes separados por espacios. En Feishu y Lark, añade `contact:user.email:readonly` (y `contact:user.employee:readonly` para el correo corporativo) para que las cuentas tengan correo |
+| `RWD_OIDC_NAME` | el nombre del proveedor | Texto del botón de inicio de sesión, p. ej. `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | Rol de las cuentas creadas en un primer inicio de sesión: `member` o `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | desactivado | No se crean cuentas: solo pueden iniciar sesión los miembros existentes o invitados (mismo correo) |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | Dominios de correo que pueden iniciar sesión, separados por comas, p. ej. `example.com` |
+
+Registra esta URL de redirección en el proveedor; debe coincidir exactamente: `https://<host>/v1/api/auth/oidc/callback`, es decir, el origen de `RWD_PUBLIC_URL` (el de la solicitud si no está definida) seguido de `/v1/api/auth/oidc/callback`. Detrás de un proxy, define `RWD_PUBLIC_URL` para que la URL sea estable.
+
+El primer inicio de sesión de una identidad la une al miembro con el mismo correo (un miembro invitado conserva el rol de la invitación, y la invitación queda usada) o crea una cuenta con `RWD_OIDC_DEFAULT_ROLE`, salvo con `RWD_OIDC_INVITE_ONLY=1`. Los inicios de sesión posteriores encuentran la cuenta por el subject del proveedor (`open_id` en Feishu y Lark), así que da igual si cambia el correo. Un correo que un proveedor OpenID Connect marca con `email_verified: false` se ignora, y una cuenta sin correo recibe el nombre de inicio de sesión `<provider>:<subject>`. Los propietarios gestionan estos miembros en la página **Miembros** como a cualquier otro: cambian su rol, los desactivan o los eliminan; un miembro desactivado no puede iniciar sesión de ninguna de las dos formas. Las cuentas creadas por inicio de sesión único no tienen contraseña. El gateway lee el usuario del endpoint userinfo del proveedor con el token de acceso que acaba de recibir (flujo de código de autorización con PKCE); no usa el ID token.
+
+**Feishu o Lark.** En la [Feishu Open Platform](https://open.feishu.cn/app) (Lark: [open.larksuite.com](https://open.larksuite.com/app)), crea una aplicación personalizada (企业自建应用), que solo pueden usar las personas de tu organización, y luego:
+
+1. Copia el App ID y el App Secret de **Credentials & Basic Info** en `RWD_OIDC_CLIENT_ID` y `RWD_OIDC_CLIENT_SECRET`.
+2. En **Security Settings → Redirect URLs**, añade la URL de redirección de arriba.
+3. En **Permissions & Scopes**, añade `contact:user.email:readonly` (y `contact:user.employee:readonly` para el correo corporativo), y pon los mismos scopes en `RWD_OIDC_SCOPES`.
+4. Limita la disponibilidad de la aplicación a las personas que deben iniciar sesión, y crea y publica una versión para que los ajustes surtan efecto.
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## Conectar un agente
 

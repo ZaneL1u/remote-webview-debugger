@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd ゲートウェイ
@@ -51,12 +51,47 @@ rwd version                             バージョンを表示
 | `RWD_ADMIN_PASSWORD` | — | owner のパスワード。owner の作成時に使われるほか、その後も**起動のたび**に `RWD_ADMIN_EMAIL` が指す owner のパスワードを再設定するため、アカウントの復旧手段にもなる。そのメールアドレスが owner のものでない場合（別のメンバー、または該当なし）は無視され、ログにその旨と既存の owner が出力される。未設定でデータベースが空なら、ランダムなパスワードを生成してログに一度だけ出力 |
 | `RWD_METRICS_TOKEN` | — | 設定すると、`/v1/metrics` に `Authorization: Bearer <token>` が必要になる |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 監査ログの保持日数 |
+| `RWD_OIDC_*` | — | シングルサインオン。[後述](#シングルサインオン)を参照 |
 
 その他の注意点:
 
 - ゲートウェイが必要とするシークレット（API キーの pepper と管理コンソールのセッションシークレット）は、初回起動時に生成されてデータベースに保存されます。データベースはバックアップし、バックアップは非公開で保管してください。
 - ゲートウェイはライブ状態（接続中のページ、制御状態、タイムライン）をメモリ上に持つため、1 つのデータベースにつきインスタンスは 1 つだけ動かしてください。
 - ヘルスチェック: `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`。
+
+## シングルサインオン
+
+メンバーは Feishu、Lark、または任意の OpenID Connect プロバイダー（Keycloak、Okta、Microsoft Entra ID、Google、Authing など）でもサインインできます。メールアドレスとパスワードによるサインインも引き続き使えます。プロバイダーとそのクライアント認証情報を設定すると、ログインページに **… でログイン** ボタンが表示されます。
+
+| 環境変数 | デフォルト | 説明 |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`、`lark`、`oidc` のいずれか。設定するとシングルサインオンが有効になる。`RWD_OIDC_ISSUER` だけを設定した場合は `oidc` とみなす |
+| `RWD_OIDC_CLIENT_ID`、`RWD_OIDC_CLIENT_SECRET` | — | アプリの認証情報（Feishu と Lark では App ID と App Secret）。必須 |
+| `RWD_OIDC_ISSUER` | — | OpenID Connect の issuer（例: `https://sso.example.com/realms/acme`）。各エンドポイントはその `/.well-known/openid-configuration` から読み込む（`oidc` のみ） |
+| `RWD_OIDC_AUTH_URL`、`RWD_OIDC_TOKEN_URL`、`RWD_OIDC_USERINFO_URL` | プロバイダーの既定値 | エンドポイントを上書き。ディスカバリーに対応していない OpenID Connect プロバイダーでは 3 つすべてを設定 |
+| `RWD_OIDC_SCOPES` | `openid profile email`（`oidc`）、なし（Feishu、Lark） | スペース区切りのスコープ。Feishu と Lark では、アカウントにメールアドレスが入るよう `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）を追加 |
+| `RWD_OIDC_NAME` | プロバイダー名 | ログインボタンのラベル（例: `Okta`） |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | 初回サインイン時に作成されるアカウントのロール: `member` または `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | オフ | アカウントを作成しない。サインインできるのは既存のメンバーか招待済みのメンバー（同じメールアドレス）だけ |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | サインインを許可するメールドメイン（カンマ区切り、例: `example.com`） |
+
+プロバイダーには次のリダイレクト URL を登録してください。完全に一致している必要があります: `https://<host>/v1/api/auth/oidc/callback`。つまり `RWD_PUBLIC_URL` のオリジン（未設定ならリクエストのオリジン）の後ろに `/v1/api/auth/oidc/callback` を付けたものです。プロキシの背後では、この URL が変わらないよう `RWD_PUBLIC_URL` を設定してください。
+
+ある ID の初回サインインでは、同じメールアドレスのメンバーに紐付けられます（招待されたメンバーは招待時のロールのままで、招待は使用済みになります）。該当するメンバーがいなければ、`RWD_OIDC_INVITE_ONLY=1` でない限り `RWD_OIDC_DEFAULT_ROLE` のアカウントが作成されます。2 回目以降はプロバイダーの subject（Feishu と Lark では `open_id`）でアカウントを探すので、メールアドレスが変わっても問題ありません。OpenID Connect プロバイダーが `email_verified: false` としたメールアドレスは無視され、メールアドレスのないアカウントのログイン名は `<provider>:<subject>` になります。owner はこれらのメンバーをほかのメンバーと同様に **メンバー** ページで管理できます。ロールの変更、無効化、削除が可能で、無効化されたメンバーはどちらの方法でもサインインできません。シングルサインオンで作成されたアカウントにはパスワードがありません。ゲートウェイは受け取ったばかりのアクセストークンでプロバイダーの userinfo エンドポイントからユーザー情報を読み取ります（PKCE 付きの認可コードフロー）。ID トークンは使いません。
+
+**Feishu または Lark。** [Feishu Open Platform](https://open.feishu.cn/app)（Lark は [open.larksuite.com](https://open.larksuite.com/app)）で、組織内のユーザーだけが使えるカスタムアプリ（企业自建应用）を作成し、次の手順を行います。
+
+1. **Credentials & Basic Info**（認証情報と基本情報）にある App ID と App Secret を `RWD_OIDC_CLIENT_ID` と `RWD_OIDC_CLIENT_SECRET` に設定します。
+2. **Security Settings → Redirect URLs**（セキュリティ設定 → リダイレクト URL）に、上記のリダイレクト URL を追加します。
+3. **Permissions & Scopes**（権限とスコープ）で `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）を追加し、同じスコープを `RWD_OIDC_SCOPES` にも列挙します。
+4. アプリの利用範囲（availability）をサインインさせたいユーザーに設定し、バージョンを作成して公開すると、設定が反映されます。
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## エージェントの接続
 

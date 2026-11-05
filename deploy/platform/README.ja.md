@@ -1,4 +1,4 @@
-<!-- i18n-source: 290e0636713e2be8bacb0501c422ae3a327ae0ea -->
+<!-- i18n-source: 633220a8fe1b3ddd3a313fd33ae0414507b2953f -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Docker Compose でのデプロイ
@@ -49,6 +49,7 @@ Docker ホスト上でゲートウェイを動かし、その前段に小さな 
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | 監査ログの保持日数 |
 | `RWD_LANG` | `en` | エージェント向けテキストの言語: `en`、`zh`、`zh-TW`、`fr`、`es`、`ru`、`ar`、`ja`、`ko`、`de` または `pt` |
 | `RWD_MCP_RATE_LIMIT` | — | クライアント IP ごとの 1 分あたりの MCP リクエスト数（未設定なら制限なし）。公開デモについては [deploy/demo](../demo/README.md) を参照 |
+| `RWD_OIDC_PROVIDER`、`RWD_OIDC_*` | — | Feishu、Lark、または OpenID Connect によるシングルサインオン。[gateway/README](../../gateway/README.ja.md#シングルサインオン) を参照 |
 | `RWD_TRUSTED_PROXIES` | `private_ranges` | Caddy の前段にあるプロキシのアドレス帯（スペース区切りの CIDR、または Caddy の `private_ranges`）。後述 |
 | `BIND` | `127.0.0.1` | Caddy を公開するアドレス |
 | `PORT` | `18788` | Caddy を公開するポート |

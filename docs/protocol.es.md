@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | Español | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -522,7 +522,9 @@ Roles: `owner` (todo, incluidos los miembros), `admin` (proyectos, claves, polí
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. La contraseña nueva debe tener 8–256 caracteres; `400 bad_password` si la antigua es incorrecta |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` al proveedor de inicio de sesión único, con una cookie firmada `rwd_oidc` (state y verificador PKCE, 10 minutos). `404` sin inicio de sesión único |
+| GET | `/auth/oidc/callback` | — | `code` y `state` del proveedor | Inicia sesión y `302` a `redirect` (una ruta de la consola web; si no, `/`). Si falla, `302` a `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` es `null`, o `{"provider","name","defaultRole","inviteOnly"}` cuando el inicio de sesión único está activado |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (válida 7 días, un solo uso). `409 conflict` si el email ya existe |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` si no quedaría ningún owner activo |
@@ -531,6 +533,8 @@ Roles: `owner` (todo, incluidos los miembros), `admin` (proyectos, claves, polí
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` e inicia sesión. Con el mismo límite de frecuencia que el login |
 
 El primer owner se crea al arrancar a partir de `RWD_ADMIN_EMAIL` (por defecto `admin`) y `RWD_ADMIN_PASSWORD` (ver [gateway/README.es.md](../gateway/README.es.md)). La página `/invite/:token` de la consola web acepta una invitación de miembro.
+
+El inicio de sesión único con Feishu, Lark o un proveedor OpenID Connect (`RWD_OIDC_*`, ver [gateway/README.es.md](../gateway/README.es.md#inicio-de-sesión-único)) funciona junto a las contraseñas. El botón de la página de inicio de sesión abre `/auth/oidc/start`; el proveedor devuelve el navegador a `/auth/oidc/callback`, que pone la misma cookie `rwd_session`. Una identidad se busca por el subject del proveedor; si no, se vincula al miembro con el mismo email (lo que también acepta una invitación pendiente); si no, recibe una cuenta nueva con el rol por defecto, salvo que el gateway sea solo por invitación. Esas cuentas son miembros normales: los owners cambian su rol, las desactivan o las borran como se indica arriba.
 
 ### 12.3 Proyectos
 
@@ -589,7 +593,7 @@ Una invitación permite a un usuario poner su dispositivo en línea, con la asis
 | Acción | Cuándo |
 |---|---|
 | `auth.login`, `auth.login_failed` | Inicio de sesión en la consola web |
-| `member.invite`, `member.accept`, `member.update`, `member.delete` | Gestión de miembros |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestión de miembros (`member.sso_join`: una cuenta creada en un primer inicio de sesión único; `auth.login` lleva entonces `"method":"sso"`) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Proyectos |
 | `key.create`, `key.revoke` | Claves de API |
 | `invite.create`, `invite.delete`, `invite.use` | Invitaciones de dispositivo |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* invitación aún no aceptada */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // false en las cuentas creadas por inicio de sesión único
+  sso: string[]                // proveedores vinculados: "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

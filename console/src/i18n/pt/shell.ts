@@ -56,6 +56,19 @@ export const shell: typeof en = {
     tooManyAttempts: 'Tentativas demais. Tente novamente mais tarde.',
     emailRequired: 'Digite seu e-mail',
     passwordRequired: 'Digite sua senha',
+    providers: { feishu: 'Feishu', lark: 'Lark', oidc: 'SSO' },
+    sso: (name) => `Entrar com ${name}`,
+    or: 'ou',
+    ssoErrors: {
+      provider:
+        'O login único falhou: o gateway não conseguiu acessar o provedor de identidade, ou o provedor recusou o login. Tente de novo ou peça a um proprietário para verificar o log do gateway.',
+      denied: 'O login foi cancelado no provedor de identidade.',
+      state: 'O login expirou ou foi iniciado em outro navegador. Tente de novo.',
+      not_allowed: 'O domínio do seu e-mail não tem permissão para entrar neste console.',
+      no_account: 'Você ainda não tem uma conta neste console. Peça a um proprietário para convidar seu e-mail.',
+      disabled: 'Esta conta foi desativada. Fale com o proprietário do projeto.',
+      rate_limited: 'Muitas tentativas. Tente de novo mais tarde.',
+    },
   },
 
   invite: {

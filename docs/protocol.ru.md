@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | Русский | [العربية](protocol.ar.md)
 
 # Протокол RWD (v1)
@@ -522,7 +522,9 @@ type Policy = {
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Новый пароль должен содержать от 8 до 256 символов; `400 bad_password`, если старый неверен |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` на поставщика единого входа с подписанным cookie `rwd_oidc` (state и верификатор PKCE, 10 минут). `404`, если единый вход не настроен |
+| GET | `/auth/oidc/callback` | — | `code` и `state` от поставщика | Выполняет вход и `302` на `redirect` (путь веб-консоли, иначе `/`). При ошибке `302` на `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` — это `null` или `{"provider","name","defaultRole","inviteOnly"}`, если единый вход включён |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (действует 7 дней, одноразовое). `409 conflict`, если такой email уже есть |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner`, если не останется ни одного активного владельца |
@@ -531,6 +533,8 @@ type Policy = {
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` и выполняет вход. Ограничение частоты как у входа |
 
 Первый владелец создаётся при запуске из `RWD_ADMIN_EMAIL` (по умолчанию `admin`) и `RWD_ADMIN_PASSWORD` (см. [gateway/README.ru.md](../gateway/README.ru.md)). Страница веб-консоли `/invite/:token` принимает приглашение участника.
+
+Единый вход через Feishu, Lark или поставщика OpenID Connect (`RWD_OIDC_*`, см. [gateway/README.ru.md](../gateway/README.ru.md#единый-вход)) работает наряду с паролями. Кнопка на странице входа открывает `/auth/oidc/start`; поставщик возвращает браузер на `/auth/oidc/callback`, который ставит тот же cookie `rwd_session`. Удостоверение ищется по subject поставщика; если не найдено, оно привязывается к участнику с тем же email (при этом принимается и ожидающее приглашение), а если нет и такого, получает новую учётную запись с ролью по умолчанию, если только шлюз не работает только по приглашениям. Такие учётные записи — обычные участники: владельцы меняют им роль, отключают или удаляют их, как описано выше.
 
 ### 12.3 Проекты
 
@@ -589,7 +593,7 @@ API-ключи принадлежат шлюзу, а не проекту: оди
 | Действие | Когда |
 |---|---|
 | `auth.login`, `auth.login_failed` | Вход в веб-консоль |
-| `member.invite`, `member.accept`, `member.update`, `member.delete` | Управление участниками |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Управление участниками (`member.sso_join` — учётная запись, созданная при первом едином входе; у `auth.login` в этом случае есть `"method":"sso"`) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Проекты |
 | `key.create`, `key.revoke` | API-ключи |
 | `invite.create`, `invite.delete`, `invite.use` | Приглашения устройств |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* приглашение ещё не принято */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // false для учётных записей, созданных единым входом
+  sso: string[]                // привязанные поставщики: "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

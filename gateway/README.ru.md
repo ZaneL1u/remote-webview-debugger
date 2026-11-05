@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # Шлюз rwd
@@ -51,12 +51,47 @@ rwd version                             вывести версию
 | `RWD_ADMIN_PASSWORD` | — | Пароль владельца. Используется при создании владельца и при **каждом** последующем запуске, чтобы сбросить пароль владельца с email из `RWD_ADMIN_EMAIL`, — это заодно и способ восстановить доступ. Если этот email принадлежит не владельцу (другому участнику или никому), переменная игнорируется, а в журнале об этом сообщается со списком владельцев. Если переменная не задана и база данных пуста, генерируется случайный пароль, который один раз выводится в журнал |
 | `RWD_METRICS_TOKEN` | — | Если задан, `/v1/metrics` требует `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Сколько дней хранить журнал аудита |
+| `RWD_OIDC_*` | — | Единый вход, см. [ниже](#единый-вход) |
 
 Что ещё полезно знать:
 
 - Секреты, нужные шлюзу (pepper для API-ключей и секрет сеансов веб-консоли), генерируются при первом запуске и хранятся в базе данных. Делайте резервные копии базы и не выкладывайте их в открытый доступ.
 - Шлюз держит живое состояние (подключённые страницы, состояние управления, хронологию) в памяти, поэтому на одну базу данных запускайте один экземпляр.
 - Проверка работоспособности: `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## Единый вход
+
+Участники могут входить и через Feishu, Lark или любого поставщика OpenID Connect (Keycloak, Okta, Microsoft Entra ID, Google, Authing, …); вход по email и паролю продолжает работать. Задайте поставщика и учётные данные клиента, и на странице входа появится кнопка **Войти через …**.
+
+| Переменная окружения | По умолчанию | Описание |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`, `lark` или `oidc`; включает единый вход. Если задан только `RWD_OIDC_ISSUER`, подразумевается `oidc` |
+| `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | Учётные данные приложения (App ID и App Secret для Feishu и Lark). Обязательны |
+| `RWD_OIDC_ISSUER` | — | Issuer OpenID Connect, например `https://sso.example.com/realms/acme`; эндпоинты берутся из его `/.well-known/openid-configuration` (только `oidc`) |
+| `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | эндпоинты поставщика | Переопределяют эндпоинты; для поставщика OpenID Connect без discovery задайте все три |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), нет (Feishu, Lark) | Области доступа (scopes) через пробел. Для Feishu и Lark добавьте `contact:user.email:readonly` (и `contact:user.employee:readonly` для корпоративного email), чтобы у учётных записей был email |
+| `RWD_OIDC_NAME` | название поставщика | Надпись на кнопке входа, например `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | Роль учётных записей, созданных при первом входе: `member` или `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | выключено | Не создавать учётные записи: войти могут только существующие или приглашённые участники (с тем же email) |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | Домены email через запятую, с которых разрешён вход, например `example.com` |
+
+Зарегистрируйте у поставщика этот URL перенаправления; он должен совпадать в точности: `https://<host>/v1/api/auth/oidc/callback`, то есть origin из `RWD_PUBLIC_URL` (или из запроса, если переменная не задана), за которым следует `/v1/api/auth/oidc/callback`. За прокси задайте `RWD_PUBLIC_URL`, чтобы URL не менялся.
+
+При первом входе удостоверение присоединяется к участнику с тем же email (приглашённый участник сохраняет роль из приглашения, а приглашение расходуется) или создаёт учётную запись с ролью из `RWD_OIDC_DEFAULT_ROLE`, если не задано `RWD_OIDC_INVITE_ONLY=1`. При последующих входах учётная запись находится по subject поставщика (`open_id` для Feishu и Lark), поэтому смена email ни на что не влияет. Email, который поставщик OpenID Connect помечает как `email_verified: false`, игнорируется, а учётная запись без email получает логин `<provider>:<subject>`. Владельцы управляют такими участниками на странице **Участники**, как и всеми остальными: меняют роль, отключают или удаляют; отключённый участник не может войти ни одним из способов. У учётных записей, созданных единым входом, нет пароля. Шлюз получает данные пользователя от эндпоинта userinfo поставщика по только что полученному access token (authorization code flow с PKCE); ID token он не использует.
+
+**Feishu или Lark.** На [Feishu Open Platform](https://open.feishu.cn/app) (Lark: [open.larksuite.com](https://open.larksuite.com/app)) создайте собственное приложение (企业自建应用), которым могут пользоваться только люди из вашей организации, затем:
+
+1. Скопируйте App ID и App Secret из **Credentials & Basic Info** в `RWD_OIDC_CLIENT_ID` и `RWD_OIDC_CLIENT_SECRET`.
+2. В **Security Settings → Redirect URLs** добавьте указанный выше URL перенаправления.
+3. В **Permissions & Scopes** добавьте `contact:user.email:readonly` (и `contact:user.employee:readonly` для корпоративного email) и перечислите те же области доступа в `RWD_OIDC_SCOPES`.
+4. Сделайте приложение доступным тем, кто должен входить, затем создайте и опубликуйте версию, чтобы настройки вступили в силу.
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## Подключение агента
 

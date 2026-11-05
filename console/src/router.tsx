@@ -33,8 +33,10 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string; sso_error?: string } => ({
     redirect: typeof search.redirect === 'string' && search.redirect.startsWith('/') ? search.redirect : undefined,
+    // Set by the gateway when single sign-on fails (docs/protocol.md section 12.2).
+    sso_error: typeof search.sso_error === 'string' ? search.sso_error : undefined,
   }),
   beforeLoad: async ({ context, search }) => {
     // Already signed in: skip the login form.

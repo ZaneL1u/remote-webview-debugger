@@ -50,12 +50,47 @@ Every flag has an environment variable; a flag given on the command line wins.
 | `RWD_ADMIN_PASSWORD` | — | Owner password. Used when the owner is created, and at **every** later start to reset the password of the owner named by `RWD_ADMIN_EMAIL`, which doubles as account recovery. If that email is not an owner's (another member, or nobody), it is ignored and the log says so, naming the owners. When unset on an empty database, a random password is generated and printed once in the log |
 | `RWD_METRICS_TOKEN` | — | When set, `/v1/metrics` requires `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Days to keep the audit log |
+| `RWD_OIDC_*` | — | Single sign-on, see [below](#single-sign-on) |
 
 Other things worth knowing:
 
 - Secrets the gateway needs (the API key pepper and the console session secret) are generated on first start and stored in the database. Back the database up and keep the backups private.
 - The gateway keeps live state (connected pages, control state, timelines) in memory, so run one instance per database.
 - Health check: `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## Single sign-on
+
+Members can also sign in with Feishu, Lark or any OpenID Connect provider (Keycloak, Okta, Microsoft Entra ID, Google, Authing, …); email and password keep working. Set the provider and its client credentials, and the login page shows **Sign in with …**.
+
+| Environment variable | Default | Description |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`, `lark` or `oidc`; turns single sign-on on. Setting only `RWD_OIDC_ISSUER` means `oidc` |
+| `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | The app's credentials (App ID and App Secret for Feishu and Lark). Required |
+| `RWD_OIDC_ISSUER` | — | OpenID Connect issuer, e.g. `https://sso.example.com/realms/acme`; the endpoints are read from its `/.well-known/openid-configuration` (`oidc` only) |
+| `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | the provider's | Override the endpoints; set all three for an OpenID Connect provider without discovery |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), none (Feishu, Lark) | Space-separated scopes. For Feishu and Lark add `contact:user.email:readonly` (and `contact:user.employee:readonly` for the enterprise email) so that accounts get an email |
+| `RWD_OIDC_NAME` | the provider's name | Label of the login button, e.g. `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | Role of accounts created at a first sign-in: `member` or `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | off | Create no accounts: only existing or invited members (same email) can sign in |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | Comma-separated email domains allowed to sign in, e.g. `example.com` |
+
+Register this redirect URL with the provider; it must match exactly: `https://<host>/v1/api/auth/oidc/callback`, that is the origin of `RWD_PUBLIC_URL` (of the request when it is unset) followed by `/v1/api/auth/oidc/callback`. Set `RWD_PUBLIC_URL` behind a proxy so the URL is stable.
+
+The first sign-in of an identity joins the member with the same email (an invited member keeps the invited role, and the invite is used up), or creates an account with `RWD_OIDC_DEFAULT_ROLE` unless `RWD_OIDC_INVITE_ONLY=1`. Later sign-ins find the account by the provider's subject (`open_id` for Feishu and Lark), so a changed email doesn't matter. An email that an OpenID Connect provider marks `email_verified: false` is ignored, and an account without an email gets the login name `<provider>:<subject>`. Owners manage these members on the **Members** page like everyone else: change their role, disable or remove them; a disabled member can't sign in either way. Accounts created by single sign-on have no password. The gateway reads the user from the provider's userinfo endpoint with the access token it just received (authorization code flow with PKCE); it does not use the ID token.
+
+**Feishu or Lark.** On the [Feishu Open Platform](https://open.feishu.cn/app) (Lark: [open.larksuite.com](https://open.larksuite.com/app)), create a custom app (企业自建应用), which only people in your organization can use, then:
+
+1. Copy the App ID and App Secret from **Credentials & Basic Info** into `RWD_OIDC_CLIENT_ID` and `RWD_OIDC_CLIENT_SECRET`.
+2. Under **Security Settings → Redirect URLs**, add the redirect URL above.
+3. Under **Permissions & Scopes**, add `contact:user.email:readonly` (and `contact:user.employee:readonly` for the enterprise email), and list the same scopes in `RWD_OIDC_SCOPES`.
+4. Set the app's availability to the people who should sign in, and create and publish a version so the settings take effect.
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## Connecting an agent
 

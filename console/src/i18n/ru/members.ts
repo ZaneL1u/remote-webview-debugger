@@ -43,6 +43,10 @@ export const members: typeof en = {
   noName: '(без имени)',
   you: 'Вы',
   neverSignedIn: 'Ещё не входил(а)',
+  ssoBadgeTitle: (name) => `Входит через ${name}`,
+  ssoHint: (name, role) =>
+    `Коллеги могут входить и через ${name}: при первом входе учётная запись связывается с участником с тем же email или создаётся новая с ролью «${role}».`,
+  ssoInviteOnlyHint: (name) => `Коллеги, чей email вы пригласили, могут входить и через ${name}.`,
   signedInAgo: (ago) => `Вход ${ago}`,
   cantEditSelf: 'Нельзя изменить себя',
   changeRole: (name) => `Изменить роль: ${name}`,
@@ -133,6 +137,7 @@ export const members: typeof en = {
       'auth.login_failed': 'Неудачный вход',
       'member.invite': 'Приглашение участника',
       'member.accept': 'Принятие приглашения участником',
+      'member.sso_join': 'Вход через единый вход',
       'member.update': 'Изменение участника',
       'member.delete': 'Удаление участника',
       'project.create': 'Создание проекта',

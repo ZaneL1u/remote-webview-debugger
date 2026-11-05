@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | Français | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocole RWD (v1)
@@ -522,7 +522,9 @@ Rôles : `owner` (tout, y compris les membres), `admin` (projets, clés, politi
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Le nouveau mot de passe doit compter de 8 à 256 caractères ; `400 bad_password` si l'ancien est incorrect |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` vers le fournisseur d'authentification unique, avec un cookie signé `rwd_oidc` (state et vérificateur PKCE, 10 minutes). `404` sans authentification unique |
+| GET | `/auth/oidc/callback` | — | `code` et `state` du fournisseur | Ouvre la session et `302` vers `redirect` (un chemin de la console, sinon `/`). En cas d'échec, `302` vers `/login?sso_error=<code>` : `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` vaut `null`, ou `{"provider","name","defaultRole","inviteOnly"}` quand l'authentification unique est activée |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (valable 7 jours, une seule fois). `409 conflict` si l'adresse e-mail existe déjà |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` s'il ne devait plus rester aucun owner actif |
@@ -531,6 +533,8 @@ Rôles : `owner` (tout, y compris les membres), `admin` (projets, clés, politi
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` et ouvre la session. Même limitation de débit que pour la connexion |
 
 Le premier owner est créé au démarrage à partir de `RWD_ADMIN_EMAIL` (`admin` par défaut) et de `RWD_ADMIN_PASSWORD` (voir [gateway/README.fr.md](../gateway/README.fr.md)). La page `/invite/:token` de la console sert à accepter une invitation de membre.
+
+L'authentification unique avec Feishu, Lark ou un fournisseur OpenID Connect (`RWD_OIDC_*`, voir [gateway/README.fr.md](../gateway/README.fr.md#authentification-unique)) fonctionne à côté des mots de passe. Le bouton de la page de connexion ouvre `/auth/oidc/start` ; le fournisseur renvoie le navigateur vers `/auth/oidc/callback`, qui pose le même cookie `rwd_session`. Une identité est retrouvée par le subject du fournisseur, sinon rattachée au membre ayant la même adresse e-mail (ce qui accepte aussi une invitation en attente), sinon elle reçoit un nouveau compte avec le rôle par défaut, sauf si la passerelle fonctionne sur invitation uniquement. Ces comptes sont des membres ordinaires : les owners changent leur rôle, les désactivent ou les suppriment comme ci-dessus.
 
 ### 12.3 Projets
 
@@ -589,7 +593,7 @@ Une invitation permet à un utilisateur de mettre son appareil en ligne, déjà 
 | Action | Quand |
 |---|---|
 | `auth.login`, `auth.login_failed` | Connexion à la console |
-| `member.invite`, `member.accept`, `member.update`, `member.delete` | Gestion des membres |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestion des membres (`member.sso_join` : un compte créé lors d'une première connexion par authentification unique ; `auth.login` porte alors `"method":"sso"`) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projets |
 | `key.create`, `key.revoke` | Clés d'API |
 | `invite.create`, `invite.delete`, `invite.use` | Invitations d'appareil |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* invitation pas encore acceptée */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // false pour les comptes créés par authentification unique
+  sso: string[]                // fournisseurs liés : "feishu", "lark", "oidc"
 }
 
 type DeviceInvite = {

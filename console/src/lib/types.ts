@@ -7,7 +7,15 @@ export type Level = 'observe' | 'interact' | 'advanced'
 
 export type Role = 'owner' | 'admin' | 'member'
 
-export type Me = { id: string; email: string; name: string; role: Role }
+export type Me = {
+  id: string
+  email: string
+  name: string
+  role: Role
+  /** False for single sign-on accounts, which have no password to change. */
+  hasPassword?: boolean
+  sso?: string[]
+}
 
 export type MaskPattern = { name: string; regex: string }
 
@@ -215,7 +223,26 @@ export type TestResult = {
   error?: string | { code?: string; message?: string }
 }
 
-export type GatewayConfig = { gatewayUrl: string; version: string; sdkVersion?: string; sdkIntegrity?: string }
+export type GatewayConfig = {
+  gatewayUrl: string
+  version: string
+  sdkVersion?: string
+  sdkIntegrity?: string
+  /** Single sign-on, when the gateway has RWD_OIDC_* set. */
+  sso?: SSOConfig | null
+}
+
+export type SSOProvider = 'feishu' | 'lark' | 'oidc'
+
+export type SSOConfig = {
+  provider: SSOProvider
+  /** RWD_OIDC_NAME; empty: the provider's name in the console language. */
+  name: string
+  /** Role of accounts created at a first sign-in. */
+  defaultRole: Role
+  /** No accounts are created: only invited members can sign in. */
+  inviteOnly: boolean
+}
 
 export type Member = {
   id: string
@@ -227,6 +254,10 @@ export type Member = {
   pending: boolean
   createdAt: number
   lastLoginAt: number | null
+  /** Can sign in with a password (single sign-on accounts have none). */
+  hasPassword?: boolean
+  /** Single sign-on providers linked to the account. */
+  sso?: string[]
 }
 
 export type CreatedMember = Member & { inviteUrl: string }

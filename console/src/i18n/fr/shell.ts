@@ -56,6 +56,19 @@ export const shell: typeof en = {
     tooManyAttempts: 'Trop de tentatives. Réessayez plus tard.',
     emailRequired: 'Saisissez votre adresse e-mail',
     passwordRequired: 'Saisissez votre mot de passe',
+    providers: { feishu: 'Feishu', lark: 'Lark', oidc: 'SSO' },
+    sso: (name) => `Se connecter avec ${name}`,
+    or: 'ou',
+    ssoErrors: {
+      provider:
+        'L’authentification unique a échoué : la passerelle n’a pas pu joindre le fournisseur d’identité, ou celui-ci a refusé la connexion. Réessayez, ou demandez à un propriétaire de consulter le journal de la passerelle.',
+      denied: 'La connexion a été annulée chez le fournisseur d’identité.',
+      state: 'La connexion a expiré ou a été lancée dans un autre navigateur. Réessayez.',
+      not_allowed: 'Le domaine de votre adresse e-mail n’est pas autorisé à se connecter à cette console.',
+      no_account: 'Vous n’avez pas encore de compte sur cette console. Demandez à un propriétaire d’inviter votre adresse e-mail.',
+      disabled: 'Ce compte a été désactivé. Contactez le propriétaire du projet.',
+      rate_limited: 'Trop de tentatives. Réessayez plus tard.',
+    },
   },
 
   invite: {

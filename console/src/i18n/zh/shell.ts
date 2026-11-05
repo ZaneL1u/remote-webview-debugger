@@ -1,5 +1,8 @@
 import type { shell as en } from '../en/shell'
 
+/** A space around Latin names, none around Chinese ones (使用 SSO 登录, 使用飞书登录). */
+const pad = (name: string) => (/^[\x00-\x7f]/.test(name) ? ` ${name} ` : name)
+
 export const shell: typeof en = {
   tagline: '让 AI 远程调试 App 里的每一个 WebView',
   language: '语言',
@@ -46,6 +49,18 @@ export const shell: typeof en = {
     tooManyAttempts: '尝试次数过多，请稍后再试',
     emailRequired: '请输入邮箱',
     passwordRequired: '请输入密码',
+    providers: { feishu: '飞书', lark: 'Lark', oidc: 'SSO' },
+    sso: (name) => `使用${pad(name)}登录`,
+    or: '或',
+    ssoErrors: {
+      provider: '单点登录失败：网关连不上身份提供方，或身份提供方拒绝了这次登录。请重试，或请所有者查看网关日志。',
+      denied: '已在身份提供方取消登录',
+      state: '登录已过期，或是在另一个浏览器里发起的，请重试',
+      not_allowed: '你的邮箱域名不允许登录这个控制台',
+      no_account: '你在这个控制台还没有账号，请所有者先邀请你的邮箱',
+      disabled: '该账号已停用，请联系项目所有者',
+      rate_limited: '尝试次数过多，请稍后再试',
+    },
   },
 
   invite: {

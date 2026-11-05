@@ -55,6 +55,19 @@ export const shell = {
     tooManyAttempts: 'Too many attempts. Try again later.',
     emailRequired: 'Enter your email',
     passwordRequired: 'Enter your password',
+    providers: { feishu: 'Feishu', lark: 'Lark', oidc: 'SSO' },
+    sso: (name: string) => `Sign in with ${name}`,
+    or: 'or',
+    ssoErrors: {
+      provider:
+        'Single sign-on failed: the gateway couldn’t reach the identity provider, or the provider refused the sign-in. Try again, or ask an owner to check the gateway log.',
+      denied: 'Sign-in was cancelled at the identity provider.',
+      state: 'The sign-in expired or was started in another browser. Try again.',
+      not_allowed: 'Your email domain isn’t allowed to sign in to this console.',
+      no_account: 'You don’t have an account on this console yet. Ask an owner to invite your email.',
+      disabled: 'This account has been disabled. Contact the project owner.',
+      rate_limited: 'Too many attempts. Try again later.',
+    },
   },
 
   invite: {

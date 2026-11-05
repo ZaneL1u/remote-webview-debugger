@@ -1,4 +1,4 @@
-<!-- i18n-source: 4badce63c6ed97a118e42b623c061ea79ea14c6e -->
+<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -522,7 +522,9 @@ type Policy = {
 | POST | `/auth/logout` | — | — | `{"ok":true}` |
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新密码 8–256 个字符；旧密码不对时 `400 bad_password` |
-| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity"}` |
+| GET | `/auth/oidc/start?redirect=/path` | — | — | `302` 跳转到单点登录提供方，同时写入签名 cookie `rwd_oidc`（存放 state 和 PKCE verifier，10 分钟有效）。未开启单点登录时 `404` |
+| GET | `/auth/oidc/callback` | — | 提供方回传的 `code` 和 `state` | 完成登录并 `302` 跳转到 `redirect`（须为控制台路径，否则跳到 `/`）。失败时 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`disabled`、`rate_limited` |
+| GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` 为 `null`；开启单点登录时为 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<域名>/invite/<token>"}`（7 天内有效，只能用一次）。邮箱已存在时 `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`。会导致没有可用 owner 时 `409 last_owner` |
@@ -531,6 +533,8 @@ type Policy = {
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` 并登录。与登录共用限流 |
 
 第一个 owner 在网关启动时由 `RWD_ADMIN_EMAIL`（默认 `admin`）和 `RWD_ADMIN_PASSWORD` 创建（见 [gateway/README.zh-CN.md](../gateway/README.zh-CN.md)）。控制台页面 `/invite/:token` 用于接受成员邀请。
+
+除了密码，还可以用飞书、Lark 或 OpenID Connect 提供方单点登录（`RWD_OIDC_*`，见 [gateway/README.zh-CN.md](../gateway/README.zh-CN.md#单点登录)）。登录页上的按钮打开 `/auth/oidc/start`；提供方把浏览器送回 `/auth/oidc/callback`，由它写入同一个 `rwd_session` cookie。身份先按提供方的 subject 查找；找不到就关联到同邮箱的成员（顺带接受该成员待处理的邀请）；还没有的话，就以默认角色新建账号，除非网关设为仅限受邀成员。这些账号就是普通成员：owner 可以照上面的方式修改角色、停用或删除。
 
 ### 12.3 项目
 
@@ -589,7 +593,7 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 | action | 场景 |
 |---|---|
 | `auth.login`、`auth.login_failed` | 控制台登录 |
-| `member.invite`、`member.accept`、`member.update`、`member.delete` | 成员管理 |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成员管理（`member.sso_join`：首次单点登录时创建的账号；之后的 `auth.login` 带 `"method":"sso"`） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 项目 |
 | `key.create`、`key.revoke` | API Key |
 | `invite.create`、`invite.delete`、`invite.use` | 设备邀请 |
@@ -671,6 +675,8 @@ type Member = {
   id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'
   disabled: boolean; pending: boolean /* 尚未接受邀请 */
   createdAt: number; lastLoginAt: number | null
+  hasPassword: boolean         // 单点登录创建的账号为 false
+  sso: string[]                // 已关联的提供方："feishu"、"lark"、"oidc"
 }
 
 type DeviceInvite = {

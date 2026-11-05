@@ -56,6 +56,19 @@ export const shell: typeof en = {
     tooManyAttempts: 'Zu viele Versuche. Versuchen Sie es später erneut.',
     emailRequired: 'Geben Sie Ihre E-Mail-Adresse ein',
     passwordRequired: 'Geben Sie Ihr Passwort ein',
+    providers: { feishu: 'Feishu', lark: 'Lark', oidc: 'SSO' },
+    sso: (name) => `Mit ${name} anmelden`,
+    or: 'oder',
+    ssoErrors: {
+      provider:
+        'Single Sign-on fehlgeschlagen: Das Gateway hat den Identitätsanbieter nicht erreicht, oder der Anbieter hat die Anmeldung abgelehnt. Versuchen Sie es erneut, oder bitten Sie einen Inhaber, das Gateway-Log zu prüfen.',
+      denied: 'Die Anmeldung wurde beim Identitätsanbieter abgebrochen.',
+      state: 'Die Anmeldung ist abgelaufen oder wurde in einem anderen Browser gestartet. Versuchen Sie es erneut.',
+      not_allowed: 'Die Domain Ihrer E-Mail-Adresse darf sich nicht bei dieser Konsole anmelden.',
+      no_account: 'Sie haben noch kein Konto bei dieser Konsole. Bitten Sie einen Inhaber, Ihre E-Mail-Adresse einzuladen.',
+      disabled: 'Dieses Konto wurde deaktiviert. Wenden Sie sich an den Projektinhaber.',
+      rate_limited: 'Zu viele Versuche. Versuchen Sie es später erneut.',
+    },
   },
 
   invite: {

@@ -1,4 +1,4 @@
-<!-- i18n-source: 7cb26e683d49a4456f37249de54db687257c3692 -->
+<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Passerelle rwd
@@ -51,12 +51,47 @@ Chaque option a sa variable d'environnement ; une option passée en ligne de co
 | `RWD_ADMIN_PASSWORD` | — | Mot de passe du propriétaire. Utilisé à la création du propriétaire, puis à **chaque** démarrage suivant pour réinitialiser le mot de passe du propriétaire désigné par `RWD_ADMIN_EMAIL`, ce qui sert aussi de procédure de récupération du compte. Si cet e-mail n'est pas celui d'un propriétaire (un autre membre, ou personne), il est ignoré et le journal le signale en nommant les propriétaires. S'il n'est pas défini et que la base de données est vide, un mot de passe aléatoire est généré et affiché une seule fois dans le journal |
 | `RWD_METRICS_TOKEN` | — | Si défini, `/v1/metrics` exige `Authorization: Bearer <token>` |
 | `RWD_AUDIT_RETENTION_DAYS` | `180` | Nombre de jours de conservation du journal d'audit |
+| `RWD_OIDC_*` | — | Authentification unique, voir [plus bas](#authentification-unique) |
 
 Autres points utiles :
 
 - Les secrets dont la passerelle a besoin (le pepper des clés d'API et le secret de session de la console web) sont générés au premier démarrage et stockés dans la base de données. Sauvegardez la base de données et gardez les sauvegardes privées.
 - La passerelle conserve l'état en direct (pages connectées, état du contrôle, chronologies) en mémoire : n'exécutez donc qu'une instance par base de données.
 - Contrôle de santé : `GET /v1/healthz` → `{"ok":true,"version":"…","db":"sqlite"|"postgres"}`.
+
+## Authentification unique
+
+Les membres peuvent aussi se connecter avec Feishu, Lark ou n'importe quel fournisseur OpenID Connect (Keycloak, Okta, Microsoft Entra ID, Google, Authing, …) ; l'e-mail et le mot de passe continuent de fonctionner. Définissez le fournisseur et ses identifiants client, et la page de connexion affiche **Se connecter avec …**.
+
+| Variable d'environnement | Valeur par défaut | Description |
+|---|---|---|
+| `RWD_OIDC_PROVIDER` | — | `feishu`, `lark` ou `oidc` ; active l'authentification unique. Définir seulement `RWD_OIDC_ISSUER` revient à `oidc` |
+| `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | Identifiants de l'application (App ID et App Secret pour Feishu et Lark). Obligatoires |
+| `RWD_OIDC_ISSUER` | — | Émetteur (issuer) OpenID Connect, par exemple `https://sso.example.com/realms/acme` ; les points de terminaison sont lus dans son `/.well-known/openid-configuration` (`oidc` uniquement) |
+| `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | ceux du fournisseur | Remplacent les points de terminaison ; définissez les trois pour un fournisseur OpenID Connect sans découverte |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), aucun (Feishu, Lark) | Scopes séparés par des espaces. Pour Feishu et Lark, ajoutez `contact:user.email:readonly` (et `contact:user.employee:readonly` pour l'e-mail professionnel) afin que les comptes aient une adresse e-mail |
+| `RWD_OIDC_NAME` | le nom du fournisseur | Libellé du bouton de connexion, par exemple `Okta` |
+| `RWD_OIDC_DEFAULT_ROLE` | `member` | Rôle des comptes créés lors d'une première connexion : `member` ou `admin` |
+| `RWD_OIDC_INVITE_ONLY=1` | désactivé | Ne crée aucun compte : seuls les membres existants ou invités (même e-mail) peuvent se connecter |
+| `RWD_OIDC_ALLOWED_DOMAINS` | — | Domaines d'e-mail autorisés à se connecter, séparés par des virgules, par exemple `example.com` |
+
+Enregistrez cette URL de redirection auprès du fournisseur ; elle doit correspondre exactement : `https://<host>/v1/api/auth/oidc/callback`, c'est-à-dire l'origine de `RWD_PUBLIC_URL` (celle de la requête s'il n'est pas défini) suivie de `/v1/api/auth/oidc/callback`. Derrière un proxy, définissez `RWD_PUBLIC_URL` pour que l'URL reste stable.
+
+La première connexion d'une identité la rattache au membre ayant la même adresse e-mail (un membre invité conserve le rôle de l'invitation, et l'invitation est consommée), ou crée un compte avec `RWD_OIDC_DEFAULT_ROLE`, sauf si `RWD_OIDC_INVITE_ONLY=1`. Les connexions suivantes retrouvent le compte par le subject du fournisseur (`open_id` pour Feishu et Lark) : un changement d'adresse e-mail n'a donc pas d'importance. Une adresse e-mail qu'un fournisseur OpenID Connect marque `email_verified: false` est ignorée, et un compte sans adresse e-mail reçoit l'identifiant de connexion `<provider>:<subject>`. Les propriétaires gèrent ces membres sur la page **Membres** comme tous les autres : changer leur rôle, les désactiver ou les supprimer ; un membre désactivé ne peut se connecter d'aucune des deux façons. Les comptes créés par authentification unique n'ont pas de mot de passe. La passerelle lit l'utilisateur sur le point de terminaison userinfo du fournisseur avec le jeton d'accès qu'elle vient de recevoir (flux authorization code avec PKCE) ; elle n'utilise pas le jeton d'identité (ID token).
+
+**Feishu ou Lark.** Sur la [Feishu Open Platform](https://open.feishu.cn/app) (Lark : [open.larksuite.com](https://open.larksuite.com/app)), créez une application personnalisée (企业自建应用), que seules les personnes de votre organisation peuvent utiliser, puis :
+
+1. Copiez l'App ID et l'App Secret depuis **Credentials & Basic Info** dans `RWD_OIDC_CLIENT_ID` et `RWD_OIDC_CLIENT_SECRET`.
+2. Dans **Security Settings → Redirect URLs**, ajoutez l'URL de redirection ci-dessus.
+3. Dans **Permissions & Scopes**, ajoutez `contact:user.email:readonly` (et `contact:user.employee:readonly` pour l'e-mail professionnel), et listez les mêmes scopes dans `RWD_OIDC_SCOPES`.
+4. Limitez la disponibilité de l'application aux personnes qui doivent se connecter, puis créez et publiez une version pour que les paramètres prennent effet.
+
+```bash
+RWD_PUBLIC_URL=https://rwd.example.com/v1 \
+RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+  rwd serve
+```
 
 ## Connecter un agent
 

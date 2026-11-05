@@ -106,7 +106,7 @@ export function isForbidden(err: unknown) {
 
 /** A phase 1 gateway answers `{"admin":true}`; treat that single administrator as the owner. */
 function normalizeMe(raw: Partial<Me> & { admin?: boolean }): Me {
-  if (raw.role) return { id: raw.id ?? '', email: raw.email ?? '', name: raw.name ?? '', role: raw.role }
+  if (raw.role) return { id: raw.id ?? '', email: raw.email ?? '', name: raw.name ?? '', role: raw.role, hasPassword: raw.hasPassword, sso: raw.sso }
   return { id: raw.id ?? 'admin', email: raw.email ?? 'admin', name: raw.name ?? getT().common.api.adminName, role: 'owner' }
 }
 
