@@ -183,6 +183,7 @@ var ru = map[Key]string{
 	APIOldPasswordWrong:     "Текущий пароль неверен",
 	APIBadMember:            "Укажите корректный email и роль",
 	APIMemberExists:         "Участник с таким email уже есть",
+	APIMemberHasPassword:    "У этого участника уже есть пароль",
 	APILastOwner:            "Должен остаться хотя бы один владелец",
 	APIDeleteSelf:           "Нельзя удалить самого себя",
 	APIInviteInvalid:        "Ссылка-приглашение недействительна или истекла",

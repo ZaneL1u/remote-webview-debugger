@@ -38,6 +38,12 @@ export const members: typeof en = {
   ssoHint: (name, role) =>
     `Tus compañeros también pueden iniciar sesión con ${name}: la primera vez se vinculan al miembro con el mismo correo electrónico o se crea una cuenta con el rol ${role}.`,
   ssoInviteOnlyHint: (name) => `Los compañeros cuyo correo electrónico hayas invitado también pueden iniciar sesión con ${name}.`,
+  newLink: 'Nuevo enlace',
+  newLinkAria: (name) => `Nuevo enlace de invitación para ${name}`,
+  newLinkTitle: (name) => `¿Crear un nuevo enlace de invitación para ${name}?`,
+  newLinkPendingDescription: 'El enlace de invitación anterior deja de funcionar. El nuevo es válido durante 7 días y funciona una sola vez.',
+  newLinkSsoDescription:
+    'Con el enlace define una contraseña y después también puede iniciar sesión con ella, por ejemplo cuando se desactive el inicio de sesión único. Cualquier enlace anterior deja de funcionar; el nuevo es válido durante 7 días y funciona una sola vez.',
   signedInAgo: (ago) => `Inició sesión ${ago}`,
   cantEditSelf: 'No puedes editarte a ti mismo',
   changeRole: (name) => `Cambiar el rol de ${name}`,
@@ -58,7 +64,7 @@ export const members: typeof en = {
     createdTitle: 'Enlace de invitación creado',
     createdDescription: (name, role) => `Envía este enlace a ${name} (${role}). Establecerá una contraseña y después podrá iniciar sesión.`,
     onceWarning: 'Este enlace solo se muestra una vez, es válido durante 7 días y funciona una sola vez.',
-    lostHint: 'Si se pierde, quita al miembro y vuelve a invitarlo.',
+    lostHint: 'Si se pierde, crea uno nuevo desde la fila del miembro.',
     link: 'Enlace de invitación',
     scanHint: 'También puede escanear el código con su teléfono.',
     done: 'Ya lo copié, cerrar',

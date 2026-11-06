@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | Português (Brasil) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -523,12 +523,13 @@ Papéis: `owner` (tudo, incluindo membros), `admin` (projetos, chaves, política
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. A nova senha precisa ter 8–256 caracteres; `400 bad_password` se a antiga estiver errada |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` para o provedor de login único, com um cookie assinado `rwd_oidc` (state e verificador PKCE, 10 minutos). `404` sem login único |
-| GET | `/auth/oidc/callback` | — | o `code` e o `state` do provedor | Faz o login e `302` para `redirect` (um caminho do console; senão, `/`). Em caso de falha, `302` para `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (o membro com esse e-mail está vinculado a outra identidade do provedor), `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | o `code` e o `state` do provedor | Faz o login e `302` para `redirect` (um caminho do console; senão, `/`). Em caso de falha, `302` para `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (o membro com esse e-mail está vinculado a outra identidade do provedor), `tenant` (outra organização do Feishu ou do Lark que não a de `RWD_OIDC_TENANT`), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` é `null`, ou `{"provider","name","defaultRole","inviteOnly"}` quando o login único está ligado |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (válido por 7 dias, uma vez). `409 conflict` se o e-mail já existir |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` se não sobrar nenhum proprietário ativo |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`. `409 self`, `409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | Um novo link de convite para um membro sem senha (um convite perdido, ou uma conta de login único que deve ganhar senha): `Member & {"inviteUrl"}` como acima; o link anterior para de funcionar. `409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` e faz o login. Limite de taxa igual ao do login |
 
@@ -593,7 +594,7 @@ Um convite permite que um usuário coloque o dispositivo online, com a assistên
 | Ação | Quando |
 |---|---|
 | `auth.login`, `auth.login_failed` | Login no console |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestão de membros (`member.sso_join`: uma conta criada num primeiro login único; o `auth.login` então tem `"method":"sso"`) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestão de membros (`member.sso_join`: uma conta criada num primeiro login único; o `auth.login` então tem `"method":"sso"`; `member.invite` com `"again":true`: um novo link de convite) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projetos |
 | `key.create`, `key.revoke` | Chaves de API |
 | `invite.create`, `invite.delete`, `invite.use` | Convites de dispositivo |

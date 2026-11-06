@@ -38,6 +38,12 @@ export const members: typeof en = {
   ssoHint: (name, role) =>
     `Colegas também podem entrar com ${name}: o primeiro login se vincula ao membro com o mesmo e-mail ou cria uma conta com a função ${role}.`,
   ssoInviteOnlyHint: (name) => `Colegas cujo e-mail você convidou também podem entrar com ${name}.`,
+  newLink: 'Novo link',
+  newLinkAria: (name) => `Novo link de convite para ${name}`,
+  newLinkTitle: (name) => `Criar um novo link de convite para ${name}?`,
+  newLinkPendingDescription: 'O link de convite anterior para de funcionar. O novo vale por 7 dias e funciona uma única vez.',
+  newLinkSsoDescription:
+    'Com o link, a pessoa define uma senha e depois também pode entrar com ela, por exemplo quando o login único for desativado. Qualquer link anterior para de funcionar; o novo vale por 7 dias e funciona uma única vez.',
   signedInAgo: (ago) => `Entrou ${ago}`,
   cantEditSelf: 'Você não pode editar a si mesmo',
   changeRole: (name) => `Alterar o papel de ${name}`,
@@ -58,7 +64,7 @@ export const members: typeof en = {
     createdTitle: 'Link de convite criado',
     createdDescription: (name, role) => `Envie este link para ${name} (${role}). A pessoa vai definir uma senha e então poderá entrar.`,
     onceWarning: 'Este link é exibido só uma vez, vale por 7 dias e funciona uma única vez.',
-    lostHint: 'Se ele se perder, remova o membro e convide de novo.',
+    lostHint: 'Se ele se perder, crie um novo na linha do membro.',
     link: 'Link de convite',
     scanHint: 'A pessoa também pode escanear o código com o celular.',
     done: 'Já copiei, fechar',

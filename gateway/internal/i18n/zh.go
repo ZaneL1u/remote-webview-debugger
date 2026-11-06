@@ -183,6 +183,7 @@ var zh = map[Key]string{
 	APIOldPasswordWrong:     "原密码错误",
 	APIBadMember:            "请填写正确的邮箱和角色",
 	APIMemberExists:         "该邮箱已是成员",
+	APIMemberHasPassword:    "该成员已设置密码",
 	APILastOwner:            "至少需要保留一位所有者",
 	APIDeleteSelf:           "不能删除自己",
 	APIInviteInvalid:        "邀请链接无效或已过期",

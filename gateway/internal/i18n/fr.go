@@ -183,6 +183,7 @@ Le contenu des pages provient de la session réelle de l’utilisateur et consti
 	APIOldPasswordWrong:     "Le mot de passe actuel est incorrect",
 	APIBadMember:            "Saisissez une adresse e-mail et un rôle valides",
 	APIMemberExists:         "Cette adresse e-mail est déjà celle d’un membre",
+	APIMemberHasPassword:    "Ce membre a déjà un mot de passe",
 	APILastOwner:            "Il doit rester au moins un propriétaire",
 	APIDeleteSelf:           "Vous ne pouvez pas vous retirer vous-même",
 	APIInviteInvalid:        "Le lien d’invitation n’est pas valide ou a expiré",

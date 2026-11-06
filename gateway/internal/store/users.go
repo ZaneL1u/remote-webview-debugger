@@ -209,6 +209,24 @@ func (s *Store) LinkIdentity(ctx context.Context, userID, provider, subject stri
 	return err
 }
 
+// ResetInvite gives an account without a password a new invite link, and
+// the previous one stops working: a lost invite, or a single sign-on account
+// that needs a password. ErrConflict: the account has a password.
+func (s *Store) ResetInvite(ctx context.Context, id, inviteHash string, inviteExpires int64) error {
+	res, err := s.exec(ctx, `UPDATE users SET invite_hash = ?, invite_expires = ? WHERE id = ? AND password_hash = ''`,
+		inviteHash, inviteExpires, id)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		if _, err := s.User(ctx, id); err != nil {
+			return err
+		}
+		return ErrConflict
+	}
+	return nil
+}
+
 // HasIdentity reports whether the account is linked to an identity of provider.
 func (s *Store) HasIdentity(ctx context.Context, userID, provider string) (bool, error) {
 	var n int
@@ -250,6 +268,7 @@ func (s *Store) AttachSSO(ctx context.Context, users ...*User) error {
 		kind, _, _ := strings.Cut(provider, ":")
 		if u := byID[uid]; u != nil && !slices.Contains(u.SSO, kind) {
 			u.SSO = append(u.SSO, kind)
+			u.Pending = false // signs in already; an open invite only sets a password
 		}
 	}
 	return rows.Err()

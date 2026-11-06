@@ -38,6 +38,12 @@ export const members: typeof en = {
   ssoHint: (name, role) =>
     `동료는 ${name}(으)로도 로그인할 수 있어요. 처음 로그인하면 같은 이메일의 멤버와 연결되고, 없으면 ${role} 역할의 계정이 만들어져요.`,
   ssoInviteOnlyHint: (name) => `이메일을 초대한 동료는 ${name}(으)로도 로그인할 수 있어요.`,
+  newLink: '새 링크',
+  newLinkAria: (name) => `${name} 님의 새 초대 링크`,
+  newLinkTitle: (name) => `${name} 님의 새 초대 링크를 만들까요?`,
+  newLinkPendingDescription: '이전 초대 링크는 바로 사용할 수 없게 돼요. 새 링크는 7일 동안 유효하고 한 번만 사용할 수 있어요.',
+  newLinkSsoDescription:
+    '이 링크로 비밀번호를 설정하면 SSO를 끈 뒤에도 비밀번호로 로그인할 수 있어요. 이전 링크는 바로 사용할 수 없게 되고, 새 링크는 7일 동안 유효하며 한 번만 사용할 수 있어요.',
   signedInAgo: (ago) => `${ago} 로그인`,
   cantEditSelf: '자기 자신은 편집할 수 없어요',
   changeRole: (name) => `${name} 님의 역할 변경`,
@@ -58,7 +64,7 @@ export const members: typeof en = {
     createdTitle: '초대 링크를 만들었어요',
     createdDescription: (name, role) => `이 링크를 ${name} 님(${role})에게 보내세요. 비밀번호를 설정하면 로그인할 수 있어요.`,
     onceWarning: '이 링크는 지금 한 번만 표시되며, 7일 동안 유효하고 한 번만 사용할 수 있어요.',
-    lostHint: '링크를 잃어버리면 멤버를 삭제하고 다시 초대하세요.',
+    lostHint: '링크를 잃어버리면 멤버 행에서 새 링크를 만드세요.',
     link: '초대 링크',
     scanHint: '휴대폰으로 코드를 스캔해도 돼요.',
     done: '복사했어요, 닫기',

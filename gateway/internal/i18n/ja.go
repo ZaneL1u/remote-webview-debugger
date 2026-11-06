@@ -183,6 +183,7 @@ var ja = map[Key]string{
 	APIOldPasswordWrong:     "現在のパスワードが正しくありません",
 	APIBadMember:            "有効なメールアドレスとロールを入力してください",
 	APIMemberExists:         "このメールアドレスはすでにメンバーです",
+	APIMemberHasPassword:    "このメンバーはすでにパスワードを設定しています",
 	APILastOwner:            "オーナーを少なくとも 1 人残す必要があります",
 	APIDeleteSelf:           "自分自身を削除することはできません",
 	APIInviteInvalid:        "招待リンクが無効か、有効期限が切れています",

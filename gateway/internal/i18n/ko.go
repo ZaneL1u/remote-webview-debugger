@@ -183,6 +183,7 @@ var ko = map[Key]string{
 	APIOldPasswordWrong:     "현재 비밀번호가 올바르지 않아요",
 	APIBadMember:            "올바른 이메일과 역할을 입력해 주세요",
 	APIMemberExists:         "이미 멤버로 등록된 이메일이에요",
+	APIMemberHasPassword:    "이미 비밀번호가 설정된 멤버예요",
 	APILastOwner:            "소유자가 한 명 이상 있어야 해요",
 	APIDeleteSelf:           "자기 자신은 삭제할 수 없어요",
 	APIInviteInvalid:        "초대 링크가 올바르지 않거나 만료되었어요",

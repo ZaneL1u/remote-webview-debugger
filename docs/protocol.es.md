@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | Español | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -523,12 +523,13 @@ Roles: `owner` (todo, incluidos los miembros), `admin` (proyectos, claves, polí
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. La contraseña nueva debe tener 8–256 caracteres; `400 bad_password` si la antigua es incorrecta |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` al proveedor de inicio de sesión único, con una cookie firmada `rwd_oidc` (state y verificador PKCE, 10 minutos). `404` sin inicio de sesión único |
-| GET | `/auth/oidc/callback` | — | `code` y `state` del proveedor | Inicia sesión y `302` a `redirect` (una ruta de la consola web; si no, `/`). Si falla, `302` a `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (el miembro con ese email está vinculado a otra identidad del proveedor), `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | `code` y `state` del proveedor | Inicia sesión y `302` a `redirect` (una ruta de la consola web; si no, `/`). Si falla, `302` a `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (el miembro con ese email está vinculado a otra identidad del proveedor), `tenant` (otra organización de Feishu o Lark distinta de `RWD_OIDC_TENANT`), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` es `null`, o `{"provider","name","defaultRole","inviteOnly"}` cuando el inicio de sesión único está activado |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (válida 7 días, un solo uso). `409 conflict` si el email ya existe |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` si no quedaría ningún owner activo |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`. `409 self`, `409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | Un nuevo enlace de invitación para un miembro sin contraseña (una invitación perdida, o una cuenta de inicio de sesión único que debe tener contraseña): `Member & {"inviteUrl"}` como arriba; el enlace anterior deja de funcionar. `409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` e inicia sesión. Con el mismo límite de frecuencia que el login |
 
@@ -593,7 +594,7 @@ Una invitación permite a un usuario poner su dispositivo en línea, con la asis
 | Acción | Cuándo |
 |---|---|
 | `auth.login`, `auth.login_failed` | Inicio de sesión en la consola web |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestión de miembros (`member.sso_join`: una cuenta creada en un primer inicio de sesión único; `auth.login` lleva entonces `"method":"sso"`) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestión de miembros (`member.sso_join`: una cuenta creada en un primer inicio de sesión único; `auth.login` lleva entonces `"method":"sso"`; `member.invite` con `"again":true`: un nuevo enlace de invitación) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Proyectos |
 | `key.create`, `key.revoke` | Claves de API |
 | `invite.create`, `invite.delete`, `invite.use` | Invitaciones de dispositivo |

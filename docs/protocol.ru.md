@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | Русский | [العربية](protocol.ar.md)
 
 # Протокол RWD (v1)
@@ -523,12 +523,13 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Новый пароль должен содержать от 8 до 256 символов; `400 bad_password`, если старый неверен |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` на поставщика единого входа с подписанным cookie `rwd_oidc` (state и верификатор PKCE, 10 минут). `404`, если единый вход не настроен |
-| GET | `/auth/oidc/callback` | — | `code` и `state` от поставщика | Выполняет вход и `302` на `redirect` (путь веб-консоли, иначе `/`). При ошибке `302` на `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (участник с этим email привязан к другому удостоверению поставщика), `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | `code` и `state` от поставщика | Выполняет вход и `302` на `redirect` (путь веб-консоли, иначе `/`). При ошибке `302` на `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (участник с этим email привязан к другому удостоверению поставщика), `tenant` (организация Feishu или Lark, отличная от `RWD_OIDC_TENANT`), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` — это `null` или `{"provider","name","defaultRole","inviteOnly"}`, если единый вход включён |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (действует 7 дней, одноразовое). `409 conflict`, если такой email уже есть |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner`, если не останется ни одного активного владельца |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`. `409 self`, `409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | Новая ссылка-приглашение для участника без пароля (потерянное приглашение или учётная запись единого входа, которой нужен пароль): `Member & {"inviteUrl"}`, как выше; прежняя ссылка перестаёт работать. `409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` и выполняет вход. Ограничение частоты как у входа |
 
@@ -593,7 +594,7 @@ API-ключи принадлежат шлюзу, а не проекту: оди
 | Действие | Когда |
 |---|---|
 | `auth.login`, `auth.login_failed` | Вход в веб-консоль |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Управление участниками (`member.sso_join` — учётная запись, созданная при первом едином входе; у `auth.login` в этом случае есть `"method":"sso"`) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Управление участниками (`member.sso_join` — учётная запись, созданная при первом едином входе; у `auth.login` в этом случае есть `"method":"sso"`; `member.invite` с `"again":true` — новая ссылка-приглашение) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Проекты |
 | `key.create`, `key.revoke` | API-ключи |
 | `invite.create`, `invite.delete`, `invite.use` | Приглашения устройств |

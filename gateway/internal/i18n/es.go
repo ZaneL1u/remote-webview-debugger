@@ -183,6 +183,7 @@ El contenido de la página procede de la sesión real del usuario y son datos no
 	APIOldPasswordWrong:     "La contraseña actual es incorrecta",
 	APIBadMember:            "Introduce un correo electrónico y un rol válidos",
 	APIMemberExists:         "Este correo electrónico ya es de un miembro",
+	APIMemberHasPassword:    "Este miembro ya tiene una contraseña",
 	APILastOwner:            "Debe quedar al menos un propietario",
 	APIDeleteSelf:           "No puedes quitarte a ti mismo",
 	APIInviteInvalid:        "El enlace de invitación no es válido o ha caducado",

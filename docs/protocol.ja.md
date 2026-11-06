@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -523,12 +523,13 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新しいパスワードは 8〜256 文字。古いパスワードが誤っていれば `400 bad_password` |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | シングルサインオンのプロバイダーへ `302`。署名付き Cookie `rwd_oidc`（state と PKCE verifier、10 分間有効）を設定する。シングルサインオンが無効なら `404` |
-| GET | `/auth/oidc/callback` | — | プロバイダーからの `code` と `state` | サインインして `redirect`（管理コンソールのパス。それ以外なら `/`）へ `302`。失敗時は `/login?sso_error=<code>` へ `302`: `provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（そのメールアドレスのメンバーが、プロバイダーの別の ID に紐付け済み）、`disabled`、`rate_limited` |
+| GET | `/auth/oidc/callback` | — | プロバイダーからの `code` と `state` | サインインして `redirect`（管理コンソールのパス。それ以外なら `/`）へ `302`。失敗時は `/login?sso_error=<code>` へ `302`: `provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（そのメールアドレスのメンバーが、プロバイダーの別の ID に紐付け済み）、`tenant`（`RWD_OIDC_TENANT` 以外の Feishu / Lark 組織）、`disabled`、`rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` は `null`、シングルサインオンが有効なら `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}`（7 日間有効、1 回限り）。メールアドレスが既存なら `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`。有効な owner がいなくなる場合は `409 last_owner` |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`。`409 self`、`409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | パスワードのないメンバー（招待リンクを紛失した、またはパスワードを設定したいシングルサインオンのアカウント）に新しい招待リンクを発行する。上と同じ `Member & {"inviteUrl"}` を返し、以前のリンクは無効になる。`409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` を返してサインインする。レート制限はログインと同じ |
 
@@ -593,7 +594,7 @@ API キーはプロジェクトではなくゲートウェイに属します。1
 | アクション | タイミング |
 |---|---|
 | `auth.login`、`auth.login_failed` | 管理コンソールへのサインイン |
-| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | メンバー管理（`member.sso_join` は初回のシングルサインオンで作成されたアカウント。その後の `auth.login` には `"method":"sso"` が付く） |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | メンバー管理（`member.sso_join` は初回のシングルサインオンで作成されたアカウント。その後の `auth.login` には `"method":"sso"` が付く。`member.invite` に `"again":true` が付くのは招待リンクの再発行） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | プロジェクト |
 | `key.create`、`key.revoke` | API キー |
 | `invite.create`、`invite.delete`、`invite.use` | デバイス招待 |

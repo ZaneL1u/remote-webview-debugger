@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -523,12 +523,13 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新密码 8–256 个字符；旧密码不对时 `400 bad_password` |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` 跳转到单点登录提供方，同时写入签名 cookie `rwd_oidc`（存放 state 和 PKCE verifier，10 分钟有效）。未开启单点登录时 `404` |
-| GET | `/auth/oidc/callback` | — | 提供方回传的 `code` 和 `state` | 完成登录并 `302` 跳转到 `redirect`（须为控制台路径，否则跳到 `/`）。失败时 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（该邮箱的成员已关联到该提供方的另一个身份）、`disabled`、`rate_limited` |
+| GET | `/auth/oidc/callback` | — | 提供方回传的 `code` 和 `state` | 完成登录并 `302` 跳转到 `redirect`（须为控制台路径，否则跳到 `/`）。失败时 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（该邮箱的成员已关联到该提供方的另一个身份）、`tenant`（不是 `RWD_OIDC_TENANT` 指定的飞书或 Lark 组织）、`disabled`、`rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` 为 `null`；开启单点登录时为 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<域名>/invite/<token>"}`（7 天内有效，只能用一次）。邮箱已存在时 `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`。会导致没有可用 owner 时 `409 last_owner` |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`。`409 self`、`409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | 给没有密码的成员生成新的邀请链接（邀请丢失了，或单点登录账号需要设置密码）：返回值同上，`Member & {"inviteUrl"}`；之前的链接随即失效。`409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` 并登录。与登录共用限流 |
 
@@ -593,7 +594,7 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 | action | 场景 |
 |---|---|
 | `auth.login`、`auth.login_failed` | 控制台登录 |
-| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成员管理（`member.sso_join`：首次单点登录时创建的账号；之后的 `auth.login` 带 `"method":"sso"`） |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成员管理（`member.sso_join`：首次单点登录时创建的账号；之后的 `auth.login` 带 `"method":"sso"`；`member.invite` 带 `"again":true`：重新生成的邀请链接） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 项目 |
 | `key.create`、`key.revoke` | API Key |
 | `invite.create`、`invite.delete`、`invite.use` | 设备邀请 |

@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | Français | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocole RWD (v1)
@@ -523,12 +523,13 @@ Rôles : `owner` (tout, y compris les membres), `admin` (projets, clés, politi
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Le nouveau mot de passe doit compter de 8 à 256 caractères ; `400 bad_password` si l'ancien est incorrect |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` vers le fournisseur d'authentification unique, avec un cookie signé `rwd_oidc` (state et vérificateur PKCE, 10 minutes). `404` sans authentification unique |
-| GET | `/auth/oidc/callback` | — | `code` et `state` du fournisseur | Ouvre la session et `302` vers `redirect` (un chemin de la console, sinon `/`). En cas d'échec, `302` vers `/login?sso_error=<code>` : `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (le membre ayant cette adresse e-mail est rattaché à une autre identité du fournisseur), `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | `code` et `state` du fournisseur | Ouvre la session et `302` vers `redirect` (un chemin de la console, sinon `/`). En cas d'échec, `302` vers `/login?sso_error=<code>` : `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (le membre ayant cette adresse e-mail est rattaché à une autre identité du fournisseur), `tenant` (une autre organisation Feishu ou Lark que `RWD_OIDC_TENANT`), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` vaut `null`, ou `{"provider","name","defaultRole","inviteOnly"}` quand l'authentification unique est activée |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (valable 7 jours, une seule fois). `409 conflict` si l'adresse e-mail existe déjà |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` s'il ne devait plus rester aucun owner actif |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`. `409 self`, `409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | Un nouveau lien d'invitation pour un membre sans mot de passe (une invitation perdue, ou un compte d'authentification unique qui doit avoir un mot de passe) : `Member & {"inviteUrl"}` comme ci-dessus ; l'ancien lien cesse de fonctionner. `409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` et ouvre la session. Même limitation de débit que pour la connexion |
 
@@ -593,7 +594,7 @@ Une invitation permet à un utilisateur de mettre son appareil en ligne, déjà 
 | Action | Quand |
 |---|---|
 | `auth.login`, `auth.login_failed` | Connexion à la console |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestion des membres (`member.sso_join` : un compte créé lors d'une première connexion par authentification unique ; `auth.login` porte alors `"method":"sso"`) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestion des membres (`member.sso_join` : un compte créé lors d'une première connexion par authentification unique ; `auth.login` porte alors `"method":"sso"` ; `member.invite` avec `"again":true` : un nouveau lien d'invitation) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projets |
 | `key.create`, `key.revoke` | Clés d'API |
 | `invite.create`, `invite.delete`, `invite.use` | Invitations d'appareil |

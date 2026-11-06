@@ -183,6 +183,7 @@ var ar = map[Key]string{
 	APIOldPasswordWrong:     "كلمة المرور الحالية غير صحيحة",
 	APIBadMember:            "يُرجى إدخال بريد إلكتروني ودور صالحين",
 	APIMemberExists:         "هذا البريد الإلكتروني عضو بالفعل",
+	APIMemberHasPassword:    "لدى هذا العضو كلمة مرور بالفعل",
 	APILastOwner:            "يجب أن يبقى مالك واحد على الأقل",
 	APIDeleteSelf:           "لا يمكنك إزالة نفسك",
 	APIInviteInvalid:        "رابط الدعوة غير صالح أو منتهي الصلاحية",

@@ -190,6 +190,7 @@ const (
 	APIOldPasswordWrong     Key = "api.old_password_wrong"
 	APIBadMember            Key = "api.bad_member"
 	APIMemberExists         Key = "api.member_exists"
+	APIMemberHasPassword    Key = "api.member_has_password"
 	APILastOwner            Key = "api.last_owner"
 	APIDeleteSelf           Key = "api.delete_self"
 	APIInviteInvalid        Key = "api.invite_invalid"

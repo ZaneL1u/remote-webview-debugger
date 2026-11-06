@@ -49,6 +49,7 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /v1/api/members", owner(s.inviteMember))
 	mux.HandleFunc("PATCH /v1/api/members/{id}", owner(s.updateMember))
 	mux.HandleFunc("DELETE /v1/api/members/{id}", owner(s.deleteMember))
+	mux.HandleFunc("POST /v1/api/members/{id}/invite", owner(s.reinviteMember))
 	mux.HandleFunc("GET /v1/api/invites/{token}", s.getMemberInvite)
 	mux.HandleFunc("POST /v1/api/invites/{token}/accept", s.acceptMemberInvite)
 
@@ -167,7 +168,7 @@ func (s *Server) inviteMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := ids.Secret(24)
-	exp := time.Now().Add(7 * 24 * time.Hour).UnixMilli()
+	exp := time.Now().Add(inviteTTL).UnixMilli()
 	u, err := s.store.CreateUser(r.Context(), req.Email, req.Name, req.Role, "", ids.HashKey(s.pepper, token), &exp)
 	if errors.Is(err, store.ErrConflict) {
 		s.fail(w, r, http.StatusConflict, "conflict", i18n.APIMemberExists)
@@ -178,6 +179,37 @@ func (s *Server) inviteMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.auditMember(r, "", "member.invite", u.Email, "ok", map[string]any{"role": u.Role})
+	writeJSON(w, struct {
+		*store.User
+		InviteURL string `json:"inviteUrl"`
+	}{u, s.origin(r) + "/invite/" + token})
+}
+
+const inviteTTL = 7 * 24 * time.Hour
+
+// reinviteMember gives a member without a password a new invite link (POST
+// /v1/api/members/{id}/invite): a lost invite, or a single sign-on account
+// that should also be able to sign in with a password (when single sign-on
+// is turned off, say). The previous link stops working.
+func (s *Server) reinviteMember(w http.ResponseWriter, r *http.Request) {
+	token := ids.Secret(24)
+	err := s.store.ResetInvite(r.Context(), r.PathValue("id"), ids.HashKey(s.pepper, token), time.Now().Add(inviteTTL).UnixMilli())
+	if errors.Is(err, store.ErrConflict) {
+		s.fail(w, r, http.StatusConflict, "has_password", i18n.APIMemberHasPassword)
+		return
+	}
+	var u *store.User
+	if err == nil {
+		u, err = s.store.User(r.Context(), r.PathValue("id"))
+	}
+	if err == nil {
+		err = s.store.AttachSSO(r.Context(), u)
+	}
+	if err != nil {
+		s.storeErr(w, r, err)
+		return
+	}
+	s.auditMember(r, "", "member.invite", u.Email, "ok", map[string]any{"role": u.Role, "again": true})
 	writeJSON(w, struct {
 		*store.User
 		InviteURL string `json:"inviteUrl"`

@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -523,12 +523,13 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新密碼須為 8–256 個字元；舊密碼不正確時 `400 bad_password` |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` 重新導向到單一登入的提供者，同時寫入簽章 cookie `rwd_oidc`（存放 state 和 PKCE verifier，10 分鐘有效）。未啟用單一登入時 `404` |
-| GET | `/auth/oidc/callback` | — | 提供者傳回的 `code` 和 `state` | 完成登入並 `302` 重新導向到 `redirect`（須為主控台路徑，否則導向 `/`）。失敗時 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（使用該電子郵件的成員已連結到該提供者的另一個身分）、`disabled`、`rate_limited` |
+| GET | `/auth/oidc/callback` | — | 提供者傳回的 `code` 和 `state` | 完成登入並 `302` 重新導向到 `redirect`（須為主控台路徑，否則導向 `/`）。失敗時 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（使用該電子郵件的成員已連結到該提供者的另一個身分）、`tenant`（不是 `RWD_OIDC_TENANT` 指定的飛書或 Lark 組織）、`disabled`、`rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` 為 `null`；啟用單一登入時為 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<主機>/invite/<token>"}`（7 天內有效，只能使用一次）。電子郵件已存在時 `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`。會導致沒有可用 owner 時 `409 last_owner` |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`。`409 self`、`409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | 為沒有密碼的成員產生新的邀請連結（邀請遺失了，或單一登入帳號需要設定密碼）：回傳值同上，`Member & {"inviteUrl"}`；之前的連結隨即失效。`409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` 並登入。與登入共用速率限制 |
 
@@ -593,7 +594,7 @@ API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存�
 | action | 時機 |
 |---|---|
 | `auth.login`、`auth.login_failed` | 主控台登入 |
-| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成員管理（`member.sso_join`：首次單一登入時建立的帳號；之後的 `auth.login` 會帶 `"method":"sso"`） |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成員管理（`member.sso_join`：首次單一登入時建立的帳號；之後的 `auth.login` 會帶 `"method":"sso"`；`member.invite` 帶 `"again":true`：重新產生的邀請連結） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 專案 |
 | `key.create`、`key.revoke` | API 金鑰 |
 | `invite.create`、`invite.delete`、`invite.use` | 裝置邀請 |

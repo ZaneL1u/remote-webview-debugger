@@ -38,6 +38,12 @@ export const members: typeof en = {
   ssoHint: (name, role) =>
     `メンバーは ${name} でもログインできます。初回ログインでは同じメールアドレスのメンバーに紐づき、いなければ「${role}」ロールのアカウントが作成されます。`,
   ssoInviteOnlyHint: (name) => `メールアドレスを招待済みのメンバーは ${name} でもログインできます。`,
+  newLink: '新しいリンク',
+  newLinkAria: (name) => `${name} の新しい招待リンク`,
+  newLinkTitle: (name) => `${name} の新しい招待リンクを作成しますか？`,
+  newLinkPendingDescription: '以前の招待リンクは使えなくなります。新しいリンクの有効期限は 7 日間で、使用できるのは 1 回だけです。',
+  newLinkSsoDescription:
+    'このリンクでパスワードを設定すると、シングルサインオンを無効にした後などにもパスワードでログインできるようになります。以前のリンクは使えなくなります。新しいリンクの有効期限は 7 日間で、使用できるのは 1 回だけです。',
   signedInAgo: (ago) => `ログイン ${ago}`,
   cantEditSelf: '自分自身は編集できません',
   changeRole: (name) => `${name} のロールを変更`,
@@ -58,7 +64,7 @@ export const members: typeof en = {
     createdTitle: '招待リンクを作成しました',
     createdDescription: (name, role) => `このリンクを ${name}（${role}）に送ってください。パスワードを設定すると、ログインできるようになります。`,
     onceWarning: 'このリンクが表示されるのは今回だけです。有効期限は 7 日間で、使用できるのは 1 回だけです。',
-    lostHint: '紛失した場合は、メンバーを削除してから再度招待してください。',
+    lostHint: '紛失した場合は、メンバーの行から新しいリンクを作成してください。',
     link: '招待リンク',
     scanHint: 'スマートフォンでコードをスキャンすることもできます。',
     done: 'コピーしたので閉じる',

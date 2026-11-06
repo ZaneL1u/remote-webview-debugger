@@ -67,6 +67,7 @@ export const shell: typeof en = {
       not_allowed: 'El dominio de tu correo electrónico no puede iniciar sesión en esta consola.',
       no_account: 'Todavía no tienes cuenta en esta consola. Pide a un propietario que invite tu correo electrónico.',
       conflict: 'La cuenta con tu correo electrónico en esta consola ya está vinculada a otra cuenta del proveedor. Pide a un propietario que lo revise.',
+      tenant: 'Esta consola solo acepta a personas de una organización, y tu cuenta en el proveedor pertenece a otra.',
       disabled: 'Esta cuenta está desactivada. Ponte en contacto con el propietario del proyecto.',
       rate_limited: 'Demasiados intentos. Vuelve a intentarlo más tarde.',
     },

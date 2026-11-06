@@ -41,6 +41,12 @@ export const members: typeof en = {
   ssoHint: (name, role) =>
     `Vos collègues peuvent aussi se connecter avec ${name} : la première connexion rejoint le membre ayant la même adresse e-mail, ou crée un compte avec le rôle ${role}.`,
   ssoInviteOnlyHint: (name) => `Les collègues dont vous avez invité l’adresse e-mail peuvent aussi se connecter avec ${name}.`,
+  newLink: 'Nouveau lien',
+  newLinkAria: (name) => `Nouveau lien d’invitation pour ${name}`,
+  newLinkTitle: (name) => `Créer un nouveau lien d’invitation pour ${name} ?`,
+  newLinkPendingDescription: 'L’ancien lien d’invitation cesse de fonctionner. Le nouveau est valable 7 jours et ne fonctionne qu’une fois.',
+  newLinkSsoDescription:
+    'Avec ce lien, le membre définit un mot de passe et peut ensuite se connecter avec, par exemple une fois l’authentification unique désactivée. Tout ancien lien cesse de fonctionner ; le nouveau est valable 7 jours et ne fonctionne qu’une fois.',
   signedInAgo: (ago) => `Connecté ${ago}`,
   cantEditSelf: 'Vous ne pouvez pas modifier votre propre compte',
   changeRole: (name) => `Changer le rôle de ${name}`,
@@ -62,7 +68,7 @@ export const members: typeof en = {
     createdDescription: (name, role) =>
       `Envoyez ce lien à ${name} (${role}). Cette personne définira un mot de passe et pourra ensuite se connecter.`,
     onceWarning: 'Ce lien n’est affiché qu’une seule fois, est valable 7 jours et ne fonctionne qu’une fois.',
-    lostHint: 'En cas de perte, retirez le membre et invitez-le à nouveau.',
+    lostHint: 'En cas de perte, créez-en un nouveau depuis la ligne du membre.',
     link: 'Lien d’invitation',
     scanHint: 'Le code peut aussi être scanné avec un téléphone.',
     done: 'Je l’ai copié, fermer',

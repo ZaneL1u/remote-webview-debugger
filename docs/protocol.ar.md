@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | العربية
 
 <div dir="rtl">
@@ -561,12 +561,13 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. يجب أن تكون كلمة المرور الجديدة من 8 إلى 256 حرفًا؛ و `400 bad_password` إذا كانت القديمة خاطئة |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` إلى مزوّد تسجيل الدخول الموحّد، مع ملف تعريف ارتباط موقَّع باسم `rwd_oidc` (قيمة state ومتحقِّق PKCE، لمدة 10 دقائق). `404` إذا لم يكن تسجيل الدخول الموحّد مفعَّلًا |
-| GET | `/auth/oidc/callback` | — | قيمتا `code` و `state` من المزوّد | يسجّل الدخول ويعيد `302` إلى `redirect` (مسار في لوحة التحكم، وإلا `/`). عند الفشل `302` إلى `/login?sso_error=<code>`: `provider`، `denied`، `state`، `not_allowed`، `no_account`، `conflict` (العضو صاحب هذا البريد الإلكتروني مرتبط بهوية أخرى لدى المزوّد)، `disabled`، `rate_limited` |
+| GET | `/auth/oidc/callback` | — | قيمتا `code` و `state` من المزوّد | يسجّل الدخول ويعيد `302` إلى `redirect` (مسار في لوحة التحكم، وإلا `/`). عند الفشل `302` إلى `/login?sso_error=<code>`: `provider`، `denied`، `state`، `not_allowed`، `no_account`، `conflict` (العضو صاحب هذا البريد الإلكتروني مرتبط بهوية أخرى لدى المزوّد)، `tenant` (مؤسسة Feishu أو Lark غير تلك المحددة في `RWD_OIDC_TENANT`)، `disabled`، `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. قيمة `sso` هي `null`، أو `{"provider","name","defaultRole","inviteOnly"}` عند تفعيل تسجيل الدخول الموحّد |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (صالح لمدة 7 أيام، لمرة واحدة). `409 conflict` إذا كان البريد الإلكتروني موجودًا |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` إذا لم يكن سيبقى أي مالك نشط |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`. `409 self`، `409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | رابط دعوة جديد لعضو بلا كلمة مرور (دعوة مفقودة، أو حساب دخول موحّد يجب أن تكون له كلمة مرور): `Member & {"inviteUrl"}` كما سبق؛ ويتوقف الرابط السابق عن العمل. `409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` ويسجّل الدخول. يخضع لحد المعدل مثل تسجيل الدخول |
 
@@ -631,7 +632,7 @@ type Policy = {
 | الإجراء | متى |
 |---|---|
 | `auth.login`، `auth.login_failed` | تسجيل الدخول إلى لوحة التحكم |
-| `member.invite`، `member.accept`، `member.sso_join`، `member.update`، `member.delete` | إدارة الأعضاء (`member.sso_join`: حساب أُنشئ عند أول تسجيل دخول موحّد؛ وعندها يحمل `auth.login` القيمة `"method":"sso"`) |
+| `member.invite`، `member.accept`، `member.sso_join`، `member.update`، `member.delete` | إدارة الأعضاء (`member.sso_join`: حساب أُنشئ عند أول تسجيل دخول موحّد؛ وعندها يحمل `auth.login` القيمة `"method":"sso"`؛ و`member.invite` مع `"again":true`: رابط دعوة جديد) |
 | `project.create`، `project.update`، `project.delete`، `project.rotate_app_key` | المشاريع |
 | `key.create`، `key.revoke` | مفاتيح API |
 | `invite.create`، `invite.delete`، `invite.use` | دعوات الأجهزة |

@@ -1062,6 +1062,17 @@ async function handleApi(req, res, url) {
       return send(res, 200, { ...memberOut(u), inviteUrl })
     }
   }
+  if (method === 'POST' && (m = path.match(/^\/members\/([^/]+)\/invite$/))) {
+    // A new invite link for a member without a password (a lost invite, or a single sign-on account).
+    if (user.role !== 'owner') return forbidden(res)
+    const u = users.get(m[1])
+    if (!u) return fail(res, 404, 'not_found', '成员不存在')
+    if (u._password) return fail(res, 409, 'has_password', '该成员已设置密码')
+    const inviteUrl = issueMemberInvite(u, host)
+    u.pending = !u._sso.length
+    audit({ ...memberActor(user), action: 'member.invite', target: u.email, detail: { role: u.role, again: true } })
+    return send(res, 200, { ...memberOut(u), inviteUrl })
+  }
   if ((m = path.match(/^\/members\/([^/]+)$/))) {
     if (user.role !== 'owner') return forbidden(res)
     const u = users.get(m[1])

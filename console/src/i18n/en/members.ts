@@ -37,6 +37,12 @@ export const members = {
   ssoHint: (name: string, role: string) =>
     `Colleagues can also sign in with ${name}: a first sign-in joins the member with the same email, or creates an account with the ${role} role.`,
   ssoInviteOnlyHint: (name: string) => `Colleagues can also sign in with ${name}, once you’ve invited their email.`,
+  newLink: 'New link',
+  newLinkAria: (name: string) => `New invite link for ${name}`,
+  newLinkTitle: (name: string) => `New invite link for ${name}?`,
+  newLinkPendingDescription: 'The earlier invite link stops working. The new one is valid for 7 days and works once.',
+  newLinkSsoDescription:
+    'With the link they set a password and can then sign in with it too, for example once single sign-on is turned off. Any earlier link stops working; the new one is valid for 7 days and works once.',
   signedInAgo: (ago: string) => `Signed in ${ago}`,
   cantEditSelf: 'Can’t edit yourself',
   changeRole: (name: string) => `Change role for ${name}`,
@@ -57,7 +63,7 @@ export const members = {
     createdTitle: 'Invite link created',
     createdDescription: (name: string, role: string) => `Send this link to ${name} (${role}). They’ll set a password and can then sign in.`,
     onceWarning: 'This link is shown only once, is valid for 7 days and works once.',
-    lostHint: 'If it’s lost, remove the member and invite them again.',
+    lostHint: 'If it’s lost, create a new one from the member’s row.',
     link: 'Invite link',
     scanHint: 'They can also scan the code with their phone.',
     done: 'I’ve copied it, close',

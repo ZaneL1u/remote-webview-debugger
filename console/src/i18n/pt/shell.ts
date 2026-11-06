@@ -67,6 +67,7 @@ export const shell: typeof en = {
       not_allowed: 'O domínio do seu e-mail não tem permissão para entrar neste console.',
       no_account: 'Você ainda não tem uma conta neste console. Peça a um proprietário para convidar seu e-mail.',
       conflict: 'A conta com o seu e-mail neste console já está vinculada a outra conta do provedor. Peça a um proprietário para verificar.',
+      tenant: 'Este console só aceita pessoas de uma organização, e a sua conta no provedor pertence a outra.',
       disabled: 'Esta conta foi desativada. Fale com o proprietário do projeto.',
       rate_limited: 'Muitas tentativas. Tente de novo mais tarde.',
     },

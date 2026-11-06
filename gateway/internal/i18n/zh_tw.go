@@ -183,6 +183,7 @@ var zhTW = map[Key]string{
 	APIOldPasswordWrong:     "目前的密碼錯誤",
 	APIBadMember:            "請輸入有效的電子郵件和角色",
 	APIMemberExists:         "這個電子郵件已經是成員",
+	APIMemberHasPassword:    "這位成員已經設定了密碼",
 	APILastOwner:            "至少需要保留一位擁有者",
 	APIDeleteSelf:           "不能移除自己",
 	APIInviteInvalid:        "邀請連結無效或已過期",

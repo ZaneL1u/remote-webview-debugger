@@ -496,3 +496,115 @@ func TestSSOFeishuNewApp(t *testing.T) {
 		t.Fatalf("sso kinds: %v %v", u.SSO, err)
 	}
 }
+
+func TestSSOFeishuTenant(t *testing.T) {
+	if (&OIDCConfig{Provider: ProviderOIDC, Issuer: "https://idp", ClientID: "a", ClientSecret: "b", Tenant: "t1"}).validate() == nil {
+		t.Error("RWD_OIDC_TENANT accepted for oidc")
+	}
+	idp := newFakeIdP(t, ProviderFeishu)
+	f := setupSSO(t, idp, func(o *OIDCConfig) { o.Tenant = " t-ours " })
+
+	// Someone from another organization (a store app, a connected one) is
+	// refused, and neither linked nor created.
+	if _, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_x", "tenant_key": "t-other", "enterprise_email": "owner@test"}, ""); to.Query().Get("sso_error") != "tenant" {
+		t.Fatalf("other tenant landed on %v", to)
+	}
+	if _, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_y", "enterprise_email": "y@corp.example"}, ""); to.Query().Get("sso_error") != "tenant" {
+		t.Fatalf("no tenant_key landed on %v", to)
+	}
+	if _, err := f.st.UserByEmail(context.Background(), "y@corp.example"); err == nil {
+		t.Fatal("account created for another tenant")
+	}
+	c, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_z", "tenant_key": "t-ours", "enterprise_email": "z@corp.example"}, "/x")
+	if to.Path != "/x" {
+		t.Fatalf("own tenant landed on %v", to)
+	}
+	if _, me := c.do("GET", "/me", nil); me["email"] != "z@corp.example" {
+		t.Fatalf("me: %v", me)
+	}
+
+	// The sign-in records the tenant_key, so an owner can find the value.
+	f.s.flushAudit()
+	events, _ := f.st.Audit(context.Background(), store.AuditQuery{Limit: 50})
+	found := false
+	for _, e := range events {
+		if e.Action == "auth.login" && e.Result == "ok" && e.Detail["tenant"] == "t-ours" {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("auth.login without the tenant")
+	}
+}
+
+func TestSSOReinvite(t *testing.T) {
+	idp := newFakeIdP(t, ProviderFeishu)
+	f := setupSSO(t, idp, nil)
+	owner := f.login("owner@test", "password1")
+	tokenOf := func(inv map[string]any) string {
+		return strings.TrimPrefix(inv["inviteUrl"].(string), f.srv.URL+"/invite/")
+	}
+
+	// A single sign-on account gets a link to set a password, and stays
+	// active (not "invite pending") in the meantime.
+	c, _ := f.ssoLogin(idp, map[string]any{"open_id": "ou_a", "enterprise_email": "a@corp.example"}, "")
+	_, me := c.do("GET", "/me", nil)
+	code, inv := owner.do("POST", "/members/"+me["id"].(string)+"/invite", nil)
+	if code != 200 || inv["id"] != me["id"] || inv["pending"] != false || mustJSONTest(inv["sso"]) != `["feishu"]` {
+		t.Fatalf("reinvite sso account: %d %v", code, inv)
+	}
+	_, list := owner.do("GET", "/members", nil)
+	for _, m := range list["members"].([]any) {
+		if m := m.(map[string]any); m["id"] == me["id"] && m["pending"] != false {
+			t.Fatalf("sso account shown as pending: %v", m)
+		}
+	}
+	anon := &console{t: t, base: f.srv.URL + "/v1/api", client: &http.Client{}}
+	if code, body := anon.do("POST", "/invites/"+tokenOf(inv)+"/accept", map[string]string{"password": "sso-pass-1"}); code != 200 {
+		t.Fatalf("accept: %d %v", code, body)
+	}
+	if _, me := f.login("a@corp.example", "sso-pass-1").do("GET", "/me", nil); me["hasPassword"] != true || me["id"] != inv["id"] {
+		t.Fatalf("password sign-in: %v", me)
+	}
+	if _, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_a", "enterprise_email": "a@corp.example"}, "/x"); to.Path != "/x" {
+		t.Fatalf("sso after password: %v", to)
+	}
+	// Now it has a password: no more links.
+	if code, body := owner.do("POST", "/members/"+me["id"].(string)+"/invite", nil); code != 409 || body["error"].(map[string]any)["code"] != "has_password" {
+		t.Fatalf("reinvite with password: %d %v", code, body)
+	}
+
+	// A lost invite: the new link works, the old one doesn't.
+	_, first := owner.do("POST", "/members", map[string]string{"email": "b@corp.example", "name": "B", "role": "member"})
+	code, again := owner.do("POST", "/members/"+first["id"].(string)+"/invite", nil)
+	if code != 200 || again["pending"] != true {
+		t.Fatalf("reinvite pending: %d %v", code, again)
+	}
+	if code, _ := anon.do("GET", "/invites/"+tokenOf(first), nil); code != 404 {
+		t.Fatalf("old link still works: %d", code)
+	}
+	if code, _ := anon.do("GET", "/invites/"+tokenOf(again), nil); code != 200 {
+		t.Fatalf("new link: %d", code)
+	}
+
+	// Owners only; unknown members are 404.
+	anon.do("POST", "/invites/"+tokenOf(again)+"/accept", map[string]string{"password": "memberpass"})
+	if code, _ := f.login("b@corp.example", "memberpass").do("POST", "/members/"+me["id"].(string)+"/invite", nil); code != 403 {
+		t.Fatalf("member reinvited: %d", code)
+	}
+	if code, _ := owner.do("POST", "/members/nope/invite", nil); code != 404 {
+		t.Fatalf("unknown member: %d", code)
+	}
+
+	f.s.flushAudit()
+	events, _ := f.st.Audit(context.Background(), store.AuditQuery{Limit: 100})
+	n := 0
+	for _, e := range events {
+		if e.Action == "member.invite" && e.Detail["again"] == true {
+			n++
+		}
+	}
+	if n != 2 {
+		t.Errorf("member.invite again events: %d", n)
+	}
+}

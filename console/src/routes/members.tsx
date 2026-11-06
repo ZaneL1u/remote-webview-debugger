@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BanIcon, ChevronDownIcon, CircleCheckIcon, LoaderCircleIcon, Trash2Icon, UserPlusIcon, UsersIcon } from 'lucide-react'
+import { BanIcon, ChevronDownIcon, CircleCheckIcon, LinkIcon, LoaderCircleIcon, Trash2Icon, UserPlusIcon, UsersIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -332,8 +332,34 @@ function MemberActions({
 }) {
   const t = useT().members
   const label = m.name || m.email
+  const queryClient = useQueryClient()
+  const [link, setLink] = useState<CreatedMember | null>(null)
+  const reinvite = useMutation({
+    mutationFn: () => api.reinviteMember(m.id),
+    onSuccess: (created) => {
+      setLink(created)
+      void queryClient.invalidateQueries({ queryKey: membersQuery.queryKey })
+    },
+  })
   return (
     <div className="inline-flex items-center gap-1">
+      {/* No password: a lost invite, or a single sign-on account that may want one. */}
+      {m.hasPassword === false && !m.disabled && (
+        <ConfirmDialog
+          trigger={<Button variant="ghost" size="xs" aria-label={t.newLinkAria(label)} />}
+          title={t.newLinkTitle(label)}
+          description={m.sso?.length ? t.newLinkSsoDescription : t.newLinkPendingDescription}
+          confirmLabel={t.newLink}
+          onConfirm={() => reinvite.mutateAsync()}
+        >
+          <LinkIcon />
+          {t.newLink}
+        </ConfirmDialog>
+      )}
+      {/* Shown once, like a new invite: closes only with its button. */}
+      <Dialog open={!!link} disablePointerDismissal onOpenChangeComplete={(isOpen) => !isOpen && reinvite.reset()}>
+        <DialogContent showCloseButton={false}>{link && <InviteLink created={link} onDone={() => setLink(null)} />}</DialogContent>
+      </Dialog>
       {m.disabled ? (
         <Button variant="ghost" size="xs" disabled={update.isPending} onClick={() => update.mutate({ disabled: false })}>
           <CircleCheckIcon />
@@ -407,31 +433,7 @@ function InviteMemberDialog({ open, onOpenChange }: { open: boolean; onOpenChang
     >
       <DialogContent showCloseButton={!created}>
         {created ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>{d.createdTitle}</DialogTitle>
-              <DialogDescription>
-                {d.createdDescription(created.name || created.email, roleLabels[created.role])}
-              </DialogDescription>
-            </DialogHeader>
-            <Callout tone="warning">
-              <p>
-                <span className="font-medium">{d.onceWarning}</span>
-                {d.lostHint}
-              </p>
-            </Callout>
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-              <QrCode value={created.inviteUrl} size={148} />
-              <div className="w-full min-w-0 flex-1 space-y-1.5">
-                <p className="text-xs text-muted-foreground">{d.link}</p>
-                <CodeBlock code={created.inviteUrl} wrap />
-                <p className="text-xs text-muted-foreground">{d.scanHint}</p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={() => onOpenChange(false)}>{d.done}</Button>
-            </DialogFooter>
-          </>
+          <InviteLink created={created} onDone={() => onOpenChange(false)} />
         ) : (
           <>
             <DialogHeader>
@@ -496,5 +498,35 @@ function InviteMemberDialog({ open, onOpenChange }: { open: boolean; onOpenChang
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+/** The invite link, shown once: after inviting a member, or a new link for one without a password. */
+function InviteLink({ created, onDone }: { created: CreatedMember; onDone: () => void }) {
+  const d = useT().members.inviteDialog
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>{d.createdTitle}</DialogTitle>
+        <DialogDescription>{d.createdDescription(created.name || created.email, roleLabels[created.role])}</DialogDescription>
+      </DialogHeader>
+      <Callout tone="warning">
+        <p>
+          <span className="font-medium">{d.onceWarning}</span>
+          {d.lostHint}
+        </p>
+      </Callout>
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+        <QrCode value={created.inviteUrl} size={148} />
+        <div className="w-full min-w-0 flex-1 space-y-1.5">
+          <p className="text-xs text-muted-foreground">{d.link}</p>
+          <CodeBlock code={created.inviteUrl} wrap />
+          <p className="text-xs text-muted-foreground">{d.scanHint}</p>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button onClick={onDone}>{d.done}</Button>
+      </DialogFooter>
+    </>
   )
 }

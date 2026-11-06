@@ -66,6 +66,7 @@ export const shell = {
       not_allowed: 'Your email domain isn’t allowed to sign in to this console.',
       no_account: 'You don’t have an account on this console yet. Ask an owner to invite your email.',
       conflict: 'Your account on this console is already linked to another account at the provider. Ask an owner to check it.',
+      tenant: 'This console only accepts people from one organization, and your account at the provider belongs to another.',
       disabled: 'This account has been disabled. Contact the project owner.',
       rate_limited: 'Too many attempts. Try again later.',
     },

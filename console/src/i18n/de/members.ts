@@ -38,6 +38,12 @@ export const members: typeof en = {
   ssoHint: (name, role) =>
     `Kolleginnen und Kollegen können sich auch mit ${name} anmelden: Die erste Anmeldung verknüpft das Mitglied mit derselben E-Mail-Adresse oder legt ein Konto mit der Rolle ${role} an.`,
   ssoInviteOnlyHint: (name) => `Wer mit seiner E-Mail-Adresse eingeladen wurde, kann sich auch mit ${name} anmelden.`,
+  newLink: 'Neuer Link',
+  newLinkAria: (name) => `Neuer Einladungslink für ${name}`,
+  newLinkTitle: (name) => `Neuen Einladungslink für ${name} erstellen?`,
+  newLinkPendingDescription: 'Der bisherige Einladungslink funktioniert nicht mehr. Der neue ist 7 Tage gültig und einmal verwendbar.',
+  newLinkSsoDescription:
+    'Mit dem Link legt das Mitglied ein Passwort fest und kann sich dann auch damit anmelden, etwa wenn Single Sign-on abgeschaltet wird. Ein bisheriger Link funktioniert nicht mehr; der neue ist 7 Tage gültig und einmal verwendbar.',
   signedInAgo: (ago) => `Angemeldet ${ago}`,
   cantEditSelf: 'Sie können sich nicht selbst bearbeiten',
   changeRole: (name) => `Rolle von ${name} ändern`,
@@ -59,7 +65,7 @@ export const members: typeof en = {
     createdDescription: (name, role) =>
       `Senden Sie diesen Link an ${name} (${role}). Nach dem Festlegen eines Passworts ist die Anmeldung möglich.`,
     onceWarning: 'Dieser Link wird nur einmal angezeigt, ist 7 Tage gültig und einmal verwendbar.',
-    lostHint: 'Falls er verloren geht, entfernen Sie das Mitglied und laden Sie es erneut ein.',
+    lostHint: 'Geht er verloren, erstellen Sie in der Zeile des Mitglieds einen neuen.',
     link: 'Einladungslink',
     scanHint: 'Der Code kann auch mit dem Telefon gescannt werden.',
     done: 'Kopiert, schließen',

@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -523,12 +523,13 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. 새 비밀번호는 8–256자여야 해요. 기존 비밀번호가 틀리면 `400 bad_password` |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302`로 SSO 공급자에게 보내고, 서명된 쿠키 `rwd_oidc`(state와 PKCE verifier, 10분)를 설정해요. SSO가 꺼져 있으면 `404` |
-| GET | `/auth/oidc/callback` | — | 공급자가 보낸 `code`와 `state` | 로그인한 뒤 `redirect`(콘솔 경로, 아니면 `/`)로 `302`. 실패하면 `/login?sso_error=<code>`로 `302`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict`(그 이메일의 멤버가 공급자의 다른 ID와 연결되어 있음), `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | 공급자가 보낸 `code`와 `state` | 로그인한 뒤 `redirect`(콘솔 경로, 아니면 `/`)로 `302`. 실패하면 `/login?sso_error=<code>`로 `302`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict`(그 이메일의 멤버가 공급자의 다른 ID와 연결되어 있음), `tenant`(`RWD_OIDC_TENANT`가 아닌 다른 Feishu·Lark 조직), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso`는 `null`이거나, SSO가 켜져 있으면 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}`(7일 동안 한 번 유효). 이메일이 이미 있으면 `409 conflict` |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. 활성 소유자가 한 명도 남지 않게 되면 `409 last_owner` |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`. `409 self`, `409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | 비밀번호가 없는 멤버(초대 링크를 잃어버렸거나, 비밀번호가 필요한 SSO 계정)의 새 초대 링크: 위와 같은 `Member & {"inviteUrl"}`. 이전 링크는 더 이상 쓸 수 없어요. `409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}`, 그리고 로그인돼요. 로그인과 같은 속도 제한 적용 |
 
@@ -593,7 +594,7 @@ API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로
 | 동작 | 시점 |
 |---|---|
 | `auth.login`, `auth.login_failed` | 콘솔 로그인 |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | 멤버 관리 (`member.sso_join`: 첫 SSO 로그인 때 만들어진 계정. SSO로 로그인하면 `auth.login`에 `"method":"sso"`가 들어가요) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | 멤버 관리 (`member.sso_join`: 첫 SSO 로그인 때 만들어진 계정. SSO로 로그인하면 `auth.login`에 `"method":"sso"`가 들어가요. `member.invite`에 `"again":true`가 있으면 초대 링크를 새로 만든 것) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | 프로젝트 |
 | `key.create`, `key.revoke` | API 키 |
 | `invite.create`, `invite.delete`, `invite.use` | 기기 초대 |

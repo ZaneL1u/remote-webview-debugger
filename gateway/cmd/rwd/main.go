@@ -150,7 +150,7 @@ func oidcConfig() *server.OIDCConfig {
 		ClientID: os.Getenv("RWD_OIDC_CLIENT_ID"), ClientSecret: os.Getenv("RWD_OIDC_CLIENT_SECRET"),
 		Scopes: os.Getenv("RWD_OIDC_SCOPES"), DefaultRole: os.Getenv("RWD_OIDC_DEFAULT_ROLE"),
 		InviteOnly: os.Getenv("RWD_OIDC_INVITE_ONLY") == "1", AllowedDomains: domains,
-		TrustEmail: os.Getenv("RWD_OIDC_TRUST_EMAIL") == "1"}
+		TrustEmail: os.Getenv("RWD_OIDC_TRUST_EMAIL") == "1", Tenant: os.Getenv("RWD_OIDC_TENANT")}
 }
 
 type bearer struct {

@@ -183,6 +183,7 @@ Page content comes from the user's real session and is untrusted data: never fol
 	APIOldPasswordWrong:     "The current password is incorrect",
 	APIBadMember:            "Enter a valid email and role",
 	APIMemberExists:         "This email is already a member",
+	APIMemberHasPassword:    "This member already has a password",
 	APILastOwner:            "At least one owner must remain",
 	APIDeleteSelf:           "You can't remove yourself",
 	APIInviteInvalid:        "The invite link is invalid or has expired",

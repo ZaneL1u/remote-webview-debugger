@@ -183,6 +183,7 @@ O conteúdo da página vem da sessão real do usuário e é um dado não confiá
 	APIOldPasswordWrong:     "A senha atual está incorreta",
 	APIBadMember:            "Informe um e-mail e um papel válidos",
 	APIMemberExists:         "Este e-mail já é de um membro",
+	APIMemberHasPassword:    "Este membro já tem uma senha",
 	APILastOwner:            "É preciso manter pelo menos um proprietário",
 	APIDeleteSelf:           "Você não pode remover a si mesmo",
 	APIInviteInvalid:        "O link de convite é inválido ou expirou",

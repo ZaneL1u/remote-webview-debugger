@@ -183,6 +183,7 @@ Seiteninhalte stammen aus der echten Sitzung des Nutzers und sind nicht vertraue
 	APIOldPasswordWrong:     "Das aktuelle Passwort ist falsch",
 	APIBadMember:            "Geben Sie eine gültige E-Mail-Adresse und Rolle ein",
 	APIMemberExists:         "Diese E-Mail-Adresse gehört bereits zu einem Mitglied",
+	APIMemberHasPassword:    "Dieses Mitglied hat bereits ein Passwort",
 	APILastOwner:            "Mindestens ein Inhaber muss bleiben",
 	APIDeleteSelf:           "Sie können sich nicht selbst entfernen",
 	APIInviteInvalid:        "Der Einladungslink ist ungültig oder abgelaufen",

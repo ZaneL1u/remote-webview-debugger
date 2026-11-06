@@ -61,6 +61,10 @@ type OIDCConfig struct {
 	// email_verified, such as Microsoft Entra ID. Without it only emails
 	// with email_verified true are used.
 	TrustEmail bool
+	// Tenant (feishu and lark only), if set, is the only organization
+	// (tenant_key) whose people may sign in: a store app, or a custom app
+	// shared with connected organizations, lets others in too.
+	Tenant string
 
 	mu        sync.Mutex
 	discovery *oidcDiscovery
@@ -100,6 +104,10 @@ func (o *OIDCConfig) validate() error {
 		}
 	default:
 		return fmt.Errorf("unknown RWD_OIDC_PROVIDER %q (want oidc, feishu or lark)", o.Provider)
+	}
+	o.Tenant = strings.TrimSpace(o.Tenant)
+	if o.Tenant != "" && o.Provider == ProviderOIDC {
+		return errors.New("RWD_OIDC_TENANT is for feishu and lark only")
 	}
 	if o.ClientID == "" || o.ClientSecret == "" {
 		return errors.New("RWD_OIDC_CLIENT_ID and RWD_OIDC_CLIENT_SECRET are required")
@@ -327,7 +335,7 @@ func (s *Server) oidcStart(w http.ResponseWriter, r *http.Request) {
 
 // ssoFailed records the failure and sends the browser to the login page,
 // which explains `code` in its language: provider, denied, state,
-// not_allowed, no_account, conflict, disabled, rate_limited.
+// not_allowed, tenant, no_account, conflict, disabled, rate_limited.
 func (s *Server) ssoFailed(w http.ResponseWriter, r *http.Request, code, who string, err error) {
 	detail := map[string]any{"ip": s.clientIP(r), "method": "sso", "reason": code}
 	if err != nil {
@@ -349,6 +357,7 @@ func (s *Server) ssoFailed(w http.ResponseWriter, r *http.Request, code, who str
 // ssoUser is who the provider says signed in.
 type ssoUser struct {
 	Subject, Email, Name string
+	Tenant               string // Feishu / Lark tenant_key
 }
 
 // oidcCallback finishes the sign-in (GET /v1/api/auth/oidc/callback).
@@ -390,6 +399,10 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	label := cmp.Or(who.Email, o.Provider+":"+who.Subject)
+	if o.Tenant != "" && who.Tenant != o.Tenant {
+		s.ssoFailed(w, r, "tenant", label, fmt.Errorf("tenant_key %q is not RWD_OIDC_TENANT", who.Tenant))
+		return
+	}
 	if len(o.AllowedDomains) > 0 {
 		_, domain, _ := strings.Cut(who.Email, "@")
 		if !slices.Contains(o.AllowedDomains, domain) {
@@ -418,8 +431,12 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	s.store.TouchLogin(r.Context(), u.ID)
 	s.setSession(w, r, u.ID)
+	detail := map[string]any{"ip": s.clientIP(r), "method": "sso", "provider": o.Provider}
+	if who.Tenant != "" {
+		detail["tenant"] = who.Tenant // the value for RWD_OIDC_TENANT
+	}
 	s.recordEvent(store.AuditEvent{ActorType: "member", ActorID: u.ID, ActorName: u.Email, Action: "auth.login",
-		Target: u.Email, Result: "ok", Detail: map[string]any{"ip": s.clientIP(r), "method": "sso", "provider": o.Provider}})
+		Target: u.Email, Result: "ok", Detail: detail})
 	http.SetCookie(w, &http.Cookie{Name: oidcCookie, Value: "", Path: oidcPath, HttpOnly: true, Secure: s.isHTTPS(r),
 		SameSite: http.SameSiteLaxMode, MaxAge: -1})
 	w.Header().Set("Cache-Control", "no-store")
@@ -589,6 +606,7 @@ func (o *OIDCConfig) userInfo(ctx context.Context, d *oidcDiscovery, token strin
 			EnName          string `json:"en_name"`
 			Email           string `json:"email"`
 			EnterpriseEmail string `json:"enterprise_email"`
+			TenantKey       string `json:"tenant_key"`
 		} `json:"data"`
 	}
 	if err := getJSON(ctx, d.UserinfoEndpoint, token, &res); err != nil {
@@ -598,9 +616,10 @@ func (o *OIDCConfig) userInfo(ctx context.Context, d *oidcDiscovery, token strin
 		return nil, fmt.Errorf("user_info: code %d %s", res.Code, res.Msg)
 	}
 	// Trusted as the tenant's: a custom app (企业自建应用) only lets the
-	// tenant's own people sign in, and their emails are the tenant's.
+	// tenant's own people sign in, and their emails are the tenant's;
+	// RWD_OIDC_TENANT keeps out everyone else's when the app reaches further.
 	who := &ssoUser{Subject: res.Data.OpenID, Email: store.NormEmail(cmp.Or(res.Data.EnterpriseEmail, res.Data.Email)),
-		Name: cmp.Or(res.Data.Name, res.Data.EnName)}
+		Name: cmp.Or(res.Data.Name, res.Data.EnName), Tenant: res.Data.TenantKey}
 	if !emailRe.MatchString(who.Email) {
 		who.Email = ""
 	}

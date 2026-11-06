@@ -522,12 +522,13 @@ Roles: `owner` (everything, including members), `admin` (projects, keys, policie
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. The new password must be 8–256 characters; `400 bad_password` if the old one is wrong |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` to the single sign-on provider, with a signed cookie `rwd_oidc` (state and PKCE verifier, 10 minutes). `404` without single sign-on |
-| GET | `/auth/oidc/callback` | — | the provider's `code` and `state` | Signs in and `302` to `redirect` (a console path, else `/`). On failure `302` to `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (the member with that email is linked to another identity of the provider), `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | the provider's `code` and `state` | Signs in and `302` to `redirect` (a console path, else `/`). On failure `302` to `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (the member with that email is linked to another identity of the provider), `tenant` (another Feishu or Lark organization than `RWD_OIDC_TENANT`), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` is `null`, or `{"provider","name","defaultRole","inviteOnly"}` when single sign-on is on |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (valid for 7 days, once). `409 conflict` if the email exists |
 | PATCH | `/members/:id` | owner | `{"name"?,"role"?,"disabled"?}` | `Member`. `409 last_owner` if no active owner would be left |
 | DELETE | `/members/:id` | owner | — | `{"ok":true}`. `409 self`, `409 last_owner` |
+| POST | `/members/:id/invite` | owner | — | A new invite link for a member without a password (a lost invite, or a single sign-on account that should get a password): `Member & {"inviteUrl"}` as above; the previous link stops working. `409 has_password` |
 | GET | `/invites/:token` | — | — | `{"email","name"}` |
 | POST | `/invites/:token/accept` | — | `{"password","name"?}` | `{"ok":true}` and signs in. Rate-limited like login |
 
@@ -592,7 +593,7 @@ An invite lets a user bring their device online, already requesting assistance, 
 | Action | When |
 |---|---|
 | `auth.login`, `auth.login_failed` | Console sign-in |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Member management (`member.sso_join`: an account created at a first single sign-on; `auth.login` then has `"method":"sso"`) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Member management (`member.sso_join`: an account created at a first single sign-on; `auth.login` then has `"method":"sso"`; `member.invite` with `"again":true`: a new invite link) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projects |
 | `key.create`, `key.revoke` | API keys |
 | `invite.create`, `invite.delete`, `invite.use` | Device invites |

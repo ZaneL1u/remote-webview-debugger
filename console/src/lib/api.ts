@@ -135,6 +135,8 @@ export const api = {
     request<CreatedMember>('/members', { method: 'POST', body: input }),
   updateMember: (id: string, patch: Partial<Pick<Member, 'role' | 'disabled' | 'name'>>) =>
     request<Member>(`/members/${enc(id)}`, { method: 'PATCH', body: patch }),
+  /** A new invite link for a member without a password (a lost invite, or a single sign-on account); the old link stops working. */
+  reinviteMember: (id: string) => request<CreatedMember>(`/members/${enc(id)}/invite`, { method: 'POST' }),
   deleteMember: (id: string) => request<{ ok: true }>(`/members/${enc(id)}`, { method: 'DELETE' }),
   memberInvite: (token: string) =>
     request<{ email: string; name: string }>(`/invites/${enc(token)}`, { skipAuthRedirect: true }),
