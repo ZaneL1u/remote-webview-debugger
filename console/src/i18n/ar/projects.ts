@@ -41,15 +41,20 @@ export const projects: typeof en = {
 
   keys: {
     title: 'مفاتيح API',
-    pageDescription: 'لربط الوكلاء عبر MCP. تتبع المفاتيح البوابة كلها لا مشروعًا بعينه: مفتاح واحد وخادم MCP واحد يصلان إلى كل جهاز.',
+    pageDescription: 'لربط الوكلاء عبر MCP. يتبع المفتاح العضوَ الذي أنشأه لا مشروعًا بعينه: مفتاح واحد وخادم MCP واحد يصلان إلى كل جهاز.',
     description: 'يستخدم الوكلاء مفتاحًا للاتصال عبر MCP. يرى المفتاح كل جهاز على البوابة عبر جميع المشاريع. حافظ على سرية المفاتيح وألغِ أي مفتاح فورًا إذا تسرّب.',
     readOnly: ' يسمح دورك بعرض المفاتيح فقط؛ أما إنشاؤها وإلغاؤها فيتطلبان مسؤولًا.',
+    manageNote: ' ينشئ كل شخص مفاتيحه الخاصة؛ وبصفتك مسؤولًا ترى أيضًا مفاتيح الجميع ويمكنك إلغاؤها.',
+    ownNote: ' تظهر هنا المفاتيح التي أنشأتها ويمكنك إلغاؤها في أي وقت. يمكن للأعضاء إنشاء مفاتيح حتى مستوى «العرض والتفاعل».',
+    scope: { label: 'عرض المفاتيح', all: 'الجميع', mine: 'مفاتيحي فقط' },
+    emptyMineTitle: 'ليست لديك مفاتيح API بعد',
     createKey: 'إنشاء مفتاح',
     emptyTitle: 'لا توجد مفاتيح API بعد',
     emptyDescription: 'أنشئ مفتاحًا وانسخ أمر إعداد MCP لوكيلك.',
 
     columns: {
       name: 'الاسم',
+      owner: 'أنشأه',
       key: 'المفتاح',
       level: 'المستوى',
       expiry: 'انتهاء الصلاحية',
@@ -73,6 +78,16 @@ export const projects: typeof en = {
     expired: 'منتهي الصلاحية',
     expiredTitle: (date) => `انتهت صلاحيته ${date}`,
     active: 'نشط',
+    gatewayKey: 'مفتاح البوابة',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: 'أُنشئ قبل أن تتبع المفاتيح الأعضاء؛ لا يراه ولا يلغيه إلا المالكون والمسؤولون',
+    deletedOwner: 'عضو محذوف',
+    ownerYou: (name: string) => `${name} (أنت)`,
+    ownerDisabled: 'المُنشئ معطّل',
+    ownerDisabledTitle: 'العضو الذي أنشأ هذا المفتاح معطّل؛ لن يعمل المفتاح حتى يُعاد تفعيله',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `أنشأه ${name}.`,
+    levelMemberHint: 'يمكن لدورك إنشاء مفاتيح حتى مستوى «العرض والتفاعل»؛ وإن احتاج وكيل إلى «متقدّم» فاطلبه من مسؤول.',
 
     revoke: 'إلغاء',
     revokedToast: (name) => `تم إلغاء «${name}»`,

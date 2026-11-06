@@ -43,16 +43,21 @@ export const projects: typeof en = {
   keys: {
     title: 'API-Keys',
     pageDescription:
-      'Zum Verbinden von Agents über MCP. Keys gehören zum gesamten Gateway, nicht zu einem Projekt: Ein Key und ein MCP-Server erreichen jedes Gerät.',
+      'Zum Verbinden von Agents über MCP. Ein Key gehört dem Mitglied, das ihn erstellt hat, nicht einem Projekt: Ein Key und ein MCP-Server erreichen jedes Gerät.',
     description:
       'Agents verbinden sich mit einem Key über MCP. Ein Key sieht jedes Gerät am Gateway, über alle Projekte hinweg. Halten Sie Keys geheim und widerrufen Sie einen Key sofort, wenn er öffentlich geworden ist.',
     readOnly: ' Ihre Rolle kann Keys nur ansehen; zum Erstellen und Widerrufen ist ein Admin nötig.',
+    manageNote: ' Alle erstellen ihre eigenen Keys; als Admin sehen Sie zusätzlich die Keys aller und können sie widerrufen.',
+    ownNote: ' Hier sehen Sie die Keys, die Sie erstellt haben, und können sie jederzeit widerrufen. Mitglieder können Keys bis zur Stufe „Ansehen und bedienen“ erstellen.',
+    scope: { label: 'Keys anzeigen', all: 'Alle', mine: 'Nur meine' },
+    emptyMineTitle: 'Sie haben noch keine API-Keys',
     createKey: 'Key erstellen',
     emptyTitle: 'Noch keine API-Keys',
     emptyDescription: 'Erstellen Sie einen Key und kopieren Sie den MCP-Einrichtungsbefehl für Ihren Agent.',
 
     columns: {
       name: 'Name',
+      owner: 'Erstellt von',
       key: 'Key',
       level: 'Stufe',
       expiry: 'Ablauf',
@@ -76,6 +81,16 @@ export const projects: typeof en = {
     expired: 'Abgelaufen',
     expiredTitle: (date) => `Abgelaufen am ${date}`,
     active: 'Aktiv',
+    gatewayKey: 'Gateway-Key',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: 'Erstellt, bevor Keys Mitgliedern gehörten; nur Inhaber und Admins sehen und widerrufen ihn',
+    deletedOwner: 'Gelöschtes Mitglied',
+    ownerYou: (name: string) => `${name} (Sie)`,
+    ownerDisabled: 'Ersteller deaktiviert',
+    ownerDisabledTitle: 'Das Mitglied, das diesen Key erstellt hat, ist deaktiviert; der Key funktioniert erst wieder, wenn es reaktiviert wird',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `Erstellt von ${name}.`,
+    levelMemberHint: 'Ihre Rolle kann Keys bis „Ansehen und bedienen“ erstellen; braucht ein Agent „Erweitert“, wenden Sie sich an einen Admin.',
 
     revoke: 'Widerrufen',
     revokedToast: (name) => `„${name}“ widerrufen`,

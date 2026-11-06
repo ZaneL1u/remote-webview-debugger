@@ -16,6 +16,7 @@ import type {
   DevtoolsGrant,
   GatewayConfig,
   GatewayStatus,
+  Insights,
   Integration,
   Me,
   Member,
@@ -152,11 +153,14 @@ export const api = {
   rotateAppKey: (id: string) => request<Project>(`/projects/${enc(id)}/rotate-app-key`, { method: 'POST' }),
   integration: (id: string) => request<Integration>(`/projects/${enc(id)}/integration`),
 
-  keys: () => request<{ keys: ApiKey[] }>('/keys').then((r) => r.keys),
+  /** Members get their own keys; owners and admins everyone's, or only their own with `mine` (section 12.4). */
+  keys: (opts: { mine?: boolean } = {}) =>
+    request<{ keys: ApiKey[] }>(opts.mine ? '/keys?mine=1' : '/keys').then((r) => r.keys),
   createKey: (input: CreateKeyInput) => request<CreatedApiKey>('/keys', { method: 'POST', body: input }),
   revokeKey: (id: string) => request<{ ok: true }>(`/keys/${enc(id)}`, { method: 'DELETE' }),
 
   status: () => request<GatewayStatus>('/status'),
+  insights: () => request<Insights>(`/insights?tz=${new Date().getTimezoneOffset()}`),
 
   /** Every project's devices, paged (section 12.5). */
   allDevices: ({ status, q, project, page, pageSize }: DeviceListParams) => {

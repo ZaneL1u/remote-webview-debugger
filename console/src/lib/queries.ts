@@ -80,3 +80,5 @@ export const auditQuery = (filters: AuditFilters) =>
     getNextPageParam: (last) => last.nextBefore ?? undefined,
     staleTime: 10_000,
   })
+
+export const insightsQuery = queryOptions({ queryKey: ['insights'], queryFn: () => api.insights(), refetchInterval: 5000 })

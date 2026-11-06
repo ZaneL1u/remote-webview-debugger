@@ -52,6 +52,7 @@
   --input: oklch(0.895 0.01 268);
   --ring: oklch(0.54 0.215 274 / 0.45);
   --header: oklch(1 0 0 / 0.78);
+  --sidebar: oklch(0.972 0.005 268);
   --shadow-color: 268 30% 20%;
 
   --code: oklch(0.215 0.03 272);
@@ -96,6 +97,7 @@
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.7 0.16 276 / 0.55);
   --header: oklch(0.158 0.014 270 / 0.78);
+  --sidebar: oklch(0.135 0.014 272);
   --shadow-color: 270 40% 3%;
   --code: oklch(0.13 0.014 270);
   --code-border: oklch(1 0 0 / 9%);
@@ -131,6 +133,7 @@
     --input: oklch(1 0 0 / 14%);
     --ring: oklch(0.7 0.16 276 / 0.55);
     --header: oklch(0.158 0.014 270 / 0.78);
+    --sidebar: oklch(0.135 0.014 272);
     --shadow-color: 270 40% 3%;
     --code: oklch(0.13 0.014 270);
     --code-border: oklch(1 0 0 / 9%);
@@ -172,6 +175,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-header: var(--header);
+  --color-sidebar: var(--sidebar);
   --color-code: var(--code);
   --color-code-foreground: var(--code-foreground);
   --color-code-border: var(--code-border);
@@ -232,4 +236,14 @@
   .tok-tag { color: var(--tok-tag); }
   .tok-attr { color: var(--tok-attr); }
   .tok-fn { color: var(--tok-fn); }
+}
+
+/* Login page: the pulse running along the device → gateway → agent line (components/auth-layout.tsx). */
+@keyframes auth-pulse {
+  from {
+    inset-inline-start: -33%;
+  }
+  to {
+    inset-inline-start: 100%;
+  }
 }

@@ -1,4 +1,4 @@
-<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
+<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | العربية
 
 <div dir="rtl">
@@ -379,6 +379,7 @@
 ```
 min(level requested by the agent (default interact),
     the API key's maxLevel,
+    the highest level the key owner's role allows (§12.4),
     the merged project policy's maxLevel,
     the level the user picked on the device)
 ```
@@ -550,7 +551,7 @@ type Policy = {
 - الأخطاء بصيغة `{"error":{"code":"…","message":"…"}}` مع حالة 4xx/5xx. تتبع الرسائل لغة الطلب ([§15](#15-اللغات)).
 - الرموز الشائعة: `401 unauthorized` (لم يُسجَّل الدخول)، و `403 forbidden` (الدور أدنى من المطلوب)، و `403 csrf`، و `404 not_found`، و `400 bad_request`، و `429 rate_limited`، و `500 internal`.
 
-الأدوار: `owner` (كل شيء، بما في ذلك الأعضاء)، و `admin` (المشاريع، والمفاتيح، والسياسات، والأجهزة، والدعوات، والتدقيق)، و `member` (قراءة المشاريع والأجهزة، واختبار الاتصالات، وإنهاء الجلسات، وإنشاء دعوات الأجهزة، وقراءة سجل التدقيق). في الجداول أدناه، تعني *member* أي حساب مسجّل الدخول.
+الأدوار: `owner` (كل شيء، بما في ذلك الأعضاء)، و `admin` (المشاريع، ومفاتيح API للجميع، والسياسات، والأجهزة، والدعوات، والتدقيق، وحالة النظام)، و `member` (قراءة المشاريع والأجهزة، واختبار الاتصالات، وإنهاء الجلسات، وإنشاء دعوات الأجهزة، وإنشاء مفاتيح API الخاصة بهم وإلغاؤها، وقراءة سجل التدقيق). في الجداول أدناه، تعني *member* أي حساب مسجّل الدخول.
 
 ### 12.2 الحسابات والأعضاء
 
@@ -591,15 +592,19 @@ type Policy = {
 
 ### 12.4 مفاتيح API
 
-مفاتيح API تابعة للبوابة، لا لمشروع: مفتاح واحد يصل إلى كل الأجهزة.
+يتبع مفتاح API العضوَ الذي أنشأه، لا مشروعًا: مفتاح واحد يصل إلى كل الأجهزة. المفاتيح التي بلا مالك (التي أُنشئت قبل أن يكون للمفاتيح مالكون، ومفاتيح العرض التجريبي) هي *مفاتيح البوابة*: لا يراها ولا يلغيها إلا owner و admin.
 
 | الطريقة | المسار | الدور | الطلب | الاستجابة |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: المرة الوحيدة التي يُرجَع فيها المفتاح كاملًا |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`. الإلغاء فوري: يُفصل وكيل المفتاح ويحصل طلب MCP التالي منه على 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`: يحصل owner و admin على كل المفاتيح، و member على مفاتيحه فقط. يعيد `mine=1` مفاتيح المستدعي وحده أيًّا كان دوره |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: المرة الوحيدة التي يُعاد فيها المفتاح كاملًا. يتبع المفتاح المستدعي؛ و `403 forbidden` إذا تجاوز `maxLevel` ما يسمح به دوره |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`. يلغي member مفاتيحه فقط (مفتاح غيره يعيد `404 not_found`)؛ ويلغي owner و admin أي مفتاح. الإلغاء فوري: يُفصل وكيل المفتاح ويحصل طلب MCP التالي منه على 401 |
 
 `expiresInDays: 0` تعني بلا انتهاء أبدًا. يقبل `ipAllowlist` عناوين IP أو نطاقات CIDR؛ وعند ضبطه، تحصل طلبات MCP من عناوين أخرى على 401. المساران `GET` / `POST /projects/:id/keys` اسمان مستعاران قديمان لـ `/keys`.
+
+المستويات حسب الدور: ينشئ owner و admin مفاتيح حتى `advanced`، و member حتى `interact`. فمستوى `advanced` (JavaScript الصفحة، والتخزين، وأجسام الطلبات كاملة) يعادل في صلاحياته فتح DevTools (§17)، وهو مخصّص للمسؤولين. ويُطبَّق هذا الحد أيضًا عند كل استخدام للمفتاح، فمفتاح المالك الذي نُقل إلى دور أدنى لا يعمل بأعلى من مستوى ذلك الدور (§6).
+
+لا يعمل المفتاح إلا ما دام مالكه قادرًا على تسجيل الدخول. تعطيل العضو يوقف مفاتيحه (تحصل طلبات MCP على 401، وتكون `ApiKey.ownerDisabled` بقيمة `true`) ويفصل وكلاءه؛ وإعادة تفعيله تعيد مفاتيحه إلى العمل. حذف العضو يلغي مفاتيحه. وخفض دور العضو يفصل وكلاء مفاتيحه التي تتجاوز مستوى الدور الجديد.
 
 ### 12.5 الأجهزة وحالة البوابة
 
@@ -612,6 +617,9 @@ type Policy = {
 | POST | `/devices/:id/end` | member | `{"ok":true}`: يفصل الوكيل، ويلغي طلب المساعدة، ويعيد التحكم إلى `none`، ويغلق نوافذ DevTools ([§17](#17-devtools-للأشخاص)) |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`؛ قد تنتظر حتى 30 ثانية لرد المستخدم ([§17.1](#171-فتح-نافذة)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights` ([§12.8](#128-الأنواع)): مقدار عمل البوابة الآن وحجم التصحيح الذي تولّته، وعليه تقوم صفحة **حالة النظام** في لوحة التحكم. يحصل الأعضاء على `403 forbidden` |
+
+`tz` هو `Date.getTimezoneOffset()` في المتصفح (UTC+8 يعطي `-480`)، فيتبع "اليوم" والسلسلة اليومية ساعة من ينظر؛ و`days` من 1 إلى 90 (الافتراضي 14). جلسة التصحيح هي جلسة وكيل بدأت على جهاز (التدقيق `attach.start`) أو نافذة DevTools فُتحت على صفحة (`devtools.open`)، الناجحة منها فقط؛ وتُعدّ الأجهزة برمز الجهاز. تُحفظ الجلسات في جدول خاص لا تحذفه مدة الاحتفاظ بالتدقيق ([§12.7](#127-سجل-التدقيق))، لذا فالإجماليات لكل الأوقات؛ وعند أول تشغيل بعد الترقية تملؤه البوابة مرة واحدة من أحداث التدقيق التي لا تزال محفوظة.
 
 ### 12.6 دعوات الأجهزة
 
@@ -634,16 +642,16 @@ type Policy = {
 | `auth.login`، `auth.login_failed` | تسجيل الدخول إلى لوحة التحكم |
 | `member.invite`، `member.accept`، `member.sso_join`، `member.update`، `member.delete` | إدارة الأعضاء (`member.sso_join`: حساب أُنشئ عند أول تسجيل دخول موحّد؛ وعندها يحمل `auth.login` القيمة `"method":"sso"`؛ و`member.invite` مع `"again":true`: رابط دعوة جديد) |
 | `project.create`، `project.update`، `project.delete`، `project.rotate_app_key` | المشاريع |
-| `key.create`، `key.revoke` | مفاتيح API |
+| `key.create`، `key.revoke` | مفاتيح API؛ `detail.owner` هو البريد الإلكتروني لمالك المفتاح (غائب في مفاتيح البوابة) |
 | `invite.create`، `invite.delete`، `invite.use` | دعوات الأجهزة |
 | `attach.request`، `attach.approve`، `attach.deny`، `attach.timeout`، `attach.resume`، `attach.start`، `attach.end` | ارتباطات الوكلاء. يعني `attach.resume` أن المفتاح عاد خلال مهلة السماح بدلًا من السؤال مرة أخرى ([§7](#7-الموافقة-على-الارتباط))؛ `detail: {level}` |
-| `rpc` | كل استدعاء RPC للصفحة من وكيل؛ `detail: {method, page, latencyMs, error?}` |
+| `rpc` | كل استدعاء RPC للصفحة من وكيل؛ `detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`، `control.handback`، `control.end` | أزرار المستخدم |
 | `device.end` | أنهى عضو في لوحة التحكم جلسة |
 | `policy.denied` | رُفض استدعاء يتجاوز المستوى الممنوح |
 | `devtools.request`، `devtools.approve`، `devtools.deny`، `devtools.timeout`، `devtools.open`، `devtools.close` | نوافذ DevTools ([§17](#17-devtools-للأشخاص))؛ لـ `close` حقل `detail: {page, durationSec, reason}` |
 
-لا تحتوي الأحداث أبدًا على محتوى الصفحة أو قيم المعاملات. تُحفظ لمدة 180 يومًا افتراضيًا (`RWD_AUDIT_RETENTION_DAYS`).
+تذكر أحداث الوكيل (`attach.*` و `rpc` و `policy.denied`) مالك المفتاح في `detail.owner` (بريده الإلكتروني)، إلا في مفاتيح البوابة. لا تحتوي الأحداث أبدًا على محتوى الصفحة أو قيم المعاملات. تُحفظ لمدة 180 يومًا افتراضيًا (`RWD_AUDIT_RETENTION_DAYS`).
 
 ### 12.8 الأنواع
 
@@ -660,6 +668,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // العضو الذي أنشأه؛ null لمفتاح البوابة
+  ownerName: string; ownerEmail: string  // "" لمفاتيح البوابة والأعضاء المحذوفين
+  ownerDisabled?: true         // المالك معطّل، فلا يعمل المفتاح
 }
 
 type Integration = {
@@ -730,6 +741,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* رمز الجهاز، بادئة المفتاح، بريد العضو… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // عملية البوابة
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // استهلاك العملية للمعالج منذ الطلب السابق، 100 = نواة واحدة؛ غائب حيث لا يُدعم
+    load?: number[]            // حمل المضيف خلال 1 و5 و15 دقيقة (Linux)
+    memTotalBytes?: number; memAvailableBytes?: number  // ذاكرة المضيف (Linux)
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // جلسات التصحيح
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // الأجهزة المختلفة التي صُحّحت، إجمالًا / اليوم
+    days: { day: number /* الأيام المحلية منذ بداية الحقبة */; agent: number; devtools: number }[]  // الأقدم أولًا، مع الأيام الصفرية
+  }
 }
 ```
 

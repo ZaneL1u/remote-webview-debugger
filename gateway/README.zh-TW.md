@@ -1,4 +1,4 @@
-<!-- i18n-source: 2b1a4c4698c0c1c90cb95a52c17aaab9848c06e2 -->
+<!-- i18n-source: 36b1f9d52cae376ca3aa02c47b0584fd21b7ab30 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 閘道
@@ -76,6 +76,7 @@ rwd version                             顯示版本號
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 允許登入的電子郵件網域，以逗號分隔，例如 `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | 關閉 | 僅限 `oidc`：提供者不傳送 `email_verified` 時（Microsoft Entra ID）也信任它提供的電子郵件。只適用於單一租用戶、電子郵件由你的組織掌控的提供者 |
 | `RWD_OIDC_TENANT` | — | 僅限飛書和 Lark：你的組織的 `tenant_key`；其他組織的人會被拒絕（`sso_error=tenant`）。每次單一登入的 `auth.login` 稽核記錄都會顯示它的 `tenant` |
+| `RWD_OIDC_SYNC_MINUTES` | `60`（飛書、Lark） | 多久檢查一次並停用已離開組織的成員；`0` 表示關閉。見下文 |
 
 請在提供者那邊登記下面這個重新導向 URL，必須完全相符：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未設定時取請求的 origin）再加上 `/v1/api/auth/oidc/callback`。放在代理後面時請設定 `RWD_PUBLIC_URL`，讓這個 URL 保持固定。
 
@@ -89,8 +90,10 @@ rwd version                             顯示版本號
 
 1. 把「憑證與基礎資訊」裡的 App ID 和 App Secret 填到 `RWD_OIDC_CLIENT_ID` 和 `RWD_OIDC_CLIENT_SECRET`。
 2. 在「安全設定 → 重新導向 URL」中加入上面的重新導向 URL。
-3. 在「權限管理」中開通 `contact:user.email:readonly`（要取得企業信箱再開通 `contact:user.employee:readonly`），並在 `RWD_OIDC_SCOPES` 裡列出同樣的 scope。
+3. 在「權限管理」中開通 `contact:user.email:readonly`（要取得企業信箱再開通 `contact:user.employee:readonly`），並在 `RWD_OIDC_SCOPES` 裡列出同樣的 scope。要得知誰已離職，應用還需要開通 `contact:contact.base:readonly` 和 `contact:user.employee:readonly`，並在「資料權限 → 通訊錄權限範圍」中涵蓋所有會登入的人。
 4. 把應用的「可用範圍」設為需要登入的人，然後「建立版本並發佈」，設定才會生效。
+
+**離職的人。** 使用飛書或 Lark 時，閘道每隔 `RWD_OIDC_SYNC_MINUTES` 向開放平台查詢每個連結到該應用的成員，停用被標記為已離職或已離開組織的人：他們會被登出，API 金鑰會失效，agent 會被中斷接入，稽核記錄會記下一筆由 `system` 發起、帶有 `"reason":"left_organization"` 的 `member.update`。之後 owner 可以刪除他們，這樣他們的金鑰就會被永久撤銷。只有明確的「已離職」才算數：不在通訊錄權限範圍內的成員或失敗的請求都不會改變任何事（記錄檔會寫明哪裡失敗），最後一個 owner 也絕不會被停用。沒有通訊錄權限時什麼都不會檢查，離職的人手上的 API 金鑰會一直有效，直到 owner 停用他們；不過他們已經無法登入，主控台工作階段最多 12 小時內就會結束。
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

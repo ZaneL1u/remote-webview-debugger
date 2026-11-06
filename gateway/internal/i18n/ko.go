@@ -168,6 +168,7 @@ var ko = map[Key]string{
 	NoteDeltaOmitted:     "(이전 변경 사항 %d개 생략, get_session_timeline에서 확인하세요)",
 	NoteAdminEnded:       "관리자가 콘솔에서 세션을 종료했습니다",
 	NoteKeyRevoked:       "API 키가 폐기되어 AI 접속이 해제되었습니다",
+	NoteKeyOwnerChanged:  "API 키 소유자의 권한이 바뀌어(비활성화, 삭제 또는 역할 하향) AI 접속이 해제되었습니다",
 	NotePageGoneSwitched: "%s의 연결이 끊겨 자동으로 전환했습니다: %s",
 	NoteAutoSwitched:     "자동으로 전환했습니다: %s",
 
@@ -193,6 +194,7 @@ var ko = map[Key]string{
 	APIInviteURLScheme:      "초대 페이지 URL은 http(s) URL이어야 해요",
 	APIKeyName:              "키 이름을 입력해 주세요",
 	APIBadMaxLevel:          "maxLevel은 observe, interact, advanced 중 하나여야 해요",
+	APIKeyLevelRole:         "멤버는 %s 레벨까지의 키만 만들 수 있어요. 더 높은 레벨은 관리자에게 요청하세요",
 	APIBadIP:                "IP 허용 목록 항목이 올바르지 않아요: %s",
 	APIInviteURLMissing:     "초대 링크가 열 페이지를 입력하거나, 프로젝트 설정에서 기본 페이지를 지정해 주세요",
 	APILoginRequired:        "로그인해 주세요",

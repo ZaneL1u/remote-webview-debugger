@@ -153,6 +153,9 @@ func (s *Store) migrate(ctx context.Context) error {
 		{"api_keys", "expires_at", "BIGINT"},
 		{"api_keys", "ip_allowlist", "TEXT NOT NULL DEFAULT '[]'"},
 		{"devices", "token_hash", "TEXT NOT NULL DEFAULT ''"},
+		// Kept out of keyCols: migrateGlobal copies keyCols from tables of
+		// before keys had owners, and those keys stay gateway keys.
+		{"api_keys", "owner_id", "TEXT"},
 	}
 	for _, c := range cols {
 		ok, err := s.hasColumn(ctx, c.table, c.col)
@@ -165,7 +168,14 @@ func (s *Store) migrate(ctx context.Context) error {
 			}
 		}
 	}
-	return s.migrateGlobal(ctx)
+	if err := s.migrateGlobal(ctx); err != nil {
+		return err
+	}
+	// After migrateGlobal, which rebuilds the table.
+	if _, err := s.db.ExecContext(ctx, `CREATE INDEX IF NOT EXISTS api_keys_owner ON api_keys (owner_id)`); err != nil {
+		return err
+	}
+	return s.migrateDebugStats(ctx, autoID)
 }
 
 // Devices and API keys belong to the gateway, not to a project: a phone is
@@ -175,7 +185,8 @@ const (
 	apiKeysTable = `id TEXT PRIMARY KEY, project_id TEXT NOT NULL DEFAULT '',
 			name TEXT NOT NULL, prefix TEXT NOT NULL, hash TEXT NOT NULL UNIQUE, created_at BIGINT NOT NULL,
 			last_used_at BIGINT, revoked_at BIGINT,
-			max_level TEXT NOT NULL DEFAULT 'interact', expires_at BIGINT, ip_allowlist TEXT NOT NULL DEFAULT '[]'`
+			max_level TEXT NOT NULL DEFAULT 'interact', expires_at BIGINT, ip_allowlist TEXT NOT NULL DEFAULT '[]',
+			owner_id TEXT`
 	devicesTable = `device_id TEXT PRIMARY KEY, project_id TEXT NOT NULL DEFAULT '',
 			code TEXT NOT NULL UNIQUE, user_id TEXT NOT NULL DEFAULT '', platform TEXT NOT NULL DEFAULT '',
 			ua TEXT NOT NULL DEFAULT '', app TEXT NOT NULL DEFAULT '', first_seen BIGINT NOT NULL,
@@ -552,6 +563,9 @@ func (s *Store) DeleteProject(ctx context.Context, id string) error {
 
 // --- API keys ---
 
+// APIKey belongs to the member who created it (OwnerID), or to nobody: keys
+// from before keys had owners, and demo keys, are gateway keys that only
+// owners and admins see and revoke.
 type APIKey struct {
 	ID          string   `json:"id"`
 	Name        string   `json:"name"`
@@ -562,21 +576,59 @@ type APIKey struct {
 	MaxLevel    Level    `json:"maxLevel"`
 	ExpiresAt   *int64   `json:"expiresAt"`
 	IPAllowlist []string `json:"ipAllowlist"`
+	OwnerID     *string  `json:"ownerId"`
+	// The owner's name and email ("" for gateway keys and deleted owners),
+	// and whether the owner is disabled.
+	OwnerName     string `json:"ownerName"`
+	OwnerEmail    string `json:"ownerEmail"`
+	OwnerDisabled bool   `json:"ownerDisabled,omitempty"`
+	OwnerRole     string `json:"-"`
+	ownerFound    bool
 }
 
 func (k *APIKey) Expired() bool { return k.ExpiresAt != nil && now() > *k.ExpiresAt }
 
+// OwnerActive: a gateway key, or a key whose owner still exists and is
+// enabled. Keys of disabled or deleted members stop working.
+func (k *APIKey) OwnerActive() bool { return k.OwnerID == nil || (k.ownerFound && !k.OwnerDisabled) }
+
+// OwnedBy reports whether the key belongs to the member.
+func (k *APIKey) OwnedBy(userID string) bool { return k.OwnerID != nil && *k.OwnerID == userID }
+
+// RoleMaxLevel is the highest key level a role may hold: advanced (page
+// JavaScript, storage, full request bodies) is as privileged as opening
+// DevTools, which is for admins, so members stop at interact.
+func RoleMaxLevel(role string) Level {
+	if RoleRank(role) >= RoleRank(RoleAdmin) {
+		return LevelAdvanced
+	}
+	return LevelInteract
+}
+
+// keyCols are the columns every api_keys table has had since keys had
+// levels (migrateGlobal copies them); keySelect adds the owner.
 const keyCols = `id, name, prefix, created_at, last_used_at, revoked_at, max_level, expires_at, ip_allowlist`
+
+var keySelect = `SELECT ` + prefixed("k.", keyCols) + `, k.owner_id, u.id, u.name, u.email, u.role, u.disabled
+	FROM api_keys k LEFT JOIN users u ON u.id = k.owner_id`
 
 func scanKey(row interface{ Scan(...any) error }) (*APIKey, error) {
 	var k APIKey
-	var used, revoked, expires sql.NullInt64
+	var used, revoked, expires, disabled sql.NullInt64
 	var level, ips string
-	if err := row.Scan(&k.ID, &k.Name, &k.Prefix, &k.CreatedAt, &used, &revoked, &level, &expires, &ips); err != nil {
+	var owner, uid, uname, uemail, urole sql.NullString
+	if err := row.Scan(&k.ID, &k.Name, &k.Prefix, &k.CreatedAt, &used, &revoked, &level, &expires, &ips,
+		&owner, &uid, &uname, &uemail, &urole, &disabled); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
 		return nil, err
+	}
+	if owner.Valid && owner.String != "" {
+		k.OwnerID = &owner.String
+		k.ownerFound = uid.Valid
+		k.OwnerName, k.OwnerEmail, k.OwnerRole = uname.String, uemail.String, urole.String
+		k.OwnerDisabled = disabled.Valid && disabled.Int64 != 0
 	}
 	if used.Valid {
 		k.LastUsedAt = &used.Int64
@@ -598,8 +650,9 @@ func scanKey(row interface{ Scan(...any) error }) (*APIKey, error) {
 	return &k, nil
 }
 
-func (s *Store) APIKeys(ctx context.Context) ([]*APIKey, error) {
-	rows, err := s.query(ctx, `SELECT `+keyCols+` FROM api_keys ORDER BY created_at DESC`)
+// APIKeys lists keys, newest first: every key, or the keys of one owner.
+func (s *Store) APIKeys(ctx context.Context, ownerID string) ([]*APIKey, error) {
+	rows, err := s.query(ctx, keySelect+` WHERE ? = '' OR k.owner_id = ? ORDER BY k.created_at DESC`, ownerID, ownerID)
 	if err != nil {
 		return nil, err
 	}
@@ -616,6 +669,7 @@ func (s *Store) APIKeys(ctx context.Context) ([]*APIKey, error) {
 }
 
 type NewKey struct {
+	OwnerID     string // the member creating it; "" for a gateway key
 	Name        string
 	MaxLevel    Level
 	ExpiresAt   *int64
@@ -632,10 +686,17 @@ func (s *Store) CreateAPIKey(ctx context.Context, pepper string, nk NewKey) (*AP
 	if nk.IPAllowlist == nil {
 		nk.IPAllowlist = []string{}
 	}
-	k := &APIKey{ID: ids.ID(), Name: nk.Name, Prefix: plain[:16], CreatedAt: now(),
-		MaxLevel: nk.MaxLevel, ExpiresAt: nk.ExpiresAt, IPAllowlist: nk.IPAllowlist}
-	_, err := s.exec(ctx, `INSERT INTO api_keys (id, name, prefix, hash, created_at, max_level, expires_at, ip_allowlist) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		k.ID, k.Name, k.Prefix, ids.HashKey(pepper, plain), k.CreatedAt, string(k.MaxLevel), k.ExpiresAt, mustJSON(k.IPAllowlist))
+	var owner *string
+	if nk.OwnerID != "" {
+		owner = &nk.OwnerID
+	}
+	id := ids.ID()
+	_, err := s.exec(ctx, `INSERT INTO api_keys (id, name, prefix, hash, created_at, max_level, expires_at, ip_allowlist, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, nk.Name, plain[:16], ids.HashKey(pepper, plain), now(), string(nk.MaxLevel), nk.ExpiresAt, mustJSON(nk.IPAllowlist), owner)
+	if err != nil {
+		return nil, "", err
+	}
+	k, err := s.APIKey(ctx, id) // with the owner's name and email
 	if err != nil {
 		return nil, "", err
 	}
@@ -644,11 +705,11 @@ func (s *Store) CreateAPIKey(ctx context.Context, pepper string, nk NewKey) (*AP
 
 // APIKeyByHash returns the key unless it is revoked.
 func (s *Store) APIKeyByHash(ctx context.Context, hash string) (*APIKey, error) {
-	return scanKey(s.row(ctx, `SELECT `+keyCols+` FROM api_keys WHERE hash = ? AND revoked_at IS NULL`, hash))
+	return scanKey(s.row(ctx, keySelect+` WHERE k.hash = ? AND k.revoked_at IS NULL`, hash))
 }
 
 func (s *Store) APIKey(ctx context.Context, id string) (*APIKey, error) {
-	return scanKey(s.row(ctx, `SELECT `+keyCols+` FROM api_keys WHERE id = ?`, id))
+	return scanKey(s.row(ctx, keySelect+` WHERE k.id = ?`, id))
 }
 
 func (s *Store) TouchAPIKey(ctx context.Context, id string) {

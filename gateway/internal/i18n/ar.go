@@ -168,6 +168,7 @@ var ar = map[Key]string{
 	NoteDeltaOmitted:     "(أُغفلت تغييرات سابقة عددها %d؛ راجع get_session_timeline)",
 	NoteAdminEnded:       "أنهى مسؤول الجلسة من لوحة التحكم",
 	NoteKeyRevoked:       "أُلغي مفتاح API؛ وقُطع اتصال الذكاء الاصطناعي",
+	NoteKeyOwnerChanged:  "تغيّرت صلاحيات مالك مفتاح API (تعطيل أو إزالة أو دور أدنى)؛ وقُطع اتصال الذكاء الاصطناعي",
 	NotePageGoneSwitched: "انقطع اتصال %s؛ تم التبديل تلقائيًا إلى %s",
 	NoteAutoSwitched:     "تم التبديل تلقائيًا إلى %s",
 
@@ -193,6 +194,7 @@ var ar = map[Key]string{
 	APIInviteURLScheme:      "يجب أن يكون عنوان صفحة الدعوة عنوان http(s)",
 	APIKeyName:              "اسم المفتاح مطلوب",
 	APIBadMaxLevel:          "يجب أن تكون maxLevel إحدى القيم observe أو interact أو advanced",
+	APIKeyLevelRole:         "يمكن للأعضاء إنشاء مفاتيح حتى المستوى %s؛ اطلب من مسؤول مستوى أعلى",
 	APIBadIP:                "إدخال غير صالح في قائمة عناوين IP المسموح بها: %s",
 	APIInviteURLMissing:     "يُرجى إدخال الصفحة التي تفتحها الدعوة، أو تعيين صفحة افتراضية في إعدادات المشروع",
 	APILoginRequired:        "يُرجى تسجيل الدخول",

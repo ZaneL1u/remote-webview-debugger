@@ -1,4 +1,4 @@
-<!-- i18n-source: 2b1a4c4698c0c1c90cb95a52c17aaab9848c06e2 -->
+<!-- i18n-source: 36b1f9d52cae376ca3aa02c47b0584fd21b7ab30 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
@@ -76,6 +76,7 @@ rwd version                             打印版本号
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 允许登录的邮箱域名，逗号分隔，如 `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | 关闭 | 仅 `oidc`：提供方不发送 `email_verified` 时（Microsoft Entra ID）也信任它给的邮箱。只适用于单租户、邮箱由你的组织掌控的提供方 |
 | `RWD_OIDC_TENANT` | — | 仅飞书和 Lark：你所在组织的 `tenant_key`；其他组织的人会被拒绝（`sso_error=tenant`）。每次单点登录的 `auth.login` 审计记录里都有它的 `tenant` |
+| `RWD_OIDC_SYNC_MINUTES` | `60`（飞书、Lark） | 多久检查一次并停用已离开组织的成员；`0` 表示关闭。见下文 |
 
 在提供方那里登记下面这个重定向 URL，必须完全一致：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未设置时取请求的 origin）加上 `/v1/api/auth/oidc/callback`。放在代理后面时请设置 `RWD_PUBLIC_URL`，让这个 URL 保持不变。
 
@@ -89,8 +90,10 @@ rwd version                             打印版本号
 
 1. 把「凭证与基础信息」里的 App ID 和 App Secret 填到 `RWD_OIDC_CLIENT_ID` 和 `RWD_OIDC_CLIENT_SECRET`。
 2. 在「安全设置 → 重定向 URL」里添加上面的重定向 URL。
-3. 在「权限管理」里开通 `contact:user.email:readonly`（要拿企业邮箱再开通 `contact:user.employee:readonly`），并在 `RWD_OIDC_SCOPES` 里写上同样的 scope。
+3. 在「权限管理」里开通 `contact:user.email:readonly`（要拿企业邮箱再开通 `contact:user.employee:readonly`），并在 `RWD_OIDC_SCOPES` 里写上同样的 scope。要发现谁已离职，应用还需要开通 `contact:contact.base:readonly` 和 `contact:user.employee:readonly`，并在「数据权限 → 通讯录权限范围」里包含所有会登录的人。
 4. 把应用的「可用范围」设为需要登录的人，然后「创建版本并发布」，配置才会生效。
+
+**离职的人。** 使用飞书或 Lark 时，网关每隔 `RWD_OIDC_SYNC_MINUTES` 向开放平台查询每个关联到该应用的成员，停用被标记为已离职或已离开组织的人：他们会被登出，API Key 失效，agent 被断开，审计日志记下一条由 `system` 发起、带 `"reason":"left_organization"` 的 `member.update`。之后 owner 可以删除他们，这样他们的 Key 就被彻底吊销。只有明确的「已离职」才算数：不在通讯录权限范围内的成员或失败的请求都不会改变任何东西（日志会写明哪里失败），最后一个 owner 也永远不会被停用。没有通讯录权限时什么都不检查，离职的人手里的 API Key 会一直可用，直到 owner 停用他们；不过他们已经无法登录，控制台会话最多 12 小时内就会结束。
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

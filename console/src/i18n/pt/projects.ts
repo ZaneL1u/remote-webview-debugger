@@ -41,16 +41,21 @@ export const projects: typeof en = {
   keys: {
     title: 'Chaves de API',
     pageDescription:
-      'Para conectar agentes via MCP. As chaves pertencem ao gateway inteiro, não a um projeto: uma chave e um servidor MCP alcançam todos os dispositivos.',
+      'Para conectar agentes via MCP. Uma chave pertence ao membro que a criou, não a um projeto: uma chave e um servidor MCP alcançam todos os dispositivos.',
     description:
       'Os agentes usam uma chave para se conectar via MCP. Uma chave vê todos os dispositivos do gateway, de todos os projetos. Mantenha as chaves em segredo e revogue na hora qualquer uma que vazar.',
     readOnly: ' Seu papel só permite ver as chaves; criar e revogar exige um administrador.',
+    manageNote: ' Cada pessoa cria as próprias chaves; como administrador, você também vê as de todos e pode revogá-las.',
+    ownNote: ' Aqui ficam as chaves que você criou, e você pode revogá-las a qualquer momento. Membros podem criar chaves até o nível Visualizar e interagir.',
+    scope: { label: 'Mostrar chaves', all: 'De todos', mine: 'Só as minhas' },
+    emptyMineTitle: 'Você ainda não tem chaves de API',
     createKey: 'Criar chave',
     emptyTitle: 'Ainda não há chaves de API',
     emptyDescription: 'Crie uma chave e copie o comando de configuração do MCP para o seu agente.',
 
     columns: {
       name: 'Nome',
+      owner: 'Criada por',
       key: 'Chave',
       level: 'Nível',
       expiry: 'Validade',
@@ -74,6 +79,16 @@ export const projects: typeof en = {
     expired: 'Expirada',
     expiredTitle: (date) => `Expirou em ${date}`,
     active: 'Ativa',
+    gatewayKey: 'Chave do gateway',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: 'Criada antes de as chaves pertencerem a membros; só proprietários e administradores a veem e revogam',
+    deletedOwner: 'Membro removido',
+    ownerYou: (name: string) => `${name} (você)`,
+    ownerDisabled: 'Criador desativado',
+    ownerDisabledTitle: 'O membro que criou esta chave está desativado; ela não funciona até ele ser reativado',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `Criada por ${name}.`,
+    levelMemberHint: 'Seu papel pode criar chaves até Visualizar e interagir; se um agente precisar de Avançado, peça a um administrador.',
 
     revoke: 'Revogar',
     revokedToast: (name) => `“${name}” revogada`,

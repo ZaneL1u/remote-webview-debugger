@@ -65,7 +65,11 @@ export function ControlBadge({ state, agent }: { state: ControlState; agent?: st
 export function HelpBadge() {
   const t = useT()
   return (
-    <Badge variant="destructive" className="animate-pulse">
+    <Badge variant="success">
+      <span className="relative flex size-1.5">
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60" />
+        <span className="relative inline-flex size-1.5 rounded-full bg-success" />
+      </span>
       <LifeBuoyIcon />
       {t.common.badges.help}
     </Badge>

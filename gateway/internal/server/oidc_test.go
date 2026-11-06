@@ -31,6 +31,9 @@ type fakeIdP struct {
 	codes map[string]map[string]any // code -> {challenge, redirect, claims}
 	deny  bool
 	down  bool // discovery fails
+	// Contact lookups: open_id -> "resigned", "exited", "active" or
+	// "out_of_range" (code 41050); anything else is an active user.
+	contact map[string]string
 }
 
 func newFakeIdP(t *testing.T, provider string) *fakeIdP {
@@ -129,6 +132,32 @@ func newFakeIdP(t *testing.T, provider string) *fakeIdP {
 		}
 		writeJSON(w, map[string]any{"code": 0, "msg": "success", "data": c["claims"]})
 	}
+	mux.HandleFunc("POST /open-apis/auth/v3/tenant_access_token/internal", func(w http.ResponseWriter, r *http.Request) {
+		var b map[string]string
+		json.NewDecoder(r.Body).Decode(&b)
+		if b["app_id"] != "app-id" || b["app_secret"] != "app-secret" {
+			writeJSON(w, map[string]any{"code": 10014, "msg": "app secret invalid"})
+			return
+		}
+		writeJSON(w, map[string]any{"code": 0, "msg": "ok", "tenant_access_token": "t-tenant", "expire": 7200})
+	})
+	mux.HandleFunc("GET /open-apis/contact/v3/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer t-tenant" || r.URL.Query().Get("user_id_type") != "open_id" {
+			w.WriteHeader(http.StatusBadRequest)
+			writeJSON(w, map[string]any{"code": 99991663, "msg": "bad token"})
+			return
+		}
+		idp.mu.Lock()
+		state := idp.contact[r.PathValue("id")]
+		idp.mu.Unlock()
+		if state == "out_of_range" {
+			w.WriteHeader(http.StatusBadRequest)
+			writeJSON(w, map[string]any{"code": 41050, "msg": "no user authority"})
+			return
+		}
+		writeJSON(w, map[string]any{"code": 0, "msg": "success", "data": map[string]any{"user": map[string]any{
+			"open_id": r.PathValue("id"), "status": map[string]any{"is_resigned": state == "resigned", "is_exited": state == "exited", "is_activated": state != "resigned"}}}})
+	})
 	mux.HandleFunc("GET /userinfo", user)
 	mux.HandleFunc("GET /open-apis/authen/v1/user_info", user)
 	idp.srv = httptest.NewServer(mux)
@@ -606,5 +635,57 @@ func TestSSOReinvite(t *testing.T) {
 	}
 	if n != 2 {
 		t.Errorf("member.invite again events: %d", n)
+	}
+}
+
+func TestSSOResignedMembers(t *testing.T) {
+	idp := newFakeIdP(t, ProviderFeishu)
+	f := setupSSO(t, idp, nil)
+	owner := f.login("owner@test", "password1")
+	people := map[string]string{"ou_stay": "active", "ou_gone": "resigned", "ou_left": "exited", "ou_far": "out_of_range"}
+	keys := map[string]string{}
+	for id := range people {
+		c, _ := f.ssoLogin(idp, map[string]any{"open_id": id, "enterprise_email": id + "@corp.example"}, "")
+		_, k := c.do("POST", "/keys", map[string]string{"name": "agent"})
+		keys[id] = k["key"].(string)
+	}
+	idp.mu.Lock()
+	idp.contact = people
+	idp.mu.Unlock()
+
+	n, err := f.s.syncResigned(context.Background())
+	if n != 2 || err == nil || !strings.Contains(err.Error(), "41050") {
+		t.Fatalf("sync: %d %v", n, err)
+	}
+	_, list := owner.do("GET", "/members", nil)
+	for id, state := range people {
+		var disabled bool
+		for _, m := range list["members"].([]any) {
+			if m := m.(map[string]any); m["email"] == id+"@corp.example" {
+				disabled = m["disabled"].(bool)
+			}
+		}
+		want := state == "resigned" || state == "exited"
+		if disabled != want {
+			t.Errorf("%s (%s): disabled %v", id, state, disabled)
+		}
+		if _, err := f.mcpWith(keys[id]); (err == nil) == want {
+			t.Errorf("%s (%s): key works = %v", id, state, err == nil)
+		}
+	}
+	// Nothing to do the second time.
+	if n, _ := f.s.syncResigned(context.Background()); n != 0 {
+		t.Fatalf("second sync disabled %d", n)
+	}
+	f.s.flushAudit()
+	events, _ := f.st.Audit(context.Background(), store.AuditQuery{Limit: 200})
+	found := 0
+	for _, e := range events {
+		if e.Action == "member.update" && e.ActorType == "system" && strings.Contains(mustJSONTest(e.Detail), "left_organization") {
+			found++
+		}
+	}
+	if found != 2 {
+		t.Fatalf("audit: %d system disables", found)
 	}
 }

@@ -1,4 +1,4 @@
-<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
+<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | Español | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -359,6 +359,7 @@ El nivel de una vinculación es
 ```
 min(nivel que pide el agente (por defecto interact),
     el maxLevel de la clave de API,
+    el nivel más alto que permite el rol del dueño de la clave (§12.4),
     el maxLevel de la política de proyecto combinada,
     el nivel que eligió el usuario en el dispositivo)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - Los errores son `{"error":{"code":"…","message":"…"}}` con un estado 4xx/5xx. Los mensajes siguen el idioma de la petición ([§15](#15-idiomas)).
 - Códigos habituales: `401 unauthorized` (sin sesión iniciada), `403 forbidden` (rol insuficiente), `403 csrf`, `404 not_found`, `400 bad_request`, `429 rate_limited`, `500 internal`.
 
-Roles: `owner` (todo, incluidos los miembros), `admin` (proyectos, claves, políticas, dispositivos, invitaciones, auditoría), `member` (ver proyectos y dispositivos, probar conexiones, terminar sesiones, crear invitaciones de dispositivo, leer el registro de auditoría). En las tablas de abajo, *member* significa cualquier cuenta con sesión iniciada.
+Roles: `owner` (todo, incluidos los miembros), `admin` (proyectos, las claves de API de todos, políticas, dispositivos, invitaciones, auditoría, estado del sistema), `member` (ver proyectos y dispositivos, probar conexiones, terminar sesiones, crear invitaciones de dispositivo, crear y revocar sus propias claves de API, leer el registro de auditoría). En las tablas de abajo, *member* significa cualquier cuenta con sesión iniciada.
 
 ### 12.2 Cuentas y miembros
 
@@ -553,15 +554,19 @@ Las entradas de `allowedOrigins` son orígenes completos como `https://m.example
 
 ### 12.4 Claves de API
 
-Las claves de API pertenecen al gateway, no a un proyecto: una clave llega a todos los dispositivos.
+Una clave de API pertenece al miembro que la creó, no a un proyecto: una clave llega a todos los dispositivos. Las claves sin dueño (creadas antes de que las claves tuvieran dueño, y las claves de demo) son *claves del gateway*: solo los owners y los admins las ven y las revocan.
 
 | Método | Ruta | Rol | Petición | Respuesta |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: la única vez que se devuelve la clave completa |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`. La revocación es inmediata: el agente de la clave se desvincula y su siguiente petición MCP recibe 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`: los owners y admins reciben todas las claves; los members, las suyas. `mine=1` devuelve solo las claves de quien llama, sea cual sea su rol |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: la única vez que se devuelve la clave completa. La clave pertenece a quien llama; `403 forbidden` si `maxLevel` supera lo que permite su rol |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`. Los members revocan sus propias claves (la de otra persona da `404 not_found`); los owners y admins revocan cualquier clave. La revocación es inmediata: el agente de la clave se desvincula y su siguiente petición MCP recibe 401 |
 
 `expiresInDays: 0` significa que no caduca nunca. `ipAllowlist` admite IP o CIDR; si se define, las peticiones MCP desde otras direcciones reciben 401. `GET` / `POST /projects/:id/keys` son alias antiguos de `/keys`.
+
+Niveles por rol: los owners y admins crean claves hasta `advanced`; los members, hasta `interact`. `advanced` (JavaScript de la página, almacenamiento, cuerpos completos de las peticiones) es tan privilegiado como abrir DevTools (§17), que es para admins. El tope se aplica también cada vez que se usa una clave, así que la clave de un dueño pasado a un rol inferior funciona como mucho al nivel de ese rol (§6).
+
+Una clave solo funciona mientras su dueño puede iniciar sesión. Desactivar a un miembro detiene sus claves (las peticiones MCP reciben 401 y `ApiKey.ownerDisabled` es `true`) y desvincula sus agentes; al reactivarlo, las claves vuelven a funcionar. Eliminar a un miembro revoca sus claves. Bajar el rol de un miembro desvincula los agentes de sus claves que superen el nivel del nuevo rol.
 
 ### 12.5 Dispositivos y estado del gateway
 
@@ -574,6 +579,9 @@ Las claves de API pertenecen al gateway, no a un proyecto: una clave llega a tod
 | POST | `/devices/:id/end` | member | `{"ok":true}`: desvincula al agente, retira la solicitud de asistencia, el control vuelve a `none` y cierra las ventanas de DevTools ([§17](#17-devtools-para-personas)) |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; puede esperar hasta 30 s a que responda el usuario ([§17.1](#171-abrir-una-ventana)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights` ([§12.8](#128-tipos)): cuánto trabaja el gateway y cuánta depuración ha soportado; es la base de la página **Estado del sistema** de la consola. Los miembros reciben `403 forbidden` |
+
+`tz` es el `Date.getTimezoneOffset()` del navegador (UTC+8 es `-480`), así que "hoy" y la serie diaria siguen el reloj de quien mira; `days` va de 1 a 90 (14 por defecto). Una sesión de depuración es una sesión de agente iniciada en un dispositivo (auditoría `attach.start`) o una ventana de DevTools abierta en una página (`devtools.open`), solo las que tuvieron éxito; los dispositivos se cuentan por código de dispositivo. Las sesiones se guardan en su propia tabla, que la retención de la auditoría ([§12.7](#127-registro-de-auditoría)) no purga, así que los totales son históricos; el primer arranque tras actualizar la rellena una vez con los eventos de auditoría que aún se conservan.
 
 ### 12.6 Invitaciones de dispositivo
 
@@ -596,16 +604,16 @@ Una invitación permite a un usuario poner su dispositivo en línea, con la asis
 | `auth.login`, `auth.login_failed` | Inicio de sesión en la consola web |
 | `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestión de miembros (`member.sso_join`: una cuenta creada en un primer inicio de sesión único; `auth.login` lleva entonces `"method":"sso"`; `member.invite` con `"again":true`: un nuevo enlace de invitación) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Proyectos |
-| `key.create`, `key.revoke` | Claves de API |
+| `key.create`, `key.revoke` | Claves de API; `detail.owner` es el correo del dueño de la clave (no aparece en las claves del gateway) |
 | `invite.create`, `invite.delete`, `invite.use` | Invitaciones de dispositivo |
 | `attach.request`, `attach.approve`, `attach.deny`, `attach.timeout`, `attach.resume`, `attach.start`, `attach.end` | Vinculaciones de agentes. `attach.resume` significa que la clave volvió dentro del periodo de gracia en vez de preguntar otra vez ([§7](#7-aprobación-de-la-vinculación)); `detail: {level}` |
-| `rpc` | Cada RPC de página de un agente; `detail: {method, page, latencyMs, error?}` |
+| `rpc` | Cada RPC de página de un agente; `detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`, `control.handback`, `control.end` | Los botones del usuario |
 | `device.end` | Un miembro de la consola terminó una sesión |
 | `policy.denied` | Se rechazó una llamada por encima del nivel concedido |
 | `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | Ventanas de DevTools ([§17](#17-devtools-para-personas)); `close` lleva `detail: {page, durationSec, reason}` |
 
-Los eventos nunca contienen contenido de la página ni valores de parámetros. Se conservan 180 días por defecto (`RWD_AUDIT_RETENTION_DAYS`).
+Los eventos de un agente (`attach.*`, `rpc`, `policy.denied`) indican el dueño de la clave en `detail.owner` (su correo), salvo en las claves del gateway. Los eventos nunca contienen contenido de la página ni valores de parámetros. Se conservan 180 días por defecto (`RWD_AUDIT_RETENTION_DAYS`).
 
 ### 12.8 Tipos
 
@@ -620,6 +628,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // el miembro que la creó; null en una clave del gateway
+  ownerName: string; ownerEmail: string  // "" en claves del gateway y miembros eliminados
+  ownerDisabled?: true         // el dueño está desactivado: la clave no funciona
 }
 
 type Integration = {
@@ -690,6 +701,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* código de dispositivo, prefijo de clave, email de miembro… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // el proceso del gateway
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // CPU del proceso desde la petición anterior, 100 = un núcleo; ausente donde no se admite
+    load?: number[]            // carga del host en 1, 5 y 15 minutos (Linux)
+    memTotalBytes?: number; memAvailableBytes?: number  // memoria del host (Linux)
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // sesiones de depuración
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // dispositivos distintos depurados, en total / hoy
+    days: { day: number /* días locales desde la época */; agent: number; devtools: number }[]  // del más antiguo al más reciente, ceros incluidos
+  }
 }
 ```
 

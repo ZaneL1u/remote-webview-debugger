@@ -119,6 +119,7 @@ func New(ctx context.Context, cfg Config, st *store.Store, log *slog.Logger) (*S
 		s.demoLimit, s.demoTotal = newLimiter(5, time.Hour), newLimiter(500, time.Hour)
 	}
 	s.mcp = s.mcpHandler()
+	go s.resignationLoop(ctx)
 	return s, nil
 }
 

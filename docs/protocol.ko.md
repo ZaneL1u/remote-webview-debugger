@@ -1,4 +1,4 @@
-<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
+<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -359,6 +359,7 @@ console 오류와 경고, 실패한 요청, 사용자의 탭·입력·제출, �
 ```
 min(에이전트가 요청한 수준(기본값 interact),
     API 키의 maxLevel,
+    키 소유자의 역할이 허용하는 최고 레벨(§12.4),
     병합된 프로젝트 정책의 maxLevel,
     사용자가 기기에서 고른 수준)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - 오류는 4xx/5xx 상태와 함께 `{"error":{"code":"…","message":"…"}}` 형식으로 와요. 메시지는 요청의 언어를 따라요([§15](#15-언어)).
 - 자주 쓰는 코드: `401 unauthorized`(로그인하지 않음), `403 forbidden`(역할 권한 부족), `403 csrf`, `404 not_found`, `400 bad_request`, `429 rate_limited`, `500 internal`.
 
-역할: `owner`(멤버 관리를 포함한 모든 것), `admin`(프로젝트, 키, 정책, 기기, 초대, 감사), `member`(프로젝트와 기기 읽기, 연결 테스트, 세션 종료, 기기 초대 생성, 감사 로그 읽기). 아래 표에서 *member*는 로그인한 모든 계정을 뜻해요.
+역할: `owner`(멤버 관리를 포함한 모든 것), `admin`(프로젝트, 모든 사람의 API 키, 정책, 기기, 초대, 감사, 운영 현황), `member`(프로젝트와 기기 읽기, 연결 테스트, 세션 종료, 기기 초대 생성, 자기 API 키 생성과 폐기, 감사 로그 읽기). 아래 표에서 *member*는 로그인한 모든 계정을 뜻해요.
 
 ### 12.2 계정과 멤버
 
@@ -553,15 +554,19 @@ Feishu, Lark 또는 OpenID Connect 공급자를 통한 SSO 로그인(`RWD_OIDC_*
 
 ### 12.4 API 키
 
-API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로 모든 기기에 접근할 수 있어요.
+API 키는 프로젝트가 아니라 키를 만든 멤버에게 속해요. 키 하나로 모든 기기에 접근할 수 있어요. 소유자가 없는 키(키에 소유자가 생기기 전에 만든 키와 데모 키)는 *게이트웨이 키*로, owner와 admin만 보고 폐기할 수 있어요.
 
 | 메서드 | 경로 | 역할 | 요청 | 응답 |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: 전체 키를 돌려받는 유일한 순간이에요 |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`. 폐기는 즉시 적용돼요. 그 키의 에이전트는 접속이 해제되고, 다음 MCP 요청은 401을 받아요 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`: owner와 admin은 모든 키를, member는 자기 키만 받아요. `mine=1`이면 역할과 관계없이 호출한 사람의 키만 돌려줘요 |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: 전체 키를 돌려받는 유일한 순간이에요. 키는 호출한 사람의 것이 되고, `maxLevel`이 호출한 사람의 역할이 허용하는 레벨보다 높으면 `403 forbidden` |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`. member는 자기 키만 폐기할 수 있고(다른 사람의 키는 `404 not_found`), owner와 admin은 어떤 키든 폐기할 수 있어요. 폐기는 즉시 적용돼요. 그 키의 에이전트는 접속이 해제되고, 다음 MCP 요청은 401을 받아요 |
 
 `expiresInDays: 0`은 만료 없음이에요. `ipAllowlist`에는 IP나 CIDR을 넣어요. 설정하면 다른 주소에서 온 MCP 요청은 401을 받아요. `GET` / `POST /projects/:id/keys`는 `/keys`의 예전 별칭이에요.
+
+역할별 레벨: owner와 admin은 `advanced`까지, member는 `interact`까지 키를 만들 수 있어요. `advanced`(페이지 JavaScript, 저장소, 요청 본문 전체)는 DevTools 열기(§17)만큼 강한 권한인데, DevTools는 관리자용이기 때문이에요. 이 상한은 키를 쓸 때마다 적용되므로, 더 낮은 역할로 바뀐 소유자의 키는 새 역할의 레벨까지만 동작해요(§6).
+
+키는 소유자가 로그인할 수 있는 동안에만 동작해요. 멤버를 비활성화하면 그 멤버의 키가 멈추고(MCP 요청은 401, `ApiKey.ownerDisabled`는 `true`) 에이전트 접속이 해제돼요. 다시 활성화하면 키도 다시 동작해요. 멤버를 삭제하면 그 멤버의 키가 폐기돼요. 멤버의 역할을 낮추면 새 역할의 레벨을 넘는 키의 에이전트 접속이 해제돼요.
 
 ### 12.5 기기와 게이트웨이 상태
 
@@ -574,6 +579,9 @@ API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로
 | POST | `/devices/:id/end` | member | `{"ok":true}`: 에이전트 접속을 해제하고, 지원 요청을 해제하고, 제어 상태를 `none`으로 되돌리고, DevTools 창을 모두 닫아요([§17](#17-사람을-위한-devtools)) |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; 사용자를 최대 30초 기다릴 수 있어요([§17.1](#171-창-열기)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights`([§12.8](#128-타입)): 게이트웨이의 현재 부하와 지금까지 처리한 디버깅 양. 콘솔의 **운영 현황** 페이지가 사용해요. member는 `403 forbidden` |
+
+`tz`는 브라우저의 `Date.getTimezoneOffset()`(UTC+8이면 `-480`)이라서 '오늘'과 일별 시계열은 보는 사람의 시간대를 따라요. `days`는 1–90(기본 14)이에요. 디버깅 1회는 기기에서 시작된 에이전트 세션(감사 `attach.start`)이나 페이지에서 열린 DevTools 창(`devtools.open`) 중 성공한 것이고, 기기는 기기 코드로 셉니다. 세션은 별도 테이블에 남고 감사 보존 기간([§12.7](#127-감사-로그))에 지워지지 않으므로 합계는 전체 기간 값이에요. 업그레이드 후 처음 시작할 때 아직 남아 있는 감사 이벤트로 한 번 채워 넣어요.
 
 ### 12.6 기기 초대
 
@@ -596,16 +604,16 @@ API 키는 프로젝트가 아니라 게이트웨이에 속해요. 키 하나로
 | `auth.login`, `auth.login_failed` | 콘솔 로그인 |
 | `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | 멤버 관리 (`member.sso_join`: 첫 SSO 로그인 때 만들어진 계정. SSO로 로그인하면 `auth.login`에 `"method":"sso"`가 들어가요. `member.invite`에 `"again":true`가 있으면 초대 링크를 새로 만든 것) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | 프로젝트 |
-| `key.create`, `key.revoke` | API 키 |
+| `key.create`, `key.revoke` | API 키. `detail.owner`는 키 소유자의 이메일(게이트웨이 키에는 없음) |
 | `invite.create`, `invite.delete`, `invite.use` | 기기 초대 |
 | `attach.request`, `attach.approve`, `attach.deny`, `attach.timeout`, `attach.resume`, `attach.start`, `attach.end` | 에이전트 접속. `attach.resume`은 키가 다시 묻지 않고 유예 시간 안에 돌아왔다는 뜻이에요([§7](#7-접속-승인)). `detail: {level}` |
-| `rpc` | 에이전트의 모든 페이지 RPC. `detail: {method, page, latencyMs, error?}` |
+| `rpc` | 에이전트의 모든 페이지 RPC. `detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`, `control.handback`, `control.end` | 사용자의 버튼 |
 | `device.end` | 콘솔 멤버가 세션을 종료함 |
 | `policy.denied` | 부여된 수준을 넘는 호출이 거부됨 |
 | `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | DevTools 창([§17](#17-사람을-위한-devtools)); `close`에는 `detail: {page, durationSec, reason}`이 있어요 |
 
-이벤트에는 페이지 내용이나 매개변수 값이 절대 들어가지 않아요. 기본적으로 180일 동안 보관해요(`RWD_AUDIT_RETENTION_DAYS`).
+에이전트의 이벤트(`attach.*`, `rpc`, `policy.denied`)는 게이트웨이 키가 아니면 `detail.owner`에 키 소유자의 이메일을 남겨요. 이벤트에는 페이지 내용이나 매개변수 값이 절대 들어가지 않아요. 기본적으로 180일 동안 보관해요(`RWD_AUDIT_RETENTION_DAYS`).
 
 ### 12.8 타입
 
@@ -620,6 +628,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // 키를 만든 멤버. 게이트웨이 키는 null
+  ownerName: string; ownerEmail: string  // 게이트웨이 키와 삭제된 멤버는 ""
+  ownerDisabled?: true         // 소유자가 비활성화되어 키가 동작하지 않음
 }
 
 type Integration = {
@@ -690,6 +701,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* 기기 코드, 키 prefix, 멤버 이메일… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // 게이트웨이 프로세스
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // 이전 요청 이후의 프로세스 CPU, 100 = 코어 1개. 지원하지 않는 환경에서는 없음
+    load?: number[]            // 호스트의 1·5·15분 부하(Linux)
+    memTotalBytes?: number; memAvailableBytes?: number  // 호스트 메모리(Linux)
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // 디버깅 횟수
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // 디버깅된 서로 다른 기기 수: 전체 / 오늘
+    days: { day: number /* 로컬 시간 기준 epoch 이후 일수 */; agent: number; devtools: number }[]  // 오래된 순, 0인 날 포함
+  }
 }
 ```
 

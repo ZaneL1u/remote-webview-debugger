@@ -22,6 +22,7 @@ import { EmptyState } from '@/components/empty-state'
 import { LiveIndicator } from '@/components/live-indicator'
 import { DeviceSystemLabel, OsIcon, osKind, osNames } from '@/components/os-icon'
 import { PageHeader } from '@/components/page-header'
+import { AgentOnboarding } from '@/features/agent-onboarding'
 import { Pagination } from '@/components/pagination'
 import { InlineError } from '@/components/route-states'
 import { ControlBadge, HelpBadge, InvitedBadge, LevelBadge, OnlineDot, PendingBadge } from '@/components/status'
@@ -117,6 +118,8 @@ export function DevicesPage() {
         description={t.devices.list.description}
         actions={<LiveIndicator status={stream} />}
       />
+
+      <AgentOnboarding />
 
       <StatsStrip />
 
@@ -627,12 +630,12 @@ function DeviceTable({ devices }: { devices: Device[] }) {
               data-device-row={d.code}
               className={cn(
                 'group cursor-pointer',
-                d.help && 'bg-destructive-soft/50 hover:bg-destructive-soft/80 dark:bg-destructive-soft/30 dark:hover:bg-destructive-soft/50',
+                d.help && 'bg-success/[0.06] hover:bg-success/10 dark:bg-success/[0.07] dark:hover:bg-success/[0.11]',
                 !d.online && 'text-muted-foreground',
               )}
               onClick={() => void navigate({ to: '/devices/$deviceId', params: { deviceId: d.id } })}
             >
-              <TableCell className={cn('py-3 ps-4', d.help && 'shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)]')}>
+              <TableCell className={cn('py-3 ps-4', d.help && 'shadow-[inset_3px_0_0_var(--success)] rtl:shadow-[inset_-3px_0_0_var(--success)]')}>
                 <CodeAndId d={d} />
               </TableCell>
               <TableCell className="py-3">
@@ -709,7 +712,7 @@ function DeviceCards({ devices }: { devices: Device[] }) {
           data-device-card={d.code}
           className={cn(
             'cursor-pointer space-y-2.5 px-4 py-3.5 transition-colors hover:bg-muted/40 active:bg-muted/60',
-            d.help && 'bg-destructive-soft/50 shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)] dark:bg-destructive-soft/30',
+            d.help && 'bg-success/[0.06] shadow-[inset_3px_0_0_var(--success)] rtl:shadow-[inset_-3px_0_0_var(--success)] dark:bg-success/[0.07]',
           )}
           onClick={() => void navigate({ to: '/devices/$deviceId', params: { deviceId: d.id } })}
         >

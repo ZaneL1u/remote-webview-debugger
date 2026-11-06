@@ -65,6 +65,9 @@ type OIDCConfig struct {
 	// (tenant_key) whose people may sign in: a store app, or a custom app
 	// shared with connected organizations, lets others in too.
 	Tenant string
+	// SyncInterval, for Feishu and Lark, is how often members who have left
+	// the organization are disabled (sso_sync.go); 0: never.
+	SyncInterval time.Duration
 
 	mu        sync.Mutex
 	discovery *oidcDiscovery

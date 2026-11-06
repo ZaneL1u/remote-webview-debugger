@@ -1,4 +1,4 @@
-<!-- i18n-source: 2b1a4c4698c0c1c90cb95a52c17aaab9848c06e2 -->
+<!-- i18n-source: 36b1f9d52cae376ca3aa02c47b0584fd21b7ab30 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -86,6 +86,7 @@ rwd version                             print the version
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | نطاقات البريد الإلكتروني المسموح لها بتسجيل الدخول، مفصولة بفواصل، مثل `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | معطَّل | لـ `oidc` فقط: الوثوق بالبريد الإلكتروني لمزوّد لا يرسل `email_verified` (Microsoft Entra ID). فقط لمزوّد أحادي المستأجر تتحكم مؤسستك في عناوين بريده الإلكتروني |
 | `RWD_OIDC_TENANT` | — | لـ Feishu و Lark فقط: قيمة `tenant_key` لمؤسستك؛ ويُرفض أفراد المؤسسات الأخرى (`sso_error=tenant`). يُظهر سجل التدقيق `auth.login` لكل تسجيل دخول موحّد قيمة `tenant` الخاصة به |
+| `RWD_OIDC_SYNC_MINUTES` | `60` (Feishu، Lark) | كم مرة تُعطَّل حسابات الأعضاء الذين غادروا المؤسسة؛ و `0` يوقف ذلك. انظر أدناه |
 
 سجّل عنوان إعادة التوجيه هذا لدى المزوّد، ويجب أن يتطابق تمامًا: `https://<host>/v1/api/auth/oidc/callback`، أي أصل (origin) `RWD_PUBLIC_URL` (أو أصل الطلب إن لم يُضبط) متبوعًا بـ `/v1/api/auth/oidc/callback`. وخلف بروكسي، اضبط `RWD_PUBLIC_URL` كي يبقى العنوان ثابتًا.
 
@@ -99,8 +100,10 @@ rwd version                             print the version
 
 1. انسخ App ID و App Secret من **Credentials & Basic Info** إلى `RWD_OIDC_CLIENT_ID` و `RWD_OIDC_CLIENT_SECRET`.
 2. في **Security Settings → Redirect URLs**، أضف عنوان إعادة التوجيه المذكور أعلاه.
-3. في **Permissions & Scopes**، أضف `contact:user.email:readonly` (و `contact:user.employee:readonly` للبريد الإلكتروني المؤسسي)، وأدرج النطاقات نفسها في `RWD_OIDC_SCOPES`.
+3. في **Permissions & Scopes**، أضف `contact:user.email:readonly` (و `contact:user.employee:readonly` للبريد الإلكتروني المؤسسي)، وأدرج النطاقات نفسها في `RWD_OIDC_SCOPES`. ولكي تلاحظ البوابة من غادر، يحتاج التطبيق أيضًا إلى `contact:contact.base:readonly` و `contact:user.employee:readonly`، وإلى أن يشمل **Data permissions → Contacts range** كل من يسجّل الدخول.
 4. اجعل التطبيق متاحًا للأشخاص الذين ينبغي أن يسجّلوا الدخول، ثم أنشئ إصدارًا وانشره كي تسري الإعدادات.
+
+**من يغادرون.** مع Feishu أو Lark تسأل البوابة Open Platform كل `RWD_OIDC_SYNC_MINUTES` دقيقة عن كل عضو مرتبط بالتطبيق، وتعطّل من يظهرون مستقيلين أو مغادرين للمؤسسة: يُسجَّل خروجهم، وتتوقف مفاتيح API الخاصة بهم عن العمل، ويُفصل وكلاؤهم، ويسجّل سجل التدقيق `member.update` من `system` مع `"reason":"left_organization"`. وبعد ذلك يستطيع المالك حذفهم، فتُلغى مفاتيحهم نهائيًا. لا يُعتدّ إلا بحالة «مستقيل» صريحة: العضو الواقع خارج نطاق جهات الاتصال، أو الطلب الذي فشل، لا يغيّر شيئًا (ويذكر السجل ما الذي فشل)، ولا يُعطَّل آخر مالك أبدًا. ومن دون صلاحية جهات الاتصال لا يُفحص شيء، ويحتفظ من غادر بمفاتيح API عاملة حتى يعطّله مالك؛ أما جلسته في لوحة التحكم فتنتهي خلال 12 ساعة لأنه لم يعد يستطيع تسجيل الدخول.
 
 <div dir="ltr">
 

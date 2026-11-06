@@ -60,15 +60,18 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /v1/api/projects/{id}", admin(s.deleteProject))
 	mux.HandleFunc("POST /v1/api/projects/{id}/rotate-app-key", admin(s.rotateAppKey))
 	mux.HandleFunc("GET /v1/api/projects/{id}/integration", member(s.integration))
+	// Every member creates and revokes keys of their own; owners and admins
+	// see and revoke everyone's (docs/protocol.md §12.4).
 	mux.HandleFunc("GET /v1/api/keys", member(s.listKeys))
-	mux.HandleFunc("POST /v1/api/keys", admin(s.createKey))
+	mux.HandleFunc("POST /v1/api/keys", member(s.createKey))
 	// Keys used to belong to a project; the old routes stay for older consoles.
 	mux.HandleFunc("GET /v1/api/projects/{id}/keys", member(s.listKeys))
-	mux.HandleFunc("POST /v1/api/projects/{id}/keys", admin(s.createKey))
-	mux.HandleFunc("DELETE /v1/api/keys/{id}", admin(s.revokeKey))
+	mux.HandleFunc("POST /v1/api/projects/{id}/keys", member(s.createKey))
+	mux.HandleFunc("DELETE /v1/api/keys/{id}", member(s.revokeKey))
 	mux.HandleFunc("GET /v1/api/projects/{id}/devices", member(s.listDevices))
 	mux.HandleFunc("GET /v1/api/devices", member(s.listAllDevices))
 	mux.HandleFunc("GET /v1/api/status", member(s.gatewayStatus))
+	mux.HandleFunc("GET /v1/api/insights", admin(s.insights))
 	mux.HandleFunc("GET /v1/api/projects/{id}/invites", member(s.listDeviceInvites))
 	mux.HandleFunc("POST /v1/api/projects/{id}/invites", member(s.createDeviceInvite))
 	mux.HandleFunc("DELETE /v1/api/device-invites/{id}", member(s.deleteDeviceInvite))
@@ -256,6 +259,9 @@ func (s *Server) updateMember(w http.ResponseWriter, r *http.Request) {
 		s.storeErr(w, r, err)
 		return
 	}
+	if u.Disabled || store.RoleRank(u.Role) < store.RoleRank(target.Role) {
+		s.dropMemberAgents(r.Context(), u)
+	}
 	s.auditMember(r, "", "member.update", u.Email, "ok", map[string]any{"role": u.Role, "disabled": u.Disabled})
 	writeJSON(w, u)
 }
@@ -278,8 +284,28 @@ func (s *Server) deleteMember(w http.ResponseWriter, r *http.Request) {
 		s.storeErr(w, r, err)
 		return
 	}
+	s.dropMemberAgents(r.Context(), target) // DeleteUser revoked the keys
 	s.auditMember(r, "", "member.delete", target.Email, "ok", nil)
 	writeJSON(w, map[string]bool{"ok": true})
+}
+
+// dropMemberAgents detaches the agents of a member's keys once the member is
+// disabled or deleted (the keys stop working: verifyKey), or keeps only
+// those within a lowered role.
+func (s *Server) dropMemberAgents(ctx context.Context, u *store.User) {
+	keys, err := s.store.APIKeys(ctx, u.ID)
+	if err != nil {
+		s.log.Warn("listing a member's keys failed", "member", u.ID, "err", err)
+		return
+	}
+	top := store.RoleMaxLevel(u.Role)
+	drop := []string{}
+	for _, k := range keys {
+		if u.Disabled || !k.OwnerActive() || k.RevokedAt != nil || k.MaxLevel.Rank() > top.Rank() {
+			drop = append(drop, k.ID)
+		}
+	}
+	s.hub.DropAgents(drop, i18n.M(i18n.NoteKeyOwnerChanged))
 }
 
 func (s *Server) getMemberInvite(w http.ResponseWriter, r *http.Request) {
@@ -472,8 +498,16 @@ func (s *Server) integration(w http.ResponseWriter, r *http.Request) {
 
 // --- API keys ---
 
+// manageKeys: owners and admins see and revoke every key, members their own.
+func manageKeys(u *store.User) bool { return store.RoleRank(u.Role) >= store.RoleRank(store.RoleAdmin) }
+
 func (s *Server) listKeys(w http.ResponseWriter, r *http.Request) {
-	keys, err := s.store.APIKeys(r.Context())
+	u := currentUser(r)
+	owner := u.ID
+	if mine := r.URL.Query().Get("mine"); manageKeys(u) && mine != "1" && mine != "true" {
+		owner = ""
+	}
+	keys, err := s.store.APIKeys(r.Context(), owner)
 	if err != nil {
 		s.storeErr(w, r, err)
 		return
@@ -499,6 +533,11 @@ func (s *Server) createKey(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, http.StatusBadRequest, "bad_request", i18n.APIBadMaxLevel)
 		return
 	}
+	u := currentUser(r)
+	if top := store.RoleMaxLevel(u.Role); req.MaxLevel.Rank() > top.Rank() {
+		s.fail(w, r, http.StatusForbidden, "forbidden", i18n.APIKeyLevelRole, top)
+		return
+	}
 	ips := []string{}
 	for _, c := range req.IPAllowlist {
 		c = strings.TrimSpace(c)
@@ -512,7 +551,7 @@ func (s *Server) createKey(w http.ResponseWriter, r *http.Request) {
 		}
 		ips = append(ips, c)
 	}
-	days := 90
+	days := 0 // never expires unless asked
 	if req.ExpiresInDays != nil {
 		days = *req.ExpiresInDays
 	}
@@ -521,13 +560,14 @@ func (s *Server) createKey(w http.ResponseWriter, r *http.Request) {
 		t := time.Now().AddDate(0, 0, days).UnixMilli()
 		expires = &t
 	}
-	k, plain, err := s.store.CreateAPIKey(r.Context(), s.pepper, store.NewKey{Name: strings.TrimSpace(req.Name),
+	k, plain, err := s.store.CreateAPIKey(r.Context(), s.pepper, store.NewKey{OwnerID: u.ID, Name: strings.TrimSpace(req.Name),
 		MaxLevel: req.MaxLevel, ExpiresAt: expires, IPAllowlist: ips})
 	if err != nil {
 		s.storeErr(w, r, err)
 		return
 	}
-	s.auditMember(r, "", "key.create", k.Prefix, "ok", map[string]any{"name": k.Name, "maxLevel": k.MaxLevel, "expiresInDays": days})
+	s.auditMember(r, "", "key.create", k.Prefix, "ok", map[string]any{"name": k.Name, "maxLevel": k.MaxLevel, "expiresInDays": days,
+		"owner": k.OwnerEmail})
 	writeJSON(w, struct {
 		*store.APIKey
 		Key string `json:"key"`
@@ -541,12 +581,21 @@ func (s *Server) revokeKey(w http.ResponseWriter, r *http.Request) {
 		s.storeErr(w, r, err)
 		return
 	}
+	if u := currentUser(r); !manageKeys(u) && !k.OwnedBy(u.ID) {
+		// Members don't see other people's keys: as if it didn't exist.
+		s.fail(w, r, http.StatusNotFound, "not_found", i18n.APINotFound)
+		return
+	}
 	if err := s.store.RevokeAPIKey(r.Context(), id); err != nil {
 		s.storeErr(w, r, err)
 		return
 	}
 	s.hub.DropAgent(id)
-	s.auditMember(r, "", "key.revoke", k.Prefix, "ok", map[string]any{"name": k.Name})
+	detail := map[string]any{"name": k.Name}
+	if k.OwnerID != nil {
+		detail["owner"], detail["ownerId"] = k.OwnerEmail, *k.OwnerID
+	}
+	s.auditMember(r, "", "key.revoke", k.Prefix, "ok", detail)
 	writeJSON(w, map[string]bool{"ok": true})
 }
 

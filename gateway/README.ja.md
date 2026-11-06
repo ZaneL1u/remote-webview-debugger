@@ -1,4 +1,4 @@
-<!-- i18n-source: 2b1a4c4698c0c1c90cb95a52c17aaab9848c06e2 -->
+<!-- i18n-source: 36b1f9d52cae376ca3aa02c47b0584fd21b7ab30 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd ゲートウェイ
@@ -76,6 +76,7 @@ rwd version                             バージョンを表示
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | サインインを許可するメールドメイン（カンマ区切り、例: `example.com`） |
 | `RWD_OIDC_TRUST_EMAIL=1` | オフ | `oidc` のみ。`email_verified` を送らないプロバイダー（Microsoft Entra ID）のメールアドレスも信頼する。メールアドレスを組織で管理しているシングルテナントのプロバイダーでのみ使用 |
 | `RWD_OIDC_TENANT` | — | Feishu と Lark のみ。組織の `tenant_key`。ほかの組織のユーザーは拒否される（`sso_error=tenant`）。シングルサインオンごとの `auth.login` 監査記録に `tenant` が記録される |
+| `RWD_OIDC_SYNC_MINUTES` | `60`（Feishu、Lark） | 組織を離れたメンバーを無効化する間隔。`0` でオフ。後述 |
 
 プロバイダーには次のリダイレクト URL を登録してください。完全に一致している必要があります: `https://<host>/v1/api/auth/oidc/callback`。つまり `RWD_PUBLIC_URL` のオリジン（未設定ならリクエストのオリジン）の後ろに `/v1/api/auth/oidc/callback` を付けたものです。プロキシの背後では、この URL が変わらないよう `RWD_PUBLIC_URL` を設定してください。
 
@@ -89,8 +90,10 @@ rwd version                             バージョンを表示
 
 1. **Credentials & Basic Info**（認証情報と基本情報）にある App ID と App Secret を `RWD_OIDC_CLIENT_ID` と `RWD_OIDC_CLIENT_SECRET` に設定します。
 2. **Security Settings → Redirect URLs**（セキュリティ設定 → リダイレクト URL）に、上記のリダイレクト URL を追加します。
-3. **Permissions & Scopes**（権限とスコープ）で `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）を追加し、同じスコープを `RWD_OIDC_SCOPES` にも列挙します。
+3. **Permissions & Scopes**（権限とスコープ）で `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）を追加し、同じスコープを `RWD_OIDC_SCOPES` にも列挙します。退職者を検出するには、アプリにさらに `contact:contact.base:readonly` と `contact:user.employee:readonly` を追加し、**Data permissions → Contacts range**（データ権限 → 連絡先の範囲）にサインインする全員を含める必要があります。
 4. アプリの利用範囲（availability）をサインインさせたいユーザーに設定し、バージョンを作成して公開すると、設定が反映されます。
+
+**退職した人。** Feishu または Lark では、ゲートウェイが `RWD_OIDC_SYNC_MINUTES` ごとに、アプリに紐付いた各メンバーについて Open Platform に問い合わせ、退職済みまたは組織を離れたとされる人を無効化します。その人はサインアウトされ、API キーは使えなくなり、エージェントはデタッチされます。監査ログには `system` による `member.update` が `"reason":"left_organization"` 付きで記録されます。その後 owner がメンバーを削除すると、キーは完全に失効します。対象になるのは明示的に「退職」とされた場合だけです。連絡先の範囲外のメンバーや失敗したリクエストでは何も変わらず（何が失敗したかはログに出ます）、最後の owner が無効化されることもありません。連絡先の権限がなければ何もチェックされず、退職した人の API キーは owner が無効化するまで使えるままです。ただし、もうサインインできないため、コンソールのセッションは 12 時間以内に終わります。
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

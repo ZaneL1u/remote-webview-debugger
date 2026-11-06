@@ -1,4 +1,4 @@
-<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
+<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | Deutsch | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD-Protokoll (v1)
@@ -359,6 +359,7 @@ Die Stufe einer Verbindung ist
 ```
 min(vom Agent angeforderte Stufe (Standard interact),
     maxLevel des API-Keys,
+    die höchste Stufe, die die Rolle des Key-Inhabers erlaubt (§12.4),
     maxLevel der zusammengeführten Projektrichtlinie,
     die vom Nutzer auf dem Gerät gewählte Stufe)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - Fehler sind `{"error":{"code":"…","message":"…"}}` mit einem 4xx/5xx-Status. Die Meldungen folgen der Sprache der Anfrage ([§15](#15-sprachen)).
 - Häufige Codes: `401 unauthorized` (nicht angemeldet), `403 forbidden` (Rolle zu niedrig), `403 csrf`, `404 not_found`, `400 bad_request`, `429 rate_limited`, `500 internal`.
 
-Rollen: `owner` (alles, einschließlich Mitgliedern), `admin` (Projekte, Keys, Richtlinien, Geräte, Einladungen, Audit), `member` (Projekte und Geräte lesen, Verbindungen testen, Sitzungen beenden, Geräteeinladungen erstellen, Audit-Log lesen). In den Tabellen unten bedeutet *member* jedes angemeldete Konto.
+Rollen: `owner` (alles, einschließlich Mitgliedern), `admin` (Projekte, die API-Keys aller, Richtlinien, Geräte, Einladungen, Audit, Systemstatus), `member` (Projekte und Geräte lesen, Verbindungen testen, Sitzungen beenden, Geräteeinladungen erstellen, eigene API-Keys erstellen und widerrufen, Audit-Log lesen). In den Tabellen unten bedeutet *member* jedes angemeldete Konto.
 
 ### 12.2 Konten und Mitglieder
 
@@ -553,15 +554,19 @@ Einträge in `allowedOrigins` sind vollständige Origins wie `https://m.example.
 
 ### 12.4 API-Keys
 
-API-Keys gehören zum Gateway, nicht zu einem Projekt: Ein Key erreicht jedes Gerät.
+Ein API-Key gehört dem Mitglied, das ihn erstellt hat, nicht einem Projekt: Ein Key erreicht jedes Gerät. Keys ohne Inhaber (erstellt, bevor Keys Inhaber hatten, sowie Demo-Keys) sind *Gateway-Keys*: Nur Owner und Admins sehen und widerrufen sie.
 
 | Methode | Pfad | Rolle | Anfrage | Antwort |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: das einzige Mal, dass der vollständige Key zurückgegeben wird |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`. Der Widerruf wirkt sofort: Der Agent des Keys wird getrennt, und seine nächste MCP-Anfrage erhält 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`: Owner und Admins erhalten alle Keys, Members ihre eigenen. `mine=1` liefert für jede Rolle nur die Keys des Aufrufers |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: das einzige Mal, dass der vollständige Key zurückgegeben wird. Der Key gehört dem Aufrufer; `403 forbidden`, wenn `maxLevel` über dem liegt, was seine Rolle erlaubt |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`. Members widerrufen ihre eigenen Keys (der Key eines anderen ergibt `404 not_found`); Owner und Admins widerrufen jeden Key. Der Widerruf wirkt sofort: Der Agent des Keys wird getrennt, und seine nächste MCP-Anfrage erhält 401 |
 
 `expiresInDays: 0` bedeutet nie. `ipAllowlist` nimmt IPs oder CIDRs; ist sie gesetzt, erhalten MCP-Anfragen von anderen Adressen 401. `GET` / `POST /projects/:id/keys` sind ältere Aliase von `/keys`.
+
+Stufen nach Rolle: Owner und Admins erstellen Keys bis `advanced`, Members bis `interact`. `advanced` (JavaScript der Seite, Speicher, vollständige Request-Bodies) ist so mächtig wie das Öffnen von DevTools (§17), das Admins vorbehalten ist. Die Obergrenze gilt auch bei jeder Verwendung eines Keys: Der Key eines Inhabers, der eine niedrigere Rolle erhalten hat, arbeitet höchstens auf der Stufe dieser Rolle (§6).
+
+Ein Key funktioniert nur, solange sich sein Inhaber anmelden kann. Wird ein Mitglied deaktiviert, funktionieren seine Keys nicht mehr (MCP-Anfragen erhalten 401, `ApiKey.ownerDisabled` ist `true`) und seine Agents werden getrennt; wird es wieder aktiviert, funktionieren die Keys wieder. Wird ein Mitglied gelöscht, werden seine Keys widerrufen. Wird die Rolle eines Mitglieds herabgesetzt, werden die Agents seiner Keys oberhalb der Stufe der neuen Rolle getrennt.
 
 ### 12.5 Geräte und Gateway-Status
 
@@ -574,6 +579,9 @@ API-Keys gehören zum Gateway, nicht zu einem Projekt: Ein Key erreicht jedes Ge
 | POST | `/devices/:id/end` | member | `{"ok":true}`: trennt den Agent, hebt die Unterstützungsanfrage auf, Steuerung zurück auf `none`, schließt DevTools-Fenster ([§17](#17-devtools-für-menschen)) |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; wartet bei Bedarf bis zu 30 s auf den Nutzer ([§17.1](#171-ein-fenster-öffnen)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights` ([§12.8](#128-typen)): wie stark das Gateway gerade arbeitet und wie viel Debugging es getragen hat; Grundlage der Konsolenseite **Systemstatus**. Mitglieder erhalten `403 forbidden` |
+
+`tz` ist `Date.getTimezoneOffset()` des Browsers (UTC+8 ist `-480`), damit „heute“ und die Tagesreihe der Uhr des Betrachters folgen; `days` ist 1–90 (Standard 14). Eine Debug-Sitzung ist eine auf einem Gerät gestartete Agent-Sitzung (Audit `attach.start`) oder ein auf einer Seite geöffnetes DevTools-Fenster (`devtools.open`), jeweils nur erfolgreiche; Geräte werden nach Gerätecode gezählt. Die Sitzungen liegen in einer eigenen Tabelle, die die Audit-Aufbewahrung ([§12.7](#127-audit-log)) nicht bereinigt, die Summen gelten also für die gesamte Zeit; der erste Start nach einem Upgrade füllt sie einmalig aus den noch vorhandenen Audit-Events.
 
 ### 12.6 Geräteeinladungen
 
@@ -596,16 +604,16 @@ Mit einer Einladung bringt ein Nutzer sein Gerät online, und zwar gleich mit ei
 | `auth.login`, `auth.login_failed` | Anmeldung an der Konsole |
 | `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Mitgliederverwaltung (`member.sso_join`: ein Konto, das bei einer ersten Single-Sign-on-Anmeldung angelegt wurde; `auth.login` hat dann `"method":"sso"`; `member.invite` mit `"again":true`: ein neuer Einladungslink) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projekte |
-| `key.create`, `key.revoke` | API-Keys |
+| `key.create`, `key.revoke` | API-Keys; `detail.owner` ist die E-Mail-Adresse des Key-Inhabers (fehlt bei Gateway-Keys) |
 | `invite.create`, `invite.delete`, `invite.use` | Geräteeinladungen |
 | `attach.request`, `attach.approve`, `attach.deny`, `attach.timeout`, `attach.resume`, `attach.start`, `attach.end` | Verbindungen von Agents. `attach.resume` bedeutet, dass der Key innerhalb der Karenzzeit zurückgekommen ist, statt erneut zu fragen ([§7](#7-verbindungsfreigabe)); `detail: {level}` |
-| `rpc` | Jeder Seiten-RPC eines Agents; `detail: {method, page, latencyMs, error?}` |
+| `rpc` | Jeder Seiten-RPC eines Agents; `detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`, `control.handback`, `control.end` | Die Buttons des Nutzers |
 | `device.end` | Ein Konsolenmitglied hat eine Sitzung beendet |
 | `policy.denied` | Ein Aufruf oberhalb der gewährten Stufe wurde abgelehnt |
 | `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | DevTools-Fenster ([§17](#17-devtools-für-menschen)); `close` hat `detail: {page, durationSec, reason}` |
 
-Ereignisse enthalten nie Seiteninhalte oder Parameterwerte. Sie werden standardmäßig 180 Tage aufbewahrt (`RWD_AUDIT_RETENTION_DAYS`).
+Ereignisse eines Agents (`attach.*`, `rpc`, `policy.denied`) nennen den Inhaber des Keys in `detail.owner` (seine E-Mail-Adresse), außer bei Gateway-Keys. Ereignisse enthalten nie Seiteninhalte oder Parameterwerte. Sie werden standardmäßig 180 Tage aufbewahrt (`RWD_AUDIT_RETENTION_DAYS`).
 
 ### 12.8 Typen
 
@@ -620,6 +628,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // das Mitglied, das ihn erstellt hat; null bei einem Gateway-Key
+  ownerName: string; ownerEmail: string  // "" bei Gateway-Keys und gelöschten Mitgliedern
+  ownerDisabled?: true         // der Inhaber ist deaktiviert, der Key funktioniert nicht
 }
 
 type Integration = {
@@ -690,6 +701,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* Gerätecode, Key-Präfix, Mitglieds-E-Mail… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // der Gateway-Prozess
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // Prozess-CPU seit der vorigen Anfrage, 100 = ein Kern; fehlt, wo nicht unterstützt
+    load?: number[]            // Host-Last über 1, 5 und 15 Minuten (Linux)
+    memTotalBytes?: number; memAvailableBytes?: number  // Host-Speicher (Linux)
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // Debug-Sitzungen
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // verschiedene gedebuggte Geräte, insgesamt / heute
+    days: { day: number /* lokale Tage seit der Epoche */; agent: number; devtools: number }[]  // älteste zuerst, Nullen eingeschlossen
+  }
 }
 ```
 

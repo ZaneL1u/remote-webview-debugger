@@ -163,6 +163,7 @@ type Agent struct {
 	KeyID    string
 	Name     string
 	KeyHint  string
+	Owner    string // email of the member who owns the key; "" for a gateway key
 	MaxLevel store.Level
 	Follow   bool
 	Level    store.Level
@@ -225,6 +226,19 @@ func New(st *store.Store, log *slog.Logger, pepper string, lang i18n.Lang) *Hub 
 	h.stats.rpc = map[string]*rpcStat{}
 	go h.loop()
 	return h
+}
+
+// recordAgent emits an audit event of an agent, naming the key's owner.
+func (h *Hub) recordAgent(a *Agent, projectID, action, target, result string, detail map[string]any) {
+	if a.Owner != "" {
+		d := make(map[string]any, len(detail)+1)
+		for k, v := range detail {
+			d[k] = v
+		}
+		d["owner"] = a.Owner
+		detail = d
+	}
+	h.record(projectID, "apikey", a.KeyID, a.Name, action, target, result, detail)
 }
 
 // record emits an audit event (h.mu may be held; Audit must not block).
@@ -701,23 +715,31 @@ func (h *Hub) device(info store.Device) *Device {
 
 // --- agents ---
 
-func (h *Hub) agent(keyID, name, keyHint string, maxLevel store.Level) *Agent {
+func (h *Hub) agent(keyID, name, keyHint, owner string, maxLevel store.Level) *Agent {
 	a := h.agents[keyID]
 	if a == nil {
 		a = &Agent{KeyID: keyID, Follow: true}
 		h.agents[keyID] = a
 	}
-	a.Name, a.KeyHint, a.MaxLevel = name, keyHint, maxLevel
+	a.Name, a.KeyHint, a.Owner, a.MaxLevel = name, keyHint, owner, maxLevel
 	return a
 }
 
 // DropAgent detaches everything owned by a revoked key.
 func (h *Hub) DropAgent(keyID string) {
+	h.DropAgents([]string{keyID}, i18n.M(i18n.NoteKeyRevoked))
+}
+
+// DropAgents detaches the agents of keys that stopped working (their owner
+// was disabled or removed), telling them why.
+func (h *Hub) DropAgents(keyIDs []string, reason i18n.Msg) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if a := h.agents[keyID]; a != nil {
-		h.detach(a, i18n.M(i18n.NoteKeyRevoked))
-		delete(h.agents, keyID)
+	for _, id := range keyIDs {
+		if a := h.agents[id]; a != nil {
+			h.detach(a, reason)
+			delete(h.agents, id)
+		}
 	}
 }
 
@@ -742,7 +764,7 @@ func (h *Hub) detach(a *Agent, reason i18n.Msg) {
 			d.broadcast(taskMsg(nil))
 		}
 		h.setControl(d, ControlNone, reason)
-		h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.end", d.Info.Code, "ok", map[string]any{"reason": reason.In(h.lang)})
+		h.recordAgent(a, d.Info.ProjectID, "attach.end", d.Info.Code, "ok", map[string]any{"reason": reason.In(h.lang)})
 	}
 }
 

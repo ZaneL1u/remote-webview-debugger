@@ -22,11 +22,12 @@ type Session struct {
 	Label  string
 }
 
-// Agent returns (and creates) the agent of an API key.
-func (h *Hub) Agent(keyID, name, keyHint string, maxLevel store.Level) *Agent {
+// Agent returns (and creates) the agent of an API key; owner is the email of
+// the key's owner ("" for a gateway key).
+func (h *Hub) Agent(keyID, name, keyHint, owner string, maxLevel store.Level) *Agent {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	return h.agent(keyID, name, keyHint, maxLevel)
+	return h.agent(keyID, name, keyHint, owner, maxLevel)
 }
 
 // policyFor merges the policies of the projects whose pages are open on the
@@ -163,7 +164,7 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 		// when the agent lets go.
 		level = store.MinLevel(level, g.level)
 		g.until = time.Now().Add(reattachGrace)
-		h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.resume", d.Info.Code, "ok", map[string]any{"level": level})
+		h.recordAgent(a, d.Info.ProjectID, "attach.resume", d.Info.Code, "ok", map[string]any{"level": level})
 	} else if pol.Approval == "prompt" {
 		if dn := h.denials[dk]; dn != nil && dn.count >= denyLimit && time.Now().Before(dn.until) {
 			h.mu.Unlock()
@@ -189,7 +190,7 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 		d.Pending = pd
 		focus.conn.push(attachRequestMsg(pd))
 		d.addEvent("", "agent", i18n.M(i18n.EventAttachRequest, a.Name, level))
-		h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.request", d.Info.Code, "ok", map[string]any{"level": level})
+		h.recordAgent(a, d.Info.ProjectID, "attach.request", d.Info.Code, "ok", map[string]any{"level": level})
 		h.mu.Unlock()
 
 		var decided *store.Level
@@ -215,7 +216,7 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 		switch {
 		case result == "timeout" || result == "cancelled":
 			d.addEvent("", "agent", i18n.M(i18n.EventAttachNoResponse))
-			h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.timeout", d.Info.Code, "denied", nil)
+			h.recordAgent(a, d.Info.ProjectID, "attach.timeout", d.Info.Code, "denied", nil)
 			h.mu.Unlock()
 			return DeviceView{}, nil, errorf(i18n.ErrApprovalTimeout)
 		case decided == nil:
@@ -230,13 +231,13 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 				dn.until = time.Now().Add(denyLockout)
 			}
 			d.addEvent("", "agent", i18n.M(i18n.EventAttachDenied, a.Name))
-			h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.deny", d.Info.Code, "denied", nil)
+			h.recordAgent(a, d.Info.ProjectID, "attach.deny", d.Info.Code, "denied", nil)
 			h.mu.Unlock()
 			return DeviceView{}, nil, errorf(i18n.ErrDenied)
 		}
 		delete(h.denials, dk)
 		level = store.MinLevel(level, *decided)
-		h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.approve", d.Info.Code, "ok", map[string]any{"level": level})
+		h.recordAgent(a, d.Info.ProjectID, "attach.approve", d.Info.Code, "ok", map[string]any{"level": level})
 		if d.connectedPages() == 0 {
 			h.mu.Unlock()
 			return DeviceView{}, nil, ErrDeviceGone
@@ -285,7 +286,7 @@ func (h *Hub) Connect(ctx context.Context, a *Agent, ref string, follow bool, wa
 		}
 	})
 	d.addEvent("", "agent", i18n.M(i18n.EventAttached, a.Name, level))
-	h.record(d.Info.ProjectID, "apikey", a.KeyID, a.Name, "attach.start", d.Info.Code, "ok", map[string]any{"level": level})
+	h.recordAgent(a, d.Info.ProjectID, "attach.start", d.Info.Code, "ok", map[string]any{"level": level})
 	if d.Control == ControlNone {
 		d.Control = "" // force a broadcast in setControl
 		h.setControl(d, ControlObserve, i18n.Msg{})

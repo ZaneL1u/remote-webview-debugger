@@ -358,6 +358,7 @@ The level of an attachment is
 ```
 min(level requested by the agent (default interact),
     the API key's maxLevel,
+    the highest level the key owner's role allows (§12.4),
     the merged project policy's maxLevel,
     the level the user picked on the device)
 ```
@@ -511,7 +512,7 @@ type Policy = {
 - Errors are `{"error":{"code":"…","message":"…"}}` with a 4xx/5xx status. Messages follow the request's language ([§15](#15-languages)).
 - Common codes: `401 unauthorized` (not signed in), `403 forbidden` (role too low), `403 csrf`, `404 not_found`, `400 bad_request`, `429 rate_limited`, `500 internal`.
 
-Roles: `owner` (everything, including members), `admin` (projects, keys, policies, devices, invites, audit), `member` (read projects and devices, test connections, end sessions, create device invites, read the audit log). In the tables below, *member* means any signed-in account.
+Roles: `owner` (everything, including members), `admin` (projects, everyone's API keys, policies, devices, invites, audit, system health), `member` (read projects and devices, test connections, end sessions, create device invites, create and revoke their own API keys, read the audit log). In the tables below, *member* means any signed-in account.
 
 ### 12.2 Accounts and members
 
@@ -552,15 +553,19 @@ Single sign-on with Feishu, Lark or an OpenID Connect provider (`RWD_OIDC_*`, se
 
 ### 12.4 API keys
 
-API keys belong to the gateway, not to a project: one key reaches every device.
+An API key belongs to the member who created it, not to a project: one key reaches every device. Keys without an owner (created before keys had owners, and demo keys) are *gateway keys*: only owners and admins see and revoke them.
 
 | Method | Path | Role | Request | Response |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: the only time the full key is returned |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`. Revocation is immediate: the key's agent is detached and its next MCP request gets 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`: owners and admins get every key, members their own. `mine=1` returns only the caller's keys, for any role |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: the only time the full key is returned. The key belongs to the caller; `403 forbidden` if `maxLevel` is above what the caller's role allows |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`. Members revoke their own keys (anyone else's is `404 not_found`); owners and admins revoke any key. Revocation is immediate: the key's agent is detached and its next MCP request gets 401 |
 
 `expiresInDays: 0` means never. `ipAllowlist` takes IPs or CIDRs; when set, MCP requests from other addresses get 401. `GET` / `POST /projects/:id/keys` are older aliases of `/keys`.
+
+Levels by role: owners and admins create keys up to `advanced`, members up to `interact`. `advanced` (page JavaScript, storage, full request bodies) is as privileged as opening DevTools ([§17](#17-devtools-for-people)), which is for admins. The cap also applies whenever a key is used, so the key of an owner moved to a lower role works at no more than that role's level ([§6](#6-access-levels)).
+
+A key works only while its owner can sign in. Disabling a member stops their keys (MCP requests get 401, `ApiKey.ownerDisabled` is `true`) and detaches their agents; enabling the member again brings the keys back. Deleting a member revokes their keys. Lowering a member's role detaches the agents of their keys above the new role's level.
 
 ### 12.5 Devices and gateway status
 
@@ -573,6 +578,9 @@ API keys belong to the gateway, not to a project: one key reaches every device.
 | POST | `/devices/:id/end` | member | `{"ok":true}`: detaches the agent, clears the assistance request, control back to `none`, closes DevTools windows ([§17](#17-devtools-for-people)) |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; may wait up to 30 s for the user ([§17.1](#171-opening-a-window)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights` ([§12.8](#128-types)): how hard the gateway works and how much debugging it has carried, behind the console's **System health** page. Members get `403 forbidden` |
+
+`tz` is the browser's `Date.getTimezoneOffset()` (UTC+8 is `-480`), so "today" and the daily series follow the viewer's clock; `days` is 1–90 (default 14). A debug session is an agent session started on a device (audit `attach.start`) or a DevTools window opened on a page (`devtools.open`), successful ones only; devices are counted by device code. Sessions are kept in their own table, which the audit retention ([§12.7](#127-audit-log)) doesn't purge, so the totals are all-time; the first start after an upgrade fills it once from the audit events still kept.
 
 ### 12.6 Device invites
 
@@ -595,16 +603,16 @@ An invite lets a user bring their device online, already requesting assistance, 
 | `auth.login`, `auth.login_failed` | Console sign-in |
 | `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Member management (`member.sso_join`: an account created at a first single sign-on; `auth.login` then has `"method":"sso"`; `member.invite` with `"again":true`: a new invite link) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projects |
-| `key.create`, `key.revoke` | API keys |
+| `key.create`, `key.revoke` | API keys; `detail.owner` is the email of the key's owner (absent for gateway keys) |
 | `invite.create`, `invite.delete`, `invite.use` | Device invites |
 | `attach.request`, `attach.approve`, `attach.deny`, `attach.timeout`, `attach.resume`, `attach.start`, `attach.end` | Agent attachments. `attach.resume` means the key came back within the grace period instead of asking again ([§7](#7-attach-approval)); `detail: {level}` |
-| `rpc` | Every page RPC from an agent; `detail: {method, page, latencyMs, error?}` |
+| `rpc` | Every page RPC from an agent; `detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`, `control.handback`, `control.end` | The user's buttons |
 | `device.end` | A console member ended a session |
 | `policy.denied` | A call above the granted level was refused |
 | `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | DevTools windows ([§17](#17-devtools-for-people)); `close` has `detail: {page, durationSec, reason}` |
 
-Events never contain page content or parameter values. They are kept for 180 days by default (`RWD_AUDIT_RETENTION_DAYS`).
+An agent's events (`attach.*`, `rpc`, `policy.denied`) name the key's owner in `detail.owner` (its email), except for gateway keys. Events never contain page content or parameter values. They are kept for 180 days by default (`RWD_AUDIT_RETENTION_DAYS`).
 
 ### 12.8 Types
 
@@ -619,6 +627,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // the member who created it; null for a gateway key
+  ownerName: string; ownerEmail: string  // "" for gateway keys and deleted members
+  ownerDisabled?: true         // the owner is disabled, so the key doesn't work
 }
 
 type Integration = {
@@ -689,6 +700,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* device code, key prefix, member email… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // the gateway process
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // process CPU since the previous request, 100 = one core; absent where unsupported
+    load?: number[]            // host load over 1, 5 and 15 minutes (Linux)
+    memTotalBytes?: number; memAvailableBytes?: number  // host memory (Linux)
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // debug sessions
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // distinct devices debugged, ever / today
+    days: { day: number /* local days since the epoch */; agent: number; devtools: number }[]  // oldest first, zeros included
+  }
 }
 ```
 

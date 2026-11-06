@@ -1,4 +1,4 @@
-<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
+<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -359,6 +359,7 @@ console 的 error 和 warn、失败的请求、用户的点击 / 输入 / 提交
 ```
 min(agent 申请的级别（默认 interact），
     API Key 的 maxLevel，
+    Key 创建者的角色允许的最高级别（§12.4），
     合并后项目策略的 maxLevel，
     用户在设备上选择的级别)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - 错误统一为 `{"error":{"code":"…","message":"…"}}`，配合 4xx/5xx 状态码。message 的语言跟随请求（§15）。
 - 常见错误码：`401 unauthorized`（未登录）、`403 forbidden`（角色权限不足）、`403 csrf`、`404 not_found`、`400 bad_request`、`429 rate_limited`、`500 internal`。
 
-角色：`owner`（全部权限，包括成员管理）；`admin`（项目、Key、策略、设备、邀请、审计）；`member`（查看项目和设备、测试连接、结束调试、创建设备邀请、查看审计）。下表中的 *member* 指任意已登录账号。
+角色：`owner`（全部权限，包括成员管理）；`admin`（项目、所有人的 API Key、策略、设备、邀请、审计、运行状况）；`member`（查看项目和设备、测试连接、结束调试、创建设备邀请、创建和吊销自己的 API Key、查看审计）。下表中的 *member* 指任意已登录账号。
 
 ### 12.2 账号与成员
 
@@ -553,15 +554,19 @@ type Policy = {
 
 ### 12.4 API Key
 
-API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有设备。
+API Key 属于创建它的成员，不属于某个项目：一个 Key 能访问所有设备。没有创建者的 Key（在 Key 归属到成员之前创建的，以及演示 Key）是*网关 Key*：只有 owner 和 admin 能看到和吊销。
 
 | 方法 | 路径 | 角色 | 请求 | 响应 |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`：完整的 Key 只在这里返回一次 |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`。吊销立即生效：该 Key 的 agent 被断开，它的下一个 MCP 请求返回 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`：owner 和 admin 拿到所有 Key，member 只拿到自己的。`mine=1` 对任何角色都只返回调用者自己的 Key |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`：完整的 Key 只在这里返回一次。Key 属于调用者；`maxLevel` 超出调用者角色允许的级别时返回 `403 forbidden` |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`。member 只能吊销自己的 Key（别人的返回 `404 not_found`）；owner 和 admin 可以吊销任何 Key。吊销立即生效：该 Key 的 agent 被断开，它的下一个 MCP 请求返回 401 |
 
 `expiresInDays: 0` 表示永不过期。`ipAllowlist` 填 IP 或 CIDR；设置后，其他地址发来的 MCP 请求返回 401。`GET` / `POST /projects/:id/keys` 是 `/keys` 的旧路径，效果相同。
+
+各角色可用的级别：owner 和 admin 创建的 Key 最高为 `advanced`，member 最高为 `interact`。`advanced`（页面 JavaScript、存储、完整的请求体）和打开 DevTools（§17）一样敏感，而 DevTools 只给 admin。每次使用 Key 时也按这个上限计算，所以创建者被降级后，他的 Key 最多按新角色的级别工作（§6）。
+
+Key 只在创建者还能登录时有效。停用成员会让他的 Key 失效（MCP 请求返回 401，`ApiKey.ownerDisabled` 为 `true`）并断开他的 agent；重新启用后 Key 恢复可用。删除成员会吊销他的 Key。降低成员的角色会断开他名下超出新角色级别的 Key 的 agent。
 
 ### 12.5 设备与网关状态
 
@@ -574,6 +579,9 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 | POST | `/devices/:id/end` | member | `{"ok":true}`：断开 agent，清除协助请求，控制状态回到 `none`，关闭 DevTools 窗口（§17） |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`；可能会等用户确认最多 30 秒（§17.1） |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights`（[§12.8](#128-类型)）：网关当前的负载和累计承载的调试量，供控制台的 **运行状况** 页面使用。member 返回 `403 forbidden` |
+
+`tz` 是浏览器的 `Date.getTimezoneOffset()`（UTC+8 为 `-480`），“今天”和按天序列都按查看者的时区计算；`days` 取 1–90（默认 14）。一次调试指在设备上开始的一次 agent 会话（审计 `attach.start`）或在页面上打开的一个 DevTools 窗口（`devtools.open`），只计成功的；设备按设备码计数。调试记录存在单独的表里，审计保留期（[§12.7](#127-审计日志)）不会清理它，所以总数是全部历史；升级后首次启动时，网关会用仍保留的审计事件回填一次。
 
 ### 12.6 设备邀请
 
@@ -596,16 +604,16 @@ API Key 属于整个网关，不属于某个项目：一个 Key 能访问所有�
 | `auth.login`、`auth.login_failed` | 控制台登录 |
 | `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成员管理（`member.sso_join`：首次单点登录时创建的账号；之后的 `auth.login` 带 `"method":"sso"`；`member.invite` 带 `"again":true`：重新生成的邀请链接） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 项目 |
-| `key.create`、`key.revoke` | API Key |
+| `key.create`、`key.revoke` | API Key；`detail.owner` 是 Key 创建者的邮箱（网关 Key 没有） |
 | `invite.create`、`invite.delete`、`invite.use` | 设备邀请 |
 | `attach.request`、`attach.approve`、`attach.deny`、`attach.timeout`、`attach.resume`、`attach.start`、`attach.end` | agent 接入。`attach.resume` 表示这把 Key 在宽限期内直接回来了，没有再次询问用户（§7）；`detail: {level}` |
-| `rpc` | agent 发给页面的每个 RPC；`detail: {method, page, latencyMs, error?}` |
+| `rpc` | agent 发给页面的每个 RPC；`detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`、`control.handback`、`control.end` | 用户点了按钮 |
 | `device.end` | 控制台成员结束了调试 |
 | `policy.denied` | 超出级别的调用被拒绝 |
 | `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close` | DevTools 窗口（§17）；`close` 带 `detail: {page, durationSec, reason}` |
 
-审计记录从不包含页面内容和参数值。默认保留 180 天（`RWD_AUDIT_RETENTION_DAYS`）。
+agent 的事件（`attach.*`、`rpc`、`policy.denied`）在 `detail.owner` 里记录 Key 创建者的邮箱，网关 Key 除外。审计记录从不包含页面内容和参数值。默认保留 180 天（`RWD_AUDIT_RETENTION_DAYS`）。
 
 ### 12.8 类型
 
@@ -620,6 +628,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // 创建它的成员；网关 Key 为 null
+  ownerName: string; ownerEmail: string  // 网关 Key 和已删除的成员为 ""
+  ownerDisabled?: true         // 创建者已停用，Key 不可用
 }
 
 type Integration = {
@@ -690,6 +701,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* 设备码、Key 前缀、成员邮箱等 */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // 网关进程
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // 距上次请求的进程 CPU，100 = 一个核；不支持的平台没有此字段
+    load?: number[]            // 主机 1、5、15 分钟负载（Linux）
+    memTotalBytes?: number; memAvailableBytes?: number  // 主机内存（Linux）
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // 调试次数
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // 被调试过的不同设备数：全部 / 今天
+    days: { day: number /* 本地时区自纪元起的天数 */; agent: number; devtools: number }[]  // 从旧到新，包含为 0 的天
+  }
 }
 ```
 

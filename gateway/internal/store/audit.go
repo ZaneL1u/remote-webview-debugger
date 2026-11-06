@@ -135,7 +135,10 @@ func (s *Store) InsertAudit(ctx context.Context, e AuditEvent) error {
 	}
 	_, err := s.exec(ctx, `INSERT INTO audit_events (at, project_id, actor_type, actor_id, actor_name, action, target, result, detail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		e.At, e.ProjectID, e.ActorType, e.ActorID, e.ActorName, e.Action, e.Target, e.Result, mustJSON(e.Detail))
-	return err
+	if err != nil {
+		return err
+	}
+	return s.recordDebugSession(ctx, e)
 }
 
 type AuditQuery struct {

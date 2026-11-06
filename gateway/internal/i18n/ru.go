@@ -168,6 +168,7 @@ var ru = map[Key]string{
 	NoteDeltaOmitted:     "(пропущено более ранних изменений: %d; см. get_session_timeline)",
 	NoteAdminEnded:       "Администратор завершил сеанс из веб-консоли",
 	NoteKeyRevoked:       "API-ключ отозван; ИИ отключён",
+	NoteKeyOwnerChanged:  "Доступ владельца API-ключа изменился (отключён, удалён или понижен в роли); ИИ отключён",
 	NotePageGoneSwitched: "%s отключилась; автоматически выбрана %s",
 	NoteAutoSwitched:     "Автоматически выбрана %s",
 
@@ -193,6 +194,7 @@ var ru = map[Key]string{
 	APIInviteURLScheme:      "URL страницы приглашения должен быть URL http(s)",
 	APIKeyName:              "Укажите название ключа",
 	APIBadMaxLevel:          "maxLevel должен быть observe, interact или advanced",
+	APIKeyLevelRole:         "Участники могут создавать ключи не выше уровня %s; за более высоким уровнем обратитесь к администратору",
 	APIBadIP:                "Недопустимая запись в списке разрешённых IP: %s",
 	APIInviteURLMissing:     "Укажите страницу, которую открывает приглашение, или задайте страницу по умолчанию в настройках проекта",
 	APILoginRequired:        "Войдите в систему",

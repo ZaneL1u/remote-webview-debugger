@@ -168,6 +168,7 @@ var ja = map[Key]string{
 	NoteDeltaOmitted:     "（それ以前の変化 %d 件を省略。get_session_timeline を参照）",
 	NoteAdminEnded:       "管理者が管理コンソールからセッションを終了しました",
 	NoteKeyRevoked:       "API キーが取り消されたため、AI は切断されました",
+	NoteKeyOwnerChanged:  "API キー所有者の権限が変わった（無効化・削除・ロール引き下げ）ため、AI は切断されました",
 	NotePageGoneSwitched: "%s が切断されたため、%s に自動で切り替えました",
 	NoteAutoSwitched:     "%s に自動で切り替えました",
 
@@ -193,6 +194,7 @@ var ja = map[Key]string{
 	APIInviteURLScheme:      "招待ページの URL は http(s) の URL である必要があります",
 	APIKeyName:              "キー名は必須です",
 	APIBadMaxLevel:          "maxLevel は observe、interact、advanced のいずれかである必要があります",
+	APIKeyLevelRole:         "メンバーが作成できるキーは %s レベルまでです。より高いレベルは管理者に依頼してください",
 	APIBadIP:                "IP 許可リストの項目が無効です：%s",
 	APIInviteURLMissing:     "招待で開くページを入力するか、プロジェクト設定でデフォルトのページを設定してください",
 	APILoginRequired:        "ログインしてください",

@@ -39,15 +39,20 @@ export const projects: typeof en = {
 
   keys: {
     title: 'API Key',
-    pageDescription: '给 agent 接入 MCP 用。Key 属于整个网关，不属于某个项目：一把 Key、一个 MCP 就能连所有设备。',
+    pageDescription: '给 agent 接入 MCP 用。Key 属于创建它的成员，不属于某个项目：一把 Key、一个 MCP 就能连所有设备。',
     description: 'agent 通过 MCP 接入时使用，一把 Key 可以看到网关上的所有设备，不分项目。请妥善保管，泄露后立即吊销。',
     readOnly: ' 你的角色只能查看 Key，创建和吊销需要管理员。',
+    manageNote: ' 每个人都可以创建自己的 Key；作为管理员，你还能查看和吊销所有人的 Key。',
+    ownNote: ' 这里是你创建的 Key，你可以随时吊销。成员最高只能创建「可操作」级别的 Key。',
+    scope: { label: '显示范围', all: '所有人', mine: '只看我的' },
+    emptyMineTitle: '你还没有 API Key',
     createKey: '创建 Key',
     emptyTitle: '还没有 API Key',
     emptyDescription: '创建一个 Key，复制 MCP 接入命令给 agent 使用。',
 
     columns: {
       name: '名称',
+      owner: '创建者',
       key: 'Key',
       level: '级别',
       expiry: '有效期',
@@ -71,6 +76,16 @@ export const projects: typeof en = {
     expired: '已过期',
     expiredTitle: (date) => `过期于 ${date}`,
     active: '有效',
+    gatewayKey: '网关 Key',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: '在 Key 归属到成员之前创建，只有所有者和管理员能看到和吊销',
+    deletedOwner: '已删除的成员',
+    ownerYou: (name: string) => `${name}（你）`,
+    ownerDisabled: '创建者已停用',
+    ownerDisabledTitle: '创建这把 Key 的成员已被停用，重新启用之前 Key 无法使用',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `这把 Key 由 ${name} 创建。`,
+    levelMemberHint: '你的角色最高可创建「可操作」级别的 Key，agent 需要「高级」时请联系管理员。',
 
     revoke: '吊销',
     revokedToast: (name) => `已吊销「${name}」`,

@@ -75,6 +75,7 @@ Members can also sign in with Feishu, Lark or any OpenID Connect provider (Keycl
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | Comma-separated email domains allowed to sign in, e.g. `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | off | `oidc` only: trust the email of a provider that sends no `email_verified` (Microsoft Entra ID). Only for a single-tenant provider whose emails your organization controls |
 | `RWD_OIDC_TENANT` | — | Feishu and Lark only: your organization's `tenant_key`; people of other organizations are refused (`sso_error=tenant`). Every single sign-on's `auth.login` audit record shows its `tenant` |
+| `RWD_OIDC_SYNC_MINUTES` | `60` (Feishu, Lark) | How often to disable members who have left the organization; `0` turns it off. See below |
 
 Register this redirect URL with the provider; it must match exactly: `https://<host>/v1/api/auth/oidc/callback`, that is the origin of `RWD_PUBLIC_URL` (of the request when it is unset) followed by `/v1/api/auth/oidc/callback`. Set `RWD_PUBLIC_URL` behind a proxy so the URL is stable.
 
@@ -88,8 +89,10 @@ The first sign-in of an identity joins the member with the same email (an invite
 
 1. Copy the App ID and App Secret from **Credentials & Basic Info** into `RWD_OIDC_CLIENT_ID` and `RWD_OIDC_CLIENT_SECRET`.
 2. Under **Security Settings → Redirect URLs**, add the redirect URL above.
-3. Under **Permissions & Scopes**, add `contact:user.email:readonly` (and `contact:user.employee:readonly` for the enterprise email), and list the same scopes in `RWD_OIDC_SCOPES`.
+3. Under **Permissions & Scopes**, add `contact:user.email:readonly` (and `contact:user.employee:readonly` for the enterprise email), and list the same scopes in `RWD_OIDC_SCOPES`. To notice who has left, the app also needs `contact:contact.base:readonly` and `contact:user.employee:readonly`, and under **Data permissions → Contacts range** everyone who signs in.
 4. Set the app's availability to the people who should sign in, and create and publish a version so the settings take effect.
+
+**People who leave.** With Feishu or Lark the gateway asks the Open Platform every `RWD_OIDC_SYNC_MINUTES` about each member linked to the app, and disables those listed as resigned or as having left the organization: they are signed out, their API keys stop working and their agents are detached, and the audit log records `member.update` by `system` with `"reason":"left_organization"`. An owner can then remove them, which revokes their keys for good. Only an explicit "resigned" counts: a member outside the contacts range, or a failed request, changes nothing (the log says what failed), and the last owner is never disabled. Without the contact permission nothing is checked, and someone who has left keeps working API keys until an owner disables them; their console session, though, ends within 12 hours since they can no longer sign in.
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

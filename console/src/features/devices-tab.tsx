@@ -54,7 +54,7 @@ export function DevicesTab({ project }: { project: Project }) {
           ))}
         </ToggleGroup>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {helpCount > 0 && <span className="font-medium text-destructive">{t.asking(helpCount)}</span>}
+          {helpCount > 0 && <span className="font-medium text-success">{t.asking(helpCount)}</span>}
           <LiveIndicator status={stream} />
           {canInvite && (
             <Button
@@ -138,12 +138,12 @@ function DeviceTable({ devices, projectId }: { devices: Device[]; projectId: str
           {devices.map((d) => (
             <TableRow
               key={d.id}
-              className={cn('cursor-pointer', d.help && 'bg-destructive-soft/60 hover:bg-destructive-soft')}
+              className={cn('cursor-pointer', d.help && 'bg-success/[0.06] hover:bg-success/10 dark:bg-success/[0.07]')}
               onClick={() =>
                 void navigate({ to: '/devices/$deviceId', params: { deviceId: d.id }, search: { from: projectId } })
               }
             >
-              <TableCell className={cn('ps-4', d.help && 'shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)]')}>
+              <TableCell className={cn('ps-4', d.help && 'shadow-[inset_3px_0_0_var(--success)] rtl:shadow-[inset_-3px_0_0_var(--success)]')}>
                 <div className="flex items-center gap-2">
                   <OnlineDot online={d.online} />
                   <Link
@@ -197,7 +197,7 @@ function DeviceCards({ devices, projectId }: { devices: Device[]; projectId: str
             search={{ from: projectId }}
             className={cn(
               'flex items-center gap-3 px-4 py-3 active:bg-muted/60',
-              d.help && 'bg-destructive-soft/60 shadow-[inset_3px_0_0_var(--destructive)] rtl:shadow-[inset_-3px_0_0_var(--destructive)]',
+              d.help && 'bg-success/[0.06] shadow-[inset_3px_0_0_var(--success)] rtl:shadow-[inset_-3px_0_0_var(--success)]',
             )}
           >
             <div className="min-w-0 flex-1 space-y-1.5">

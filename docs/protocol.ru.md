@@ -1,4 +1,4 @@
-<!-- i18n-source: 009fbfa49ecd8b79b529fe92dac99fd35d55812b -->
+<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | Русский | [العربية](protocol.ar.md)
 
 # Протокол RWD (v1)
@@ -359,6 +359,7 @@ SDK понимает `reconnect`; сейчас шлюз его не отправ
 ```
 min(уровень, запрошенный агентом (по умолчанию interact),
     maxLevel API-ключа,
+    максимальный уровень, разрешённый роли владельца ключа (§12.4),
     maxLevel объединённой политики проектов,
     уровень, выбранный пользователем на устройстве)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - Ошибки имеют вид `{"error":{"code":"…","message":"…"}}` со статусом 4xx/5xx. Сообщения выводятся на языке запроса ([§15](#15-языки)).
 - Частые коды: `401 unauthorized` (вход не выполнен), `403 forbidden` (недостаточная роль), `403 csrf`, `404 not_found`, `400 bad_request`, `429 rate_limited`, `500 internal`.
 
-Роли: `owner` (всё, включая управление участниками), `admin` (проекты, ключи, политики, устройства, приглашения, аудит), `member` (чтение проектов и устройств, проверка соединения, завершение сеансов, создание приглашений устройств, чтение журнала аудита). В таблицах ниже *member* означает любую учётную запись, выполнившую вход.
+Роли: `owner` (всё, включая управление участниками), `admin` (проекты, API-ключи всех участников, политики, устройства, приглашения, аудит, состояние системы), `member` (чтение проектов и устройств, проверка соединения, завершение сеансов, создание приглашений устройств, создание и отзыв своих API-ключей, чтение журнала аудита). В таблицах ниже *member* означает любую учётную запись, выполнившую вход.
 
 ### 12.2 Учётные записи и участники
 
@@ -553,15 +554,19 @@ type Policy = {
 
 ### 12.4 API-ключи
 
-API-ключи принадлежат шлюзу, а не проекту: один ключ даёт доступ ко всем устройствам.
+API-ключ принадлежит участнику, который его создал, а не проекту: один ключ даёт доступ ко всем устройствам. Ключи без владельца (созданные до того, как у ключей появились владельцы, и демо-ключи) называются *ключами шлюза*: видеть и отзывать их могут только owner и admin.
 
 | Метод | Путь | Роль | Запрос | Ответ |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: единственный раз, когда возвращается полный ключ |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`. Отзыв действует сразу: агент этого ключа отключается, а его следующий MCP-запрос получает 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`: owner и admin получают все ключи, member только свои. `mine=1` для любой роли возвращает только ключи вызывающего |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: единственный раз, когда возвращается полный ключ. Ключ принадлежит вызывающему; `403 forbidden`, если `maxLevel` выше, чем позволяет его роль |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`. Member отзывает только свои ключи (чужой ключ даёт `404 not_found`); owner и admin отзывают любой ключ. Отзыв действует сразу: агент этого ключа отключается, а его следующий MCP-запрос получает 401 |
 
 `expiresInDays: 0` означает бессрочный ключ. `ipAllowlist` принимает IP-адреса или CIDR; если он задан, MCP-запросы с других адресов получают 401. `GET` / `POST /projects/:id/keys` — устаревшие псевдонимы `/keys`.
+
+Уровни по ролям: owner и admin создают ключи до `advanced`, member до `interact`. `advanced` (JavaScript страницы, хранилище, полные тела запросов) даёт столько же, сколько открытие DevTools (§17), а DevTools доступны только администраторам. Ограничение действует и при каждом использовании ключа, поэтому ключ владельца, которого перевели на более низкую роль, работает не выше уровня этой роли (§6).
+
+Ключ работает, только пока его владелец может войти. Отключение участника останавливает его ключи (MCP-запросы получают 401, `ApiKey.ownerDisabled` равно `true`) и отключает его агентов; после повторного включения ключи снова работают. Удаление участника отзывает его ключи. Понижение роли участника отключает агентов тех его ключей, уровень которых выше уровня новой роли.
 
 ### 12.5 Устройства и состояние шлюза
 
@@ -574,6 +579,9 @@ API-ключи принадлежат шлюзу, а не проекту: оди
 | POST | `/devices/:id/end` | member | `{"ok":true}`: отключает агента, снимает запрос поддержки, управление возвращается в `none`, закрывает окна DevTools ([§17](#17-devtools-для-людей)) |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`; может ждать ответа пользователя до 30 с ([§17.1](#171-открытие-окна)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights` ([§12.8](#128-типы)): насколько загружен шлюз и сколько отладки он провёл; на этом построена страница консоли **Состояние системы**. Участники получают `403 forbidden` |
+
+`tz` — это `Date.getTimezoneOffset()` браузера (для UTC+8 это `-480`), поэтому «сегодня» и дневной ряд идут по часам того, кто смотрит; `days` — от 1 до 90 (по умолчанию 14). Сеанс отладки — это сеанс агента, начатый на устройстве (аудит `attach.start`), или окно DevTools, открытое на странице (`devtools.open`), только успешные; устройства считаются по коду устройства. Сеансы хранятся в отдельной таблице, которую срок хранения аудита ([§12.7](#127-журнал-аудита)) не очищает, так что итоги — за всё время; при первом запуске после обновления шлюз один раз заполняет её из ещё сохранённых событий аудита.
 
 ### 12.6 Приглашения устройств
 
@@ -596,16 +604,16 @@ API-ключи принадлежат шлюзу, а не проекту: оди
 | `auth.login`, `auth.login_failed` | Вход в веб-консоль |
 | `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Управление участниками (`member.sso_join` — учётная запись, созданная при первом едином входе; у `auth.login` в этом случае есть `"method":"sso"`; `member.invite` с `"again":true` — новая ссылка-приглашение) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Проекты |
-| `key.create`, `key.revoke` | API-ключи |
+| `key.create`, `key.revoke` | API-ключи; `detail.owner` содержит email владельца ключа (у ключей шлюза его нет) |
 | `invite.create`, `invite.delete`, `invite.use` | Приглашения устройств |
 | `attach.request`, `attach.approve`, `attach.deny`, `attach.timeout`, `attach.resume`, `attach.start`, `attach.end` | Подключения агентов. `attach.resume` означает, что ключ вернулся в пределах льготного окна, не спрашивая снова ([§7](#7-одобрение-подключения)); `detail: {level}` |
-| `rpc` | Каждый RPC страницы от агента; `detail: {method, page, latencyMs, error?}` |
+| `rpc` | Каждый RPC страницы от агента; `detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`, `control.handback`, `control.end` | Кнопки пользователя |
 | `device.end` | Участник веб-консоли завершил сеанс |
 | `policy.denied` | Вызов выше выданного уровня был отклонён |
 | `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | Окна DevTools ([§17](#17-devtools-для-людей)); у `close` есть `detail: {page, durationSec, reason}` |
 
-События никогда не содержат содержимого страниц или значений параметров. По умолчанию они хранятся 180 дней (`RWD_AUDIT_RETENTION_DAYS`).
+События агента (`attach.*`, `rpc`, `policy.denied`) указывают владельца ключа в `detail.owner` (его email), кроме ключей шлюза. События никогда не содержат содержимого страниц или значений параметров. По умолчанию они хранятся 180 дней (`RWD_AUDIT_RETENTION_DAYS`).
 
 ### 12.8 Типы
 
@@ -620,6 +628,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // участник, создавший ключ; null у ключа шлюза
+  ownerName: string; ownerEmail: string  // "" у ключей шлюза и удалённых участников
+  ownerDisabled?: true         // владелец отключён, ключ не работает
 }
 
 type Integration = {
@@ -690,6 +701,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* код устройства, префикс ключа, email участника… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // процесс шлюза
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // CPU процесса с предыдущего запроса, 100 = одно ядро; нет, где не поддерживается
+    load?: number[]            // нагрузка хоста за 1, 5 и 15 минут (Linux)
+    memTotalBytes?: number; memAvailableBytes?: number  // память хоста (Linux)
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // сеансы отладки
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // разных отлаженных устройств: всего / сегодня
+    days: { day: number /* локальные дни с начала эпохи */; agent: number; devtools: number }[]  // от старых к новым, с нулями
+  }
 }
 ```
 
