@@ -1,4 +1,4 @@
-<!-- i18n-source: 36b1f9d52cae376ca3aa02c47b0584fd21b7ab30 -->
+<!-- i18n-source: 0dcd3b6faee7da70bf01670a986f2e0c4d1d102e -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 게이트웨이
@@ -77,6 +77,7 @@ rwd version                             버전 출력
 | `RWD_OIDC_TRUST_EMAIL=1` | 꺼짐 | `oidc` 전용: `email_verified`를 보내지 않는 공급자(Microsoft Entra ID)의 이메일을 신뢰해요. 조직이 이메일을 관리하는 단일 테넌트 공급자에서만 쓰세요 |
 | `RWD_OIDC_TENANT` | — | Feishu와 Lark 전용: 조직의 `tenant_key`. 다른 조직 사람은 거부돼요(`sso_error=tenant`). SSO 로그인마다 `auth.login` 감사 기록에 `tenant`가 남아요 |
 | `RWD_OIDC_SYNC_MINUTES` | `60` (Feishu, Lark) | 조직을 떠난 멤버를 비활성화하는 주기(분). `0`이면 꺼져요. 아래를 참고하세요 |
+| `RWD_OIDC_KEY_CHECK` | 켜짐 (Feishu, Lark) | API 키를 쓸 때마다 소유자가 아직 재직 중인지 확인해요. `0`이면 꺼져요. 아래를 참고하세요 |
 
 공급자에 다음 리디렉션 URL을 등록하세요. 정확히 일치해야 해요: `https://<host>/v1/api/auth/oidc/callback`. 즉 `RWD_PUBLIC_URL`의 origin(설정하지 않았으면 요청의 origin) 뒤에 `/v1/api/auth/oidc/callback`을 붙인 주소예요. 프록시 뒤에서는 URL이 바뀌지 않도록 `RWD_PUBLIC_URL`을 설정하세요.
 
@@ -93,7 +94,9 @@ rwd version                             버전 출력
 3. **Permissions & Scopes**에서 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하고, 같은 scope를 `RWD_OIDC_SCOPES`에 나열하세요. 떠난 사람을 알아차리려면 앱에 `contact:contact.base:readonly`와 `contact:user.employee:readonly`도 필요하고, **Data permissions → Contacts range**에 로그인하는 모든 사람을 포함해야 해요.
 4. 앱의 사용 가능 범위를 로그인할 사람들로 설정하고, 버전을 만들어 게시하세요. 그래야 설정이 적용돼요.
 
-**떠난 사람.** Feishu나 Lark에서는 게이트웨이가 `RWD_OIDC_SYNC_MINUTES`분마다 앱과 연결된 각 멤버를 Open Platform에 조회하고, 퇴사했거나 조직을 떠난 것으로 표시된 멤버를 비활성화해요. 그 멤버는 로그아웃되고, API 키가 작동하지 않게 되고, 에이전트 접속도 해제돼요. 감사 로그에는 `system`이 수행한 `member.update`가 `"reason":"left_organization"`과 함께 기록돼요. 이후 소유자가 그 멤버를 삭제하면 키가 완전히 폐기돼요. 명시적인 "퇴사" 상태만 인정해요. 연락처 범위 밖의 멤버나 실패한 요청은 아무것도 바꾸지 않고(무엇이 실패했는지는 로그에 남아요), 마지막 소유자는 절대 비활성화하지 않아요. 연락처 권한이 없으면 아무것도 확인하지 않으므로, 떠난 사람의 API 키는 소유자가 비활성화할 때까지 계속 작동해요. 다만 더 이상 로그인할 수 없으니 콘솔 세션은 12시간 안에 끝나요.
+**떠난 사람.** Feishu나 Lark에서는 게이트웨이가 `RWD_OIDC_SYNC_MINUTES`분마다 앱과 연결된 각 멤버를 Open Platform에 조회하고, 퇴사했거나 조직을 떠난 것으로 표시된 멤버를 비활성화해요. 그 멤버는 로그아웃되고, API 키가 작동하지 않게 되고, 에이전트 접속도 해제돼요. 감사 로그에는 `system`이 수행한 `member.update`가 `"reason":"left_organization"`과 함께 기록돼요. 이후 소유자가 그 멤버를 삭제하면 키가 완전히 폐기돼요. 명시적인 "퇴사" 상태만 인정해요. 연락처 범위 밖의 멤버나 실패한 요청은 아무것도 바꾸지 않고(무엇이 실패했는지는 로그에 남아요), 마지막 소유자는 절대 비활성화하지 않아요. 연락처 권한이 없으면 동기화는 아무것도 확인하지 않고, 아래의 키 확인이 앱에 연결된 멤버의 키를 거부해요. `RWD_OIDC_KEY_CHECK=0`까지 설정했다면 떠난 사람의 API 키는 소유자가 비활성화할 때까지 계속 작동해요. 다만 더 이상 로그인할 수 없으니 콘솔 세션은 12시간 안에 끝나요.
+
+**떠난 사람의 키.** Feishu나 Lark에서는 키 소유자가 앱에 연결되어 있으면, 게이트웨이가 API 키를 쓸 때마다 소유자가 아직 재직 중인지도 확인해요. `RWD_OIDC_KEY_CHECK=0`이면 꺼져요. MCP 요청은 매번 인증하므로 오래 유지되는 세션의 도구 호출도 하나하나 확인해요. 위와 같은 연락처 조회를 써요. 퇴사했거나 조직을 떠났으면 요청은 "API 키 소유자가 조직을 떠났다"는 401을 받고, 소유자의 에이전트 접속이 해제되며, 소유자는 위와 같이 비활성화되고 감사 로그에 기록돼요(마지막 소유자의 키는 거부하지만 마지막 소유자를 비활성화하지는 않아요). 재직 중이면 그 결과를 60초 동안 믿기 때문에 도구 호출이 몰려도 한 번만 조회해요(동시 호출은 조회 하나를 함께 써요). `tenant_access_token`도 만료 직전까지 재사용해요. 조회가 실패하면(네트워크, 연락처 범위 밖, 권한 부족) 지난 24시간 안의 조회가 재직 중이라고 했을 때만 키를 통과시켜요. 그렇지 않으면 요청은 "API 키 소유자의 재직 여부를 확인할 수 없으니 관리자에게 문의하라"는 401을 받고, 로그에 경고가 남으며, 멤버는 비활성화되지 않아요. 게이트웨이 키와 Feishu나 Lark ID가 없는 소유자(비밀번호 계정)는 확인하지 않아요.
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

@@ -49,6 +49,7 @@ services:
       RWD_OIDC_TRUST_EMAIL: ${RWD_OIDC_TRUST_EMAIL:-}
       RWD_OIDC_TENANT: ${RWD_OIDC_TENANT:-}
       RWD_OIDC_SYNC_MINUTES: ${RWD_OIDC_SYNC_MINUTES:-}
+      RWD_OIDC_KEY_CHECK: ${RWD_OIDC_KEY_CHECK:-}
     volumes:
       - ./data:/data
 

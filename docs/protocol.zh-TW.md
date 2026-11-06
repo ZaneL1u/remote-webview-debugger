@@ -1,4 +1,4 @@
-<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
+<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -568,6 +568,8 @@ API 金鑰屬於建立它的成員，而不屬於某個專案：一把金鑰可�
 
 金鑰只在建立者還能登入時有效。停用成員會讓他的金鑰失效（MCP 請求收到 401，`ApiKey.ownerDisabled` 為 `true`），並中斷他的 agent；重新啟用後金鑰恢復可用。刪除成員會撤銷他的金鑰。降低成員的角色會中斷他名下超出新角色等級的金鑰的 agent。
 
+使用飛書或 Lark 單一登入時，建立者連結到該應用的金鑰還要求建立者仍在職才可用（`RWD_OIDC_KEY_CHECK`，見 [gateway/README.zh-TW.md](../gateway/README.zh-TW.md#單一登入)）：每個 MCP 請求都會詢問提供者，在職的結果信任 60 秒。被標記為已離職或已離開組織的建立者，其 agent 會被中斷接入，本人會被停用（由 `system` 發起、帶有 `"reason":"left_organization"` 的 `member.update`；最後一個 owner 只拒絕不停用），請求得到 401。查詢失敗時，只有過去 24 小時內某次查詢結果為在職才放行，否則同樣得到 401。閘道金鑰以及沒有飛書或 Lark 身分的建立者不做檢查。
+
 ### 12.5 裝置與閘道狀態
 
 | 方法 | 路徑 | 角色 | 回應 |
@@ -759,7 +761,7 @@ event: ping       data: {}                                   每 25 秒一次
 
 ### 14.1 工作階段
 
-- 端點為 `/v1/mcp`（Streamable HTTP）。每個請求都必須帶上 `Authorization: Bearer <API 金鑰>`。每次請求都會檢查金鑰，所以金鑰被撤銷、已過期，或請求位址不在其 `ipAllowlist` 內時，會立即收到 401。
+- 端點為 `/v1/mcp`（Streamable HTTP）。每個請求都必須帶上 `Authorization: Bearer <API 金鑰>`。每次請求都會檢查金鑰，所以金鑰被撤銷、已過期，或請求位址不在其 `ipAllowlist` 內時，會立即收到 401。 使用飛書或 Lark 單一登入時，金鑰的建立者還必須仍在職（[§12.4](#124-api-金鑰)）；這同樣在每個請求上檢查，因此長連線工作階段的每次工具呼叫都會檢查。
 - 閘道依 API 金鑰保存一份 agent 狀態：接入的裝置和選取的頁面。使用同一把金鑰的多個 MCP 工作階段共用這份狀態。一個 agent 同時最多接入一台裝置；接入另一台會先離開前一台。一把金鑰可以存取閘道上的所有裝置。
 - 同一把金鑰每分鐘查詢裝置失敗超過 5 次，這一分鐘內的後續查詢都會被拒絕，以防裝置碼被猜中。
 

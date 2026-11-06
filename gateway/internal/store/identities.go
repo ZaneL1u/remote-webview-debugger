@@ -23,3 +23,22 @@ func (s *Store) Identities(ctx context.Context, provider string) ([]Identity, er
 	}
 	return out, rows.Err()
 }
+
+// IdentitySubjects lists the subjects at provider linked to the account (for
+// the check that a key's owner is still employed: server/key_check.go).
+func (s *Store) IdentitySubjects(ctx context.Context, userID, provider string) ([]string, error) {
+	rows, err := s.query(ctx, `SELECT subject FROM user_identities WHERE user_id = ? AND provider = ? ORDER BY created_at`, userID, provider)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []string{}
+	for rows.Next() {
+		var sub string
+		if err := rows.Scan(&sub); err != nil {
+			return nil, err
+		}
+		out = append(out, sub)
+	}
+	return out, rows.Err()
+}

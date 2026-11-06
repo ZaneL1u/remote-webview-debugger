@@ -1,4 +1,4 @@
-<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
+<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | Português (Brasil) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -568,6 +568,8 @@ Níveis por papel: owners e admins criam chaves até `advanced`; members, até `
 
 Uma chave só funciona enquanto o dono consegue entrar. Desativar um membro para as chaves dele (requisições MCP recebem 401, `ApiKey.ownerDisabled` é `true`) e desconecta os agentes dele; reativá-lo faz as chaves voltarem a funcionar. Excluir um membro revoga as chaves dele. Rebaixar o papel de um membro desconecta os agentes das chaves dele acima do nível do novo papel.
 
+Com login único via Feishu ou Lark, uma chave cujo dono está vinculado ao app só funciona enquanto o dono ainda faz parte da organização (`RWD_OIDC_KEY_CHECK`, veja [gateway/README.pt-BR.md](../gateway/README.pt-BR.md#login-único)): cada requisição MCP consulta o provedor, e uma resposta de ativo vale por 60 segundos. Um dono listado como desligado ou que saiu da organização tem os agentes desconectados e é desativado (`member.update` por `system` com `"reason":"left_organization"`; o último proprietário é só recusado), e a requisição recebe 401. Uma consulta que falha só passa se uma consulta nas últimas 24 horas disse ativo, e senão também recebe 401. Chaves do gateway e donos sem identidade do Feishu ou Lark não são verificados.
+
 ### 12.5 Dispositivos e status do gateway
 
 | Método | Caminho | Papel | Resposta |
@@ -759,7 +761,7 @@ Sem `project`, são transmitidos os eventos de todos os projetos. `EventSource` 
 
 ### 14.1 Sessões
 
-- Endpoint `/v1/mcp` (Streamable HTTP). Toda requisição precisa trazer `Authorization: Bearer <API key>`. A chave é verificada a cada requisição, então uma chave revogada ou expirada, ou um endereço fora do `ipAllowlist` dela, recebe 401 na hora.
+- Endpoint `/v1/mcp` (Streamable HTTP). Toda requisição precisa trazer `Authorization: Bearer <API key>`. A chave é verificada a cada requisição, então uma chave revogada ou expirada, ou um endereço fora do `ipAllowlist` dela, recebe 401 na hora. Com login único via Feishu ou Lark, o dono da chave também precisa ainda fazer parte da organização ([§12.4](#124-chaves-de-api)); isso também é verificado a cada requisição, ou seja, a cada chamada de ferramenta de uma sessão longa.
 - O gateway mantém um estado de agente por chave de API: o dispositivo conectado e a página selecionada. Sessões MCP que usam a mesma chave o compartilham. Um agente fica conectado a no máximo um dispositivo por vez; conectar-se a outro dispositivo o desconecta do primeiro. Uma chave alcança todos os dispositivos do gateway.
 - Mais de 5 buscas de dispositivo com falha por minuto com uma chave são recusadas pelo resto do minuto, o que impede que códigos de dispositivo sejam adivinhados.
 

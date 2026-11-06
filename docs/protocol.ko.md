@@ -1,4 +1,4 @@
-<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
+<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -568,6 +568,8 @@ API 키는 프로젝트가 아니라 키를 만든 멤버에게 속해요. 키 �
 
 키는 소유자가 로그인할 수 있는 동안에만 동작해요. 멤버를 비활성화하면 그 멤버의 키가 멈추고(MCP 요청은 401, `ApiKey.ownerDisabled`는 `true`) 에이전트 접속이 해제돼요. 다시 활성화하면 키도 다시 동작해요. 멤버를 삭제하면 그 멤버의 키가 폐기돼요. 멤버의 역할을 낮추면 새 역할의 레벨을 넘는 키의 에이전트 접속이 해제돼요.
 
+Feishu나 Lark SSO를 쓰면 소유자가 앱에 연결된 키는 소유자가 아직 재직 중일 때만 작동해요(`RWD_OIDC_KEY_CHECK`, [gateway/README.ko.md](../gateway/README.ko.md#sso-로그인) 참고). MCP 요청마다 제공자에게 묻고, 재직 중이라는 답은 60초 동안 믿어요. 퇴사했거나 조직을 떠난 것으로 나오는 소유자는 에이전트 접속이 해제되고 비활성화되며(`system`이 수행한 `member.update`, `"reason":"left_organization"`; 마지막 소유자는 거부만 해요) 요청은 401을 받아요. 조회가 실패하면 지난 24시간 안의 조회가 재직 중이라고 했을 때만 통과시키고, 그렇지 않으면 역시 401이에요. 게이트웨이 키와 Feishu나 Lark ID가 없는 소유자는 확인하지 않아요.
+
 ### 12.5 기기와 게이트웨이 상태
 
 | 메서드 | 경로 | 역할 | 응답 |
@@ -759,7 +761,7 @@ event: ping       data: {}                                   25초마다
 
 ### 14.1 세션
 
-- 엔드포인트는 `/v1/mcp`(Streamable HTTP)예요. 모든 요청에는 `Authorization: Bearer <API key>`가 있어야 해요. 키는 요청마다 확인하므로, 폐기되었거나 만료된 키, 또는 `ipAllowlist` 밖의 주소는 즉시 401을 받아요.
+- 엔드포인트는 `/v1/mcp`(Streamable HTTP)예요. 모든 요청에는 `Authorization: Bearer <API key>`가 있어야 해요. 키는 요청마다 확인하므로, 폐기되었거나 만료된 키, 또는 `ipAllowlist` 밖의 주소는 즉시 401을 받아요. Feishu나 Lark SSO를 쓰면 키 소유자가 아직 재직 중이어야 해요([§12.4](#124-api-키)). 이것도 요청마다 확인하므로 오래 유지되는 세션의 도구 호출도 하나하나 확인돼요.
 - 게이트웨이는 API 키마다 에이전트 상태 하나(접속한 기기와 선택된 페이지)를 보관해요. 같은 키를 쓰는 MCP 세션들은 이 상태를 공유해요. 에이전트는 한 번에 최대 한 기기에만 접속할 수 있고, 다른 기기에 접속하면 처음 기기에서는 접속이 해제돼요. 키 하나로 게이트웨이의 모든 기기에 접근할 수 있어요.
 - 한 키로 기기 조회에 분당 5번 넘게 실패하면 그 1분의 남은 시간 동안 거부돼요. 이렇게 해서 기기 코드를 추측하지 못하게 막아요.
 

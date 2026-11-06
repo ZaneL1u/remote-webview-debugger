@@ -2,13 +2,10 @@ package server
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
+	"github.com/ZaneL1u/remote-webview-debugger/gateway/internal/i18n"
 	"github.com/ZaneL1u/remote-webview-debugger/gateway/internal/store"
 )
 
@@ -19,11 +16,12 @@ import (
 // contact permissions contact:contact.base:readonly and
 // contact:user.employee:readonly, with a contact range covering those
 // members. Anything other than an explicit "resigned" (out of range, an
-// error) changes nothing.
+// error) changes nothing. The same lookup also runs whenever a key is used
+// (key_check.go).
 
 func (s *Server) resignationLoop(ctx context.Context) {
 	o := s.cfg.OIDC
-	if o == nil || o.SyncInterval <= 0 || o.Provider == ProviderOIDC {
+	if o == nil || o.SyncInterval <= 0 || s.dir == nil {
 		return
 	}
 	t := time.NewTicker(o.SyncInterval)
@@ -55,26 +53,10 @@ func (o *OIDCConfig) openAPI() string {
 // syncResigned disables the members the provider lists as resigned and
 // returns how many; err is the first lookup that failed.
 func (s *Server) syncResigned(ctx context.Context) (int, error) {
-	o := s.cfg.OIDC
-	base := o.openAPI()
-	body, _ := json.Marshal(map[string]string{"app_id": o.ClientID, "app_secret": o.ClientSecret})
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, base+"/open-apis/auth/v3/tenant_access_token/internal", strings.NewReader(string(body)))
-	if err != nil {
+	if _, err := s.dir.tenantToken(ctx); err != nil {
 		return 0, err
 	}
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	var tok struct {
-		Code  int    `json:"code"`
-		Msg   string `json:"msg"`
-		Token string `json:"tenant_access_token"`
-	}
-	if err := doJSON(req, &tok); err != nil {
-		return 0, err
-	}
-	if tok.Code != 0 || tok.Token == "" {
-		return 0, fmt.Errorf("tenant_access_token: code %d %s", tok.Code, tok.Msg)
-	}
-	links, err := s.store.Identities(ctx, o.identityProvider())
+	links, err := s.store.Identities(ctx, s.cfg.OIDC.identityProvider())
 	if err != nil {
 		return 0, err
 	}
@@ -85,46 +67,69 @@ func (s *Server) syncResigned(ctx context.Context) (int, error) {
 		if err != nil || u.Disabled {
 			continue
 		}
-		var res struct {
-			Code int    `json:"code"`
-			Msg  string `json:"msg"`
-			Data struct {
-				User struct {
-					Status struct {
-						IsResigned bool `json:"is_resigned"`
-						IsExited   bool `json:"is_exited"`
-					} `json:"status"`
-				} `json:"user"`
-			} `json:"data"`
-		}
-		err = getJSON(ctx, base+"/open-apis/contact/v3/users/"+url.PathEscape(l.Subject)+"?user_id_type=open_id", tok.Token, &res)
-		if err == nil && res.Code != 0 {
-			err = fmt.Errorf("contact user %s: code %d %s", l.Subject, res.Code, res.Msg) // 41050: outside the contact range
-		}
+		left, err := s.dir.lookup(ctx, l.Subject)
 		if err != nil {
 			firstErr = cmpErr(firstErr, err)
 			continue
 		}
-		st := res.Data.User.Status
-		if !st.IsResigned && !st.IsExited {
+		if !left {
 			continue
 		}
-		if u.Role == store.RoleOwner && s.ownerCount(ctx) <= 1 {
-			s.log.Warn("single sign-on: the last owner has left the organization; not disabled", "email", u.Email)
-			continue
-		}
-		disabled := true
-		u, err = s.store.UpdateUser(ctx, u.ID, store.UserPatch{Disabled: &disabled})
+		disabled, err := s.memberLeft(ctx, u)
 		if err != nil {
 			firstErr = cmpErr(firstErr, err)
 			continue
 		}
-		s.dropMemberAgents(ctx, u) // their keys stop working (verifyKey)
-		s.recordEvent(store.AuditEvent{ActorType: "system", ActorID: o.Provider, ActorName: o.Provider, Action: "member.update",
-			Target: u.Email, Result: "ok", Detail: map[string]any{"role": u.Role, "disabled": true, "reason": "left_organization"}})
-		n++
+		if disabled {
+			n++
+		}
 	}
 	return n, firstErr
+}
+
+// memberLeft disables a member the provider lists as having left the
+// organization (unless they are the last owner), audits it, and detaches
+// the agents of their keys, which stop working (verifyKey). disabled
+// reports whether this call disabled them.
+func (s *Server) memberLeft(ctx context.Context, u *store.User) (disabled bool, err error) {
+	s.leaveMu.Lock()
+	defer s.leaveMu.Unlock()
+	u, err = s.store.User(ctx, u.ID)
+	if err != nil {
+		return false, err
+	}
+	if u.Disabled {
+		return false, nil // done meanwhile
+	}
+	if u.Role == store.RoleOwner && s.ownerCount(ctx) <= 1 {
+		s.log.Warn("single sign-on: the last owner has left the organization; not disabled", "email", u.Email)
+		s.dropAllAgents(ctx, u.ID, i18n.NoteKeyOwnerLeft)
+		return false, nil
+	}
+	on := true
+	u, err = s.store.UpdateUser(ctx, u.ID, store.UserPatch{Disabled: &on})
+	if err != nil {
+		return false, err
+	}
+	s.dropAllAgents(ctx, u.ID, i18n.NoteKeyOwnerLeft)
+	o := s.cfg.OIDC
+	s.recordEvent(store.AuditEvent{ActorType: "system", ActorID: o.Provider, ActorName: o.Provider, Action: "member.update",
+		Target: u.Email, Result: "ok", Detail: map[string]any{"role": u.Role, "disabled": true, "reason": "left_organization"}})
+	return true, nil
+}
+
+// dropAllAgents detaches the agents of all of a member's keys.
+func (s *Server) dropAllAgents(ctx context.Context, userID string, note i18n.Key) {
+	keys, err := s.store.APIKeys(ctx, userID)
+	if err != nil {
+		s.log.Warn("listing a member's keys failed", "member", userID, "err", err)
+		return
+	}
+	ids := make([]string, len(keys))
+	for i, k := range keys {
+		ids[i] = k.ID
+	}
+	s.hub.DropAgents(ids, i18n.M(note))
 }
 
 func cmpErr(first, err error) error {

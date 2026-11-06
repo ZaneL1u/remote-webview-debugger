@@ -1,4 +1,4 @@
-<!-- i18n-source: 36b1f9d52cae376ca3aa02c47b0584fd21b7ab30 -->
+<!-- i18n-source: 0dcd3b6faee7da70bf01670a986f2e0c4d1d102e -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 閘道
@@ -77,6 +77,7 @@ rwd version                             顯示版本號
 | `RWD_OIDC_TRUST_EMAIL=1` | 關閉 | 僅限 `oidc`：提供者不傳送 `email_verified` 時（Microsoft Entra ID）也信任它提供的電子郵件。只適用於單一租用戶、電子郵件由你的組織掌控的提供者 |
 | `RWD_OIDC_TENANT` | — | 僅限飛書和 Lark：你的組織的 `tenant_key`；其他組織的人會被拒絕（`sso_error=tenant`）。每次單一登入的 `auth.login` 稽核記錄都會顯示它的 `tenant` |
 | `RWD_OIDC_SYNC_MINUTES` | `60`（飛書、Lark） | 多久檢查一次並停用已離開組織的成員；`0` 表示關閉。見下文 |
+| `RWD_OIDC_KEY_CHECK` | 開啟（飛書、Lark） | 每次使用 API 金鑰時檢查其建立者是否仍在職；`0` 表示關閉。見下文 |
 
 請在提供者那邊登記下面這個重新導向 URL，必須完全相符：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未設定時取請求的 origin）再加上 `/v1/api/auth/oidc/callback`。放在代理後面時請設定 `RWD_PUBLIC_URL`，讓這個 URL 保持固定。
 
@@ -93,7 +94,9 @@ rwd version                             顯示版本號
 3. 在「權限管理」中開通 `contact:user.email:readonly`（要取得企業信箱再開通 `contact:user.employee:readonly`），並在 `RWD_OIDC_SCOPES` 裡列出同樣的 scope。要得知誰已離職，應用還需要開通 `contact:contact.base:readonly` 和 `contact:user.employee:readonly`，並在「資料權限 → 通訊錄權限範圍」中涵蓋所有會登入的人。
 4. 把應用的「可用範圍」設為需要登入的人，然後「建立版本並發佈」，設定才會生效。
 
-**離職的人。** 使用飛書或 Lark 時，閘道每隔 `RWD_OIDC_SYNC_MINUTES` 向開放平台查詢每個連結到該應用的成員，停用被標記為已離職或已離開組織的人：他們會被登出，API 金鑰會失效，agent 會被中斷接入，稽核記錄會記下一筆由 `system` 發起、帶有 `"reason":"left_organization"` 的 `member.update`。之後 owner 可以刪除他們，這樣他們的金鑰就會被永久撤銷。只有明確的「已離職」才算數：不在通訊錄權限範圍內的成員或失敗的請求都不會改變任何事（記錄檔會寫明哪裡失敗），最後一個 owner 也絕不會被停用。沒有通訊錄權限時什麼都不會檢查，離職的人手上的 API 金鑰會一直有效，直到 owner 停用他們；不過他們已經無法登入，主控台工作階段最多 12 小時內就會結束。
+**離職的人。** 使用飛書或 Lark 時，閘道每隔 `RWD_OIDC_SYNC_MINUTES` 向開放平台查詢每個連結到該應用的成員，停用被標記為已離職或已離開組織的人：他們會被登出，API 金鑰會失效，agent 會被中斷接入，稽核記錄會記下一筆由 `system` 發起、帶有 `"reason":"left_organization"` 的 `member.update`。之後 owner 可以刪除他們，這樣他們的金鑰就會被永久撤銷。只有明確的「已離職」才算數：不在通訊錄權限範圍內的成員或失敗的請求都不會改變任何事（記錄檔會寫明哪裡失敗），最後一個 owner 也絕不會被停用。沒有通訊錄權限時同步什麼都不會檢查，而下文的金鑰檢查會拒絕連結到該應用的成員的金鑰；如果同時設定了 `RWD_OIDC_KEY_CHECK=0`，離職的人手上的 API 金鑰會一直有效，直到 owner 停用他們，不過他們已經無法登入，主控台工作階段最多 12 小時內就會結束。
+
+**離職的人的金鑰。** 使用飛書或 Lark 時，只要金鑰的建立者連結到了該應用，閘道還會在每次使用 API 金鑰時檢查建立者是否仍在職；`RWD_OIDC_KEY_CHECK=0` 可關閉。每個 MCP 請求都要驗證，所以長連線工作階段裡的每次工具呼叫也都會檢查。用的是上文同一個通訊錄查詢。已離職或已離開組織：請求得到 401，提示「API 金鑰的建立者已離職」，建立者的 agent 會被中斷接入，並像上文那樣被停用、記入稽核（最後一個 owner 的金鑰會被拒絕，但不會停用這個 owner）。在職：結果信任 60 秒，一連串工具呼叫只查一次（並行呼叫共用一次查詢），`tenant_access_token` 也會重複使用到快過期前。查詢失敗（網路問題、不在通訊錄權限範圍內、缺少權限）時，只有過去 24 小時內某次查詢結果為在職才放行；否則請求得到 401，提示「無法確認 API 金鑰的建立者仍在職，請聯絡管理員」，記錄檔記一筆警告，成員不會被停用。閘道金鑰以及沒有飛書或 Lark 身分的建立者（密碼帳號）不做檢查。
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

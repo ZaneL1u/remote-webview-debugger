@@ -48,7 +48,10 @@ var (
 )
 
 // verifyKey checks the API key on every request, so revocation, and
-// disabling or removing the key's owner, take effect immediately.
+// disabling or removing the key's owner, take effect immediately. The
+// Streamable HTTP transport sends each message (every tool call) as its own
+// request, so this runs on every call of a long-lived session too; the
+// owner's employment is checked here as well (key_check.go).
 func (s *Server) verifyKey(ctx context.Context, token string, r *http.Request) (*auth.TokenInfo, error) {
 	k, err := s.store.APIKeyByHash(ctx, ids.HashKey(s.pepper, token))
 	if err != nil {
@@ -56,6 +59,9 @@ func (s *Server) verifyKey(ctx context.Context, token string, r *http.Request) (
 	}
 	if k.Expired() || !k.OwnerActive() || !ipAllowed(s.clientIP(r), k.IPAllowlist) {
 		return nil, auth.ErrInvalidToken
+	}
+	if err := s.checkKeyOwner(ctx, k, r); err != nil {
+		return nil, err
 	}
 	level := k.MaxLevel
 	if k.OwnerID != nil {

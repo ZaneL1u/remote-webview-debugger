@@ -1,4 +1,4 @@
-<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
+<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | Deutsch | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD-Protokoll (v1)
@@ -568,6 +568,8 @@ Stufen nach Rolle: Owner und Admins erstellen Keys bis `advanced`, Members bis `
 
 Ein Key funktioniert nur, solange sich sein Inhaber anmelden kann. Wird ein Mitglied deaktiviert, funktionieren seine Keys nicht mehr (MCP-Anfragen erhalten 401, `ApiKey.ownerDisabled` ist `true`) und seine Agents werden getrennt; wird es wieder aktiviert, funktionieren die Keys wieder. Wird ein Mitglied gelöscht, werden seine Keys widerrufen. Wird die Rolle eines Mitglieds herabgesetzt, werden die Agents seiner Keys oberhalb der Stufe der neuen Rolle getrennt.
 
+Mit Single Sign-on über Feishu oder Lark funktioniert ein Key, dessen Inhaber mit der App verknüpft ist, außerdem nur, solange der Inhaber noch beschäftigt ist (`RWD_OIDC_KEY_CHECK`, siehe [gateway/README.de.md](../gateway/README.de.md#single-sign-on)): Jede MCP-Anfrage fragt beim Anbieter nach, eine Antwort „aktiv“ gilt 60 Sekunden lang. Bei einem Inhaber, der als ausgeschieden oder gegangen geführt wird, werden die Agents getrennt und er wird deaktiviert (`member.update` durch `system` mit `"reason":"left_organization"`; der letzte Inhaber wird nur abgelehnt), und die Anfrage bekommt 401. Eine fehlgeschlagene Abfrage wird nur durchgelassen, wenn eine Abfrage in den letzten 24 Stunden „aktiv“ ergab, und bekommt sonst ebenfalls 401. Gateway-Keys und Inhaber ohne Feishu- oder Lark-Identität werden nicht geprüft.
+
 ### 12.5 Geräte und Gateway-Status
 
 | Methode | Pfad | Rolle | Antwort |
@@ -759,7 +761,7 @@ Ohne `project` werden die Ereignisse aller Projekte gestreamt. `EventSource` kan
 
 ### 14.1 Sitzungen
 
-- Endpunkt `/v1/mcp` (Streamable HTTP). Jede Anfrage muss `Authorization: Bearer <API key>` tragen. Der Key wird bei jeder Anfrage geprüft, sodass ein widerrufener oder abgelaufener Key oder eine Adresse außerhalb seiner `ipAllowlist` sofort 401 erhält.
+- Endpunkt `/v1/mcp` (Streamable HTTP). Jede Anfrage muss `Authorization: Bearer <API key>` tragen. Der Key wird bei jeder Anfrage geprüft, sodass ein widerrufener oder abgelaufener Key oder eine Adresse außerhalb seiner `ipAllowlist` sofort 401 erhält. Mit Single Sign-on über Feishu oder Lark muss der Inhaber des Keys außerdem noch beschäftigt sein ([§12.4](#124-api-keys)); auch das wird bei jeder Anfrage geprüft, also bei jedem Tool-Aufruf einer langen Sitzung.
 - Das Gateway hält einen Agent-Zustand pro API-Key: das verbundene Gerät und die ausgewählte Seite. MCP-Sitzungen mit demselben Key teilen ihn. Ein Agent ist jeweils mit höchstens einem Gerät verbunden; das Verbinden mit einem anderen Gerät trennt ihn vom ersten. Ein Key erreicht jedes Gerät am Gateway.
 - Mehr als 5 fehlgeschlagene Gerätesuchen pro Minute mit einem Key werden für den Rest der Minute abgewiesen, was das Erraten von Gerätecodes verhindert.
 

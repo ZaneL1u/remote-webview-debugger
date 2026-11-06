@@ -68,6 +68,10 @@ type OIDCConfig struct {
 	// SyncInterval, for Feishu and Lark, is how often members who have left
 	// the organization are disabled (sso_sync.go); 0: never.
 	SyncInterval time.Duration
+	// KeyCheck, for Feishu and Lark, asks the provider on every use of an
+	// API key whose owner is linked to the app whether the owner is still
+	// employed (key_check.go).
+	KeyCheck bool
 
 	mu        sync.Mutex
 	discovery *oidcDiscovery

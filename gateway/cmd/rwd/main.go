@@ -151,7 +151,7 @@ func oidcConfig() *server.OIDCConfig {
 		Scopes: os.Getenv("RWD_OIDC_SCOPES"), DefaultRole: os.Getenv("RWD_OIDC_DEFAULT_ROLE"),
 		InviteOnly: os.Getenv("RWD_OIDC_INVITE_ONLY") == "1", AllowedDomains: domains,
 		TrustEmail: os.Getenv("RWD_OIDC_TRUST_EMAIL") == "1", Tenant: os.Getenv("RWD_OIDC_TENANT"),
-		SyncInterval: syncInterval(provider)}
+		SyncInterval: syncInterval(provider), KeyCheck: os.Getenv("RWD_OIDC_KEY_CHECK") != "0"}
 }
 
 // syncInterval is RWD_OIDC_SYNC_MINUTES (default 60 for Feishu and Lark; 0

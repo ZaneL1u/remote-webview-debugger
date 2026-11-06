@@ -1,4 +1,4 @@
-<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
+<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -568,6 +568,8 @@ API Key 属于创建它的成员，不属于某个项目：一个 Key 能访问�
 
 Key 只在创建者还能登录时有效。停用成员会让他的 Key 失效（MCP 请求返回 401，`ApiKey.ownerDisabled` 为 `true`）并断开他的 agent；重新启用后 Key 恢复可用。删除成员会吊销他的 Key。降低成员的角色会断开他名下超出新角色级别的 Key 的 agent。
 
+使用飞书或 Lark 单点登录时，创建者关联到该应用的 Key 还要求创建者仍在职才可用（`RWD_OIDC_KEY_CHECK`，见 [gateway/README.zh-CN.md](../gateway/README.zh-CN.md#单点登录)）：每个 MCP 请求都会询问提供方，在职的结果信任 60 秒。被标记为已离职或已离开组织的创建者，其 agent 会被断开，本人会被停用（由 `system` 发起、带 `"reason":"left_organization"` 的 `member.update`；最后一个 owner 只拒绝不停用），请求得到 401。查询失败时，只有过去 24 小时内某次查询结果为在职才放行，否则同样得到 401。网关 Key 以及没有飞书或 Lark 身份的创建者不做检查。
+
 ### 12.5 设备与网关状态
 
 | 方法 | 路径 | 角色 | 响应 |
@@ -759,7 +761,7 @@ event: ping       data: {}                                   每 25 秒一次
 
 ### 14.1 会话
 
-- 地址 `/v1/mcp`（Streamable HTTP）。每个请求都必须带 `Authorization: Bearer <API Key>`。每次请求都会校验 Key，所以 Key 被吊销、过期，或请求来源不在 `ipAllowlist` 内时，立即返回 401。
+- 地址 `/v1/mcp`（Streamable HTTP）。每个请求都必须带 `Authorization: Bearer <API Key>`。每次请求都会校验 Key，所以 Key 被吊销、过期，或请求来源不在 `ipAllowlist` 内时，立即返回 401。 使用飞书或 Lark 单点登录时，Key 的创建者还必须仍在职（[§12.4](#124-api-key)）；这同样在每个请求上检查，因此长连接会话的每次工具调用都会检查。
 - 网关按 API Key 保存 agent 状态：接入的设备和当前页面。使用同一个 Key 的多个 MCP 会话共享这份状态。一个 agent 同时只接入一台设备，接入另一台会先离开前一台。一个 Key 能访问网关上的所有设备。
 - 同一个 Key 每分钟查找设备失败超过 5 次，这一分钟内的后续查找都会被拒绝，防止猜设备码。
 

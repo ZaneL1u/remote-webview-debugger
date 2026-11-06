@@ -34,6 +34,8 @@ type fakeIdP struct {
 	// Contact lookups: open_id -> "resigned", "exited", "active" or
 	// "out_of_range" (code 41050); anything else is an active user.
 	contact map[string]string
+	lookups int // contact lookups answered
+	tokens  int // tenant_access_token issued
 }
 
 func newFakeIdP(t *testing.T, provider string) *fakeIdP {
@@ -139,6 +141,9 @@ func newFakeIdP(t *testing.T, provider string) *fakeIdP {
 			writeJSON(w, map[string]any{"code": 10014, "msg": "app secret invalid"})
 			return
 		}
+		idp.mu.Lock()
+		idp.tokens++
+		idp.mu.Unlock()
 		writeJSON(w, map[string]any{"code": 0, "msg": "ok", "tenant_access_token": "t-tenant", "expire": 7200})
 	})
 	mux.HandleFunc("GET /open-apis/contact/v3/users/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -149,6 +154,7 @@ func newFakeIdP(t *testing.T, provider string) *fakeIdP {
 		}
 		idp.mu.Lock()
 		state := idp.contact[r.PathValue("id")]
+		idp.lookups++
 		idp.mu.Unlock()
 		if state == "out_of_range" {
 			w.WriteHeader(http.StatusBadRequest)

@@ -5,16 +5,18 @@ package i18n
 // the MCP server checks them when it starts.
 const (
 	// MCP framing.
-	MCPInstructions    Key = "mcp.instructions"
-	MCPError           Key = "mcp.error"
-	MCPSessionChanges  Key = "mcp.session_changes"
-	MCPUnauthorized    Key = "mcp.unauthorized"
-	MCPUntrusted       Key = "mcp.untrusted"
-	ExplainNotFoundRef Key = "explain.not_found_ref"
-	ExplainNotFound    Key = "explain.not_found"
-	ExplainNotUsable   Key = "explain.not_interactable"
-	ExplainDetail      Key = "explain.detail"
-	ExplainTimeout     Key = "explain.timeout"
+	MCPInstructions       Key = "mcp.instructions"
+	MCPError              Key = "mcp.error"
+	MCPSessionChanges     Key = "mcp.session_changes"
+	MCPUnauthorized       Key = "mcp.unauthorized"
+	MCPKeyOwnerLeft       Key = "mcp.key_owner_left"
+	MCPKeyOwnerUnverified Key = "mcp.key_owner_unverified"
+	MCPUntrusted          Key = "mcp.untrusted"
+	ExplainNotFoundRef    Key = "explain.not_found_ref"
+	ExplainNotFound       Key = "explain.not_found"
+	ExplainNotUsable      Key = "explain.not_interactable"
+	ExplainDetail         Key = "explain.detail"
+	ExplainTimeout        Key = "explain.timeout"
 
 	// Devices and pages as listed for agents.
 	ControlNone      Key = "control.none"
@@ -174,6 +176,7 @@ const (
 	NoteAdminEnded       Key = "note.admin_ended"
 	NoteKeyRevoked       Key = "note.key_revoked"
 	NoteKeyOwnerChanged  Key = "note.key_owner_changed"
+	NoteKeyOwnerLeft     Key = "note.key_owner_left"
 	NotePageGoneSwitched Key = "note.page_gone_switched"
 	NoteAutoSwitched     Key = "note.auto_switched"
 

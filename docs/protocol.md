@@ -567,6 +567,8 @@ Levels by role: owners and admins create keys up to `advanced`, members up to `i
 
 A key works only while its owner can sign in. Disabling a member stops their keys (MCP requests get 401, `ApiKey.ownerDisabled` is `true`) and detaches their agents; enabling the member again brings the keys back. Deleting a member revokes their keys. Lowering a member's role detaches the agents of their keys above the new role's level.
 
+With Feishu or Lark single sign-on, a key whose owner is linked to the app also works only while the owner is still employed (`RWD_OIDC_KEY_CHECK`, see [gateway/README.md](../gateway/README.md#single-sign-on)): each MCP request asks the provider, and an active answer is trusted for 60 seconds. An owner listed as resigned or as having left has their agents detached and is disabled (`member.update` by `system` with `"reason":"left_organization"`; the last owner is only refused), and the request gets 401. A failed lookup is let through only if a lookup in the last 24 hours said active, and otherwise gets 401 too. Gateway keys and owners without a Feishu or Lark identity are not checked.
+
 ### 12.5 Devices and gateway status
 
 | Method | Path | Role | Response |
@@ -758,7 +760,7 @@ Without `project`, events of every project are streamed. `EventSource` can't set
 
 ### 14.1 Sessions
 
-- Endpoint `/v1/mcp` (Streamable HTTP). Every request must carry `Authorization: Bearer <API key>`. The key is checked on every request, so a revoked or expired key, or an address outside its `ipAllowlist`, gets 401 at once.
+- Endpoint `/v1/mcp` (Streamable HTTP). Every request must carry `Authorization: Bearer <API key>`. The key is checked on every request, so a revoked or expired key, or an address outside its `ipAllowlist`, gets 401 at once. With Feishu or Lark single sign-on the key's owner must also still be employed ([§12.4](#124-api-keys)); this is checked on each request too, so on every tool call of a long-lived session.
 - The gateway keeps one agent state per API key: the attached device and the selected page. MCP sessions that use the same key share it. An agent is attached to at most one device at a time; connecting to another device detaches it from the first. A key reaches every device on the gateway.
 - More than 5 failed device lookups per minute with one key are refused for the rest of the minute, which stops device codes from being guessed.
 

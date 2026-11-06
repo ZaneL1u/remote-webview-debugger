@@ -1,4 +1,4 @@
-<!-- i18n-source: a490785460f59b6d234ca1b7159d25c8b724871d -->
+<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | Français | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocole RWD (v1)
@@ -568,6 +568,8 @@ Niveaux par rôle : les owners et les admins créent des clés jusqu'à `advance
 
 Une clé ne fonctionne que tant que son propriétaire peut se connecter. Désactiver un membre arrête ses clés (les requêtes MCP reçoivent 401, `ApiKey.ownerDisabled` vaut `true`) et détache ses agents ; le réactiver rétablit ses clés. Supprimer un membre révoque ses clés. Abaisser le rôle d'un membre détache les agents de ses clés qui dépassent le niveau du nouveau rôle.
 
+Avec l'authentification unique Feishu ou Lark, une clé dont le propriétaire est lié à l'application ne fonctionne en plus que tant que ce propriétaire fait partie de l'organisation (`RWD_OIDC_KEY_CHECK`, voir [gateway/README.fr.md](../gateway/README.fr.md#authentification-unique)) : chaque requête MCP interroge le fournisseur, et une réponse « actif » vaut pendant 60 secondes. Un propriétaire indiqué comme démissionnaire ou parti voit ses agents détachés et est désactivé (`member.update` par `system` avec `"reason":"left_organization"` ; le dernier propriétaire est seulement refusé), et la requête reçoit un 401. Une consultation qui échoue n'est acceptée que si une consultation des dernières 24 heures a répondu actif, et reçoit sinon un 401 elle aussi. Les clés de la passerelle et les propriétaires sans identité Feishu ou Lark ne sont pas vérifiés.
+
 ### 12.5 Appareils et état de la passerelle
 
 | Méthode | Chemin | Rôle | Réponse |
@@ -759,7 +761,7 @@ Sans `project`, les événements de tous les projets sont diffusés. `EventSourc
 
 ### 14.1 Sessions
 
-- Point de terminaison `/v1/mcp` (Streamable HTTP). Chaque requête doit porter `Authorization: Bearer <API key>`. La clé est vérifiée à chaque requête : une clé révoquée ou expirée, ou une adresse hors de son `ipAllowlist`, reçoit donc 401 immédiatement.
+- Point de terminaison `/v1/mcp` (Streamable HTTP). Chaque requête doit porter `Authorization: Bearer <API key>`. La clé est vérifiée à chaque requête : une clé révoquée ou expirée, ou une adresse hors de son `ipAllowlist`, reçoit donc 401 immédiatement. Avec l'authentification unique Feishu ou Lark, le propriétaire de la clé doit en plus faire toujours partie de l'organisation ([§12.4](#124-clés-dapi)) ; cela aussi est vérifié à chaque requête, donc à chaque appel d'outil d'une session longue.
 - La passerelle garde un état d'agent par clé d'API : l'appareil rattaché et la page sélectionnée. Les sessions MCP qui utilisent la même clé le partagent. Un agent est rattaché à un seul appareil à la fois ; se connecter à un autre appareil le détache du premier. Une clé atteint tous les appareils de la passerelle.
 - Au-delà de 5 recherches d'appareil échouées par minute avec une même clé, les recherches suivantes sont refusées jusqu'à la fin de la minute, ce qui empêche de deviner les codes d'appareil.
 
