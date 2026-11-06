@@ -1,0 +1,1 @@
+import{t as e}from"./stars.B7z_pRMR.js";e();

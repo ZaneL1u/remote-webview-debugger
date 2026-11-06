@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>Product</title>
+    <script src="../rwd-shim.js"></script>
+    <script src="../sdk.js"></script>
+    <script src="../boot.js"></script>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header><a class="back" href="index.html" aria-label="Back">‹</a><h1>Product</h1><span class="spacer"></span></header>
+    <main>
+      <div class="hero" id="hero" aria-hidden="true"></div>
+      <div class="section">
+        <h2 id="name">…</h2>
+        <p class="price" id="price"></p>
+        <p class="muted" id="desc"></p>
+      </div>
+      <div class="section">
+        <label class="field">
+          <span>Package</span>
+          <select id="spec">
+            <option value="standard">Standard</option>
+            <option value="gift">Gift box (+$9)</option>
+          </select>
+        </label>
+        <div class="field">
+          <span class="muted">Quantity</span>
+          <div class="qty">
+            <button type="button" id="minus" aria-label="Decrease quantity">－</button>
+            <input id="qty" type="number" min="1" value="1" aria-label="Quantity" />
+            <button type="button" id="plus" aria-label="Increase quantity">＋</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div class="bar">
+      <div class="total">Unit price <span class="price" id="unit"></span></div>
+      <button class="primary" id="buy" type="button">Buy now</button>
+    </div>
+    <script src="../shop.js"></script>
+    <script>
+      var id = Number(Shop.query('id') || 1)
+      var product
+      // What the bar shows and what goes into the order.
+      var unitPrice
+
+      function updatePrice() {
+        var spec = document.getElementById('spec').value
+        if (spec === 'gift') {
+          // BUG (deliberate, cross-page): stores the formatted text, not the number.
+          unitPrice = Shop.money(product.price + 9)
+        } else {
+          unitPrice = product.price
+        }
+        document.getElementById('unit').textContent =
+          typeof unitPrice === 'number' ? Shop.money(unitPrice) : unitPrice
+      }
+
+      Shop.loadProducts().then(function (products) {
+        product = products.filter(function (p) { return p.id === id })[0]
+        if (!product) throw new Error('No such product: ' + id)
+        document.title = product.name + ' - Product'
+        document.getElementById('name').textContent = product.name
+        document.getElementById('price').textContent = Shop.money(product.price)
+        document.getElementById('desc').textContent = product.desc
+        var hero = document.getElementById('hero')
+        hero.style.background = product.color
+        hero.textContent = product.name.slice(0, 1)
+        if (!product.stock) {
+          var buy = document.getElementById('buy')
+          buy.disabled = true
+          buy.textContent = 'Sold out'
+        }
+        updatePrice()
+      })
+
+      document.getElementById('spec').addEventListener('change', updatePrice)
+      document.getElementById('minus').addEventListener('click', function () {
+        var q = document.getElementById('qty')
+        q.value = Math.max(1, Number(q.value) - 1)
+      })
+      document.getElementById('plus').addEventListener('click', function () {
+        var q = document.getElementById('qty')
+        q.value = Number(q.value) + 1
+      })
+      document.getElementById('buy').addEventListener('click', function () {
+        var qty = Math.max(1, parseInt(document.getElementById('qty').value, 10) || 1)
+        var spec = document.getElementById('spec')
+        sessionStorage.setItem(
+          'demo:order',
+          JSON.stringify({
+            id: product.id,
+            name: product.name,
+            spec: spec.options[spec.selectedIndex].text,
+            qty: qty,
+            price: unitPrice,
+          })
+        )
+        window.ShopNav ? ShopNav.go('checkout.html') : (location.href = 'checkout.html')
+      })
+    </script>
+  </body>
+</html>
