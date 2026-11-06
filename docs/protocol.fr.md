@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | Français | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocole RWD (v1)
@@ -523,7 +523,7 @@ Rôles : `owner` (tout, y compris les membres), `admin` (projets, clés, politi
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Le nouveau mot de passe doit compter de 8 à 256 caractères ; `400 bad_password` si l'ancien est incorrect |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` vers le fournisseur d'authentification unique, avec un cookie signé `rwd_oidc` (state et vérificateur PKCE, 10 minutes). `404` sans authentification unique |
-| GET | `/auth/oidc/callback` | — | `code` et `state` du fournisseur | Ouvre la session et `302` vers `redirect` (un chemin de la console, sinon `/`). En cas d'échec, `302` vers `/login?sso_error=<code>` : `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | `code` et `state` du fournisseur | Ouvre la session et `302` vers `redirect` (un chemin de la console, sinon `/`). En cas d'échec, `302` vers `/login?sso_error=<code>` : `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (le membre ayant cette adresse e-mail est rattaché à une autre identité du fournisseur), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` vaut `null`, ou `{"provider","name","defaultRole","inviteOnly"}` quand l'authentification unique est activée |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (valable 7 jours, une seule fois). `409 conflict` si l'adresse e-mail existe déjà |
@@ -812,7 +812,7 @@ Un utilisateur sinophone peut donc travailler avec un agent anglophone : la bo�
 - **Métriques.** `GET /v1/metrics` renvoie du texte au format Prometheus. Si `RWD_METRICS_TOKEN` est défini, il exige `Authorization: Bearer <token>`. Séries : `rwd_online_devices{project}`, `rwd_connected_pages`, `rwd_attached_agents`, `rwd_ws_connections`, `rwd_rpc_total{method,result}`, `rwd_rpc_duration_seconds{method}` (histogramme), `rwd_http_requests_total{code}`.
 - **Versions du SDK.** La version du SDK utilisée pour la mise en cache correspond aux 12 premiers caractères hexadécimaux du SHA-256 du `sdk.js` embarqué dans la passerelle, si bien que `/v1/sdk/<version>/sdk.js` change chaque fois que le fichier change. `GET /v1/api/config` la renvoie dans `sdkVersion`, avec `sdkIntegrity` (`sha384-…`, pour l'attribut `integrity`). La console propose un snippet qui épingle cette version.
 - **Base de données.** `RWD_DATABASE_URL=postgres://…` (ou `postgresql://`) sélectionne Postgres ; sinon `RWD_DATA` (`rwd.db` par défaut) désigne un fichier SQLite. Le schéma est créé et migré au démarrage.
-- **Limitation de débit.** Connexion à la console et acceptation d'invitation : 10 par minute et par IP client. Connexions de pages et appels de présence : 120 par minute et par IP client. Les IP clientes ne sont lues dans `X-Forwarded-For` qu'avec `--trust-proxy` ; la même option régit `X-Forwarded-Proto` et `X-Forwarded-Host`, qui déterminent si le cookie de session est `Secure`, ainsi que le schéma et l'hôte du `gatewayUrl` déduit quand `--public-url` n'est pas défini.
+- **Limitation de débit.** Connexion à la console et acceptation d'invitation : 10 par minute et par IP client. Démarrages et callbacks de l'authentification unique : 60 par minute et par IP client. Connexions de pages et appels de présence : 120 par minute et par IP client. Les IP clientes ne sont lues dans `X-Forwarded-For` qu'avec `--trust-proxy` ; la même option régit `X-Forwarded-Proto` et `X-Forwarded-Host`, qui déterminent si le cookie de session est `Secure`, ainsi que le schéma et l'hôte du `gatewayUrl` déduit quand `--public-url` n'est pas défini.
 - **Rétention de l'audit.** `RWD_AUDIT_RETENTION_DAYS` (180 par défaut) ; les anciens événements sont purgés toutes les 6 heures.
 
 Tous les paramètres de la passerelle sont listés dans [gateway/README.fr.md](../gateway/README.fr.md).

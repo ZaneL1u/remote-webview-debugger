@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | Português (Brasil) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -523,7 +523,7 @@ Papéis: `owner` (tudo, incluindo membros), `admin` (projetos, chaves, política
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. A nova senha precisa ter 8–256 caracteres; `400 bad_password` se a antiga estiver errada |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` para o provedor de login único, com um cookie assinado `rwd_oidc` (state e verificador PKCE, 10 minutos). `404` sem login único |
-| GET | `/auth/oidc/callback` | — | o `code` e o `state` do provedor | Faz o login e `302` para `redirect` (um caminho do console; senão, `/`). Em caso de falha, `302` para `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | o `code` e o `state` do provedor | Faz o login e `302` para `redirect` (um caminho do console; senão, `/`). Em caso de falha, `302` para `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (o membro com esse e-mail está vinculado a outra identidade do provedor), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` é `null`, ou `{"provider","name","defaultRole","inviteOnly"}` quando o login único está ligado |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (válido por 7 dias, uma vez). `409 conflict` se o e-mail já existir |
@@ -812,7 +812,7 @@ Assim, um usuário que fala chinês pode trabalhar com um agente que fala inglê
 - **Métricas.** `GET /v1/metrics` retorna texto no formato do Prometheus. Com `RWD_METRICS_TOKEN` definido, exige `Authorization: Bearer <token>`. Séries: `rwd_online_devices{project}`, `rwd_connected_pages`, `rwd_attached_agents`, `rwd_ws_connections`, `rwd_rpc_total{method,result}`, `rwd_rpc_duration_seconds{method}` (histograma), `rwd_http_requests_total{code}`.
 - **Versões do SDK.** A versão do SDK usada para cache são os 12 primeiros caracteres hex do SHA-256 do `sdk.js` embutido no gateway, então `/v1/sdk/<version>/sdk.js` muda sempre que o arquivo muda. `GET /v1/api/config` a retorna como `sdkVersion`, junto com `sdkIntegrity` (`sha384-…`, para o atributo `integrity`). O console oferece um snippet que a fixa.
 - **Banco de dados.** `RWD_DATABASE_URL=postgres://…` (ou `postgresql://`) seleciona o Postgres; caso contrário, `RWD_DATA` (padrão `rwd.db`) é um arquivo SQLite. O schema é criado e migrado na inicialização.
-- **Limites de taxa.** Login no console e aceite de convite: 10 por minuto por IP de cliente. Conexões de páginas e chamadas de presença: 120 por minuto por IP de cliente. Os IPs de cliente vêm de `X-Forwarded-For` só com `--trust-proxy`; a mesma opção controla `X-Forwarded-Proto` e `X-Forwarded-Host`, que decidem se o cookie de sessão é `Secure` e o esquema e o host da `gatewayUrl` deduzida quando `--public-url` não está definido.
+- **Limites de taxa.** Login no console e aceite de convite: 10 por minuto por IP de cliente. Inícios e callbacks de login único: 60 por minuto por IP de cliente. Conexões de páginas e chamadas de presença: 120 por minuto por IP de cliente. Os IPs de cliente vêm de `X-Forwarded-For` só com `--trust-proxy`; a mesma opção controla `X-Forwarded-Proto` e `X-Forwarded-Host`, que decidem se o cookie de sessão é `Secure` e o esquema e o host da `gatewayUrl` deduzida quando `--public-url` não está definido.
 - **Retenção da auditoria.** `RWD_AUDIT_RETENTION_DAYS` (padrão 180); eventos antigos são removidos a cada 6 horas.
 
 Todas as configurações do gateway estão listadas em [gateway/README.pt-BR.md](../gateway/README.pt-BR.md).

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/ZaneL1u/remote-webview-debugger/gateway/internal/store"
 )
@@ -29,12 +30,20 @@ type fakeIdP struct {
 	next  map[string]any            // claims of the next sign-in
 	codes map[string]map[string]any // code -> {challenge, redirect, claims}
 	deny  bool
+	down  bool // discovery fails
 }
 
 func newFakeIdP(t *testing.T, provider string) *fakeIdP {
 	idp := &fakeIdP{t: t, provider: provider, codes: map[string]map[string]any{}}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
+		idp.mu.Lock()
+		down := idp.down
+		idp.mu.Unlock()
+		if down {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
 		methods := []string{"client_secret_post"}
 		if idp.basic {
 			methods = []string{"client_secret_basic", "client_secret_post"}
@@ -286,9 +295,12 @@ func TestSSOFailures(t *testing.T) {
 		t.Errorf("forged callback landed on %v", res.Request.URL)
 	}
 	// Offsite redirects are dropped.
+	// (The provider's email may be in any case; allowed domains still match.)
 	f.st.CreateUser(context.Background(), "ok@corp.example", "", store.RoleMember, "", "", nil)
-	if _, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_ok", "email": "ok@corp.example"}, "//evil.example/x"); to.Path != "/" || to.Host != strings.TrimPrefix(f.srv.URL, "http://") {
-		t.Errorf("offsite redirect landed on %v", to)
+	for _, offsite := range []string{"//evil.example/x", "/\t/evil.example/x", "/\t\\evil.example", "/%2F%2Fevil.example"} {
+		if _, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_ok", "email": "OK@Corp.Example"}, offsite); to.Path != "/" || to.Host != strings.TrimPrefix(f.srv.URL, "http://") {
+			t.Errorf("%q landed on %v", offsite, to)
+		}
 	}
 }
 
@@ -298,9 +310,14 @@ func TestSSOOpenIDConnect(t *testing.T) {
 	f := setupSSO(t, idp, func(o *OIDCConfig) { o.DefaultRole = store.RoleAdmin })
 	f.st.CreateUser(context.Background(), "carol@corp.example", "Carol", store.RoleMember, hashPassword("password1"), "", nil)
 
+	// Without email_verified (Entra ID sends none) the email doesn't count.
+	c, _ := f.ssoLogin(idp, map[string]any{"sub": "u-0", "email": "carol@corp.example", "name": "Eve"}, "")
+	if _, me := c.do("GET", "/me", nil); me["email"] != "oidc:u-0" || me["name"] != "Eve" {
+		t.Fatalf("no email_verified: %v", me)
+	}
 	// An unverified email neither links to the member who owns it nor
 	// becomes the sign-in name.
-	c, _ := f.ssoLogin(idp, map[string]any{"sub": "u-1", "email": "carol@corp.example", "email_verified": false,
+	c, _ = f.ssoLogin(idp, map[string]any{"sub": "u-1", "email": "carol@corp.example", "email_verified": false,
 		"preferred_username": "mallory"}, "")
 	_, me := c.do("GET", "/me", nil)
 	if me["email"] != "oidc:u-1" || me["name"] != "mallory" || me["role"] != "admin" {
@@ -333,7 +350,8 @@ func TestSSOConfigAndRedirects(t *testing.T) {
 		t.Errorf("lark: %v %+v", err, lark)
 	}
 	for in, want := range map[string]string{"/a?b=1": "/a?b=1", "": "/", "//x.example": "/", "/\\x.example": "/",
-		"https://x.example": "/", "devices": "/"} {
+		"https://x.example": "/", "devices": "/", "/\t/x.example": "/", "/\t\\x.example": "/", "/\n/x": "/",
+		"/%09/x": "/%09/x", "/%2F%2Fx.example": "/", "/a b#c": "/a%20b#c", "/devices/K7Q2?tab=log": "/devices/K7Q2?tab=log"} {
 		if got := safeRedirect(in); got != want {
 			t.Errorf("safeRedirect(%q) = %q", in, got)
 		}
@@ -347,5 +365,134 @@ func TestSSOConfigAndRedirects(t *testing.T) {
 	}
 	if _, cfg := f.login("owner@test", "password1").do("GET", "/config", nil); cfg["sso"] != nil {
 		t.Errorf("config sso = %v", cfg["sso"])
+	}
+}
+
+func TestSSOOpenIDConnectOptions(t *testing.T) {
+	// client_secret_post, and an email trusted without email_verified.
+	idp := newFakeIdP(t, ProviderOIDC)
+	f := setupSSO(t, idp, func(o *OIDCConfig) { o.TrustEmail = true })
+	f.st.CreateUser(context.Background(), "carol@corp.example", "Carol", store.RoleMember, "", "", nil)
+	c, _ := f.ssoLogin(idp, map[string]any{"sub": "u-1", "email": "Carol@Corp.example"}, "")
+	if _, me := c.do("GET", "/me", nil); me["name"] != "Carol" {
+		t.Fatalf("trusted email: %v", me)
+	}
+	if _, me := func() (int, map[string]any) {
+		c, _ := f.ssoLogin(idp, map[string]any{"sub": "u-2", "email": "x@corp.example", "email_verified": false}, "")
+		return c.do("GET", "/me", nil)
+	}(); me["email"] != "oidc:u-2" {
+		t.Fatalf("email_verified false with TrustEmail: %v", me)
+	}
+
+	// A failed discovery is reported, retried later, then works.
+	idp2 := newFakeIdP(t, ProviderOIDC)
+	idp2.down = true
+	f2 := setupSSO(t, idp2, nil)
+	if _, to := f2.ssoLogin(idp2, map[string]any{"sub": "a"}, ""); to.Query().Get("sso_error") != "provider" {
+		t.Fatalf("discovery down landed on %v", to)
+	}
+	idp2.mu.Lock()
+	idp2.down = false
+	idp2.mu.Unlock()
+	if _, to := f2.ssoLogin(idp2, map[string]any{"sub": "a"}, ""); to.Query().Get("sso_error") != "provider" {
+		t.Fatalf("discovery retried at once: %v", to) // still within the 30 s back-off
+	}
+	f2.s.cfg.OIDC.mu.Lock()
+	f2.s.cfg.OIDC.retryAt = time.Time{}
+	f2.s.cfg.OIDC.mu.Unlock()
+	if _, to := f2.ssoLogin(idp2, map[string]any{"sub": "a"}, "/x"); to.Path != "/x" {
+		t.Fatalf("after recovery landed on %v", to)
+	}
+}
+
+func TestSSOAccountEdges(t *testing.T) {
+	idp := newFakeIdP(t, ProviderFeishu)
+	f := setupSSO(t, idp, nil)
+	owner := f.login("owner@test", "password1")
+
+	// Without the email scope the account is "feishu:<open_id>", and gets
+	// the email once the provider shares it.
+	c, _ := f.ssoLogin(idp, map[string]any{"open_id": "ou_a", "name": "A"}, "")
+	_, me := c.do("GET", "/me", nil)
+	if me["email"] != "feishu:ou_a" {
+		t.Fatalf("no email: %v", me)
+	}
+	c, _ = f.ssoLogin(idp, map[string]any{"open_id": "ou_a", "enterprise_email": "a@corp.example"}, "")
+	if _, me2 := c.do("GET", "/me", nil); me2["id"] != me["id"] || me2["email"] != "a@corp.example" {
+		t.Fatalf("email upgrade: %v", me2)
+	}
+
+	// Another identity with the same email (a reassigned mailbox) does not
+	// get the account.
+	if _, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_b", "enterprise_email": "a@corp.example"}, ""); to.Query().Get("sso_error") != "conflict" {
+		t.Fatalf("second identity landed on %v", to)
+	}
+
+	// Removing the member removes the link: the identity starts over.
+	if code, _ := owner.do("DELETE", "/members/"+me["id"].(string), nil); code != 200 {
+		t.Fatalf("delete: %d", code)
+	}
+	c, _ = f.ssoLogin(idp, map[string]any{"open_id": "ou_a", "enterprise_email": "a@corp.example"}, "")
+	if _, me3 := c.do("GET", "/me", nil); me3["id"] == me["id"] || me3["email"] != "a@corp.example" {
+		t.Fatalf("after delete: %v", me3)
+	}
+
+	// A disabled invitee can't sign in, and the invite isn't used up.
+	_, inv := owner.do("POST", "/members", map[string]string{"email": "d@corp.example", "name": "D", "role": "member"})
+	owner.do("PATCH", "/members/"+inv["id"].(string), map[string]any{"disabled": true})
+	if _, to := f.ssoLogin(idp, map[string]any{"open_id": "ou_d", "enterprise_email": "d@corp.example"}, ""); to.Query().Get("sso_error") != "disabled" {
+		t.Fatalf("disabled invitee landed on %v", to)
+	}
+	token := strings.TrimPrefix(inv["inviteUrl"].(string), f.srv.URL+"/invite/")
+	if code, _ := owner.do("GET", "/invites/"+token, nil); code != 200 {
+		t.Fatalf("invite used up by a refused sign-in: %d", code)
+	}
+}
+
+func TestSSOStateCookie(t *testing.T) {
+	idp := newFakeIdP(t, ProviderFeishu)
+	f := setupSSO(t, idp, nil)
+	read := func(value string) bool {
+		r := httptest.NewRequest("GET", "/v1/api/auth/oidc/callback", nil)
+		r.AddCookie(&http.Cookie{Name: oidcCookie, Value: value})
+		_, ok := f.s.readOIDCState(r)
+		return ok
+	}
+	good := f.s.signOIDCState(oidcState{State: "s", Verifier: "v", Redirect: "/", Exp: time.Now().Add(time.Minute).Unix()})
+	payload, mac, _ := strings.Cut(good, ".")
+	other := f.s.signOIDCState(oidcState{State: "t", Verifier: "v", Redirect: "/", Exp: time.Now().Add(time.Minute).Unix()})
+	otherPayload, _, _ := strings.Cut(other, ".")
+	expired := f.s.signOIDCState(oidcState{State: "s", Exp: time.Now().Add(-time.Second).Unix()})
+	if !read(good) || read(otherPayload+"."+mac) || read(payload+".x") || read(payload) || read(expired) {
+		t.Fatal("state cookie accepted a forgery or an expired one, or refused a good one")
+	}
+	// The cookie stays on the callback path, HttpOnly, Secure over HTTPS.
+	f.s.cfg.TrustProxy = true
+	r := httptest.NewRequest("GET", "/v1/api/auth/oidc/start", nil)
+	r.Header.Set("X-Forwarded-Proto", "https")
+	w := httptest.NewRecorder()
+	f.s.oidcStart(w, r)
+	cs := w.Result().Cookies()
+	if len(cs) != 1 || cs[0].Path != oidcPath || !cs[0].HttpOnly || !cs[0].Secure || cs[0].SameSite != http.SameSiteLaxMode {
+		t.Fatalf("state cookie: %+v", cs)
+	}
+}
+
+func TestSSOFeishuNewApp(t *testing.T) {
+	// Another App ID: open_ids differ, members are linked again by email.
+	idp := newFakeIdP(t, ProviderFeishu)
+	f := setupSSO(t, idp, nil)
+	c, _ := f.ssoLogin(idp, map[string]any{"open_id": "ou_old", "enterprise_email": "a@corp.example"}, "")
+	_, before := c.do("GET", "/me", nil)
+	f.s.cfg.OIDC.ClientID = "app-id-2"
+	if got := f.s.cfg.OIDC.identityProvider(); got != "feishu:app-id-2" {
+		t.Fatalf("identity provider %q", got)
+	}
+	u, created, err := f.s.ssoAccount(context.Background(), &ssoUser{Subject: "ou_new", Email: "a@corp.example"})
+	if err != nil || created || u.ID != before["id"] {
+		t.Fatalf("new app: %v %v %v", u, created, err)
+	}
+	if err := f.st.AttachSSO(context.Background(), u); err != nil || mustJSONTest(u.SSO) != `["feishu"]` {
+		t.Fatalf("sso kinds: %v %v", u.SSO, err)
 	}
 }

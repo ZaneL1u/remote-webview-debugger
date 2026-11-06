@@ -1,4 +1,4 @@
-<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
+<!-- i18n-source: 068ae438288cfae0d5a68d844c1952e8a3a6704c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 게이트웨이
@@ -74,10 +74,15 @@ rwd version                             버전 출력
 | `RWD_OIDC_DEFAULT_ROLE` | `member` | 첫 로그인 때 만들어지는 계정의 역할: `member` 또는 `admin` |
 | `RWD_OIDC_INVITE_ONLY=1` | 꺼짐 | 계정을 만들지 않아요. 기존 멤버나 초대받은 멤버(같은 이메일)만 로그인할 수 있어요 |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 로그인을 허용할 이메일 도메인(쉼표로 구분). 예: `example.com` |
+| `RWD_OIDC_TRUST_EMAIL=1` | 꺼짐 | `oidc` 전용: `email_verified`를 보내지 않는 공급자(Microsoft Entra ID)의 이메일을 신뢰해요. 조직이 이메일을 관리하는 단일 테넌트 공급자에서만 쓰세요 |
 
 공급자에 다음 리디렉션 URL을 등록하세요. 정확히 일치해야 해요: `https://<host>/v1/api/auth/oidc/callback`. 즉 `RWD_PUBLIC_URL`의 origin(설정하지 않았으면 요청의 origin) 뒤에 `/v1/api/auth/oidc/callback`을 붙인 주소예요. 프록시 뒤에서는 URL이 바뀌지 않도록 `RWD_PUBLIC_URL`을 설정하세요.
 
-어떤 ID로 처음 로그인하면 같은 이메일의 멤버와 연결되거나(초대받은 멤버는 초대된 역할을 유지하고, 초대는 사용 처리돼요), `RWD_OIDC_INVITE_ONLY=1`이 아니면 `RWD_OIDC_DEFAULT_ROLE` 역할로 계정이 만들어져요. 이후 로그인에서는 공급자의 subject(Feishu와 Lark에서는 `open_id`)로 계정을 찾으므로, 이메일이 바뀌어도 상관없어요. OpenID Connect 공급자가 `email_verified: false`로 표시한 이메일은 무시하고, 이메일이 없는 계정은 로그인 이름이 `<provider>:<subject>`가 돼요. 소유자는 이 멤버들도 다른 멤버처럼 **멤버** 페이지에서 관리해요. 역할을 바꾸거나 비활성화하거나 삭제할 수 있고, 비활성화된 멤버는 어느 방식으로도 로그인할 수 없어요. SSO로 만든 계정에는 비밀번호가 없어요. 게이트웨이는 방금 받은 액세스 토큰으로 공급자의 userinfo 엔드포인트에서 사용자 정보를 읽어요(PKCE를 쓰는 authorization code flow). ID 토큰은 쓰지 않아요.
+어떤 ID로 처음 로그인하면 같은 이메일의 멤버와 연결되거나(초대받은 멤버는 초대된 역할을 유지하고, 초대는 사용 처리돼요), `RWD_OIDC_INVITE_ONLY=1`이 아니면 `RWD_OIDC_DEFAULT_ROLE` 역할로 계정이 만들어져요. 이후 로그인에서는 공급자의 subject(Feishu와 Lark에서는 `open_id`)로 계정을 찾으므로, 이메일이 바뀌어도 상관없어요. 공급자의 다른 ID와 이미 연결된 계정은 다시 연결하지 않고(주인이 바뀐 메일함은 `sso_error=conflict`를 받아요), 비활성화된 멤버의 초대는 그대로 둬요. OpenID Connect 공급자의 이메일은 `email_verified: true`일 때만(또는 `RWD_OIDC_TRUST_EMAIL=1`일 때) 인정하고, 이메일이 없는 계정은 로그인 이름이 `<provider>:<subject>`가 돼요. 소유자는 이 멤버들도 다른 멤버처럼 **멤버** 페이지에서 관리해요. 역할을 바꾸거나 비활성화하거나 삭제할 수 있고, 비활성화된 멤버는 어느 방식으로도 로그인할 수 없어요. SSO로 만든 계정에는 비밀번호가 없어요. 게이트웨이는 방금 받은 액세스 토큰으로 공급자의 userinfo 엔드포인트에서 사용자 정보를 읽어요(PKCE를 쓰는 authorization code flow). ID 토큰은 쓰지 않아요. 시작과 콜백은 클라이언트 IP당 분당 60회로 제한돼요(프록시 뒤에서는 `--trust-proxy`를 켜세요. 그러지 않으면 모두가 프록시의 IP를 함께 쓰게 돼요).
+
+**누가 로그인할 수 있는지.** 첫 로그인이 어느 기존 멤버(소유자 포함)와 연결될지는 공급자의 이메일이 결정해요. 그래서 공급자에서 이메일을 설정할 수 있는 사람은 그 계정들을 가로챌 수 있어요. Feishu나 Lark에서는 사내 앱을 쓰세요. 조직 구성원만, 조직의 이메일로 로그인할 수 있어요. 누구나 로그인할 수 있는 OpenID Connect 공급자(Google, 멀티 테넌트 Entra ID)라면 `RWD_OIDC_ALLOWED_DOMAINS`나 `RWD_OIDC_INVITE_ONLY=1`을 설정하세요. 그러지 않으면 누구나 계정을 얻게 돼요(시작할 때 로그에 경고가 남아요). 그리고 그런 공급자에서는 절대 `RWD_OIDC_TRUST_EMAIL=1`을 설정하지 마세요.
+
+**앱을 바꾸거나 SSO를 끌 때.** Feishu와 Lark의 `open_id`는 앱 하나에 속해요. 다른 App ID로 바꾸면 멤버는 이메일로 다시 연결되고, 이메일이 없는 계정(`feishu:…`)은 삭제한 뒤 다시 초대해야 해요. SSO로 만든 계정에는 비밀번호도 없으므로, SSO를 끄면 소유자가 이 계정들을 삭제하고 다시 초대해요.
 
 **Feishu 또는 Lark.** [Feishu Open Platform](https://open.feishu.cn/app)(Lark는 [open.larksuite.com](https://open.larksuite.com/app))에서 조직 구성원만 쓸 수 있는 사내 앱(custom app, 企业自建应用)을 만든 다음:
 

@@ -66,6 +66,7 @@ export const shell: typeof en = {
       state: 'El inicio de sesión caducó o se empezó en otro navegador. Vuelve a intentarlo.',
       not_allowed: 'El dominio de tu correo electrónico no puede iniciar sesión en esta consola.',
       no_account: 'Todavía no tienes cuenta en esta consola. Pide a un propietario que invite tu correo electrónico.',
+      conflict: 'La cuenta con tu correo electrónico en esta consola ya está vinculada a otra cuenta del proveedor. Pide a un propietario que lo revise.',
       disabled: 'Esta cuenta está desactivada. Ponte en contacto con el propietario del proyecto.',
       rate_limited: 'Demasiados intentos. Vuelve a intentarlo más tarde.',
     },

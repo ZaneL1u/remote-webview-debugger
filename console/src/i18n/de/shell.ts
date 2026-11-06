@@ -66,6 +66,7 @@ export const shell: typeof en = {
       state: 'Die Anmeldung ist abgelaufen oder wurde in einem anderen Browser gestartet. Versuchen Sie es erneut.',
       not_allowed: 'Die Domain Ihrer E-Mail-Adresse darf sich nicht bei dieser Konsole anmelden.',
       no_account: 'Sie haben noch kein Konto bei dieser Konsole. Bitten Sie einen Inhaber, Ihre E-Mail-Adresse einzuladen.',
+      conflict: 'Das Konto mit Ihrer E-Mail-Adresse ist in dieser Konsole bereits mit einem anderen Konto beim Anbieter verknüpft. Bitten Sie einen Inhaber, das zu prüfen.',
       disabled: 'Dieses Konto wurde deaktiviert. Wenden Sie sich an den Projektinhaber.',
       rate_limited: 'Zu viele Versuche. Versuchen Sie es später erneut.',
     },

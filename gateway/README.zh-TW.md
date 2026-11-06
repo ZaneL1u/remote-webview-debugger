@@ -1,4 +1,4 @@
-<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
+<!-- i18n-source: 068ae438288cfae0d5a68d844c1952e8a3a6704c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 閘道
@@ -74,10 +74,15 @@ rwd version                             顯示版本號
 | `RWD_OIDC_DEFAULT_ROLE` | `member` | 首次登入時建立的帳號的角色：`member` 或 `admin` |
 | `RWD_OIDC_INVITE_ONLY=1` | 關閉 | 不建立新帳號：只有現有成員或受邀成員（電子郵件相同）能登入 |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 允許登入的電子郵件網域，以逗號分隔，例如 `example.com` |
+| `RWD_OIDC_TRUST_EMAIL=1` | 關閉 | 僅限 `oidc`：提供者不傳送 `email_verified` 時（Microsoft Entra ID）也信任它提供的電子郵件。只適用於單一租用戶、電子郵件由你的組織掌控的提供者 |
 
 請在提供者那邊登記下面這個重新導向 URL，必須完全相符：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未設定時取請求的 origin）再加上 `/v1/api/auth/oidc/callback`。放在代理後面時請設定 `RWD_PUBLIC_URL`，讓這個 URL 保持固定。
 
-一個身分第一次登入時，會連結到電子郵件相同的成員（受邀成員保留邀請時的角色，邀請也隨之用掉）；沒有的話就以 `RWD_OIDC_DEFAULT_ROLE` 建立新帳號，除非設定了 `RWD_OIDC_INVITE_ONLY=1`。之後的登入會依提供者的 subject（飛書和 Lark 為 `open_id`）找到帳號，所以電子郵件改了也沒關係。OpenID Connect 提供者標示為 `email_verified: false` 的電子郵件會被忽略；沒有電子郵件的帳號，登入名稱為 `<provider>:<subject>`。owner 在「成員」頁面像管理其他人一樣管理這些成員：變更角色、停用或刪除；被停用的成員用哪種方式都無法登入。單一登入建立的帳號沒有密碼。閘道會用剛取得的 access token 從提供者的 userinfo 端點讀取使用者資料（搭配 PKCE 的授權碼流程），不使用 ID token。
+一個身分第一次登入時，會連結到電子郵件相同的成員（受邀成員保留邀請時的角色，邀請也隨之用掉）；沒有的話就以 `RWD_OIDC_DEFAULT_ROLE` 建立新帳號，除非設定了 `RWD_OIDC_INVITE_ONLY=1`。之後的登入會依提供者的 subject（飛書和 Lark 為 `open_id`）找到帳號，所以電子郵件改了也沒關係。已經連結到該提供者另一個身分的帳號不會再被連結（信箱被轉給別人時會得到 `sso_error=conflict`），被停用成員的邀請也會保持不動。OpenID Connect 提供者的電子郵件只有在 `email_verified: true`（或設定了 `RWD_OIDC_TRUST_EMAIL=1`）時才算數；沒有電子郵件的帳號，登入名稱為 `<provider>:<subject>`。owner 在「成員」頁面像管理其他人一樣管理這些成員：變更角色、停用或刪除；被停用的成員用哪種方式都無法登入。單一登入建立的帳號沒有密碼。閘道會用剛取得的 access token 從提供者的 userinfo 端點讀取使用者資料（搭配 PKCE 的授權碼流程），不使用 ID token。發起登入和回呼每個用戶端 IP 每分鐘最多 60 次（放在代理後面時請開啟 `--trust-proxy`，否則所有人會共用代理的 IP）。
+
+**誰能登入。** 首次登入會成為哪個現有成員，由提供者給的電子郵件決定，owner 也不例外，所以能在提供者那邊設定電子郵件的人，就能接管這些帳號。飛書或 Lark 請使用企業自建應用：只有你的組織成員能登入，用的也是組織的電子郵件。如果 OpenID Connect 提供者任何人都能登入（Google、多租用戶的 Entra ID），請設定 `RWD_OIDC_ALLOWED_DOMAINS` 或 `RWD_OIDC_INVITE_ONLY=1`，否則任何人都能取得帳號（啟動時記錄檔會發出警告）；這類提供者也絕對不要設定 `RWD_OIDC_TRUST_EMAIL=1`。
+
+**更換應用程式或關閉單一登入。** 飛書和 Lark 的 `open_id` 只屬於一個應用程式：改用另一個 App ID 後，成員會依電子郵件重新連結，沒有電子郵件的帳號（`feishu:…`）只能刪除後重新邀請。單一登入建立的帳號也沒有密碼，所以關閉單一登入時，owner 要刪除這些帳號再重新邀請。
 
 **飛書或 Lark。** 在[飛書開放平台](https://open.feishu.cn/app)（Lark 為 [open.larksuite.com](https://open.larksuite.com/app)）建立一個企業自建應用（只有你的組織成員能使用），然後：
 

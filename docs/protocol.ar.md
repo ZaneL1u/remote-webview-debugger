@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | العربية
 
 <div dir="rtl">
@@ -561,7 +561,7 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. يجب أن تكون كلمة المرور الجديدة من 8 إلى 256 حرفًا؛ و `400 bad_password` إذا كانت القديمة خاطئة |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` إلى مزوّد تسجيل الدخول الموحّد، مع ملف تعريف ارتباط موقَّع باسم `rwd_oidc` (قيمة state ومتحقِّق PKCE، لمدة 10 دقائق). `404` إذا لم يكن تسجيل الدخول الموحّد مفعَّلًا |
-| GET | `/auth/oidc/callback` | — | قيمتا `code` و `state` من المزوّد | يسجّل الدخول ويعيد `302` إلى `redirect` (مسار في لوحة التحكم، وإلا `/`). عند الفشل `302` إلى `/login?sso_error=<code>`: `provider`، `denied`، `state`، `not_allowed`، `no_account`، `disabled`، `rate_limited` |
+| GET | `/auth/oidc/callback` | — | قيمتا `code` و `state` من المزوّد | يسجّل الدخول ويعيد `302` إلى `redirect` (مسار في لوحة التحكم، وإلا `/`). عند الفشل `302` إلى `/login?sso_error=<code>`: `provider`، `denied`، `state`، `not_allowed`، `no_account`، `conflict` (العضو صاحب هذا البريد الإلكتروني مرتبط بهوية أخرى لدى المزوّد)، `disabled`، `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. قيمة `sso` هي `null`، أو `{"provider","name","defaultRole","inviteOnly"}` عند تفعيل تسجيل الدخول الموحّد |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (صالح لمدة 7 أيام، لمرة واحدة). `409 conflict` إذا كان البريد الإلكتروني موجودًا |
@@ -866,7 +866,7 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **المقاييس.** يُرجع `GET /v1/metrics` نصًا بصيغة Prometheus. عند ضبط `RWD_METRICS_TOKEN` يتطلب `Authorization: Bearer <token>`. السلاسل: `rwd_online_devices{project}`، و `rwd_connected_pages`، و `rwd_attached_agents`، و `rwd_ws_connections`، و `rwd_rpc_total{method,result}`، و `rwd_rpc_duration_seconds{method}` (مدرج تكراري)، و `rwd_http_requests_total{code}`.
 - **إصدارات SDK.** إصدار SDK المستخدم للتخزين المؤقت هو أول 12 حرفًا ست عشريًا من SHA-256 لملف `sdk.js` المضمَّن في البوابة، لذلك يتغير `/v1/sdk/<version>/sdk.js` كلما تغيّر الملف. يُرجعه `GET /v1/api/config` كـ `sdkVersion`، مع `sdkIntegrity` (‏`sha384-…`، للسمة `integrity`). تعرض لوحة التحكم مقتطفًا يثبّته.
 - **قاعدة البيانات.** `RWD_DATABASE_URL=postgres://…` (أو `postgresql://`) يختار Postgres؛ وإلا فإن `RWD_DATA` (الافتراضي `rwd.db`) ملف SQLite. يُنشأ المخطط ويُرحَّل عند بدء التشغيل.
-- **حدود المعدل.** تسجيل الدخول إلى لوحة التحكم وقبول الدعوات: 10 في الدقيقة لكل IP عميل. اتصالات الصفحات واستدعاءات الحضور: 120 في الدقيقة لكل IP عميل. تُؤخذ عناوين IP للعملاء من `X-Forwarded-For` فقط مع `--trust-proxy`؛ ويتحكم المفتاح نفسه في `X-Forwarded-Proto` و `X-Forwarded-Host`، اللذين يقرران ما إذا كان ملف تعريف ارتباط الجلسة `Secure`، والمخطط والمضيف لـ `gatewayUrl` المستنتج عندما لا يكون `--public-url` مضبوطًا.
+- **حدود المعدل.** تسجيل الدخول إلى لوحة التحكم وقبول الدعوات: 10 في الدقيقة لكل IP عميل. بدء تسجيل الدخول الموحّد واستدعاءات الرجوع: 60 في الدقيقة لكل IP عميل. اتصالات الصفحات واستدعاءات الحضور: 120 في الدقيقة لكل IP عميل. تُؤخذ عناوين IP للعملاء من `X-Forwarded-For` فقط مع `--trust-proxy`؛ ويتحكم المفتاح نفسه في `X-Forwarded-Proto` و `X-Forwarded-Host`، اللذين يقرران ما إذا كان ملف تعريف ارتباط الجلسة `Secure`، والمخطط والمضيف لـ `gatewayUrl` المستنتج عندما لا يكون `--public-url` مضبوطًا.
 - **الاحتفاظ بسجل التدقيق.** `RWD_AUDIT_RETENTION_DAYS` (الافتراضي 180)؛ وتُحذف الأحداث القديمة كل 6 ساعات.
 
 كل إعدادات البوابة مدرجة في [gateway/README.ar.md](../gateway/README.ar.md).

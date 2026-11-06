@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | Deutsch | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD-Protokoll (v1)
@@ -523,7 +523,7 @@ Rollen: `owner` (alles, einschließlich Mitgliedern), `admin` (Projekte, Keys, R
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Das neue Passwort muss 8–256 Zeichen lang sein; `400 bad_password`, wenn das alte falsch ist |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` zum Single-Sign-on-Anbieter, mit einem signierten Cookie `rwd_oidc` (State und PKCE-Verifier, 10 Minuten). `404` ohne Single Sign-on |
-| GET | `/auth/oidc/callback` | — | `code` und `state` des Anbieters | Meldet an und `302` zu `redirect` (ein Konsolenpfad, sonst `/`). Bei einem Fehler `302` zu `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | `code` und `state` des Anbieters | Meldet an und `302` zu `redirect` (ein Konsolenpfad, sonst `/`). Bei einem Fehler `302` zu `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (das Mitglied mit dieser E-Mail-Adresse ist mit einer anderen Identität des Anbieters verknüpft), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` ist `null` oder `{"provider","name","defaultRole","inviteOnly"}`, wenn Single Sign-on eingeschaltet ist |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (7 Tage gültig, einmalig). `409 conflict`, wenn die E-Mail-Adresse bereits existiert |
@@ -812,7 +812,7 @@ So kann ein chinesischsprachiger Nutzer mit einem englischsprachigen Agent arbei
 - **Metriken.** `GET /v1/metrics` liefert Prometheus-Text. Ist `RWD_METRICS_TOKEN` gesetzt, ist `Authorization: Bearer <token>` erforderlich. Serien: `rwd_online_devices{project}`, `rwd_connected_pages`, `rwd_attached_agents`, `rwd_ws_connections`, `rwd_rpc_total{method,result}`, `rwd_rpc_duration_seconds{method}` (Histogramm), `rwd_http_requests_total{code}`.
 - **SDK-Versionen.** Die für das Caching verwendete SDK-Version sind die ersten 12 Hex-Zeichen des SHA-256 der im Gateway eingebetteten `sdk.js`, sodass sich `/v1/sdk/<version>/sdk.js` ändert, sobald sich die Datei ändert. `GET /v1/api/config` liefert sie als `sdkVersion`, zusammen mit `sdkIntegrity` (`sha384-…`, für das `integrity`-Attribut). Die Konsole bietet ein Snippet an, das sie festschreibt.
 - **Datenbank.** `RWD_DATABASE_URL=postgres://…` (oder `postgresql://`) wählt Postgres; andernfalls ist `RWD_DATA` (Standard `rwd.db`) eine SQLite-Datei. Das Schema wird beim Start angelegt und migriert.
-- **Ratenbegrenzungen.** Anmeldung an der Konsole und Annahme von Einladungen: 10 pro Minute und Client-IP. Seitenverbindungen und Presence-Aufrufe: 120 pro Minute und Client-IP. Client-IPs werden nur mit `--trust-proxy` aus `X-Forwarded-For` übernommen; derselbe Schalter regelt `X-Forwarded-Proto` und `X-Forwarded-Host`, die bestimmen, ob das Sitzungs-Cookie `Secure` ist, sowie Schema und Host der abgeleiteten `gatewayUrl`, wenn `--public-url` nicht gesetzt ist.
+- **Ratenbegrenzungen.** Anmeldung an der Konsole und Annahme von Einladungen: 10 pro Minute und Client-IP. Single-Sign-on-Starts und -Callbacks: 60 pro Minute und Client-IP. Seitenverbindungen und Presence-Aufrufe: 120 pro Minute und Client-IP. Client-IPs werden nur mit `--trust-proxy` aus `X-Forwarded-For` übernommen; derselbe Schalter regelt `X-Forwarded-Proto` und `X-Forwarded-Host`, die bestimmen, ob das Sitzungs-Cookie `Secure` ist, sowie Schema und Host der abgeleiteten `gatewayUrl`, wenn `--public-url` nicht gesetzt ist.
 - **Aufbewahrung des Audit-Logs.** `RWD_AUDIT_RETENTION_DAYS` (Standard 180); alte Ereignisse werden alle 6 Stunden bereinigt.
 
 Alle Gateway-Einstellungen sind in [gateway/README.de.md](../gateway/README.de.md) aufgeführt.

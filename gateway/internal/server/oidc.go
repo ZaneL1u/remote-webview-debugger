@@ -57,9 +57,15 @@ type OIDCConfig struct {
 	InviteOnly bool
 	// AllowedDomains, if set, are the only email domains that may sign in.
 	AllowedDomains []string
+	// TrustEmail (oidc only) trusts the email of providers that don't send
+	// email_verified, such as Microsoft Entra ID. Without it only emails
+	// with email_verified true are used.
+	TrustEmail bool
 
 	mu        sync.Mutex
 	discovery *oidcDiscovery
+	retryAt   time.Time // after a failed discovery
+	lastErr   error
 }
 
 type oidcDiscovery struct {
@@ -112,11 +118,13 @@ func (o *OIDCConfig) validate() error {
 	return nil
 }
 
-// identityProvider keys linked identities: the provider, plus the issuer for
-// OpenID Connect, since subjects are only unique per issuer.
+// identityProvider keys linked identities: the provider plus the issuer for
+// OpenID Connect, since subjects are only unique per issuer, or plus the App
+// ID for Feishu and Lark, whose open_id belongs to one app (with another app,
+// members are linked again by email).
 func (o *OIDCConfig) identityProvider() string {
 	if o.Provider != ProviderOIDC {
-		return o.Provider
+		return o.Provider + ":" + o.ClientID
 	}
 	if o.Issuer != "" {
 		return ProviderOIDC + ":" + strings.TrimRight(o.Issuer, "/")
@@ -128,12 +136,28 @@ var oidcHTTP = &http.Client{Timeout: 10 * time.Second}
 
 // endpoints are the configured ones, else discovered (once, on first use, so
 // the gateway starts while the provider is unreachable).
+// A failed discovery is retried after 30 seconds, not on every request, and
+// the lock is not held during the request.
 func (o *OIDCConfig) endpoints(ctx context.Context) (*oidcDiscovery, error) {
 	o.mu.Lock()
-	defer o.mu.Unlock()
-	if o.discovery != nil {
-		return o.discovery, nil
+	if o.discovery != nil || time.Now().Before(o.retryAt) {
+		d, err := o.discovery, o.lastErr
+		o.mu.Unlock()
+		return d, err
 	}
+	o.mu.Unlock()
+	d, err := o.discover(ctx)
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if err != nil {
+		o.lastErr, o.retryAt = err, time.Now().Add(30*time.Second)
+		return nil, err
+	}
+	o.discovery, o.lastErr = d, nil
+	return d, nil
+}
+
+func (o *OIDCConfig) discover(ctx context.Context) (*oidcDiscovery, error) {
 	d := &oidcDiscovery{AuthorizationEndpoint: o.AuthURL, TokenEndpoint: o.TokenURL, UserinfoEndpoint: o.UserInfoURL}
 	if o.Provider == ProviderOIDC && o.Issuer != "" {
 		var found oidcDiscovery
@@ -152,7 +176,6 @@ func (o *OIDCConfig) endpoints(ctx context.Context) (*oidcDiscovery, error) {
 			return nil, errors.New("discovery: the provider lists no authorization, token or userinfo endpoint")
 		}
 	}
-	o.discovery = d
 	return d, nil
 }
 
@@ -232,12 +255,28 @@ func (s *Server) readOIDCState(r *http.Request) (*oidcState, bool) {
 }
 
 // safeRedirect keeps the post-login destination on the console: a path, not
-// "//host" or a URL.
+// "//host" or a URL. Browsers drop tabs and newlines from URLs and read \ as
+// /, so "/\t/host" or "/\\host" would leave the site: control characters and
+// backslashes are refused, and the path is parsed and written out again.
 func safeRedirect(p string) string {
-	if !strings.HasPrefix(p, "/") || strings.HasPrefix(p, "//") || strings.HasPrefix(p, "/\\") || strings.ContainsAny(p, "\r\n") {
+	if strings.ContainsFunc(p, func(c rune) bool { return c < 0x20 || c == 0x7f || c == '\\' }) {
 		return "/"
 	}
-	return p
+	u, err := url.Parse(p)
+	if err != nil || u.Scheme != "" || u.Host != "" || u.User != nil || !strings.HasPrefix(u.Path, "/") || strings.HasPrefix(u.Path, "//") {
+		return "/"
+	}
+	out := u.EscapedPath()
+	if strings.HasPrefix(out, "//") || strings.HasPrefix(out, "/\\") {
+		return "/"
+	}
+	if u.RawQuery != "" {
+		out += "?" + u.RawQuery
+	}
+	if u.Fragment != "" {
+		out += "#" + u.EscapedFragment()
+	}
+	return out
 }
 
 func (s *Server) oidcCallbackURL(r *http.Request) string {
@@ -249,6 +288,10 @@ func (s *Server) oidcStart(w http.ResponseWriter, r *http.Request) {
 	o := s.cfg.OIDC
 	if o == nil {
 		s.fail(w, r, http.StatusNotFound, "not_found", i18n.APINotFound)
+		return
+	}
+	if !s.ssoLimit.allow(s.clientIP(r)) {
+		s.ssoFailed(w, r, "rate_limited", "", nil)
 		return
 	}
 	d, err := o.endpoints(r.Context())
@@ -284,11 +327,13 @@ func (s *Server) oidcStart(w http.ResponseWriter, r *http.Request) {
 
 // ssoFailed records the failure and sends the browser to the login page,
 // which explains `code` in its language: provider, denied, state,
-// not_allowed, no_account, disabled, rate_limited.
+// not_allowed, no_account, conflict, disabled, rate_limited.
 func (s *Server) ssoFailed(w http.ResponseWriter, r *http.Request, code, who string, err error) {
 	detail := map[string]any{"ip": s.clientIP(r), "method": "sso", "reason": code}
 	if err != nil {
-		detail["error"] = err.Error()
+		// Partly the provider's (or a visitor's) text: keep it short.
+		msg := []rune(err.Error())
+		detail["error"] = string(msg[:min(len(msg), 200)])
 	}
 	if who == "" {
 		who = "sso"
@@ -313,7 +358,7 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, r, http.StatusNotFound, "not_found", i18n.APINotFound)
 		return
 	}
-	if !s.loginLimit.allow(s.clientIP(r)) {
+	if !s.ssoLimit.allow(s.clientIP(r)) {
 		s.ssoFailed(w, r, "rate_limited", "", nil)
 		return
 	}
@@ -357,6 +402,9 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, errNoAccount):
 		s.ssoFailed(w, r, "no_account", label, nil)
 		return
+	case errors.Is(err, errLinkedElsewhere):
+		s.ssoFailed(w, r, "conflict", label, nil)
+		return
 	case err != nil:
 		s.ssoFailed(w, r, "provider", label, err)
 		return
@@ -378,12 +426,16 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, st.Redirect, http.StatusFound)
 }
 
-var errNoAccount = errors.New("no account for this identity")
+var (
+	errNoAccount       = errors.New("no account for this identity")
+	errLinkedElsewhere = errors.New("the account with this email is linked to another identity of the provider")
+)
 
 // ssoAccount finds or creates the account of who: the account linked to the
 // identity, else the member with the same email (linked now, which also
-// accepts a pending invite), else a new account with the default role
-// unless the gateway is invite-only.
+// accepts a pending invite; not when that account already has another
+// identity of this provider, nor when it is disabled), else a new account
+// with the default role unless the gateway is invite-only.
 func (s *Server) ssoAccount(ctx context.Context, who *ssoUser) (*store.User, bool, error) {
 	o := s.cfg.OIDC
 	provider := o.identityProvider()
@@ -403,6 +455,14 @@ func (s *Server) ssoAccount(ctx context.Context, who *ssoUser) (*store.User, boo
 	if who.Email != "" {
 		u, err := s.store.UserByEmail(ctx, who.Email)
 		if err == nil {
+			if u.Disabled {
+				return u, false, nil // refused by the caller, invite left alone
+			}
+			// A reassigned email must not hand over the account of the
+			// person who had it.
+			if linked, err := s.store.HasIdentity(ctx, u.ID, provider); err != nil || linked {
+				return nil, false, cmp.Or(err, errLinkedElsewhere)
+			}
 			if err := s.store.LinkIdentity(ctx, u.ID, provider, who.Subject); err != nil {
 				return nil, false, err
 			}
@@ -426,10 +486,17 @@ func (s *Server) ssoAccount(ctx context.Context, who *ssoUser) (*store.User, boo
 	// password sign-in can match.
 	email := cmp.Or(who.Email, o.Provider+":"+who.Subject)
 	u, err = s.store.CreateUser(ctx, email, who.Name, o.DefaultRole, "", "", nil)
-	if err != nil {
-		return nil, false, err
+	if err == nil {
+		if err = s.store.LinkIdentity(ctx, u.ID, provider, who.Subject); err != nil {
+			_ = s.store.DeleteUser(ctx, u.ID)
+		}
 	}
-	if err := s.store.LinkIdentity(ctx, u.ID, provider, who.Subject); err != nil {
+	if errors.Is(err, store.ErrConflict) {
+		// The same identity's first sign-in, finishing in another tab.
+		u, err := s.store.UserByIdentity(ctx, provider, who.Subject)
+		return u, false, err
+	}
+	if err != nil {
 		return nil, false, err
 	}
 	return u, true, nil
@@ -500,10 +567,12 @@ func (o *OIDCConfig) userInfo(ctx context.Context, d *oidcDiscovery, token strin
 		if c.Sub == "" {
 			return nil, errors.New("userinfo: no sub")
 		}
-		who := &ssoUser{Subject: c.Sub, Email: c.Email, Name: cmp.Or(c.Name, c.PreferredUsername)}
-		// An email the provider has not verified must not take over the
-		// member who owns it.
-		if v := fmt.Sprint(c.EmailVerified); v == "false" {
+		who := &ssoUser{Subject: c.Sub, Email: store.NormEmail(c.Email), Name: cmp.Or(c.Name, c.PreferredUsername)}
+		// The email links the identity to the member who has it (an owner
+		// too), so only a verified one counts: email_verified true, or any
+		// with RWD_OIDC_TRUST_EMAIL=1. Providers such as Entra ID don't send
+		// it and let tenant admins set any email.
+		if v := fmt.Sprint(c.EmailVerified); v != "true" && !(o.TrustEmail && v != "false") {
 			who.Email = ""
 		}
 		if !emailRe.MatchString(who.Email) {
@@ -528,7 +597,10 @@ func (o *OIDCConfig) userInfo(ctx context.Context, d *oidcDiscovery, token strin
 	if res.Code != 0 || res.Data.OpenID == "" {
 		return nil, fmt.Errorf("user_info: code %d %s", res.Code, res.Msg)
 	}
-	who := &ssoUser{Subject: res.Data.OpenID, Email: cmp.Or(res.Data.EnterpriseEmail, res.Data.Email), Name: cmp.Or(res.Data.Name, res.Data.EnName)}
+	// Trusted as the tenant's: a custom app (企业自建应用) only lets the
+	// tenant's own people sign in, and their emails are the tenant's.
+	who := &ssoUser{Subject: res.Data.OpenID, Email: store.NormEmail(cmp.Or(res.Data.EnterpriseEmail, res.Data.Email)),
+		Name: cmp.Or(res.Data.Name, res.Data.EnName)}
 	if !emailRe.MatchString(who.Email) {
 		who.Email = ""
 	}

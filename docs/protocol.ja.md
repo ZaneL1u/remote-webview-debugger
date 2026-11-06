@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -523,7 +523,7 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新しいパスワードは 8〜256 文字。古いパスワードが誤っていれば `400 bad_password` |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | シングルサインオンのプロバイダーへ `302`。署名付き Cookie `rwd_oidc`（state と PKCE verifier、10 分間有効）を設定する。シングルサインオンが無効なら `404` |
-| GET | `/auth/oidc/callback` | — | プロバイダーからの `code` と `state` | サインインして `redirect`（管理コンソールのパス。それ以外なら `/`）へ `302`。失敗時は `/login?sso_error=<code>` へ `302`: `provider`、`denied`、`state`、`not_allowed`、`no_account`、`disabled`、`rate_limited` |
+| GET | `/auth/oidc/callback` | — | プロバイダーからの `code` と `state` | サインインして `redirect`（管理コンソールのパス。それ以外なら `/`）へ `302`。失敗時は `/login?sso_error=<code>` へ `302`: `provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（そのメールアドレスのメンバーが、プロバイダーの別の ID に紐付け済み）、`disabled`、`rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` は `null`、シングルサインオンが有効なら `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}`（7 日間有効、1 回限り）。メールアドレスが既存なら `409 conflict` |
@@ -812,7 +812,7 @@ stdio をホスト型の `/v1/mcp` に中継します。`--gateway` は `RWD_GAT
 - **メトリクス。** `GET /v1/metrics` は Prometheus のテキスト形式を返します。`RWD_METRICS_TOKEN` を設定すると `Authorization: Bearer <token>` が必要になります。系列: `rwd_online_devices{project}`、`rwd_connected_pages`、`rwd_attached_agents`、`rwd_ws_connections`、`rwd_rpc_total{method,result}`、`rwd_rpc_duration_seconds{method}`（ヒストグラム）、`rwd_http_requests_total{code}`。
 - **SDK のバージョン。** キャッシュに使う SDK のバージョンは、ゲートウェイに埋め込まれた `sdk.js` の SHA-256 の先頭 16 進数 12 文字です。そのため、ファイルが変わるたびに `/v1/sdk/<version>/sdk.js` も変わります。`GET /v1/api/config` はこれを `sdkVersion` として、`sdkIntegrity`（`sha384-…`、`integrity` 属性用）とともに返します。管理コンソールは、このバージョンを固定したスニペットを提供します。
 - **データベース。** `RWD_DATABASE_URL=postgres://…`（または `postgresql://`）で Postgres を選びます。それ以外の場合は `RWD_DATA`（デフォルト `rwd.db`）が SQLite ファイルになります。スキーマは起動時に作成・マイグレーションされます。
-- **レート制限。** 管理コンソールへのサインインと招待の受け入れ: クライアント IP ごとに 1 分あたり 10 回。ページ接続とプレゼンス呼び出し: クライアント IP ごとに 1 分あたり 120 回。クライアント IP を `X-Forwarded-For` から取るのは `--trust-proxy` を指定した場合のみです。同じスイッチで `X-Forwarded-Proto` と `X-Forwarded-Host` も扱いが決まり、これらはセッション Cookie を `Secure` にするかどうかと、`--public-url` が未設定の場合に推定する `gatewayUrl` のスキームとホストを決めます。
+- **レート制限。** 管理コンソールへのサインインと招待の受け入れ: クライアント IP ごとに 1 分あたり 10 回。シングルサインオンの開始とコールバック: クライアント IP ごとに 1 分あたり 60 回。ページ接続とプレゼンス呼び出し: クライアント IP ごとに 1 分あたり 120 回。クライアント IP を `X-Forwarded-For` から取るのは `--trust-proxy` を指定した場合のみです。同じスイッチで `X-Forwarded-Proto` と `X-Forwarded-Host` も扱いが決まり、これらはセッション Cookie を `Secure` にするかどうかと、`--public-url` が未設定の場合に推定する `gatewayUrl` のスキームとホストを決めます。
 - **監査ログの保持期間。** `RWD_AUDIT_RETENTION_DAYS`（デフォルト 180）。古いイベントは 6 時間ごとに削除されます。
 
 ゲートウェイのすべての設定は [gateway/README.ja.md](../gateway/README.ja.md) に記載されています。

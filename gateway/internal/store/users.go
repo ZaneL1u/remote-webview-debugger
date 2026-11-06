@@ -38,8 +38,8 @@ type User struct {
 	Pending     bool   `json:"pending"`
 	CreatedAt   int64  `json:"createdAt"`
 	LastLoginAt *int64 `json:"lastLoginAt"`
-	// HasPassword: the account can sign in with a password (single sign-on
-	// accounts have none until they set one).
+	// HasPassword: the account can sign in with a password (accounts created
+	// by single sign-on have none).
 	HasPassword bool `json:"hasPassword"`
 	// SSO lists the single sign-on providers linked to the account ("feishu",
 	// "lark", "oidc"); filled by AttachSSO.
@@ -207,6 +207,13 @@ func (s *Store) LinkIdentity(ctx context.Context, userID, provider, subject stri
 	}
 	_, err = s.exec(ctx, `UPDATE users SET invite_hash = '', invite_expires = NULL WHERE id = ?`, userID)
 	return err
+}
+
+// HasIdentity reports whether the account is linked to an identity of provider.
+func (s *Store) HasIdentity(ctx context.Context, userID, provider string) (bool, error) {
+	var n int
+	err := s.row(ctx, `SELECT COUNT(*) FROM user_identities WHERE user_id = ? AND provider = ?`, userID, provider).Scan(&n)
+	return n > 0, err
 }
 
 // SetEmail changes the account's email (its sign-in name).

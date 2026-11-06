@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -523,7 +523,7 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`。新密碼須為 8–256 個字元；舊密碼不正確時 `400 bad_password` |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` 重新導向到單一登入的提供者，同時寫入簽章 cookie `rwd_oidc`（存放 state 和 PKCE verifier，10 分鐘有效）。未啟用單一登入時 `404` |
-| GET | `/auth/oidc/callback` | — | 提供者傳回的 `code` 和 `state` | 完成登入並 `302` 重新導向到 `redirect`（須為主控台路徑，否則導向 `/`）。失敗時 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`disabled`、`rate_limited` |
+| GET | `/auth/oidc/callback` | — | 提供者傳回的 `code` 和 `state` | 完成登入並 `302` 重新導向到 `redirect`（須為主控台路徑，否則導向 `/`）。失敗時 `302` 到 `/login?sso_error=<code>`：`provider`、`denied`、`state`、`not_allowed`、`no_account`、`conflict`（使用該電子郵件的成員已連結到該提供者的另一個身分）、`disabled`、`rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`。`sso` 為 `null`；啟用單一登入時為 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<主機>/invite/<token>"}`（7 天內有效，只能使用一次）。電子郵件已存在時 `409 conflict` |
@@ -812,7 +812,7 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **指標。** `GET /v1/metrics` 回傳 Prometheus 文字格式。設定了 `RWD_METRICS_TOKEN` 時需要 `Authorization: Bearer <token>`。指標序列：`rwd_online_devices{project}`、`rwd_connected_pages`、`rwd_attached_agents`、`rwd_ws_connections`、`rwd_rpc_total{method,result}`、`rwd_rpc_duration_seconds{method}`（直方圖）、`rwd_http_requests_total{code}`。
 - **SDK 版本。** 用於快取的 SDK 版本號，是閘道內嵌的 `sdk.js` 其 SHA-256 的前 12 個十六進位字元，所以檔案一變，`/v1/sdk/<version>/sdk.js` 的網址就跟著變。`GET /v1/api/config` 以 `sdkVersion` 回傳它，同時回傳 `sdkIntegrity`（`sha384-…`，供 `integrity` 屬性使用）。主控台提供固定版本的程式碼片段。
 - **資料庫。** 設定 `RWD_DATABASE_URL=postgres://…`（或 `postgresql://`）時使用 Postgres；否則 `RWD_DATA`（預設 `rwd.db`）是 SQLite 檔案。啟動時會自動建立並遷移資料表結構。
-- **速率限制。** 主控台登入和接受邀請：每個用戶端 IP 每分鐘 10 次。頁面連線和輪詢：每個用戶端 IP 每分鐘 120 次。只有開啟 `--trust-proxy` 時，才會從 `X-Forwarded-For` 取得用戶端 IP；`X-Forwarded-Proto` 和 `X-Forwarded-Host` 也受同一個開關控制，它們決定工作階段 cookie 是否帶 `Secure`，以及未設定 `--public-url` 時推斷出的 `gatewayUrl` 的協定和主機。
+- **速率限制。** 主控台登入和接受邀請：每個用戶端 IP 每分鐘 10 次。單一登入的發起和回呼：每個用戶端 IP 每分鐘 60 次。頁面連線和輪詢：每個用戶端 IP 每分鐘 120 次。只有開啟 `--trust-proxy` 時，才會從 `X-Forwarded-For` 取得用戶端 IP；`X-Forwarded-Proto` 和 `X-Forwarded-Host` 也受同一個開關控制，它們決定工作階段 cookie 是否帶 `Secure`，以及未設定 `--public-url` 時推斷出的 `gatewayUrl` 的協定和主機。
 - **稽核保留期限。** `RWD_AUDIT_RETENTION_DAYS`（預設 180 天），每 6 小時清除一次過期的事件。
 
 閘道的所有設定項目見 [gateway/README.zh-TW.md](../gateway/README.zh-TW.md)。

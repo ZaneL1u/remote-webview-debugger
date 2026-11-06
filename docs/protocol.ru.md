@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | Русский | [العربية](protocol.ar.md)
 
 # Протокол RWD (v1)
@@ -523,7 +523,7 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. Новый пароль должен содержать от 8 до 256 символов; `400 bad_password`, если старый неверен |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302` на поставщика единого входа с подписанным cookie `rwd_oidc` (state и верификатор PKCE, 10 минут). `404`, если единый вход не настроен |
-| GET | `/auth/oidc/callback` | — | `code` и `state` от поставщика | Выполняет вход и `302` на `redirect` (путь веб-консоли, иначе `/`). При ошибке `302` на `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | `code` и `state` от поставщика | Выполняет вход и `302` на `redirect` (путь веб-консоли, иначе `/`). При ошибке `302` на `/login?sso_error=<code>`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict` (участник с этим email привязан к другому удостоверению поставщика), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso` — это `null` или `{"provider","name","defaultRole","inviteOnly"}`, если единый вход включён |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}` (действует 7 дней, одноразовое). `409 conflict`, если такой email уже есть |
@@ -812,7 +812,7 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **Метрики.** `GET /v1/metrics` возвращает текст в формате Prometheus. Если задан `RWD_METRICS_TOKEN`, требуется `Authorization: Bearer <token>`. Серии: `rwd_online_devices{project}`, `rwd_connected_pages`, `rwd_attached_agents`, `rwd_ws_connections`, `rwd_rpc_total{method,result}`, `rwd_rpc_duration_seconds{method}` (гистограмма), `rwd_http_requests_total{code}`.
 - **Версии SDK.** Версия SDK для кэширования — первые 12 шестнадцатеричных символов SHA-256 от встроенного в шлюз `sdk.js`, поэтому `/v1/sdk/<version>/sdk.js` меняется всякий раз, когда меняется файл. `GET /v1/api/config` возвращает её как `sdkVersion` вместе с `sdkIntegrity` (`sha384-…`, для атрибута `integrity`). Веб-консоль предлагает фрагмент кода, закрепляющий эту версию.
 - **База данных.** `RWD_DATABASE_URL=postgres://…` (или `postgresql://`) выбирает Postgres; иначе `RWD_DATA` (по умолчанию `rwd.db`) — файл SQLite. Схема создаётся и мигрируется при запуске.
-- **Ограничения частоты.** Вход в веб-консоль и принятие приглашений: 10 в минуту с одного IP клиента. Соединения страниц и вызовы presence: 120 в минуту с одного IP клиента. IP клиента берутся из `X-Forwarded-For` только с `--trust-proxy`; тот же переключатель управляет `X-Forwarded-Proto` и `X-Forwarded-Host`, от которых зависят флаг `Secure` у cookie сеанса, а также схема и хост выводимого `gatewayUrl`, когда `--public-url` не задан.
+- **Ограничения частоты.** Вход в веб-консоль и принятие приглашений: 10 в минуту с одного IP клиента. Запуски и обратные вызовы единого входа: 60 в минуту с одного IP клиента. Соединения страниц и вызовы presence: 120 в минуту с одного IP клиента. IP клиента берутся из `X-Forwarded-For` только с `--trust-proxy`; тот же переключатель управляет `X-Forwarded-Proto` и `X-Forwarded-Host`, от которых зависят флаг `Secure` у cookie сеанса, а также схема и хост выводимого `gatewayUrl`, когда `--public-url` не задан.
 - **Хранение аудита.** `RWD_AUDIT_RETENTION_DAYS` (по умолчанию 180); старые события удаляются каждые 6 часов.
 
 Все настройки шлюза перечислены в [gateway/README.ru.md](../gateway/README.ru.md).

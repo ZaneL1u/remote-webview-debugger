@@ -1,4 +1,4 @@
-<!-- i18n-source: 013b63c5d403936b5bc15ab9f3fa4a59469f6715 -->
+<!-- i18n-source: 068ae438288cfae0d5a68d844c1952e8a3a6704c -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
@@ -74,10 +74,15 @@ rwd version                             打印版本号
 | `RWD_OIDC_DEFAULT_ROLE` | `member` | 首次登录时新建账号的角色：`member` 或 `admin` |
 | `RWD_OIDC_INVITE_ONLY=1` | 关闭 | 不新建账号：只有已有成员或受邀成员（邮箱相同）能登录 |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 允许登录的邮箱域名，逗号分隔，如 `example.com` |
+| `RWD_OIDC_TRUST_EMAIL=1` | 关闭 | 仅 `oidc`：提供方不发送 `email_verified` 时（Microsoft Entra ID）也信任它给的邮箱。只适用于单租户、邮箱由你的组织掌控的提供方 |
 
 在提供方那里登记下面这个重定向 URL，必须完全一致：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未设置时取请求的 origin）加上 `/v1/api/auth/oidc/callback`。放在代理后面时请设置 `RWD_PUBLIC_URL`，让这个 URL 保持不变。
 
-一个身份第一次登录时，会关联到同邮箱的成员（受邀成员保留邀请时的角色，邀请随即用掉）；没有的话就以 `RWD_OIDC_DEFAULT_ROLE` 新建账号，除非设置了 `RWD_OIDC_INVITE_ONLY=1`。之后的登录按提供方的 subject（飞书和 Lark 为 `open_id`）找到账号，所以邮箱改了也不影响。OpenID Connect 提供方标为 `email_verified: false` 的邮箱会被忽略；没有邮箱的账号，登录名是 `<provider>:<subject>`。owner 在「成员」页面像管理其他人一样管理这些成员：修改角色、停用或删除；被停用的成员两种方式都登录不了。单点登录创建的账号没有密码。网关用刚拿到的 access token 从提供方的 userinfo 端点读取用户信息（带 PKCE 的授权码流程），不使用 ID token。
+一个身份第一次登录时，会关联到同邮箱的成员（受邀成员保留邀请时的角色，邀请随即用掉）；没有的话就以 `RWD_OIDC_DEFAULT_ROLE` 新建账号，除非设置了 `RWD_OIDC_INVITE_ONLY=1`。之后的登录按提供方的 subject（飞书和 Lark 为 `open_id`）找到账号，所以邮箱改了也不影响。已经关联了该提供方另一个身份的账号不会再被关联（邮箱被转给别人时会得到 `sso_error=conflict`），被停用成员的邀请也保持不动。OpenID Connect 提供方的邮箱只有在 `email_verified: true`（或设置了 `RWD_OIDC_TRUST_EMAIL=1`）时才算数；没有邮箱的账号，登录名是 `<provider>:<subject>`。owner 在「成员」页面像管理其他人一样管理这些成员：修改角色、停用或删除；被停用的成员两种方式都登录不了。单点登录创建的账号没有密码。网关用刚拿到的 access token 从提供方的 userinfo 端点读取用户信息（带 PKCE 的授权码流程），不使用 ID token。发起登录和回调每个客户端 IP 每分钟最多 60 次（放在代理后面时请开启 `--trust-proxy`，否则所有人共用代理的 IP）。
+
+**谁能进来。** 首次登录关联到哪个已有成员，由提供方给的邮箱决定，owner 也不例外，所以能在提供方那里设置邮箱的人，就能接管这些账号。飞书或 Lark 请用企业自建应用：只有本组织的人能登录，用的也是本组织的邮箱。如果 OpenID Connect 提供方谁都能登录（Google、多租户的 Entra ID），请设置 `RWD_OIDC_ALLOWED_DOMAINS` 或 `RWD_OIDC_INVITE_ONLY=1`，否则任何人都能拿到账号（启动时日志会给出警告）；这类提供方也绝不要设置 `RWD_OIDC_TRUST_EMAIL=1`。
+
+**更换应用或关闭单点登录。** 飞书和 Lark 的 `open_id` 只属于一个应用：换成另一个 App ID 后，成员会按邮箱重新关联，没有邮箱的账号（`feishu:…`）只能删除后重新邀请。单点登录创建的账号也没有密码，所以关闭单点登录时，owner 要删除这些账号再重新邀请。
 
 **飞书或 Lark。** 在[飞书开放平台](https://open.feishu.cn/app)（Lark 为 [open.larksuite.com](https://open.larksuite.com/app)）创建一个企业自建应用，只有本组织的人能用，然后：
 

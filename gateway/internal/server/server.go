@@ -70,6 +70,7 @@ type Server struct {
 	started       time.Time
 
 	loginLimit *limiter
+	ssoLimit   *limiter // single sign-on starts and callbacks
 	pageLimit  *limiter
 	mcpLimit   *limiter // nil: unlimited
 	demoLimit  *limiter // demo keys per client IP
@@ -91,9 +92,12 @@ func New(ctx context.Context, cfg Config, st *store.Store, log *slog.Logger) (*S
 		if err := cfg.OIDC.validate(); err != nil {
 			return nil, err
 		}
+		if o := cfg.OIDC; o.Provider == ProviderOIDC && !o.InviteOnly && len(o.AllowedDomains) == 0 {
+			log.Warn("single sign-on: anyone who can sign in at the provider gets an account; set RWD_OIDC_ALLOWED_DOMAINS or RWD_OIDC_INVITE_ONLY=1 unless only your people can", "issuer", o.Issuer, "role", o.DefaultRole)
+		}
 	}
 	s := &Server{cfg: cfg, store: st, log: log, audit: make(chan store.AuditEvent, 1024), started: time.Now(),
-		loginLimit: newLimiter(10, time.Minute), pageLimit: newLimiter(120, time.Minute)}
+		loginLimit: newLimiter(10, time.Minute), ssoLimit: newLimiter(60, time.Minute), pageLimit: newLimiter(120, time.Minute)}
 	var err error
 	if s.pepper, err = st.Setting(ctx, "key_pepper", func() string { return ids.Secret(32) }); err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-<!-- i18n-source: 4aba3543b3bf9d3d896c32c62bd7303d061f9795 -->
+<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -523,7 +523,7 @@ type Policy = {
 | GET | `/me` | member | — | `Member` |
 | POST | `/me/password` | member | `{"oldPassword","newPassword"}` | `{"ok":true}`. 새 비밀번호는 8–256자여야 해요. 기존 비밀번호가 틀리면 `400 bad_password` |
 | GET | `/auth/oidc/start?redirect=/path` | — | — | `302`로 SSO 공급자에게 보내고, 서명된 쿠키 `rwd_oidc`(state와 PKCE verifier, 10분)를 설정해요. SSO가 꺼져 있으면 `404` |
-| GET | `/auth/oidc/callback` | — | 공급자가 보낸 `code`와 `state` | 로그인한 뒤 `redirect`(콘솔 경로, 아니면 `/`)로 `302`. 실패하면 `/login?sso_error=<code>`로 `302`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `disabled`, `rate_limited` |
+| GET | `/auth/oidc/callback` | — | 공급자가 보낸 `code`와 `state` | 로그인한 뒤 `redirect`(콘솔 경로, 아니면 `/`)로 `302`. 실패하면 `/login?sso_error=<code>`로 `302`: `provider`, `denied`, `state`, `not_allowed`, `no_account`, `conflict`(그 이메일의 멤버가 공급자의 다른 ID와 연결되어 있음), `disabled`, `rate_limited` |
 | GET | `/config` | — | — | `{"gatewayUrl","version","sdkVersion","sdkIntegrity","sso"}`. `sso`는 `null`이거나, SSO가 켜져 있으면 `{"provider","name","defaultRole","inviteOnly"}` |
 | GET | `/members` | admin | — | `{"members":[Member]}` |
 | POST | `/members` | owner | `{"email","name","role"}` | `Member & {"inviteUrl":"https://<host>/invite/<token>"}`(7일 동안 한 번 유효). 이메일이 이미 있으면 `409 conflict` |
@@ -812,7 +812,7 @@ RWD_API_KEY=rwd_sk_live_… rwd mcp --gateway https://rwd.example.com/v1
 - **메트릭.** `GET /v1/metrics`는 Prometheus 텍스트를 반환해요. `RWD_METRICS_TOKEN`을 설정하면 `Authorization: Bearer <token>`이 필요해요. 시리즈: `rwd_online_devices{project}`, `rwd_connected_pages`, `rwd_attached_agents`, `rwd_ws_connections`, `rwd_rpc_total{method,result}`, `rwd_rpc_duration_seconds{method}`(히스토그램), `rwd_http_requests_total{code}`.
 - **SDK 버전.** 캐시에 쓰는 SDK 버전은 게이트웨이에 내장된 `sdk.js`의 SHA-256 앞 16진수 12자예요. 그래서 파일이 바뀔 때마다 `/v1/sdk/<version>/sdk.js`도 바뀌어요. `GET /v1/api/config`는 이 값을 `sdkVersion`으로, `sdkIntegrity`(`sha384-…`, `integrity` 속성용)와 함께 반환해요. 콘솔은 이 버전을 고정한 스니펫을 제공해요.
 - **데이터베이스.** `RWD_DATABASE_URL=postgres://…`(또는 `postgresql://`)이면 Postgres를 써요. 그렇지 않으면 `RWD_DATA`(기본값 `rwd.db`)가 SQLite 파일이에요. 스키마는 시작할 때 만들어지고 마이그레이션돼요.
-- **속도 제한.** 콘솔 로그인과 초대 수락: 클라이언트 IP당 분당 10회. 페이지 연결과 프레즌스 호출: 클라이언트 IP당 분당 120회. 클라이언트 IP는 `--trust-proxy`가 있을 때만 `X-Forwarded-For`에서 가져와요. 같은 스위치가 `X-Forwarded-Proto`와 `X-Forwarded-Host`도 다루는데, 이 둘은 세션 쿠키에 `Secure`를 붙일지, 그리고 `--public-url`이 설정되지 않았을 때 추론하는 `gatewayUrl`의 스킴과 호스트를 결정해요.
+- **속도 제한.** 콘솔 로그인과 초대 수락: 클라이언트 IP당 분당 10회. SSO 시작과 콜백: 클라이언트 IP당 분당 60회. 페이지 연결과 프레즌스 호출: 클라이언트 IP당 분당 120회. 클라이언트 IP는 `--trust-proxy`가 있을 때만 `X-Forwarded-For`에서 가져와요. 같은 스위치가 `X-Forwarded-Proto`와 `X-Forwarded-Host`도 다루는데, 이 둘은 세션 쿠키에 `Secure`를 붙일지, 그리고 `--public-url`이 설정되지 않았을 때 추론하는 `gatewayUrl`의 스킴과 호스트를 결정해요.
 - **감사 로그 보관.** `RWD_AUDIT_RETENTION_DAYS`(기본값 180). 오래된 이벤트는 6시간마다 삭제돼요.
 
 모든 게이트웨이 설정은 [gateway/README.ko.md](../gateway/README.ko.md)에 정리되어 있어요.

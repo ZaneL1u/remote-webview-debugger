@@ -58,6 +58,7 @@ export const shell: typeof en = {
       state: '登录已过期，或是在另一个浏览器里发起的，请重试',
       not_allowed: '你的邮箱域名不允许登录这个控制台',
       no_account: '你在这个控制台还没有账号，请所有者先邀请你的邮箱',
+      conflict: '这个控制台里同邮箱的账号已经关联了另一个身份提供方账号，请联系所有者确认',
       disabled: '该账号已停用，请联系项目所有者',
       rate_limited: '尝试次数过多，请稍后再试',
     },
