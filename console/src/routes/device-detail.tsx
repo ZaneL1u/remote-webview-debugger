@@ -407,7 +407,7 @@ const kindMeta: Record<string, { icon: React.ReactNode; tone: string }> = {
   user_tap: { icon: <MousePointerClickIcon />, tone: 'text-foreground' },
   page_open: { icon: <AppWindowIcon />, tone: 'text-success' },
   page_close: { icon: <XIcon />, tone: 'text-muted-foreground' },
-  help: { icon: <LifeBuoyIcon />, tone: 'text-destructive' },
+  help: { icon: <LifeBuoyIcon />, tone: 'text-success' },
   control: { icon: <HandIcon />, tone: 'text-warning' },
   agent_connect: { icon: <PlugIcon />, tone: 'text-brand' },
   agent_disconnect: { icon: <UnplugIcon />, tone: 'text-muted-foreground' },

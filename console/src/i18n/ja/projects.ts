@@ -39,15 +39,20 @@ export const projects: typeof en = {
 
   keys: {
     title: 'API キー',
-    pageDescription: 'MCP 経由でエージェントを接続するためのキーです。キーはプロジェクトではなくゲートウェイ全体に属し、1 つのキーと 1 つの MCP サーバーですべてのデバイスにアクセスできます。',
+    pageDescription: 'MCP 経由でエージェントを接続するためのキーです。キーはプロジェクトではなく作成したメンバーに属し、1 つのキーと 1 つの MCP サーバーですべてのデバイスにアクセスできます。',
     description: 'エージェントはキーを使って MCP 経由で接続します。キーはすべてのプロジェクトにわたり、ゲートウェイ上のすべてのデバイスにアクセスできます。キーは秘密にし、漏えいした場合はすぐに取り消してください。',
     readOnly: ' あなたのロールではキーの閲覧のみ可能です。作成と取り消しには管理者の権限が必要です。',
+    manageNote: ' キーは各メンバーが自分用に作成します。管理者のあなたは全員のキーを閲覧・取り消しできます。',
+    ownNote: ' 自分が作成したキーが表示され、いつでも取り消せます。メンバーが作成できるキーは「閲覧と操作」レベルまでです。',
+    scope: { label: '表示範囲', all: '全員', mine: '自分のみ' },
+    emptyMineTitle: 'まだ API キーがありません',
     createKey: 'キーを作成',
     emptyTitle: 'まだ API キーはありません',
     emptyDescription: 'キーを作成し、エージェント用の MCP 設定コマンドをコピーしてください。',
 
     columns: {
       name: '名前',
+      owner: '作成者',
       key: 'キー',
       level: 'レベル',
       expiry: '有効期限',
@@ -71,6 +76,16 @@ export const projects: typeof en = {
     expired: '期限切れ',
     expiredTitle: (date) => `${date} に期限切れ`,
     active: '有効',
+    gatewayKey: 'ゲートウェイキー',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: 'キーがメンバーに属するようになる前に作成されたキーです。オーナーと管理者だけが閲覧・取り消しできます',
+    deletedOwner: '削除されたメンバー',
+    ownerYou: (name: string) => `${name}（あなた）`,
+    ownerDisabled: '作成者が無効',
+    ownerDisabledTitle: 'このキーを作成したメンバーが無効化されているため、再度有効になるまでキーは使えません',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `このキーは ${name} が作成しました。`,
+    levelMemberHint: 'あなたのロールで作成できるのは「閲覧と操作」レベルまでです。「高度」が必要な場合は管理者に依頼してください。',
 
     revoke: '取り消す',
     revokedToast: (name) => `「${name}」を取り消しました`,

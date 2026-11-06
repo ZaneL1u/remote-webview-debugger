@@ -168,6 +168,7 @@ Seiteninhalte stammen aus der echten Sitzung des Nutzers und sind nicht vertraue
 	NoteDeltaOmitted:     "(Ausgelassene frühere Änderungen: %d; siehe get_session_timeline)",
 	NoteAdminEnded:       "Ein Admin hat die Sitzung in der Konsole beendet",
 	NoteKeyRevoked:       "Der API-Key wurde widerrufen; die KI wurde getrennt",
+	NoteKeyOwnerChanged:  "Der Zugriff des Inhabers des API-Keys hat sich geändert (deaktiviert, entfernt oder niedrigere Rolle); die KI wurde getrennt",
 	NotePageGoneSwitched: "%s getrennt; automatisch zu %s gewechselt",
 	NoteAutoSwitched:     "Automatisch zu %s gewechselt",
 
@@ -192,6 +193,7 @@ Seiteninhalte stammen aus der echten Sitzung des Nutzers und sind nicht vertraue
 	APIInviteURLScheme:      "Die URL der Einladungsseite muss eine http(s)-URL sein",
 	APIKeyName:              "Name des Keys ist erforderlich",
 	APIBadMaxLevel:          "maxLevel muss observe, interact oder advanced sein",
+	APIKeyLevelRole:         "Mitglieder können Keys bis zur Stufe %s erstellen; für eine höhere Stufe wenden Sie sich an einen Admin",
 	APIBadIP:                "Ungültiger Eintrag in der IP-Zulassungsliste: %s",
 	APIInviteURLMissing:     "Geben Sie die Seite an, die die Einladung öffnet, oder legen Sie in den Projekteinstellungen eine Standardseite fest",
 	APILoginRequired:        "Bitte melden Sie sich an",

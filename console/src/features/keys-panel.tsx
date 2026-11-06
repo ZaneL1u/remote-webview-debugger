@@ -25,7 +25,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { type Messages, rich, useT } from '@/i18n'
 import { api } from '@/lib/api'
 import { formatDate, formatDay, relativeTime, untilTime } from '@/lib/format'
-import { useCan } from '@/lib/permissions'
+import { useCan, useMe } from '@/lib/permissions'
 import { levelMeta, levels, parseCidrs } from '@/lib/policy'
 import { configQuery, keysQuery } from '@/lib/queries'
 import { hostedMcpCommand, localMcpCommand, mcpJsonConfig } from '@/lib/snippets'
@@ -34,11 +34,21 @@ import { cn } from '@/lib/utils'
 
 const KEY_PLACEHOLDER = 'rwd_sk_live_…'
 
+type Scope = 'all' | 'mine'
+
 export function KeysPanel() {
-  const keys = useQuery(keysQuery)
   const config = useQuery(configQuery)
   const gateway = config.data?.gatewayUrl
+  // Every member creates and revokes keys of their own; owners and admins also see and revoke everyone's.
   const manage = useCan('key.manage')
+  const create = useCan('key.own') || manage
+  const me = useMe()
+  const [scope, setScope] = useState<Scope>('all')
+  const mine = manage && scope === 'mine'
+  // Members always get only their own keys; ['keys', 'mine'] shares the ['keys'] prefix, so invalidating keysQuery refreshes both.
+  const keys = useQuery(
+    mine ? { queryKey: [...keysQuery.queryKey, 'mine'], queryFn: () => api.keys({ mine: true }) } : keysQuery,
+  )
   const [createOpen, setCreateOpen] = useState(false)
   const t = useT()
 
@@ -53,15 +63,37 @@ export function KeysPanel() {
           <CardTitle>{t.projects.keys.title}</CardTitle>
           <CardDescription>
             {t.projects.keys.description}
-            {!manage && t.projects.keys.readOnly}
+            {manage ? t.projects.keys.manageNote : create ? t.projects.keys.ownNote : t.projects.keys.readOnly}
           </CardDescription>
-          {manage && (
-            <CardAction>
+          {create && (
+            <CardAction className="flex items-center gap-2">
+              {manage && (
+                <ToggleGroup
+                  aria-label={t.projects.keys.scope.label}
+                  value={[scope]}
+                  onValueChange={(v) => v[0] !== undefined && setScope(v[0] as Scope)}
+                  className="hidden sm:inline-flex"
+                >
+                  <ToggleGroupItem value="all">{t.projects.keys.scope.all}</ToggleGroupItem>
+                  <ToggleGroupItem value="mine">{t.projects.keys.scope.mine}</ToggleGroupItem>
+                </ToggleGroup>
+              )}
               <Button size="sm" onClick={() => setCreateOpen(true)}>
                 <PlusIcon />
                 {t.projects.keys.createKey}
               </Button>
             </CardAction>
+          )}
+          {manage && (
+            <ToggleGroup
+              aria-label={t.projects.keys.scope.label}
+              value={[scope]}
+              onValueChange={(v) => v[0] !== undefined && setScope(v[0] as Scope)}
+              className="mt-2 sm:hidden"
+            >
+              <ToggleGroupItem value="all">{t.projects.keys.scope.all}</ToggleGroupItem>
+              <ToggleGroupItem value="mine">{t.projects.keys.scope.mine}</ToggleGroupItem>
+            </ToggleGroup>
           )}
         </CardHeader>
         <div className="border-t">
@@ -80,10 +112,10 @@ export function KeysPanel() {
           ) : sorted.length === 0 ? (
             <EmptyState
               icon={<KeyRoundIcon />}
-              title={t.projects.keys.emptyTitle}
+              title={mine || !manage ? t.projects.keys.emptyMineTitle : t.projects.keys.emptyTitle}
               description={t.projects.keys.emptyDescription}
               action={
-                manage && (
+                create && (
                   <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
                     <PlusIcon />
                     {t.projects.keys.createKey}
@@ -92,15 +124,15 @@ export function KeysPanel() {
               }
             />
           ) : (
-            <KeyList keys={sorted} manage={manage} />
+            <KeyList keys={sorted} manage={manage} showOwner={manage && !mine} meId={me?.id} />
           )}
         </div>
       </Card>
 
       <McpGuideCard gateway={gateway} />
 
-      {manage && (
-        <CreateKeyDialog open={createOpen} onOpenChange={setCreateOpen} gateway={gateway} />
+      {create && (
+        <CreateKeyDialog open={createOpen} onOpenChange={setCreateOpen} gateway={gateway} advanced={manage} />
       )}
     </div>
   )
@@ -115,7 +147,12 @@ function isExpired(k: ApiKey, now = Date.now()) {
   return !!k.expiresAt && k.expiresAt <= now
 }
 
-function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
+/** Revocable here: owners and admins revoke any key, members their own (the gateway only lists those to them). */
+function canRevoke(k: ApiKey, manage: boolean, meId?: string) {
+  return !k.revokedAt && (manage || (!!meId && k.ownerId === meId))
+}
+
+function KeyList({ keys, manage, showOwner, meId }: { keys: ApiKey[]; manage: boolean; showOwner: boolean; meId?: string }) {
   const t = useT()
   const c = t.projects.keys.columns
   return (
@@ -125,13 +162,15 @@ function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
           <TableHeader className="bg-muted/40">
             <TableRow className="hover:bg-transparent">
               <TableHead className="ps-5">{c.name}</TableHead>
-              <TableHead>{c.key}</TableHead>
+              {showOwner && <TableHead>{c.owner}</TableHead>}
+              {/* With the owner column, the key prefix moves under the name to keep the table narrow. */}
+              {!showOwner && <TableHead>{c.key}</TableHead>}
               <TableHead>{c.level}</TableHead>
               <TableHead>{c.expiry}</TableHead>
               <TableHead>{c.ipAllowlist}</TableHead>
               <TableHead>{c.lastUsed}</TableHead>
               <TableHead>{c.status}</TableHead>
-              {manage && <TableHead className="pe-5 text-end">{c.actions}</TableHead>}
+              <TableHead className="pe-5 text-end">{c.actions}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -139,9 +178,15 @@ function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
               <TableRow key={k.id} className={cn((k.revokedAt || isExpired(k)) && 'text-muted-foreground')}>
                 <TableCell className="max-w-44 ps-5">
                   <p className="truncate font-medium">{k.name}</p>
+                  {showOwner && <p className="truncate font-mono text-xs text-muted-foreground">{k.prefix}…</p>}
                   <p className="text-xs text-muted-foreground">{t.projects.keys.createdOn(formatDay(k.createdAt))}</p>
                 </TableCell>
-                <TableCell className="font-mono text-xs">{k.prefix}…</TableCell>
+                {showOwner && (
+                  <TableCell className="max-w-48">
+                    <KeyOwner k={k} meId={meId} />
+                  </TableCell>
+                )}
+                {!showOwner && <TableCell className="font-mono text-xs">{k.prefix}…</TableCell>}
                 <TableCell>{k.maxLevel ? <LevelBadge level={k.maxLevel} /> : <span className="text-muted-foreground">—</span>}</TableCell>
                 <TableCell>
                   <KeyExpiry k={k} />
@@ -153,11 +198,9 @@ function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
                 <TableCell>
                   <KeyStatus k={k} />
                 </TableCell>
-                {manage && (
-                  <TableCell className="pe-5 text-end">
-                    {!k.revokedAt && <RevokeButton k={k} />}
-                  </TableCell>
-                )}
+                <TableCell className="pe-5 text-end">
+                  {canRevoke(k, manage, meId) && <RevokeButton k={k} meId={meId} />}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -172,6 +215,11 @@ function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
                 <KeyStatus k={k} />
                 {k.maxLevel && <LevelBadge level={k.maxLevel} />}
               </div>
+              {showOwner && (
+                <div className="text-xs">
+                  <KeyOwner k={k} meId={meId} inline />
+                </div>
+              )}
               <p className="font-mono text-xs">{k.prefix}…</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 <KeyExpiry k={k} />
@@ -182,11 +230,39 @@ function KeyList({ keys, manage }: { keys: ApiKey[]; manage: boolean }) {
                 {k.lastUsedAt ? t.projects.keys.usedAgo(relativeTime(k.lastUsedAt)) : t.projects.keys.neverUsed}
               </p>
             </div>
-            {manage && !k.revokedAt && <RevokeButton k={k} />}
+            {canRevoke(k, manage, meId) && <RevokeButton k={k} meId={meId} />}
           </li>
         ))}
       </ul>
     </>
+  )
+}
+
+/** Who the key belongs to: name and email, "you", a gateway key (no owner) or a deleted member. */
+function KeyOwner({ k, meId, inline }: { k: ApiKey; meId?: string; inline?: boolean }) {
+  const t = useT()
+  if (!k.ownerId) {
+    return (
+      <span className="text-xs text-muted-foreground" title={t.projects.keys.gatewayKeyTitle}>
+        {t.projects.keys.gatewayKey}
+      </span>
+    )
+  }
+  if (!k.ownerEmail) return <span className="text-xs text-muted-foreground">{t.projects.keys.deletedOwner}</span>
+  const name = k.ownerName || k.ownerEmail
+  const label = k.ownerId === meId ? t.projects.keys.ownerYou(name) : name
+  if (inline) {
+    return (
+      <span className="text-muted-foreground" title={k.ownerEmail}>
+        {label}
+      </span>
+    )
+  }
+  return (
+    <div className="min-w-0">
+      <p className="truncate">{label}</p>
+      {k.ownerName && <p className="truncate text-xs text-muted-foreground">{k.ownerEmail}</p>}
+    </div>
   )
 }
 
@@ -236,10 +312,17 @@ function KeyStatus({ k }: { k: ApiKey }) {
       </Badge>
     )
   }
+  if (k.ownerDisabled) {
+    return (
+      <Badge variant="warning" title={t.projects.keys.ownerDisabledTitle}>
+        {t.projects.keys.ownerDisabled}
+      </Badge>
+    )
+  }
   return <Badge variant="success">{t.projects.keys.active}</Badge>
 }
 
-function RevokeButton({ k }: { k: ApiKey }) {
+function RevokeButton({ k, meId }: { k: ApiKey; meId?: string }) {
   const queryClient = useQueryClient()
   const t = useT()
   const revoke = useMutation({
@@ -253,7 +336,12 @@ function RevokeButton({ k }: { k: ApiKey }) {
     <ConfirmDialog
       trigger={<Button variant="ghost" size="xs" className="text-destructive hover:text-destructive" />}
       title={t.projects.keys.revokeTitle(k.name)}
-      description={<p>{rich(t.projects.keys.revokeDescription(k.prefix), { c: (s) => <span className="font-mono">{s}</span> })}</p>}
+      description={
+        <p>
+          {rich(t.projects.keys.revokeDescription(k.prefix), { c: (s) => <span className="font-mono">{s}</span> })}
+          {k.ownerId && k.ownerId !== meId && k.ownerEmail && ` ${t.projects.keys.revokeOwner(k.ownerName || k.ownerEmail)}`}
+        </p>
+      }
       confirmLabel={t.projects.keys.revoke}
       destructive
       onConfirm={() => revoke.mutateAsync()}
@@ -292,21 +380,24 @@ function McpCommands({ gateway, apiKey }: { gateway: string; apiKey: string }) {
 }
 
 /** Expiry choices in days; 0 means the key never expires. */
-const expiryOptions = [7, 30, 90, 0]
+const expiryOptions = [0, 7, 30, 90]
 
 function CreateKeyDialog({
   open,
   onOpenChange,
   gateway,
+  advanced,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   gateway?: string
+  /** Owners and admins may create advanced keys; members stop at interact (the gateway enforces it). */
+  advanced: boolean
 }) {
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [level, setLevel] = useState<Level>('interact')
-  const [expiresInDays, setExpiresInDays] = useState(90)
+  const [expiresInDays, setExpiresInDays] = useState(0)
   const [ipText, setIpText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [created, setCreated] = useState<CreatedApiKey | null>(null)
@@ -336,7 +427,7 @@ function CreateKeyDialog({
         if (!isOpen) {
           setName('')
           setLevel('interact')
-          setExpiresInDays(90)
+          setExpiresInDays(0)
           setIpText('')
           setError(null)
           setCreated(null)
@@ -410,8 +501,8 @@ function CreateKeyDialog({
                   aria-label={t.projects.keys.maxLevel}
                   value={level}
                   onChange={setLevel}
-                  className="sm:grid-cols-3"
-                  options={levels.map((l) => ({
+                  className={advanced ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}
+                  options={levels.filter((l) => advanced || l !== 'advanced').map((l) => ({
                     value: l,
                     label: levelMeta[l].label,
                     description: levelMeta[l].description,
@@ -423,7 +514,10 @@ function CreateKeyDialog({
                     <p>{rich(t.projects.keys.advancedWarning, { b: (s) => <span className="font-medium">{s}</span> })}</p>
                   </Callout>
                 )}
-                <p className="text-xs text-muted-foreground">{t.projects.keys.levelHint}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t.projects.keys.levelHint}
+                  {!advanced && ` ${t.projects.keys.levelMemberHint}`}
+                </p>
               </div>
 
               <div className="space-y-2">

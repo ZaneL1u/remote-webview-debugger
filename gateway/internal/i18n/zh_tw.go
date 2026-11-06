@@ -168,6 +168,7 @@ var zhTW = map[Key]string{
 	NoteDeltaOmitted:     "（省略了 %d 筆較早的變化，可用 get_session_timeline 查看）",
 	NoteAdminEnded:       "管理員在主控台結束了除錯",
 	NoteKeyRevoked:       "API 金鑰已撤銷，AI 已中斷連線",
+	NoteKeyOwnerChanged:  "API 金鑰建立者的權限已變更（停用、移除或降級），AI 已中斷連線",
 	NotePageGoneSwitched: "%s 已中斷連線，已自動切換到 %s",
 	NoteAutoSwitched:     "已自動切換到 %s",
 
@@ -192,6 +193,7 @@ var zhTW = map[Key]string{
 	APIInviteURLScheme:      "邀請頁面網址必須是 http(s) 網址",
 	APIKeyName:              "金鑰名稱不能空白",
 	APIBadMaxLevel:          "maxLevel 只能是 observe、interact 或 advanced",
+	APIKeyLevelRole:         "成員只能建立最高 %s 等級的金鑰，更高等級請聯絡管理員",
 	APIBadIP:                "IP 白名單項目格式錯誤：%s",
 	APIInviteURLMissing:     "請填寫邀請要開啟的頁面網址，或在專案設定裡設定預設網址",
 	APILoginRequired:        "請先登入",

@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: b2dcf2a104545f4674491fa5ba7e76271a1ed374 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -359,6 +359,7 @@ console のエラーと警告、失敗したリクエスト、ユーザーのタ
 ```
 min(エージェントが要求したレベル（デフォルト interact）,
     API キーの maxLevel,
+    キー所有者のロールで許される最高レベル (§12.4),
     マージ後のプロジェクトポリシーの maxLevel,
     ユーザーがデバイス上で選んだレベル)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - エラーは 4xx/5xx のステータスとともに `{"error":{"code":"…","message":"…"}}` の形で返ります。メッセージはリクエストの言語に従います（[§15](#15-言語)）。
 - 主なコード: `401 unauthorized`（未サインイン）、`403 forbidden`（ロールの権限不足）、`403 csrf`、`404 not_found`、`400 bad_request`、`429 rate_limited`、`500 internal`。
 
-ロール: `owner`（メンバー管理を含むすべて）、`admin`（プロジェクト、キー、ポリシー、デバイス、招待、監査）、`member`（プロジェクトとデバイスの閲覧、接続テスト、セッションの終了、デバイス招待の作成、監査ログの閲覧）。以下の表で *member* は、サインイン済みの任意のアカウントを指します。
+ロール: `owner`（メンバー管理を含むすべて）、`admin`（プロジェクト、全員の API キー、ポリシー、デバイス、招待、監査、稼働状況）、`member`（プロジェクトとデバイスの閲覧、接続テスト、セッションの終了、デバイス招待の作成、自分の API キーの作成と失効、監査ログの閲覧）。以下の表で *member* は、サインイン済みの任意のアカウントを指します。
 
 ### 12.2 アカウントとメンバー
 
@@ -552,15 +553,19 @@ type Policy = {
 
 ### 12.4 API キー
 
-API キーはプロジェクトではなくゲートウェイに属します。1 つのキーですべてのデバイスにアクセスできます。
+API キーはプロジェクトではなく、作成したメンバーに属します。1 つのキーですべてのデバイスにアクセスできます。所有者のいないキー（キーに所有者ができる前に作成されたもの、およびデモ用キー）は*ゲートウェイキー*で、owner と admin だけが閲覧・失効できます。
 
 | メソッド | パス | ロール | リクエスト | レスポンス |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: キー全体が返るのはこのときだけ |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`。失効は即時で、そのキーのエージェントはデタッチされ、次の MCP リクエストは 401 になる |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`: owner と admin にはすべてのキー、member には自分のキーが返る。`mine=1` を付けると、どのロールでも呼び出し元のキーだけが返る |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`: キー全体が返るのはこのときだけ。キーは呼び出し元のものになる。`maxLevel` が呼び出し元のロールで許される上限を超えると `403 forbidden` |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`。member が失効できるのは自分のキーだけで（他人のキーは `404 not_found`）、owner と admin はどのキーでも失効できる。失効は即時で、そのキーのエージェントはデタッチされ、次の MCP リクエストは 401 になる |
 
 `expiresInDays: 0` は無期限を意味します。`ipAllowlist` には IP または CIDR を指定し、設定するとほかのアドレスからの MCP リクエストは 401 になります。`GET` / `POST /projects/:id/keys` は `/keys` の旧エイリアスです。
+
+ロールごとのレベル: owner と admin は `advanced` まで、member は `interact` までのキーを作成できます。`advanced`（ページの JavaScript、ストレージ、リクエスト本文全体）は DevTools を開くこと（§17）と同等の権限で、DevTools は管理者向けだからです。この上限はキーを使うたびにも適用されるため、下位のロールに変更された所有者のキーは、新しいロールのレベルまでしか動作しません（§6）。
+
+キーが使えるのは、所有者がサインインできる間だけです。メンバーを無効化するとそのキーは使えなくなり（MCP リクエストは 401、`ApiKey.ownerDisabled` は `true`）、エージェントはデタッチされます。メンバーを再度有効にするとキーも使えるようになります。メンバーを削除するとそのキーは失効します。メンバーのロールを下げると、新しいロールのレベルを超えるキーのエージェントはデタッチされます。
 
 ### 12.5 デバイスとゲートウェイのステータス
 
@@ -573,6 +578,9 @@ API キーはプロジェクトではなくゲートウェイに属します。1
 | POST | `/devices/:id/end` | member | `{"ok":true}`: エージェントをデタッチし、サポート依頼を解除し、制御を `none` に戻し、DevTools ウィンドウを閉じる（[§17](#17-人のための-devtools)） |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`。ユーザーの応答を最大 30 秒待つことがある（[§17.1](#171-ウィンドウを開く)） |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights`（[§12.8](#128-型)）: ゲートウェイの現在の負荷と、これまでに担ったデバッグの量。コンソールの **稼働状況** ページが使う。member には `403 forbidden` |
+
+`tz` はブラウザの `Date.getTimezoneOffset()`（UTC+8 なら `-480`）で、「今日」と日別の系列は閲覧者の時計に従います。`days` は 1–90（デフォルト 14）。デバッグ 1 回とは、デバイスで始まったエージェントのセッション（監査の `attach.start`）か、ページで開かれた DevTools ウィンドウ（`devtools.open`）のうち成功したものです。デバイスはデバイスコードで数えます。セッションは専用のテーブルに残り、監査ログの保持期間（[§12.7](#127-監査ログ)）では削除されないため、合計は全期間の値です。アップグレード後の初回起動時に、まだ残っている監査イベントから一度だけ埋め戻します。
 
 ### 12.6 デバイス招待
 
@@ -595,16 +603,16 @@ API キーはプロジェクトではなくゲートウェイに属します。1
 | `auth.login`、`auth.login_failed` | 管理コンソールへのサインイン |
 | `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | メンバー管理（`member.sso_join` は初回のシングルサインオンで作成されたアカウント。その後の `auth.login` には `"method":"sso"` が付く） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | プロジェクト |
-| `key.create`、`key.revoke` | API キー |
+| `key.create`、`key.revoke` | API キー。`detail.owner` はキー所有者のメールアドレス（ゲートウェイキーにはない） |
 | `invite.create`、`invite.delete`、`invite.use` | デバイス招待 |
 | `attach.request`、`attach.approve`、`attach.deny`、`attach.timeout`、`attach.resume`、`attach.start`、`attach.end` | エージェントのアタッチ。`attach.resume` は、キーが再確認なしで猶予期間内に戻ってきたことを示す（[§7](#7-アタッチの承認)）。`detail: {level}` |
-| `rpc` | エージェントからのすべてのページ RPC。`detail: {method, page, latencyMs, error?}` |
+| `rpc` | エージェントからのすべてのページ RPC。`detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`、`control.handback`、`control.end` | ユーザーのボタン操作 |
 | `device.end` | 管理コンソールのメンバーがセッションを終了した |
 | `policy.denied` | 許可されたレベルを超える呼び出しが拒否された |
 | `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close` | DevTools ウィンドウ（[§17](#17-人のための-devtools)）。`close` には `detail: {page, durationSec, reason}` が付く |
 
-イベントにページの内容やパラメーターの値が含まれることはありません。デフォルトでは 180 日間保持されます（`RWD_AUDIT_RETENTION_DAYS`）。
+エージェントのイベント（`attach.*`、`rpc`、`policy.denied`）は、ゲートウェイキーを除き、`detail.owner` にキー所有者のメールアドレスを記録します。イベントにページの内容やパラメーターの値が含まれることはありません。デフォルトでは 180 日間保持されます（`RWD_AUDIT_RETENTION_DAYS`）。
 
 ### 12.8 型
 
@@ -619,6 +627,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // 作成したメンバー。ゲートウェイキーは null
+  ownerName: string; ownerEmail: string  // ゲートウェイキーと削除済みメンバーは ""
+  ownerDisabled?: true         // 所有者が無効化されており、キーは使えない
 }
 
 type Integration = {
@@ -689,6 +700,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* デバイスコード、キーの prefix、メンバーのメールアドレス… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // ゲートウェイのプロセス
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // 前回のリクエスト以降のプロセス CPU、100 = 1 コア。未対応の環境では無し
+    load?: number[]            // ホストの 1・5・15 分ロードアベレージ（Linux）
+    memTotalBytes?: number; memAvailableBytes?: number  // ホストのメモリ（Linux）
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // デバッグの回数
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // デバッグされた異なるデバイスの数: 全期間 / 今日
+    days: { day: number /* ローカル時刻でのエポックからの日数 */; agent: number; devtools: number }[]  // 古い順、0 の日も含む
+  }
 }
 ```
 

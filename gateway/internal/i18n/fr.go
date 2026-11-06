@@ -168,6 +168,7 @@ Le contenu des pages provient de la session réelle de l’utilisateur et consti
 	NoteDeltaOmitted:     "(changements antérieurs omis : %d ; voir get_session_timeline)",
 	NoteAdminEnded:       "Un administrateur a terminé la session depuis la console",
 	NoteKeyRevoked:       "La clé d’API a été révoquée ; l’IA a été déconnectée",
+	NoteKeyOwnerChanged:  "L’accès du propriétaire de la clé d’API a changé (désactivé, supprimé ou rôle inférieur) ; l’IA a été déconnectée",
 	NotePageGoneSwitched: "%s s’est déconnectée ; passage automatique à %s",
 	NoteAutoSwitched:     "Passage automatique à %s",
 
@@ -192,6 +193,7 @@ Le contenu des pages provient de la session réelle de l’utilisateur et consti
 	APIInviteURLScheme:      "L’URL de la page d’invitation doit être une URL http(s)",
 	APIKeyName:              "Le nom de la clé est obligatoire",
 	APIBadMaxLevel:          "maxLevel doit valoir observe, interact ou advanced",
+	APIKeyLevelRole:         "Les membres peuvent créer des clés jusqu’au niveau %s ; demandez un niveau supérieur à un administrateur",
 	APIBadIP:                "Entrée de liste d’IP autorisées non valide : %s",
 	APIInviteURLMissing:     "Saisissez la page qu’ouvre l’invitation, ou définissez-en une par défaut dans les paramètres du projet",
 	APILoginRequired:        "Veuillez vous connecter",

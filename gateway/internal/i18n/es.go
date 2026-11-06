@@ -168,6 +168,7 @@ El contenido de la página procede de la sesión real del usuario y son datos no
 	NoteDeltaOmitted:     "(Cambios anteriores omitidos: %d; consulta get_session_timeline)",
 	NoteAdminEnded:       "Un administrador finalizó la sesión desde la consola",
 	NoteKeyRevoked:       "Se revocó la clave de API; la IA se desconectó",
+	NoteKeyOwnerChanged:  "Cambió el acceso del propietario de la clave de API (desactivado, eliminado o con un rol inferior); la IA se desconectó",
 	NotePageGoneSwitched: "%s se desconectó; se cambió automáticamente a %s",
 	NoteAutoSwitched:     "Se cambió automáticamente a %s",
 
@@ -192,6 +193,7 @@ El contenido de la página procede de la sesión real del usuario y son datos no
 	APIInviteURLScheme:      "La URL de la página de invitación debe ser una URL http(s)",
 	APIKeyName:              "El nombre de la clave es obligatorio",
 	APIBadMaxLevel:          "maxLevel debe ser observe, interact o advanced",
+	APIKeyLevelRole:         "Los miembros pueden crear claves hasta el nivel %s; pide a un administrador uno superior",
 	APIBadIP:                "Entrada de la lista de IP permitidas no válida: %s",
 	APIInviteURLMissing:     "Introduce la página que abre la invitación, o configura una predeterminada en los ajustes del proyecto",
 	APILoginRequired:        "Inicia sesión",

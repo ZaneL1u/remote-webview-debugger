@@ -37,7 +37,7 @@ func (h *Hub) CheckLevel(s *Session, method string) error {
 	if granted.Rank() >= need.Rank() {
 		return nil
 	}
-	h.record(d.Info.ProjectID, "apikey", s.Agent.KeyID, s.Agent.Name, "policy.denied", d.Info.Code, "denied",
+	h.recordAgent(s.Agent, d.Info.ProjectID, "policy.denied", d.Info.Code, "denied",
 		map[string]any{"method": method, "need": need, "granted": granted})
 	return rpcError("forbidden", i18n.ErrNeedLevel, need, granted)
 }

@@ -96,7 +96,7 @@ async function login(page, email = 'admin@example.com', password = 'admin') {
 }
 
 async function logout(page) {
-  await page.getByRole('button', { name: '账号菜单' }).click()
+  await openAccountMenu(page)
   loggedOut.add(page)
   await page.getByRole('menuitem', { name: '退出登录' }).click()
   await page.waitForURL(/\/login/)
@@ -449,8 +449,9 @@ async function acceptInvite(vp, inviteUrl, n) {
   if (await page.getByText('删除项目').count()) throw new Error('member should not see 删除项目')
   await shot(page, `${n}-24-member-settings`)
   await page.goto(`${base}/keys`)
-  await page.getByText(/你的角色只能查看 Key/).waitFor()
-  if (await page.getByRole('button', { name: '创建 Key' }).count()) throw new Error('member should not see 创建 Key')
+  // Every member creates keys of their own and sees only those.
+  await page.getByRole('button', { name: '创建 Key' }).first().waitFor()
+  if (await page.getByText('压测脚本').count()) throw new Error('member should only see own keys')
 
   // members page is not for members
   await page.goto(`${base}/members`)
@@ -458,7 +459,7 @@ async function acceptInvite(vp, inviteUrl, n) {
   await shot(page, `${n}-25-member-forbidden`, { fullPage: false })
 
   // change own password (wrong current password first)
-  await page.getByRole('button', { name: '账号菜单' }).click()
+  await openAccountMenu(page)
   await page.getByRole('menuitem', { name: '修改密码' }).click()
   await page.getByLabel('当前密码').fill('nope-nope')
   await page.getByLabel('新密码', { exact: true }).fill('member-pass-new')
@@ -585,8 +586,8 @@ async function devicesHome(page, n) {
 
 /** Header connection indicator: connected, SSE down (degraded, polling) and gateway unreachable. */
 async function gatewayStatus(page, n) {
-  const pill = page.locator('header [data-gateway]')
-  await page.locator('header [data-gateway="connected"]').waitFor({ timeout: 20_000 })
+  const pill = page.locator('[data-gateway]:visible')
+  await page.locator('[data-gateway="connected"]:visible').waitFor({ timeout: 20_000 })
   await pill.click()
   const details = page.getByTestId('gateway-status-details')
   await details.getByText('网关已连接').waitFor()
@@ -596,7 +597,7 @@ async function gatewayStatus(page, n) {
   await page.keyboard.press('Escape')
 
   await mockSse(true)
-  await page.locator('header [data-gateway="degraded"]').waitFor({ timeout: 15_000 })
+  await page.locator('[data-gateway="degraded"]:visible').waitFor({ timeout: 15_000 })
   await visible(page.locator('[data-stream="down"]')).waitFor()
   await pill.click()
   await details.getByText('轮询中').waitFor()
@@ -604,23 +605,39 @@ async function gatewayStatus(page, n) {
   await shot(page, `${n}-03g-status-degraded`, { fullPage: false })
   await page.keyboard.press('Escape')
   await mockSse(false)
-  await page.locator('header [data-gateway="connected"]').waitFor({ timeout: 40_000 })
+  await page.locator('[data-gateway="connected"]:visible').waitFor({ timeout: 40_000 })
 
   await mockStatus(true)
   await pill.click()
   await details.getByRole('button', { name: '检查' }).click()
-  await page.locator('header [data-gateway="disconnected"]').waitFor({ timeout: 20_000 })
+  await page.locator('[data-gateway="disconnected"]:visible').waitFor({ timeout: 20_000 })
   await details.getByText('网关已断开').waitFor()
   await shot(page, `${n}-03h-status-disconnected`, { fullPage: false })
   await mockStatus(false)
   await details.getByRole('button', { name: '检查' }).click()
-  await page.locator('header [data-gateway="connected"]').waitFor({ timeout: 20_000 })
+  await page.locator('[data-gateway="connected"]:visible').waitFor({ timeout: 20_000 })
   await page.keyboard.press('Escape')
+}
+
+/** The sidebar is always there on wide screens (lg, 1024px); on phones it opens from the menu button as a drawer. */
+async function openNav(page) {
+  if ((page.viewportSize()?.width ?? 1440) >= 1024) return
+  const drawer = page.getByTestId('nav-drawer')
+  if (await drawer.isVisible()) return
+  await page.getByTestId('nav-menu').click()
+  await drawer.waitFor()
+}
+
+/** The account menu sits at the bottom of the sidebar; on phones the sidebar opens from the menu button. */
+async function openAccountMenu(page) {
+  await openNav(page)
+  await page.getByRole('button', { name: '账号菜单' }).filter({ visible: true }).first().click()
 }
 
 /** 接入说明: reachable from the header, personalised with the gateway URL and a project's App Key. */
 async function docs(page, n) {
-  await page.locator('header').getByRole('link', { name: '接入说明' }).click()
+  await openNav(page)
+  await page.getByRole('link', { name: '接入说明' }).filter({ visible: true }).first().click()
   await page.waitForURL(/\/docs$/)
   await page.getByRole('heading', { name: /从一行脚本/ }).waitFor()
   const gateway = `${base}/v1`
@@ -659,7 +676,7 @@ async function runDark(vp) {
   await login(page)
   await rowsVisible(page)
   await shot(page, `${vp.name}-dark-devices-home`)
-  await page.locator('header [data-gateway]').click()
+  await page.locator('[data-gateway]:visible').click()
   await page.getByTestId('gateway-status-details').waitFor()
   await shot(page, `${vp.name}-dark-status-popover`, { fullPage: false })
   await page.keyboard.press('Escape')
@@ -740,7 +757,7 @@ async function runEnglish(vp) {
   await page.waitForTimeout(400)
   await shot(page, `${n}-02-devices-home`, { fullPage: vp.name === 'desktop' })
 
-  await page.locator('header [data-gateway]').click()
+  await page.locator('[data-gateway]:visible').click()
   await page.getByTestId('gateway-status-details').getByText('Latency').waitFor()
   await shot(page, `${n}-03-status-popover`, { fullPage: false })
   await page.keyboard.press('Escape')
@@ -797,6 +814,7 @@ async function runEnglish(vp) {
   // Switch to Chinese: labels, <html lang> and the API language follow without a reload; the choice sticks.
   await page.goto(`${base}/`)
   await rowsVisible(page)
+  await openNav(page)
   await page.getByTestId('language-switcher').filter({ visible: true }).first().click()
   await page.getByRole('menuitemradio', { name: '简体中文' }).click()
   await page.getByRole('heading', { name: '设备', exact: true }).waitFor()
@@ -806,14 +824,17 @@ async function runEnglish(vp) {
   if (!apiLangs.includes('stream:zh-CN')) throw new Error('stream did not reconnect with lang=zh-CN')
   await page.reload()
   await page.getByRole('heading', { name: '设备', exact: true }).waitFor()
+  await openNav(page)
   await page.getByTestId('language-switcher').filter({ visible: true }).first().click()
   await page.getByRole('menuitemradio', { name: 'English' }).click()
   await page.getByRole('heading', { name: 'Devices', exact: true }).waitFor()
 
   // Sign out: the auth layout has its own switcher.
-  await page.getByRole('button', { name: 'Account menu' }).click()
+  await openNav(page)
+  await page.getByRole('button', { name: 'Account menu' }).filter({ visible: true }).first().click()
   await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.waitForURL(/\/login/)
+  await page.getByTestId('nav-drawer').waitFor({ state: 'detached' })
   await page.getByTestId('language-switcher').click()
   await page.getByRole('menuitemradio', { name: '简体中文' }).click()
   await page.getByRole('button', { name: '登录' }).waitFor()

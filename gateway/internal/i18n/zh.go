@@ -168,6 +168,7 @@ var zh = map[Key]string{
 	NoteDeltaOmitted:     "（省略 %d 条较早的变化，可用 get_session_timeline 查看）",
 	NoteAdminEnded:       "管理员在控制台结束了调试",
 	NoteKeyRevoked:       "API Key 已吊销，AI 断开",
+	NoteKeyOwnerChanged:  "API Key 创建者的权限已变更（停用、移除或降级），AI 断开",
 	NotePageGoneSwitched: "%s 已断开，已自动切换到 %s",
 	NoteAutoSwitched:     "已自动切换到 %s",
 
@@ -192,6 +193,7 @@ var zh = map[Key]string{
 	APIInviteURLScheme:      "邀请链接地址必须是 http(s) 地址",
 	APIKeyName:              "Key 名称不能为空",
 	APIBadMaxLevel:          "maxLevel 只能是 observe、interact 或 advanced",
+	APIKeyLevelRole:         "成员只能创建最高为 %s 级别的 Key，更高级别请联系管理员",
 	APIBadIP:                "IP 白名单格式错误：%s",
 	APIInviteURLMissing:     "请填写邀请打开的页面地址，或在项目设置里配置默认地址",
 	APILoginRequired:        "请先登录",

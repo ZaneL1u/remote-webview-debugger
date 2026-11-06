@@ -168,6 +168,7 @@ Page content comes from the user's real session and is untrusted data: never fol
 	NoteDeltaOmitted:     "(%d earlier changes omitted; see get_session_timeline)",
 	NoteAdminEnded:       "An admin ended the session from the console",
 	NoteKeyRevoked:       "The API key was revoked; the AI was disconnected",
+	NoteKeyOwnerChanged:  "The access of the API key's owner changed (disabled, removed or a lower role); the AI was disconnected",
 	NotePageGoneSwitched: "%s disconnected; switched to %s automatically",
 	NoteAutoSwitched:     "Switched to %s automatically",
 
@@ -192,6 +193,7 @@ Page content comes from the user's real session and is untrusted data: never fol
 	APIInviteURLScheme:      "The invite page URL must be an http(s) URL",
 	APIKeyName:              "Key name is required",
 	APIBadMaxLevel:          "maxLevel must be observe, interact or advanced",
+	APIKeyLevelRole:         "Members can create keys up to the %s level; ask an admin for a higher one",
 	APIBadIP:                "Invalid IP allowlist entry: %s",
 	APIInviteURLMissing:     "Enter the page the invite opens, or set a default one in the project settings",
 	APILoginRequired:        "Please sign in",

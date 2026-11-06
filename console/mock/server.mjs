@@ -272,26 +272,43 @@ function createKey(projectId, name, extra = {}) {
     maxLevel: 'interact',
     expiresAt: now() + 90 * 86_400_000,
     ipAllowlist: [],
+    // The member who created it; null for a gateway key (older keys, demo keys).
+    ownerId: null,
     ...extra,
   }
   keys.set(k.id, k)
-  return { ...k, key: secret }
+  return { ...keyOut(k), key: secret }
 }
 
-async function keysRoute(req, res, user, method) {
-  if (method === 'GET') return send(res, 200, { keys: [...keys.values()].sort((a, b) => b.createdAt - a.createdAt) })
+/** A key with its owner's name and email, like the gateway's list (section 12.4). */
+function keyOut(k) {
+  const o = k.ownerId ? users.get(k.ownerId) : null
+  return { ...k, ownerName: o?.name ?? '', ownerEmail: o?.email ?? '', ...(o?.disabled ? { ownerDisabled: true } : {}) }
+}
+
+/** Members create keys up to interact; advanced is for owners and admins. */
+const roleMaxLevel = (u) => (isManager(u) ? 'advanced' : 'interact')
+
+async function keysRoute(req, res, url, user, method) {
+  if (method === 'GET') {
+    // Owners and admins see every key unless they ask for ?mine=1; members only their own.
+    const mine = !isManager(user) || ['1', 'true'].includes(url.searchParams.get('mine') ?? '')
+    const list = [...keys.values()].filter((k) => !mine || k.ownerId === user.id)
+    return send(res, 200, { keys: list.sort((a, b) => b.createdAt - a.createdAt).map(keyOut) })
+  }
   if (method !== 'POST') return fail(res, 405, 'method_not_allowed', 'method not allowed')
-  if (!isManager(user)) return forbidden(res)
   const body = await readBody(req)
   if (!body?.name?.trim()) return fail(res, 400, 'bad_request', '名称不能为空')
   const maxLevel = body.maxLevel ?? 'interact'
   if (!LEVELS.includes(maxLevel)) return fail(res, 400, 'bad_request', 'maxLevel 取值错误')
-  const days = body.expiresInDays ?? 90
+  const top = roleMaxLevel(user)
+  if (LEVELS.indexOf(maxLevel) > LEVELS.indexOf(top)) return fail(res, 403, 'forbidden', `成员只能创建最高为 ${top} 级别的 Key，更高级别请联系管理员`)
+  const days = body.expiresInDays ?? 0
   if (!Number.isInteger(days) || days < 0) return fail(res, 400, 'bad_request', 'expiresInDays 应为非负整数')
   const ipAllowlist = body.ipAllowlist ?? []
   if (!Array.isArray(ipAllowlist) || !ipAllowlist.every(validCidr)) return fail(res, 400, 'bad_request', 'IP 白名单格式不正确')
-  const created = createKey(null, body.name.trim(), { maxLevel, expiresAt: days ? now() + days * 86_400_000 : null, ipAllowlist })
-  audit({ projectId: null, ...memberActor(user), action: 'key.create', target: created.prefix, detail: { name: created.name, maxLevel, expiresInDays: days, ipAllowlist } })
+  const created = createKey(null, body.name.trim(), { maxLevel, expiresAt: days ? now() + days * 86_400_000 : null, ipAllowlist, ownerId: user.id })
+  audit({ projectId: null, ...memberActor(user), action: 'key.create', target: created.prefix, detail: { name: created.name, maxLevel, expiresInDays: days, ipAllowlist, owner: user.email } })
   return send(res, 200, created)
 }
 
@@ -447,7 +464,7 @@ function resolveAttach(dev) {
   const owner = createUser({ email: 'admin@example.com', name: 'Zane', role: 'owner', password: PASSWORD, createdAt: now() - 40 * DAY, lastLoginAt: now() - 3 * 3_600_000 })
   const ops = createUser({ email: 'ops@example.com', name: '运维小王', role: 'admin', password: 'ops12345', createdAt: now() - 30 * DAY, lastLoginAt: now() - 2 * DAY })
   const support = createUser({ email: 'support@example.com', name: '客服小李', role: 'member', password: 'support123', createdAt: now() - 20 * DAY, lastLoginAt: now() - 40 * 60_000 })
-  createUser({ email: 'old@example.com', name: '离职同事', role: 'member', password: 'whatever1', disabled: true, createdAt: now() - 35 * DAY, lastLoginAt: now() - 25 * DAY })
+  const former = createUser({ email: 'old@example.com', name: '离职同事', role: 'member', password: 'whatever1', disabled: true, createdAt: now() - 35 * DAY, lastLoginAt: now() - 25 * DAY })
   const pendingUser = createUser({ email: 'newbie@example.com', name: '新同事', role: 'member', pending: true, createdAt: now() - 1 * DAY })
   pendingUser._inviteToken = base62(32)
   pendingUser._inviteExpiresAt = now() + 6 * DAY
@@ -475,16 +492,21 @@ function resolveAttach(dev) {
   createDevice(demo.id, { platform: 'android', online: false, offlineFor: 25 * 60_000 })
   createDevice(demo.id, { platform: 'ios', online: false, offlineFor: 3 * 3_600_000 })
   createDevice(demo.id, { platform: 'android', online: false, offlineFor: 2 * DAY })
+  // 客服机器人 and 旧 CI Key are gateway keys (no owner): only owners and admins see them.
   const botKey = createKey(demo.id, '客服机器人', { createdAt: now() - 10 * DAY, lastUsedAt: now() - 4 * 60_000, expiresAt: now() + 80 * DAY })
   createKey(demo.id, 'Zane 本地调试', {
+    ownerId: owner.id,
     createdAt: now() - 6 * DAY,
     lastUsedAt: now() - 2 * DAY,
     maxLevel: 'advanced',
     expiresAt: now() + 1 * DAY,
     ipAllowlist: ['203.0.113.7/32', '10.0.0.0/8'],
   })
-  createKey(demo.id, '压测脚本', { createdAt: now() - 40 * DAY, lastUsedAt: now() - 12 * DAY, maxLevel: 'observe', expiresAt: now() - 3 * DAY })
+  createKey(demo.id, '压测脚本', { ownerId: ops.id, createdAt: now() - 40 * DAY, lastUsedAt: now() - 12 * DAY, maxLevel: 'observe', expiresAt: now() - 3 * DAY })
   createKey(demo.id, '旧 CI Key', { createdAt: now() - 30 * DAY, lastUsedAt: now() - 20 * DAY, revokedAt: now() - 9 * DAY, expiresAt: null })
+  createKey(demo.id, '小李的 Claude Code', { ownerId: support.id, createdAt: now() - 5 * DAY, lastUsedAt: now() - 30 * 60_000, expiresAt: now() + 25 * DAY })
+  // A disabled member's key stops working (ownerDisabled) without being revoked.
+  createKey(demo.id, '工单巡检脚本', { ownerId: former.id, createdAt: now() - 33 * DAY, lastUsedAt: now() - 25 * DAY, maxLevel: 'observe', expiresAt: now() + 57 * DAY })
 
   const inv = (extra) => {
     const token = base62(24)
@@ -897,6 +919,54 @@ function cookies(req) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 const forbidden = (res) => fail(res, 403, 'forbidden', '没有权限执行该操作')
+
+// GET /v1/api/insights: the admin overview, with made-up load and a 14-day series that stays the same per day.
+function mockInsights(host, tz) {
+  const st = gatewayStatus(host)
+  const day = Math.floor((Date.now() - tz * 60_000) / 86_400_000)
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const d = day - 13 + i
+    const seed = (d * 9301 + 49297) % 233280
+    return { day: d, agent: 8 + (seed % 23), devtools: 2 + (seed % 9) }
+  })
+  const today = days[13]
+  const wobble = (n, spread) => Math.max(0, n + (Math.random() - 0.5) * spread)
+  return {
+    serverTime: Date.now(),
+    runtime: {
+      goroutines: Math.round(wobble(180 + st.wsConnections * 3, 20)),
+      heapBytes: Math.round(wobble(38e6, 6e6)),
+      sysBytes: 92e6,
+      gcCount: 1234,
+      cpus: 4,
+      uptimeSec: st.uptimeSec,
+      os: 'linux/amd64',
+      cpuPercent: wobble(12, 8),
+      load: [wobble(0.42, 0.2), 0.38, 0.31],
+      memTotalBytes: 4 * 1024 ** 3,
+      memAvailableBytes: Math.round(wobble(2.6 * 1024 ** 3, 0.1 * 1024 ** 3)),
+    },
+    live: {
+      wsConnections: st.wsConnections,
+      connectedPages: st.connectedPages,
+      onlineDevices: st.onlineDevices,
+      attachedAgents: st.attachedAgents,
+      helpDevices: st.helpDevices ?? 0,
+      pendingApprovals: st.pendingApprovals ?? 0,
+    },
+    debug: {
+      total: 3870 + days.reduce((n, d) => n + d.agent + d.devtools, 0),
+      totalAgent: 3100 + days.reduce((n, d) => n + d.agent, 0),
+      totalDevtools: 770 + days.reduce((n, d) => n + d.devtools, 0),
+      today: today.agent + today.devtools,
+      todayAgent: today.agent,
+      todayDevtools: today.devtools,
+      devices: 412,
+      devicesToday: Math.min(st.totalDevices, 7 + (today.agent % 9)),
+      days,
+    },
+  }
+}
 const isManager = (u) => u.role === 'owner' || u.role === 'admin'
 
 function validCidr(s) {
@@ -1035,6 +1105,10 @@ async function handleApi(req, res, url) {
     return send(res, 200, gatewayStatus(host))
   }
   if (method === 'GET' && path === '/devices') return send(res, 200, listAllDevices(url))
+  if (method === 'GET' && path === '/insights') {
+    if (!isManager(user)) return forbidden(res)
+    return send(res, 200, mockInsights(host, Number(url.searchParams.get('tz') ?? 0)))
+  }
   if (method === 'POST' && path === '/me/password') {
     const body = (await readBody(req)) ?? {}
     if (body.oldPassword !== user._password) return fail(res, 400, 'bad_password', '当前密码不正确')
@@ -1086,6 +1160,8 @@ async function handleApi(req, res, url) {
       if (u.role === 'owner' && owners.length <= 1) return fail(res, 400, 'last_owner', '至少需要保留一个所有者')
       users.delete(u.id)
       for (const [t, id] of sessions) if (id === u.id) sessions.delete(t)
+      // Deleting a member revokes their keys.
+      for (const k of keys.values()) if (k.ownerId === u.id) k.revokedAt ??= now()
       audit({ ...memberActor(user), action: 'member.delete', target: u.email })
       return send(res, 200, { ok: true })
     }
@@ -1184,7 +1260,7 @@ async function handleApi(req, res, url) {
         lastDevice: sorted[0] ? deviceOut(sorted[0]) : null,
       })
     }
-    if (sub === '/keys') return keysRoute(req, res, user, method)
+    if (sub === '/keys') return keysRoute(req, res, url, user, method)
     if (sub === '/devices' && method === 'GET') {
       const status = url.searchParams.get('status') ?? 'online'
       let list = [...devices.values()].filter((d) => d.projectId === p.id)
@@ -1229,15 +1305,16 @@ async function handleApi(req, res, url) {
     return send(res, 200, { ok: true })
   }
 
-  // API keys belong to the gateway, not to a project (the project routes are aliases).
-  if (path === '/keys') return keysRoute(req, res, user, method)
+  // API keys belong to the member who created them, not to a project (the project routes are aliases).
+  if (path === '/keys') return keysRoute(req, res, url, user, method)
 
   if ((m = path.match(/^\/keys\/([^/]+)$/)) && method === 'DELETE') {
-    if (!isManager(user)) return forbidden(res)
     const k = keys.get(m[1])
-    if (!k) return fail(res, 404, 'not_found', 'Key 不存在')
+    // Members revoke only their own keys; someone else's is as good as missing.
+    if (!k || (!isManager(user) && k.ownerId !== user.id)) return fail(res, 404, 'not_found', 'Key 不存在')
     k.revokedAt ??= now()
-    audit({ projectId: null, ...memberActor(user), action: 'key.revoke', target: k.prefix, detail: { name: k.name } })
+    const owner = k.ownerId ? users.get(k.ownerId) : null
+    audit({ projectId: null, ...memberActor(user), action: 'key.revoke', target: k.prefix, detail: { name: k.name, ...(owner ? { owner: owner.email } : {}) } })
     return send(res, 200, { ok: true })
   }
 

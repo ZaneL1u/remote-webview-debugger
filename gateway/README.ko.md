@@ -1,4 +1,4 @@
-<!-- i18n-source: 068ae438288cfae0d5a68d844c1952e8a3a6704c -->
+<!-- i18n-source: 5be41169df20a8a5ebe6e7f150da98c174b93f5e -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 게이트웨이
@@ -75,6 +75,7 @@ rwd version                             버전 출력
 | `RWD_OIDC_INVITE_ONLY=1` | 꺼짐 | 계정을 만들지 않아요. 기존 멤버나 초대받은 멤버(같은 이메일)만 로그인할 수 있어요 |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 로그인을 허용할 이메일 도메인(쉼표로 구분). 예: `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | 꺼짐 | `oidc` 전용: `email_verified`를 보내지 않는 공급자(Microsoft Entra ID)의 이메일을 신뢰해요. 조직이 이메일을 관리하는 단일 테넌트 공급자에서만 쓰세요 |
+| `RWD_OIDC_SYNC_MINUTES` | `60` (Feishu, Lark) | 조직을 떠난 멤버를 비활성화하는 주기(분). `0`이면 꺼져요. 아래를 참고하세요 |
 
 공급자에 다음 리디렉션 URL을 등록하세요. 정확히 일치해야 해요: `https://<host>/v1/api/auth/oidc/callback`. 즉 `RWD_PUBLIC_URL`의 origin(설정하지 않았으면 요청의 origin) 뒤에 `/v1/api/auth/oidc/callback`을 붙인 주소예요. 프록시 뒤에서는 URL이 바뀌지 않도록 `RWD_PUBLIC_URL`을 설정하세요.
 
@@ -88,8 +89,10 @@ rwd version                             버전 출력
 
 1. **Credentials & Basic Info**에서 App ID와 App Secret을 복사해 `RWD_OIDC_CLIENT_ID`와 `RWD_OIDC_CLIENT_SECRET`에 넣으세요.
 2. **Security Settings → Redirect URLs**에 위의 리디렉션 URL을 추가하세요.
-3. **Permissions & Scopes**에서 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하고, 같은 scope를 `RWD_OIDC_SCOPES`에 나열하세요.
+3. **Permissions & Scopes**에서 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하고, 같은 scope를 `RWD_OIDC_SCOPES`에 나열하세요. 떠난 사람을 알아차리려면 앱에 `contact:contact.base:readonly`와 `contact:user.employee:readonly`도 필요하고, **Data permissions → Contacts range**에 로그인하는 모든 사람을 포함해야 해요.
 4. 앱의 사용 가능 범위를 로그인할 사람들로 설정하고, 버전을 만들어 게시하세요. 그래야 설정이 적용돼요.
+
+**떠난 사람.** Feishu나 Lark에서는 게이트웨이가 `RWD_OIDC_SYNC_MINUTES`분마다 앱과 연결된 각 멤버를 Open Platform에 조회하고, 퇴사했거나 조직을 떠난 것으로 표시된 멤버를 비활성화해요. 그 멤버는 로그아웃되고, API 키가 작동하지 않게 되고, 에이전트 접속도 해제돼요. 감사 로그에는 `system`이 수행한 `member.update`가 `"reason":"left_organization"`과 함께 기록돼요. 이후 소유자가 그 멤버를 삭제하면 키가 완전히 폐기돼요. 명시적인 "퇴사" 상태만 인정해요. 연락처 범위 밖의 멤버나 실패한 요청은 아무것도 바꾸지 않고(무엇이 실패했는지는 로그에 남아요), 마지막 소유자는 절대 비활성화하지 않아요. 연락처 권한이 없으면 아무것도 확인하지 않으므로, 떠난 사람의 API 키는 소유자가 비활성화할 때까지 계속 작동해요. 다만 더 이상 로그인할 수 없으니 콘솔 세션은 12시간 안에 끝나요.
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

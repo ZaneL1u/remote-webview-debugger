@@ -61,7 +61,10 @@ export type ProjectPatch = Partial<Pick<Project, 'name' | 'allowedOrigins' | 'di
   policy?: Partial<Policy>
 }
 
-/** Keys belong to the gateway: a key reaches every device. */
+/**
+ * A key reaches every device. It belongs to the member who created it (`ownerId`); keys without an owner are
+ * gateway keys (from before keys had owners), which only owners and admins see and revoke.
+ */
 export type ApiKey = {
   id: string
   name: string
@@ -72,6 +75,13 @@ export type ApiKey = {
   maxLevel?: Level
   expiresAt?: number | null
   ipAllowlist?: string[]
+  /** null: a gateway key. */
+  ownerId?: string | null
+  /** Empty for gateway keys and for members who were deleted (whose keys are revoked). */
+  ownerName?: string
+  ownerEmail?: string
+  /** The owner is disabled: the key stops working until they are enabled again. */
+  ownerDisabled?: boolean
 }
 
 export type CreatedApiKey = ApiKey & { key: string }
@@ -297,3 +307,43 @@ export type AuditFilters = {
 }
 
 export type AuditPage = { events: AuditEvent[]; nextBefore: number | null }
+
+/** GET /insights (section 12.5): the admin overview. */
+export type Insights = {
+  serverTime: number
+  runtime: {
+    goroutines: number
+    heapBytes: number
+    sysBytes: number
+    gcCount: number
+    cpus: number
+    uptimeSec: number
+    os: string
+    /** Gateway process CPU since the previous request; 100 = one core. */
+    cpuPercent?: number
+    /** Host load averages over 1, 5 and 15 minutes (Linux). */
+    load?: [number, number, number]
+    memTotalBytes?: number
+    memAvailableBytes?: number
+  }
+  live: {
+    wsConnections: number
+    connectedPages: number
+    onlineDevices: number
+    attachedAgents: number
+    helpDevices: number
+    pendingApprovals: number
+  }
+  debug: {
+    total: number
+    totalAgent: number
+    totalDevtools: number
+    today: number
+    todayAgent: number
+    todayDevtools: number
+    devices: number
+    devicesToday: number
+    /** Oldest first; `day` counts local days since the epoch. */
+    days: { day: number; agent: number; devtools: number }[]
+  }
+}

@@ -147,8 +147,12 @@ func (s *Store) UpdateUser(ctx context.Context, id string, p UserPatch) (*User, 
 	return u, err
 }
 
+// DeleteUser removes the account and revokes its API keys.
 func (s *Store) DeleteUser(ctx context.Context, id string) error {
 	if _, err := s.exec(ctx, `DELETE FROM user_identities WHERE user_id = ?`, id); err != nil {
+		return err
+	}
+	if _, err := s.exec(ctx, `UPDATE api_keys SET revoked_at = ? WHERE owner_id = ? AND revoked_at IS NULL`, now(), id); err != nil {
 		return err
 	}
 	res, err := s.exec(ctx, `DELETE FROM users WHERE id = ?`, id)

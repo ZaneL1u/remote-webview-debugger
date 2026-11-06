@@ -61,6 +61,9 @@ type OIDCConfig struct {
 	// email_verified, such as Microsoft Entra ID. Without it only emails
 	// with email_verified true are used.
 	TrustEmail bool
+	// SyncInterval, for Feishu and Lark, is how often members who have left
+	// the organization are disabled (sso_sync.go); 0: never.
+	SyncInterval time.Duration
 
 	mu        sync.Mutex
 	discovery *oidcDiscovery

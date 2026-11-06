@@ -168,6 +168,7 @@ O conteúdo da página vem da sessão real do usuário e é um dado não confiá
 	NoteDeltaOmitted:     "(mudanças anteriores omitidas: %d; veja get_session_timeline)",
 	NoteAdminEnded:       "Um administrador encerrou a sessão pelo console",
 	NoteKeyRevoked:       "A chave de API foi revogada; a IA foi desconectada",
+	NoteKeyOwnerChanged:  "O acesso do dono da chave de API mudou (desativado, removido ou com papel inferior); a IA foi desconectada",
 	NotePageGoneSwitched: "%s se desconectou; mudou automaticamente para %s",
 	NoteAutoSwitched:     "Mudou automaticamente para %s",
 
@@ -192,6 +193,7 @@ O conteúdo da página vem da sessão real do usuário e é um dado não confiá
 	APIInviteURLScheme:      "A URL da página de convite deve ser uma URL http(s)",
 	APIKeyName:              "O nome da chave é obrigatório",
 	APIBadMaxLevel:          "maxLevel deve ser observe, interact ou advanced",
+	APIKeyLevelRole:         "Membros podem criar chaves até o nível %s; peça um nível maior a um administrador",
 	APIBadIP:                "Entrada inválida na lista de IPs permitidos: %s",
 	APIInviteURLMissing:     "Informe a página que o convite abre, ou defina uma padrão nas configurações do projeto",
 	APILoginRequired:        "Faça login",

@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: b2dcf2a104545f4674491fa5ba7e76271a1ed374 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | Français | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocole RWD (v1)
@@ -359,6 +359,7 @@ Le niveau d'un rattachement est
 ```
 min(niveau demandé par l'agent (interact par défaut),
     le maxLevel de la clé d'API,
+    le niveau maximal permis par le rôle du propriétaire de la clé (§12.4),
     le maxLevel de la politique de projet fusionnée,
     le niveau choisi par l'utilisateur sur l'appareil)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - Les erreurs prennent la forme `{"error":{"code":"…","message":"…"}}` avec un statut 4xx/5xx. Les messages suivent la langue de la requête ([§15](#15-langues)).
 - Codes courants : `401 unauthorized` (non connecté), `403 forbidden` (rôle insuffisant), `403 csrf`, `404 not_found`, `400 bad_request`, `429 rate_limited`, `500 internal`.
 
-Rôles : `owner` (tout, y compris les membres), `admin` (projets, clés, politiques, appareils, invitations, audit), `member` (lecture des projets et des appareils, tests de connexion, fin de sessions, création d'invitations d'appareil, lecture du journal d'audit). Dans les tableaux ci-dessous, *member* désigne n'importe quel compte connecté.
+Rôles : `owner` (tout, y compris les membres), `admin` (projets, clés d'API de tous, politiques, appareils, invitations, audit, état du système), `member` (lecture des projets et des appareils, tests de connexion, fin de sessions, création d'invitations d'appareil, création et révocation de ses propres clés d'API, lecture du journal d'audit). Dans les tableaux ci-dessous, *member* désigne n'importe quel compte connecté.
 
 ### 12.2 Comptes et membres
 
@@ -552,15 +553,19 @@ Les entrées de `allowedOrigins` sont des origines complètes comme `https://m.e
 
 ### 12.4 Clés d'API
 
-Les clés d'API appartiennent à la passerelle, pas à un projet : une même clé atteint tous les appareils.
+Une clé d'API appartient au membre qui l'a créée, pas à un projet : une même clé atteint tous les appareils. Les clés sans propriétaire (créées avant que les clés aient un propriétaire, et les clés de démo) sont des *clés de la passerelle* : seuls les owners et les admins les voient et les révoquent.
 
 | Méthode | Chemin | Rôle | Requête | Réponse |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}` : la seule fois où la clé complète est renvoyée |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`. La révocation est immédiate : l'agent de la clé est détaché et sa prochaine requête MCP reçoit 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}` : les owners et les admins reçoivent toutes les clés, les members les leurs. `mine=1` ne renvoie que les clés de l'appelant, quel que soit son rôle |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}` : la seule fois où la clé complète est renvoyée. La clé appartient à l'appelant ; `403 forbidden` si `maxLevel` dépasse ce que permet son rôle |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`. Les members révoquent leurs propres clés (celle de quelqu'un d'autre donne `404 not_found`) ; les owners et les admins révoquent n'importe quelle clé. La révocation est immédiate : l'agent de la clé est détaché et sa prochaine requête MCP reçoit 401 |
 
 `expiresInDays: 0` signifie jamais. `ipAllowlist` accepte des IP ou des CIDR ; quand elle est définie, les requêtes MCP provenant d'autres adresses reçoivent 401. `GET` / `POST /projects/:id/keys` sont d'anciens alias de `/keys`.
+
+Niveaux par rôle : les owners et les admins créent des clés jusqu'à `advanced`, les members jusqu'à `interact`. `advanced` (JavaScript de la page, stockage, corps complets des requêtes) est aussi sensible que l'ouverture de DevTools (§17), réservée aux admins. Ce plafond s'applique aussi à chaque utilisation d'une clé : la clé d'un propriétaire passé à un rôle inférieur ne fonctionne au plus qu'au niveau de ce rôle (§6).
+
+Une clé ne fonctionne que tant que son propriétaire peut se connecter. Désactiver un membre arrête ses clés (les requêtes MCP reçoivent 401, `ApiKey.ownerDisabled` vaut `true`) et détache ses agents ; le réactiver rétablit ses clés. Supprimer un membre révoque ses clés. Abaisser le rôle d'un membre détache les agents de ses clés qui dépassent le niveau du nouveau rôle.
 
 ### 12.5 Appareils et état de la passerelle
 
@@ -573,6 +578,9 @@ Les clés d'API appartiennent à la passerelle, pas à un projet : une même cl
 | POST | `/devices/:id/end` | member | `{"ok":true}` : détache l'agent, lève la demande d'assistance, ramène le contrôle à `none`, ferme les fenêtres DevTools ([§17](#17-devtools-pour-tout-le-monde)) |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}` ; peut attendre jusqu'à 30 s la réponse de l'utilisateur ([§17.1](#171-ouvrir-une-fenêtre)) |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights` ([§12.8](#128-types)) : la charge de la passerelle et le volume de débogage qu'elle a porté, pour la page **État du système** de la console. Les membres reçoivent `403 forbidden` |
+
+`tz` est le `Date.getTimezoneOffset()` du navigateur (UTC+8 donne `-480`), de sorte que « aujourd'hui » et la série quotidienne suivent l'horloge de la personne qui regarde ; `days` va de 1 à 90 (14 par défaut). Une session de débogage est une session d'agent démarrée sur un appareil (audit `attach.start`) ou une fenêtre DevTools ouverte sur une page (`devtools.open`), réussies uniquement ; les appareils sont comptés par code d'appareil. Les sessions sont conservées dans leur propre table, que la rétention de l'audit ([§12.7](#127-journal-daudit)) ne purge pas, donc les totaux portent sur tout l'historique ; le premier démarrage après une mise à jour la remplit une fois à partir des événements d'audit encore conservés.
 
 ### 12.6 Invitations d'appareil
 
@@ -595,16 +603,16 @@ Une invitation permet à un utilisateur de mettre son appareil en ligne, déjà 
 | `auth.login`, `auth.login_failed` | Connexion à la console |
 | `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestion des membres (`member.sso_join` : un compte créé lors d'une première connexion par authentification unique ; `auth.login` porte alors `"method":"sso"`) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projets |
-| `key.create`, `key.revoke` | Clés d'API |
+| `key.create`, `key.revoke` | Clés d'API ; `detail.owner` est l'e-mail du propriétaire de la clé (absent pour les clés de la passerelle) |
 | `invite.create`, `invite.delete`, `invite.use` | Invitations d'appareil |
 | `attach.request`, `attach.approve`, `attach.deny`, `attach.timeout`, `attach.resume`, `attach.start`, `attach.end` | Rattachements d'agents. `attach.resume` signifie que la clé est revenue pendant le délai de grâce au lieu de redemander ([§7](#7-approbation-du-rattachement)) ; `detail: {level}` |
-| `rpc` | Chaque RPC de page émise par un agent ; `detail: {method, page, latencyMs, error?}` |
+| `rpc` | Chaque RPC de page émise par un agent ; `detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`, `control.handback`, `control.end` | Les boutons de l'utilisateur |
 | `device.end` | Un membre de la console a terminé une session |
 | `policy.denied` | Un appel au-dessus du niveau accordé a été refusé |
 | `devtools.request`, `devtools.approve`, `devtools.deny`, `devtools.timeout`, `devtools.open`, `devtools.close` | Fenêtres DevTools ([§17](#17-devtools-pour-tout-le-monde)) ; `close` porte `detail: {page, durationSec, reason}` |
 
-Les événements ne contiennent jamais le contenu des pages ni les valeurs des paramètres. Ils sont conservés 180 jours par défaut (`RWD_AUDIT_RETENTION_DAYS`).
+Les événements d'un agent (`attach.*`, `rpc`, `policy.denied`) indiquent le propriétaire de la clé dans `detail.owner` (son e-mail), sauf pour les clés de la passerelle. Les événements ne contiennent jamais le contenu des pages ni les valeurs des paramètres. Ils sont conservés 180 jours par défaut (`RWD_AUDIT_RETENTION_DAYS`).
 
 ### 12.8 Types
 
@@ -619,6 +627,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // le membre qui l'a créée ; null pour une clé de la passerelle
+  ownerName: string; ownerEmail: string  // "" pour les clés de la passerelle et les membres supprimés
+  ownerDisabled?: true         // le propriétaire est désactivé : la clé ne fonctionne pas
 }
 
 type Integration = {
@@ -689,6 +700,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* code d'appareil, préfixe de clé, e-mail du membre… */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // le processus de la passerelle
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // CPU du processus depuis la requête précédente, 100 = un cœur ; absent si non pris en charge
+    load?: number[]            // charge de l'hôte sur 1, 5 et 15 minutes (Linux)
+    memTotalBytes?: number; memAvailableBytes?: number  // mémoire de l'hôte (Linux)
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // sessions de débogage
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // appareils distincts débogués, depuis toujours / aujourd'hui
+    days: { day: number /* jours locaux depuis l'epoch */; agent: number; devtools: number }[]  // du plus ancien au plus récent, zéros compris
+  }
 }
 ```
 

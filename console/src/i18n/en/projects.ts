@@ -39,15 +39,20 @@ export const projects = {
 
   keys: {
     title: 'API keys',
-    pageDescription: 'For connecting agents over MCP. Keys belong to the whole gateway, not to a project: one key and one MCP server reach every device.',
+    pageDescription: 'For connecting agents over MCP. A key belongs to the member who created it, not to a project: one key and one MCP server reach every device.',
     description: 'Agents use a key to connect over MCP. A key sees every device on the gateway, across all projects. Keep keys secret and revoke one right away if it leaks.',
     readOnly: ' Your role can only view keys; creating and revoking them requires an admin.',
+    manageNote: ' Everyone creates keys of their own; as an admin you also see and can revoke everyone’s keys.',
+    ownNote: ' These are the keys you created; you can revoke them at any time. Members can create keys up to the Interact level.',
+    scope: { label: 'Show keys', all: 'Everyone', mine: 'Only mine' },
+    emptyMineTitle: 'You have no API keys yet',
     createKey: 'Create key',
     emptyTitle: 'No API keys yet',
     emptyDescription: 'Create a key and copy the MCP setup command for your agent.',
 
     columns: {
       name: 'Name',
+      owner: 'Created by',
       key: 'Key',
       level: 'Level',
       expiry: 'Expiry',
@@ -71,6 +76,16 @@ export const projects = {
     expired: 'Expired',
     expiredTitle: (date: string) => `Expired ${date}`,
     active: 'Active',
+    gatewayKey: 'Gateway key',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: 'Created before keys belonged to members; only owners and admins see and revoke it',
+    deletedOwner: 'Deleted member',
+    ownerYou: (name: string) => `${name} (you)`,
+    ownerDisabled: 'Creator disabled',
+    ownerDisabledTitle: 'The member who created this key is disabled; it won’t work until they are enabled again',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `It was created by ${name}.`,
+    levelMemberHint: 'Your role can create keys up to Interact; ask an admin if an agent needs Advanced.',
 
     revoke: 'Revoke',
     revokedToast: (name: string) => `Revoked “${name}”`,

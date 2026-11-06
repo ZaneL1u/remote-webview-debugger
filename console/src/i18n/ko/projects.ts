@@ -39,15 +39,20 @@ export const projects: typeof en = {
 
   keys: {
     title: 'API 키',
-    pageDescription: 'MCP로 에이전트를 연결할 때 사용해요. 키는 프로젝트가 아니라 게이트웨이 전체에 속해서, 키 하나와 MCP 서버 하나로 모든 기기에 접근할 수 있어요.',
+    pageDescription: 'MCP로 에이전트를 연결할 때 사용해요. 키는 프로젝트가 아니라 키를 만든 멤버에게 속하고, 키 하나와 MCP 서버 하나로 모든 기기에 접근할 수 있어요.',
     description: '에이전트는 키로 MCP에 연결해요. 키 하나로 모든 프로젝트에 걸쳐 게이트웨이의 모든 기기를 볼 수 있어요. 키는 비밀로 관리하고, 유출되면 바로 폐기하세요.',
     readOnly: ' 현재 역할로는 키를 보기만 할 수 있어요. 키를 만들거나 폐기하려면 관리자 권한이 필요해요.',
+    manageNote: ' 키는 각자 자기 것을 만들어요. 관리자는 모든 사람의 키를 보고 폐기할 수도 있어요.',
+    ownNote: ' 내가 만든 키가 표시되며 언제든 폐기할 수 있어요. 멤버는 「보기 및 조작」 레벨까지의 키만 만들 수 있어요.',
+    scope: { label: '표시 범위', all: '모두', mine: '내 키만' },
+    emptyMineTitle: '아직 API 키가 없어요',
     createKey: '키 만들기',
     emptyTitle: '아직 API 키가 없어요',
     emptyDescription: '키를 만들고 에이전트용 MCP 설정 명령어를 복사하세요.',
 
     columns: {
       name: '이름',
+      owner: '만든 사람',
       key: '키',
       level: '권한 수준',
       expiry: '만료',
@@ -71,6 +76,16 @@ export const projects: typeof en = {
     expired: '만료됨',
     expiredTitle: (date) => `${date} 만료됨`,
     active: '활성',
+    gatewayKey: '게이트웨이 키',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: '키가 멤버에게 속하기 전에 만든 키예요. 소유자와 관리자만 보고 폐기할 수 있어요',
+    deletedOwner: '삭제된 멤버',
+    ownerYou: (name: string) => `${name}(나)`,
+    ownerDisabled: '만든 사람 비활성화됨',
+    ownerDisabledTitle: '이 키를 만든 멤버가 비활성화되어, 다시 활성화될 때까지 키를 쓸 수 없어요',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `이 키는 ${name} 님이 만들었어요.`,
+    levelMemberHint: '현재 역할로는 「보기 및 조작」 레벨까지 만들 수 있어요. 에이전트에 「고급」이 필요하면 관리자에게 요청하세요.',
 
     revoke: '폐기',
     revokedToast: (name) => `“${name}” 키를 폐기했어요`,

@@ -1,4 +1,4 @@
-<!-- i18n-source: 068ae438288cfae0d5a68d844c1952e8a3a6704c -->
+<!-- i18n-source: 5be41169df20a8a5ebe6e7f150da98c174b93f5e -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # Шлюз rwd
@@ -75,6 +75,7 @@ rwd version                             вывести версию
 | `RWD_OIDC_INVITE_ONLY=1` | выключено | Не создавать учётные записи: войти могут только существующие или приглашённые участники (с тем же email) |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | Домены email через запятую, с которых разрешён вход, например `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | выключено | Только `oidc`: доверять email поставщика, который не передаёт `email_verified` (Microsoft Entra ID). Только для однотенантного поставщика, email в котором контролирует ваша организация |
+| `RWD_OIDC_SYNC_MINUTES` | `60` (Feishu, Lark) | Как часто отключать участников, покинувших организацию; `0` выключает. См. ниже |
 
 Зарегистрируйте у поставщика этот URL перенаправления; он должен совпадать в точности: `https://<host>/v1/api/auth/oidc/callback`, то есть origin из `RWD_PUBLIC_URL` (или из запроса, если переменная не задана), за которым следует `/v1/api/auth/oidc/callback`. За прокси задайте `RWD_PUBLIC_URL`, чтобы URL не менялся.
 
@@ -88,8 +89,10 @@ rwd version                             вывести версию
 
 1. Скопируйте App ID и App Secret из **Credentials & Basic Info** в `RWD_OIDC_CLIENT_ID` и `RWD_OIDC_CLIENT_SECRET`.
 2. В **Security Settings → Redirect URLs** добавьте указанный выше URL перенаправления.
-3. В **Permissions & Scopes** добавьте `contact:user.email:readonly` (и `contact:user.employee:readonly` для корпоративного email) и перечислите те же области доступа в `RWD_OIDC_SCOPES`.
+3. В **Permissions & Scopes** добавьте `contact:user.email:readonly` (и `contact:user.employee:readonly` для корпоративного email) и перечислите те же области доступа в `RWD_OIDC_SCOPES`. Чтобы замечать ушедших, приложению также нужны `contact:contact.base:readonly` и `contact:user.employee:readonly`, а в **Data permissions → Contacts range** должны быть все, кто входит.
 4. Сделайте приложение доступным тем, кто должен входить, затем создайте и опубликуйте версию, чтобы настройки вступили в силу.
+
+**Ушедшие сотрудники.** С Feishu или Lark шлюз каждые `RWD_OIDC_SYNC_MINUTES` минут запрашивает у Open Platform каждого участника, привязанного к приложению, и отключает тех, кто значится уволившимся или покинувшим организацию: их сеансы завершаются, их API-ключи перестают работать, их агенты отключаются, а в журнал аудита записывается `member.update` от `system` с `"reason":"left_organization"`. Затем владелец может удалить их, и это окончательно отзовёт их ключи. Учитывается только явный статус «уволен»: участник вне области контактов или неудавшийся запрос ничего не меняют (в журнал пишется, что не удалось), а последний владелец никогда не отключается. Без разрешения на контакты ничего не проверяется, и ушедший сохраняет рабочие API-ключи, пока владелец его не отключит; зато его сеанс в веб-консоли завершится в течение 12 часов, потому что войти снова он уже не может.
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

@@ -160,6 +160,13 @@ const auditRoute = createRoute({
   component: AuditPage,
 })
 
+// Admin overview: gateway load, live connections and debugging counts (docs/protocol.md section 12.5).
+const insightsRoute = createRoute({
+  getParentRoute: () => authRoute,
+  path: '/insights',
+  component: lazyRouteComponent(() => import('@/routes/insights'), 'InsightsPage'),
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   inviteRoute,
@@ -174,6 +181,7 @@ const routeTree = rootRoute.addChildren([
     docsRoute,
     membersRoute,
     auditRoute,
+    insightsRoute,
   ]),
 ])
 

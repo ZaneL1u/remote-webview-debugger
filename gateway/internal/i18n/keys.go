@@ -173,6 +173,7 @@ const (
 	NoteDeltaOmitted     Key = "note.delta_omitted"
 	NoteAdminEnded       Key = "note.admin_ended"
 	NoteKeyRevoked       Key = "note.key_revoked"
+	NoteKeyOwnerChanged  Key = "note.key_owner_changed"
 	NotePageGoneSwitched Key = "note.page_gone_switched"
 	NoteAutoSwitched     Key = "note.auto_switched"
 
@@ -199,6 +200,7 @@ const (
 	APIInviteURLScheme      Key = "api.invite_url_scheme"
 	APIKeyName              Key = "api.key_name"
 	APIBadMaxLevel          Key = "api.bad_max_level"
+	APIKeyLevelRole         Key = "api.key_level_role"
 	APIBadIP                Key = "api.bad_ip"
 	APIInviteURLMissing     Key = "api.invite_url_missing"
 	APILoginRequired        Key = "api.login_required"

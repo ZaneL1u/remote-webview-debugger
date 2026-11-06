@@ -1,4 +1,4 @@
-<!-- i18n-source: 068ae438288cfae0d5a68d844c1952e8a3a6704c -->
+<!-- i18n-source: 5be41169df20a8a5ebe6e7f150da98c174b93f5e -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Gateway do rwd
@@ -75,6 +75,7 @@ Os membros também podem entrar com Feishu, Lark ou qualquer provedor OpenID Con
 | `RWD_OIDC_INVITE_ONLY=1` | desligado | Não cria contas: só membros existentes ou convidados (com o mesmo e-mail) conseguem entrar |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | Domínios de e-mail autorizados a entrar, separados por vírgula, por exemplo `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | desligado | Só `oidc`: confia no e-mail de um provedor que não envia `email_verified` (Microsoft Entra ID). Apenas para um provedor de um único tenant cujos e-mails sua organização controla |
+| `RWD_OIDC_SYNC_MINUTES` | `60` (Feishu, Lark) | Com que frequência desativar os membros que saíram da organização; `0` desliga. Veja abaixo |
 
 Registre esta URL de redirecionamento no provedor; ela precisa coincidir exatamente: `https://<host>/v1/api/auth/oidc/callback`, ou seja, a origem de `RWD_PUBLIC_URL` (ou da requisição, quando ela não está definida) seguida de `/v1/api/auth/oidc/callback`. Atrás de um proxy, defina `RWD_PUBLIC_URL` para que a URL seja estável.
 
@@ -88,8 +89,10 @@ O primeiro login de uma identidade a junta ao membro com o mesmo e-mail (um memb
 
 1. Copie o App ID e o App Secret de **Credentials & Basic Info** para `RWD_OIDC_CLIENT_ID` e `RWD_OIDC_CLIENT_SECRET`.
 2. Em **Security Settings → Redirect URLs**, adicione a URL de redirecionamento acima.
-3. Em **Permissions & Scopes**, adicione `contact:user.email:readonly` (e `contact:user.employee:readonly` para o e-mail corporativo) e liste os mesmos escopos em `RWD_OIDC_SCOPES`.
+3. Em **Permissions & Scopes**, adicione `contact:user.email:readonly` (e `contact:user.employee:readonly` para o e-mail corporativo) e liste os mesmos escopos em `RWD_OIDC_SCOPES`. Para perceber quem saiu, o app também precisa de `contact:contact.base:readonly` e `contact:user.employee:readonly` e, em **Data permissions → Contacts range**, de todas as pessoas que entram.
 4. Torne o app disponível para as pessoas que devem entrar, e crie e publique uma versão para que as configurações entrem em vigor.
+
+**Pessoas que saem.** Com Feishu ou Lark, o gateway consulta a Open Platform a cada `RWD_OIDC_SYNC_MINUTES` sobre cada membro vinculado ao app e desativa quem consta como desligado ou como tendo saído da organização: essas pessoas têm a sessão encerrada, as chaves de API delas param de funcionar e os agentes delas são desconectados, e o log de auditoria registra `member.update` por `system` com `"reason":"left_organization"`. Depois, um proprietário pode removê-las, o que revoga as chaves delas de vez. Só um “desligado” explícito conta: um membro fora do escopo de contatos, ou uma requisição que falhou, não muda nada (o log diz o que falhou), e o último proprietário nunca é desativado. Sem a permissão de contatos nada é verificado, e quem saiu mantém chaves de API funcionando até que um proprietário o desative; já a sessão dele no console termina em até 12 horas, porque ele não consegue mais entrar.
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \

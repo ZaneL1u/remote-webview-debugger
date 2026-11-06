@@ -47,15 +47,20 @@ var (
 	touched = map[string]time.Time{}
 )
 
-// verifyKey checks the API key on every request, so revocation takes effect
-// immediately.
+// verifyKey checks the API key on every request, so revocation, and
+// disabling or removing the key's owner, take effect immediately.
 func (s *Server) verifyKey(ctx context.Context, token string, r *http.Request) (*auth.TokenInfo, error) {
 	k, err := s.store.APIKeyByHash(ctx, ids.HashKey(s.pepper, token))
 	if err != nil {
 		return nil, auth.ErrInvalidToken
 	}
-	if k.Expired() || !ipAllowed(s.clientIP(r), k.IPAllowlist) {
+	if k.Expired() || !k.OwnerActive() || !ipAllowed(s.clientIP(r), k.IPAllowlist) {
 		return nil, auth.ErrInvalidToken
+	}
+	level := k.MaxLevel
+	if k.OwnerID != nil {
+		// An owner whose role was lowered keeps their keys, within the new role.
+		level = store.MinLevel(level, store.RoleMaxLevel(k.OwnerRole))
 	}
 	touchMu.Lock()
 	if time.Since(touched[k.ID]) > time.Minute {
@@ -64,7 +69,7 @@ func (s *Server) verifyKey(ctx context.Context, token string, r *http.Request) (
 	}
 	touchMu.Unlock()
 	return &auth.TokenInfo{UserID: k.ID, Extra: map[string]any{"name": k.Name,
-		"hint": "…" + k.Prefix[len(k.Prefix)-4:], "level": string(k.MaxLevel)}}, nil
+		"hint": "…" + k.Prefix[len(k.Prefix)-4:], "level": string(level), "owner": k.OwnerEmail}}, nil
 }
 
 // --- tool plumbing ---
@@ -93,7 +98,8 @@ func addTool[In any](s *Server, srv *mcp.Server, name string, readOnly bool, h h
 		if ti == nil {
 			return errResult(l.T(i18n.MCPUnauthorized)), nil, nil
 		}
-		a := s.hub.Agent(ti.UserID, fmt.Sprint(ti.Extra["name"]), fmt.Sprint(ti.Extra["hint"]),
+		owner, _ := ti.Extra["owner"].(string)
+		a := s.hub.Agent(ti.UserID, fmt.Sprint(ti.Extra["name"]), fmt.Sprint(ti.Extra["hint"]), owner,
 			store.Level(fmt.Sprint(ti.Extra["level"])))
 		o := &out{lang: l}
 		err := h(ctx, a, in, o)
@@ -221,6 +227,9 @@ func (s *Server) call(ctx context.Context, a *hub.Agent, page, method string, pa
 	result := "ok"
 	if err != nil {
 		result, detail["error"] = "error", hub.ErrorText(s.cfg.Lang, err)
+	}
+	if a.Owner != "" {
+		detail["owner"] = a.Owner
 	}
 	pid := sess.Device.Info.ProjectID
 	s.recordEvent(store.AuditEvent{ProjectID: &pid, ActorType: "apikey", ActorID: a.KeyID, ActorName: a.Name,

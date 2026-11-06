@@ -39,15 +39,20 @@ export const projects: typeof en = {
 
   keys: {
     title: 'API 金鑰',
-    pageDescription: '供 agent 透過 MCP 連線使用。金鑰屬於整個閘道，而不屬於某個專案：一把金鑰、一個 MCP 伺服器就能連到所有裝置。',
+    pageDescription: '供 agent 透過 MCP 連線使用。金鑰屬於建立它的成員，而不屬於某個專案：一把金鑰、一個 MCP 伺服器就能連到所有裝置。',
     description: 'agent 透過 MCP 連線時使用。一把金鑰可以看到閘道上的所有裝置，不分專案。請妥善保管金鑰，一旦外洩請立即撤銷。',
     readOnly: ' 你的角色只能查看金鑰，建立和撤銷需要管理員權限。',
+    manageNote: ' 每個人都能建立自己的金鑰；身為管理員，你還能檢視並撤銷所有人的金鑰。',
+    ownNote: ' 這裡列出你建立的金鑰，你可以隨時撤銷。成員最高只能建立「檢視並操作」等級的金鑰。',
+    scope: { label: '顯示範圍', all: '所有人', mine: '只看我的' },
+    emptyMineTitle: '你還沒有 API 金鑰',
     createKey: '建立金鑰',
     emptyTitle: '還沒有 API 金鑰',
     emptyDescription: '建立一把金鑰，再複製 MCP 設定指令給你的 agent 使用。',
 
     columns: {
       name: '名稱',
+      owner: '建立者',
       key: '金鑰',
       level: '等級',
       expiry: '有效期限',
@@ -71,6 +76,16 @@ export const projects: typeof en = {
     expired: '已過期',
     expiredTitle: (date) => `過期於 ${date}`,
     active: '有效',
+    gatewayKey: '閘道金鑰',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: '在金鑰歸屬到成員之前建立，只有擁有者和管理員能檢視與撤銷',
+    deletedOwner: '已刪除的成員',
+    ownerYou: (name: string) => `${name}（你）`,
+    ownerDisabled: '建立者已停用',
+    ownerDisabledTitle: '建立這把金鑰的成員已被停用，重新啟用之前金鑰無法使用',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `這把金鑰由 ${name} 建立。`,
+    levelMemberHint: '你的角色最高可建立「檢視並操作」等級的金鑰；agent 需要「進階」時請聯絡管理員。',
 
     revoke: '撤銷',
     revokedToast: (name) => `已撤銷「${name}」`,

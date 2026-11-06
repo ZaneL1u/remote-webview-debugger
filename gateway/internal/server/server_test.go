@@ -624,12 +624,12 @@ func TestMembersAndRoles(t *testing.T) {
 	if code, me := member.do("GET", "/me", nil); code != 200 || me["role"] != "member" {
 		t.Fatalf("me: %d %v", code, me)
 	}
-	// Members can read but not create keys or change policy.
+	// Members can read, and create keys of their own (keys_test.go), but not change policy.
 	if code, _ := member.do("GET", "/projects/"+f.project.ID+"/devices", nil); code != 200 {
 		t.Fatalf("member read: %d", code)
 	}
-	if code, _ := member.do("POST", "/projects/"+f.project.ID+"/keys", map[string]string{"name": "x"}); code != 403 {
-		t.Fatalf("member create key: %d, want 403", code)
+	if code, _ := member.do("POST", "/projects/"+f.project.ID+"/keys", map[string]string{"name": "x"}); code != 200 {
+		t.Fatalf("member create key: %d, want 200", code)
 	}
 	if code, _ := member.do("PATCH", "/projects/"+f.project.ID, map[string]any{"policy": map[string]any{"approval": "none"}}); code != 403 {
 		t.Fatalf("member policy: %d, want 403", code)
@@ -1004,7 +1004,7 @@ func TestMigrateGlobalDevices(t *testing.T) {
 	if err := st.DeleteProject(ctx, "p1"); err != nil {
 		t.Fatal(err)
 	}
-	if keys, _ := st.APIKeys(ctx); len(keys) != 1 {
+	if keys, _ := st.APIKeys(ctx, ""); len(keys) != 1 {
 		t.Fatalf("keys after deleting their old project: %d, want 1", len(keys))
 	}
 	if _, err := st.Device(ctx, "tablet"); err != nil {

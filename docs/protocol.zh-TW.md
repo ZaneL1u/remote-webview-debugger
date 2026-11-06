@@ -1,4 +1,4 @@
-<!-- i18n-source: 5caf3a3e7fd7e72ee36112bb4ceee0b6636fef35 -->
+<!-- i18n-source: b2dcf2a104545f4674491fa5ba7e76271a1ed374 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -359,6 +359,7 @@ console 的 error 和 warn、失敗的請求、使用者的點按 / 輸入 / 送
 ```
 min(agent 申請的等級（預設 interact），
     API 金鑰的 maxLevel，
+    金鑰建立者的角色允許的最高等級（§12.4），
     合併後專案原則的 maxLevel，
     使用者在裝置上選擇的等級)
 ```
@@ -512,7 +513,7 @@ type Policy = {
 - 錯誤一律為 `{"error":{"code":"…","message":"…"}}`，搭配 4xx/5xx 狀態碼。message 的語言依請求而定（[§15](#15-語言)）。
 - 常見錯誤碼：`401 unauthorized`（未登入）、`403 forbidden`（角色權限不足）、`403 csrf`、`404 not_found`、`400 bad_request`、`429 rate_limited`、`500 internal`。
 
-角色：`owner`（所有權限，包括成員管理）；`admin`（專案、金鑰、原則、裝置、邀請、稽核）；`member`（檢視專案和裝置、測試連線、結束工作階段、建立裝置邀請、檢視稽核記錄）。下表中的 *member* 指任何已登入的帳號。
+角色：`owner`（所有權限，包括成員管理）；`admin`（專案、所有人的 API 金鑰、原則、裝置、邀請、稽核、運行狀況）；`member`（檢視專案和裝置、測試連線、結束工作階段、建立裝置邀請、建立和撤銷自己的 API 金鑰、檢視稽核記錄）。下表中的 *member* 指任何已登入的帳號。
 
 ### 12.2 帳號與成員
 
@@ -552,15 +553,19 @@ type Policy = {
 
 ### 12.4 API 金鑰
 
-API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存取所有裝置。
+API 金鑰屬於建立它的成員，而不屬於某個專案：一把金鑰可以存取所有裝置。沒有建立者的金鑰（在金鑰歸屬到成員之前建立的，以及示範金鑰）是*閘道金鑰*：只有 owner 和 admin 能檢視與撤銷。
 
 | 方法 | 路徑 | 角色 | 請求 | 回應 |
 |---|---|---|---|---|
-| GET | `/keys` | member | — | `{"keys":[ApiKey]}` |
-| POST | `/keys` | admin | `{"name","maxLevel"?:"interact","expiresInDays"?:90,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`：完整的金鑰只會在這裡回傳這一次 |
-| DELETE | `/keys/:id` | admin | — | `{"ok":true}`。撤銷立即生效：該金鑰的 agent 會被中斷接入，它的下一個 MCP 請求會收到 401 |
+| GET | `/keys?mine=1` | member | — | `{"keys":[ApiKey]}`：owner 和 admin 會拿到所有金鑰，member 只拿到自己的。`mine=1` 對任何角色都只回傳呼叫者自己的金鑰 |
+| POST | `/keys` | member | `{"name","maxLevel"?:"interact","expiresInDays"?:0,"ipAllowlist"?:[]}` | `ApiKey & {"key":"rwd_sk_live_…"}`：完整的金鑰只會在這裡回傳這一次。金鑰屬於呼叫者；`maxLevel` 超出呼叫者角色允許的等級時回傳 `403 forbidden` |
+| DELETE | `/keys/:id` | member | — | `{"ok":true}`。member 只能撤銷自己的金鑰（別人的會收到 `404 not_found`）；owner 和 admin 可以撤銷任何金鑰。撤銷立即生效：該金鑰的 agent 會被中斷接入，它的下一個 MCP 請求會收到 401 |
 
 `expiresInDays: 0` 表示永不過期。`ipAllowlist` 填入 IP 或 CIDR；設定後，其他位址送來的 MCP 請求會收到 401。`GET` / `POST /projects/:id/keys` 是 `/keys` 的舊路徑，效果相同。
+
+各角色可用的等級：owner 和 admin 建立的金鑰最高為 `advanced`，member 最高為 `interact`。`advanced`（頁面 JavaScript、儲存空間、完整的請求本文）和開啟 DevTools（§17）一樣敏感，而 DevTools 只開放給 admin。每次使用金鑰時也會套用這個上限，所以建立者被降級後，他的金鑰最多只能以新角色的等級運作（§6）。
+
+金鑰只在建立者還能登入時有效。停用成員會讓他的金鑰失效（MCP 請求收到 401，`ApiKey.ownerDisabled` 為 `true`），並中斷他的 agent；重新啟用後金鑰恢復可用。刪除成員會撤銷他的金鑰。降低成員的角色會中斷他名下超出新角色等級的金鑰的 agent。
 
 ### 12.5 裝置與閘道狀態
 
@@ -573,6 +578,9 @@ API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存�
 | POST | `/devices/:id/end` | member | `{"ok":true}`：中斷 agent 接入、清除協助請求，控制狀態回到 `none`，並關閉所有除錯工具視窗（[§17](#17-給人用的除錯工具)） |
 | POST | `/devices/:id/devtools` | admin | `{"page"?:"p1"}` → `{"ticket","session","page":Page,"frontendUrl"}`；最長可能等待使用者 30 秒（[§17.1](#171-開啟視窗)） |
 | GET | `/status` | member | `{ok, version, db, gatewayUrl, sdkVersion, startedAt, uptimeSec, serverTime, onlineDevices, totalDevices, connectedPages, attachedAgents, helpDevices, pendingApprovals, wsConnections, projects}` |
+| GET | `/insights?tz=<minutes>&days=14` | admin | `Insights`（[§12.8](#128-型別)）：閘道目前的負載與累計承載的偵錯量，供主控台的 **運行狀況** 頁面使用。member 會得到 `403 forbidden` |
+
+`tz` 是瀏覽器的 `Date.getTimezoneOffset()`（UTC+8 為 `-480`），「今天」與每日序列都依檢視者的時區計算；`days` 為 1–90（預設 14）。一次偵錯是指在裝置上開始的一次 agent 工作階段（稽核 `attach.start`）或在頁面上開啟的一個 DevTools 視窗（`devtools.open`），只計成功的；裝置以裝置碼計數。偵錯記錄存在獨立的資料表中，稽核保留期（[§12.7](#127-稽核記錄)）不會清除，所以總數涵蓋全部歷史；升級後第一次啟動時，閘道會用仍保留的稽核事件回填一次。
 
 ### 12.6 裝置邀請
 
@@ -595,16 +603,16 @@ API 金鑰屬於整個閘道，而不屬於某個專案：一把金鑰可以存�
 | `auth.login`、`auth.login_failed` | 主控台登入 |
 | `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成員管理（`member.sso_join`：首次單一登入時建立的帳號；之後的 `auth.login` 會帶 `"method":"sso"`） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 專案 |
-| `key.create`、`key.revoke` | API 金鑰 |
+| `key.create`、`key.revoke` | API 金鑰；`detail.owner` 是金鑰建立者的電子郵件（閘道金鑰沒有） |
 | `invite.create`、`invite.delete`、`invite.use` | 裝置邀請 |
 | `attach.request`、`attach.approve`、`attach.deny`、`attach.timeout`、`attach.resume`、`attach.start`、`attach.end` | agent 接入。`attach.resume` 表示這把金鑰在寬限期內直接回來，沒有再次詢問使用者（[§7](#7-接入核准)）；`detail: {level}` |
-| `rpc` | agent 送給頁面的每個 RPC；`detail: {method, page, latencyMs, error?}` |
+| `rpc` | agent 送給頁面的每個 RPC；`detail: {method, page, latencyMs, error?, owner?}` |
 | `control.takeover`、`control.handback`、`control.end` | 使用者按下的按鈕 |
 | `device.end` | 主控台成員結束了工作階段 |
 | `policy.denied` | 超出等級的呼叫被拒絕 |
 | `devtools.request`、`devtools.approve`、`devtools.deny`、`devtools.timeout`、`devtools.open`、`devtools.close` | 除錯工具視窗（[§17](#17-給人用的除錯工具)）；`close` 帶有 `detail: {page, durationSec, reason}` |
 
-稽核事件絕不包含頁面內容和參數值。預設保留 180 天（`RWD_AUDIT_RETENTION_DAYS`）。
+agent 的事件（`attach.*`、`rpc`、`policy.denied`）會在 `detail.owner` 記錄金鑰建立者的電子郵件，閘道金鑰除外。稽核事件絕不包含頁面內容和參數值。預設保留 180 天（`RWD_AUDIT_RETENTION_DAYS`）。
 
 ### 12.8 型別
 
@@ -619,6 +627,9 @@ type ApiKey = {
   id: string; name: string; prefix: string /* rwd_sk_live_ab12 */
   maxLevel: Level; expiresAt: number | null; ipAllowlist: string[]
   createdAt: number; lastUsedAt: number | null; revokedAt: number | null
+  ownerId: string | null       // 建立它的成員；閘道金鑰為 null
+  ownerName: string; ownerEmail: string  // 閘道金鑰和已刪除的成員為 ""
+  ownerDisabled?: true         // 建立者已停用，金鑰無法使用
 }
 
 type Integration = {
@@ -689,6 +700,27 @@ type AuditEvent = {
   actorType: 'member' | 'apikey' | 'device' | 'system'; actorId: string; actorName: string
   action: string; target: string /* 裝置碼、金鑰前綴、成員電子郵件等 */
   result: 'ok' | 'denied' | 'error'; detail: Record<string, unknown>
+}
+
+type Insights = {              // GET /insights (§12.5)
+  serverTime: number
+  runtime: {                   // 閘道程序
+    goroutines: number; heapBytes: number; sysBytes: number; gcCount: number
+    cpus: number; uptimeSec: number; os: string /* linux/amd64 */
+    cpuPercent?: number        // 距上次請求的程序 CPU，100 = 一個核心；不支援的平台沒有此欄位
+    load?: number[]            // 主機 1、5、15 分鐘負載（Linux）
+    memTotalBytes?: number; memAvailableBytes?: number  // 主機記憶體（Linux）
+  }
+  live: {
+    wsConnections: number; connectedPages: number; onlineDevices: number
+    attachedAgents: number; helpDevices: number; pendingApprovals: number
+  }
+  debug: {                     // 偵錯次數
+    total: number; totalAgent: number; totalDevtools: number
+    today: number; todayAgent: number; todayDevtools: number
+    devices: number; devicesToday: number  // 被偵錯過的不同裝置數：全部 / 今天
+    days: { day: number /* 本地時區自紀元起的天數 */; agent: number; devtools: number }[]  // 由舊到新，包含為 0 的日子
+  }
 }
 ```
 

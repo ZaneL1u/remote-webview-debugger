@@ -9,7 +9,8 @@ import type { Me, Role } from './types'
 export type Permission =
   | 'project.manage' // create / rename / disable / delete projects, rotate the app key, allowed origins
   | 'policy.manage'
-  | 'key.manage'
+  | 'key.own' // create API keys and revoke one's own (every member; members up to the interact level)
+  | 'key.manage' // see and revoke everyone's API keys, gateway keys included; create advanced keys
   | 'invite.manage' // device invites (section 12.6): support staff (members) send them too
   | 'member.view'
   | 'member.manage'
@@ -20,6 +21,7 @@ const grants: Record<Role, ReadonlySet<Permission>> = {
   owner: new Set<Permission>([
     'project.manage',
     'policy.manage',
+    'key.own',
     'key.manage',
     'invite.manage',
     'member.view',
@@ -30,13 +32,14 @@ const grants: Record<Role, ReadonlySet<Permission>> = {
   admin: new Set<Permission>([
     'project.manage',
     'policy.manage',
+    'key.own',
     'key.manage',
     'invite.manage',
     'member.view',
     'audit.org',
     'devtools.open',
   ]),
-  member: new Set<Permission>(['invite.manage']),
+  member: new Set<Permission>(['key.own', 'invite.manage']),
 }
 
 export function can(me: Pick<Me, 'role'> | undefined, permission: Permission): boolean {

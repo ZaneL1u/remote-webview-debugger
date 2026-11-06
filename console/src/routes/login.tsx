@@ -6,7 +6,6 @@ import { useState } from 'react'
 import { AuthLayout } from '@/components/auth-layout'
 import { Callout } from '@/components/callout'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n'
@@ -50,85 +49,92 @@ export function LoginPage() {
 
   return (
     <AuthLayout subtitle={t.shell.login.subtitle}>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.shell.login.title}</CardTitle>
-            <CardDescription>{t.shell.login.description}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {ssoError && (
-              <Callout tone="destructive">
-                <p>{(t.shell.login.ssoErrors as Record<string, string>)[ssoError] ?? t.shell.login.ssoErrors.provider}</p>
-              </Callout>
-            )}
-            {sso && (
-              <>
-                {/* A full page load: the gateway redirects to the provider and back (docs/protocol.md section 12.2). */}
-                <a href={ssoStartUrl(redirect)} className={cn(buttonVariants(), 'w-full')}>
-                  <LogInIcon />
-                  {t.shell.login.sso(ssoName(sso))}
-                </a>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground" role="separator">
-                  <span className="h-px flex-1 bg-border" />
-                  {t.shell.login.or}
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-              </>
-            )}
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (!email.trim()) return setError(t.shell.login.emailRequired)
-                if (!password) return setError(t.shell.login.passwordRequired)
-                setError(null)
-                login.mutate({ email: email.trim(), password })
-              }}
+      <div className="space-y-6">
+        {ssoError && (
+          <Callout tone="destructive">
+            <p>{(t.shell.login.ssoErrors as Record<string, string>)[ssoError] ?? t.shell.login.ssoErrors.provider}</p>
+          </Callout>
+        )}
+        {sso && (
+          <>
+            {/* A full page load: the gateway redirects to the provider and back (docs/protocol.md section 12.2). */}
+            <a
+              href={ssoStartUrl(redirect)}
+              className={cn(
+                buttonVariants({ size: 'lg' }),
+                'bg-brand-gradient h-11 w-full text-[15px] text-white shadow-[0_10px_30px_-12px_rgb(93_92_245/0.8)] transition-[filter,box-shadow] hover:bg-transparent hover:brightness-110',
+              )}
             >
-              <div className="space-y-2">
-                <Label htmlFor="email">{t.shell.login.email}</Label>
-                <div className="relative">
-                  <MailIcon className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                  {/* Not type=email: the bootstrap owner defaults to the plain name "admin". */}
-                  <Input
-                    id="email"
-                    type="text"
-                    inputMode="email"
-                    autoComplete="username"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    autoFocus
-                    className="ps-9"
-                    placeholder="you@example.com"
-                    value={email}
-                    aria-invalid={!!error || undefined}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{t.shell.login.password}</Label>
-                <div className="relative">
-                  <LockKeyholeIcon className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    className="ps-9"
-                    value={password}
-                    aria-invalid={!!error || undefined}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                {error && <p className="text-sm text-destructive">{error}</p>}
-              </div>
-              <Button type="submit" variant={sso ? 'outline' : 'default'} className="w-full" disabled={login.isPending}>
-                {login.isPending && <LoaderCircleIcon className="animate-spin" />}
-                {t.shell.login.submit}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+              <LogInIcon />
+              {t.shell.login.sso(ssoName(sso))}
+            </a>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground" role="separator">
+              <span className="h-px flex-1 bg-border" />
+              {t.shell.login.or}
+              <span className="h-px flex-1 bg-border" />
+            </div>
+          </>
+        )}
+        <form
+          className="space-y-5"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!email.trim()) return setError(t.shell.login.emailRequired)
+            if (!password) return setError(t.shell.login.passwordRequired)
+            setError(null)
+            login.mutate({ email: email.trim(), password })
+          }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="email">{t.shell.login.email}</Label>
+            <div className="relative">
+              <MailIcon className="pointer-events-none absolute top-1/2 start-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              {/* Not type=email: the bootstrap owner defaults to the plain name "admin". */}
+              <Input
+                id="email"
+                type="text"
+                inputMode="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                autoFocus={!sso}
+                className="h-11 ps-10"
+                placeholder="you@example.com"
+                value={email}
+                aria-invalid={!!error || undefined}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">{t.shell.login.password}</Label>
+            <div className="relative">
+              <LockKeyholeIcon className="pointer-events-none absolute top-1/2 start-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                className="h-11 ps-10"
+                value={password}
+                aria-invalid={!!error || undefined}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+          <Button
+            type="submit"
+            size="lg"
+            variant={sso ? 'outline' : 'default'}
+            className="h-11 w-full text-[15px]"
+            disabled={login.isPending}
+          >
+            {login.isPending && <LoaderCircleIcon className="animate-spin" />}
+            {t.shell.login.submit}
+          </Button>
+        </form>
+        <p className="text-xs leading-relaxed text-muted-foreground/80">{t.shell.login.description}</p>
+      </div>
     </AuthLayout>
   )
 }

@@ -41,16 +41,21 @@ export const projects: typeof en = {
   keys: {
     title: 'Claves de API',
     pageDescription:
-      'Para conectar agentes a través de MCP. Las claves pertenecen a todo el gateway, no a un proyecto: una clave y un servidor MCP llegan a todos los dispositivos.',
+      'Para conectar agentes a través de MCP. Una clave pertenece al miembro que la creó, no a un proyecto: una clave y un servidor MCP llegan a todos los dispositivos.',
     description:
       'Los agentes usan una clave para conectarse a través de MCP. Una clave ve todos los dispositivos del gateway, de todos los proyectos. Mantén las claves en secreto y revoca la que se filtre de inmediato.',
     readOnly: ' Tu rol solo puede ver las claves; para crearlas y revocarlas hace falta un administrador.',
+    manageNote: ' Cada persona crea sus propias claves; como administrador, también ves las de todos y puedes revocarlas.',
+    ownNote: ' Aquí ves las claves que creaste y puedes revocarlas cuando quieras. Los miembros pueden crear claves hasta el nivel Ver e interactuar.',
+    scope: { label: 'Mostrar claves', all: 'De todos', mine: 'Solo las mías' },
+    emptyMineTitle: 'Todavía no tienes claves de API',
     createKey: 'Crear clave',
     emptyTitle: 'Todavía no hay claves de API',
     emptyDescription: 'Crea una clave y copia el comando de configuración de MCP para tu agente.',
 
     columns: {
       name: 'Nombre',
+      owner: 'Creada por',
       key: 'Clave',
       level: 'Nivel',
       expiry: 'Caducidad',
@@ -74,6 +79,16 @@ export const projects: typeof en = {
     expired: 'Caducada',
     expiredTitle: (date) => `Caducó el ${date}`,
     active: 'Activa',
+    gatewayKey: 'Clave del gateway',
+    /** Tooltip of a key without an owner. */
+    gatewayKeyTitle: 'Creada antes de que las claves pertenecieran a miembros; solo propietarios y administradores la ven y la revocan',
+    deletedOwner: 'Miembro eliminado',
+    ownerYou: (name: string) => `${name} (tú)`,
+    ownerDisabled: 'Creador desactivado',
+    ownerDisabledTitle: 'El miembro que creó esta clave está desactivado; no funcionará hasta que se reactive',
+    /** Appended to revokeDescription when revoking someone else's key. */
+    revokeOwner: (name: string) => `La creó ${name}.`,
+    levelMemberHint: 'Tu rol puede crear claves hasta Ver e interactuar; si un agente necesita Avanzado, pídeselo a un administrador.',
 
     revoke: 'Revocar',
     revokedToast: (name) => `“${name}” revocada`,
