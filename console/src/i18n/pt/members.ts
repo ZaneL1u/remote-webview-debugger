@@ -134,6 +134,7 @@ export const members: typeof en = {
       'member.invite': 'Convidar membro',
       'member.accept': 'Aceitar convite de membro',
       'member.sso_join': 'Entrou por login único',
+      'member.sso_revoked': 'O login único não confirma mais o membro',
       'member.update': 'Atualizar membro',
       'member.delete': 'Remover membro',
       'project.create': 'Criar projeto',

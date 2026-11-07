@@ -49,6 +49,7 @@ type OIDCConfig struct {
 	ClientID, ClientSecret         string
 	// Scopes, space separated. Default: "openid profile email" for oidc, none
 	// for Feishu and Lark (add contact:user.email:readonly to get emails).
+	// offline_access turns on Refresh.
 	Scopes string
 	// DefaultRole of accounts created at a first sign-in: member or admin.
 	DefaultRole string
@@ -65,13 +66,17 @@ type OIDCConfig struct {
 	// (tenant_key) whose people may sign in: a store app, or a custom app
 	// shared with connected organizations, lets others in too.
 	Tenant string
-	// SyncInterval, for Feishu and Lark, is how often members who have left
-	// the organization are disabled (sso_sync.go); 0: never.
+	// SyncInterval is how often the refresh tokens of all linked members are
+	// renewed (sso_sync.go), so that unused ones don't expire and the
+	// provider's refusals show up; 0: never. Only with Refresh.
 	SyncInterval time.Duration
-	// KeyCheck, for Feishu and Lark, asks the provider on every use of an
-	// API key whose owner is linked to the app whether the owner is still
-	// employed (key_check.go).
+	// KeyCheck: with Refresh, the provider must still vouch for the owner
+	// of an API key (key_check.go).
 	KeyCheck bool
+	// Refresh is set when Scopes include offline_access: the gateway keeps
+	// each member's refresh token and renews it to learn whether the
+	// provider still vouches for them (key_check.go).
+	Refresh bool
 
 	mu        sync.Mutex
 	discovery *oidcDiscovery
@@ -111,6 +116,13 @@ func (o *OIDCConfig) validate() error {
 		}
 	default:
 		return fmt.Errorf("unknown RWD_OIDC_PROVIDER %q (want oidc, feishu or lark)", o.Provider)
+	}
+	o.Refresh = slices.Contains(strings.Fields(o.Scopes), "offline_access")
+	if o.SyncInterval < 0 { // unset
+		o.SyncInterval = 0
+		if o.Refresh {
+			o.SyncInterval = time.Hour
+		}
 	}
 	o.Tenant = strings.TrimSpace(o.Tenant)
 	if o.Tenant != "" && o.Provider == ProviderOIDC {
@@ -393,13 +405,13 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 		s.ssoFailed(w, r, "provider", "", err)
 		return
 	}
-	token, err := s.oidcExchange(r.Context(), d, q.Get("code"), st.Verifier, s.oidcCallbackURL(r))
+	tokens, err := s.oidcExchange(r.Context(), d, q.Get("code"), st.Verifier, s.oidcCallbackURL(r))
 	if err != nil {
 		s.log.Warn("single sign-on: token request failed", "err", err)
 		s.ssoFailed(w, r, "provider", "", err)
 		return
 	}
-	who, err := o.userInfo(r.Context(), d, token)
+	who, err := o.userInfo(r.Context(), d, tokens.AccessToken)
 	if err != nil {
 		s.log.Warn("single sign-on: user info failed", "err", err)
 		s.ssoFailed(w, r, "provider", "", err)
@@ -435,6 +447,9 @@ func (s *Server) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	if created {
 		s.recordEvent(store.AuditEvent{ActorType: "member", ActorID: u.ID, ActorName: u.Email, Action: "member.sso_join",
 			Target: u.Email, Result: "ok", Detail: map[string]any{"role": u.Role, "provider": o.Provider}})
+	}
+	if o.Refresh {
+		s.keepRefreshToken(r.Context(), who.Subject, u.Email, tokens.RefreshToken)
 	}
 	s.store.TouchLogin(r.Context(), u.ID)
 	s.setSession(w, r, u.ID)
@@ -526,16 +541,62 @@ func (s *Server) ssoAccount(ctx context.Context, who *ssoUser) (*store.User, boo
 	return u, true, nil
 }
 
-// oidcExchange trades the authorization code for an access token.
-func (s *Server) oidcExchange(ctx context.Context, d *oidcDiscovery, code, verifier, redirectURI string) (string, error) {
-	o := s.cfg.OIDC
+// oidcExchange trades the authorization code for tokens.
+func (s *Server) oidcExchange(ctx context.Context, d *oidcDiscovery, code, verifier, redirectURI string) (*tokenResponse, error) {
+	return s.cfg.OIDC.tokenRequest(ctx, d, map[string]string{"grant_type": "authorization_code", "code": code,
+		"redirect_uri": redirectURI, "code_verifier": verifier})
+}
+
+// tokenResponse is the token endpoint's answer.
+type tokenResponse struct {
+	Code         *int   `json:"code"` // Feishu / Lark: 0 on success
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	Error        string `json:"error"`
+	Description  string `json:"error_description"`
+}
+
+// tokenError is the token endpoint saying no.
+type tokenError struct {
+	Status    int // HTTP
+	Code      int // Feishu / Lark
+	Err, Desc string
+}
+
+func (e *tokenError) Error() string {
+	return fmt.Sprintf("token endpoint: HTTP %d code %d %s %s", e.Status, e.Code, e.Err, e.Desc)
+}
+
+// refused tells a refusal of the grant itself (the provider no longer vouches
+// for the person: they were removed or disabled, their grant was revoked or
+// expired) from an outage or a misconfiguration of the gateway or the app,
+// which say nothing about the person.
+func (e *tokenError) refused(provider string) bool {
+	if provider == ProviderOIDC {
+		return e.Err == "invalid_grant"
+	}
+	switch e.Code {
+	// 20008 user does not exist, 20010 user may not use the app, 20024
+	// token of another app, 20026 invalid, 20037 expired, 20064 revoked,
+	// 20066 user status invalid, 20073 already used.
+	case 20008, 20010, 20024, 20026, 20037, 20064, 20066, 20073:
+		return true
+	}
+	return false
+}
+
+// tokenRequest posts a grant to the token endpoint, with the client's
+// credentials: a form for OpenID Connect (client_secret_basic when the
+// provider supports it, or says nothing, the spec's default; else
+// client_secret_post), JSON for Feishu and Lark.
+func (o *OIDCConfig) tokenRequest(ctx context.Context, d *oidcDiscovery, params map[string]string) (*tokenResponse, error) {
 	var req *http.Request
 	var err error
 	if o.Provider == ProviderOIDC {
-		form := url.Values{"grant_type": {"authorization_code"}, "code": {code}, "redirect_uri": {redirectURI},
-			"code_verifier": {verifier}}
-		// client_secret_basic when the provider supports it (or says nothing,
-		// the spec's default), else client_secret_post.
+		form := url.Values{}
+		for k, v := range params {
+			form.Set(k, v)
+		}
 		basic := d.TokenAuthMethods != nil && slices.Contains(d.TokenAuthMethods, "client_secret_basic")
 		if !basic {
 			form.Set("client_id", o.ClientID)
@@ -543,35 +604,50 @@ func (s *Server) oidcExchange(ctx context.Context, d *oidcDiscovery, code, verif
 		}
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, d.TokenEndpoint, strings.NewReader(form.Encode()))
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		if basic {
 			req.SetBasicAuth(url.QueryEscape(o.ClientID), url.QueryEscape(o.ClientSecret))
 		}
 	} else {
-		body, _ := json.Marshal(map[string]string{"grant_type": "authorization_code", "client_id": o.ClientID,
-			"client_secret": o.ClientSecret, "code": code, "redirect_uri": redirectURI, "code_verifier": verifier})
+		p := map[string]string{"client_id": o.ClientID, "client_secret": o.ClientSecret}
+		for k, v := range params {
+			p[k] = v
+		}
+		body, _ := json.Marshal(p)
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, d.TokenEndpoint, strings.NewReader(string(body)))
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	}
 	req.Header.Set("Accept", "application/json")
-	var res struct {
-		Code        *int   `json:"code"` // Feishu / Lark: 0 on success
-		AccessToken string `json:"access_token"`
-		Error       string `json:"error"`
-		Description string `json:"error_description"`
+	res, err := oidcHTTP.Do(req)
+	if err != nil {
+		return nil, err
 	}
-	if err := doJSON(req, &res); err != nil {
-		return "", err
+	defer res.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(res.Body, 1<<20))
+	if err != nil {
+		return nil, err
 	}
-	if (res.Code != nil && *res.Code != 0) || res.AccessToken == "" {
-		return "", fmt.Errorf("token endpoint: %s %s", res.Error, res.Description)
+	var tok tokenResponse
+	jsonErr := json.Unmarshal(body, &tok)
+	if jsonErr != nil && res.StatusCode/100 == 2 {
+		return nil, fmt.Errorf("%s: %w", req.URL.Redacted(), jsonErr)
 	}
-	return res.AccessToken, nil
+	if res.StatusCode/100 != 2 || (tok.Code != nil && *tok.Code != 0) || tok.AccessToken == "" {
+		e := &tokenError{Status: res.StatusCode, Err: tok.Error, Desc: tok.Description}
+		if tok.Code != nil {
+			e.Code = *tok.Code
+		}
+		if jsonErr != nil {
+			e.Desc = fmt.Sprintf("%.200s", body)
+		}
+		return nil, e
+	}
+	return &tok, nil
 }
 
 // userInfo reads who signed in. The id_token is not used: the user comes from

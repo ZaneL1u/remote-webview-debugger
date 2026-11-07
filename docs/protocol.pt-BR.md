@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | Português (Brasil) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -568,7 +568,7 @@ Níveis por papel: owners e admins criam chaves até `advanced`; members, até `
 
 Uma chave só funciona enquanto o dono consegue entrar. Desativar um membro para as chaves dele (requisições MCP recebem 401, `ApiKey.ownerDisabled` é `true`) e desconecta os agentes dele; reativá-lo faz as chaves voltarem a funcionar. Excluir um membro revoga as chaves dele. Rebaixar o papel de um membro desconecta os agentes das chaves dele acima do nível do novo papel.
 
-Com login único via Feishu ou Lark, uma chave cujo dono está vinculado ao app só funciona enquanto o dono ainda faz parte da organização (`RWD_OIDC_KEY_CHECK`, veja [gateway/README.pt-BR.md](../gateway/README.pt-BR.md#login-único)): cada requisição MCP consulta o provedor, e uma resposta de ativo vale por 60 segundos. Um dono listado como desligado ou que saiu da organização tem os agentes desconectados e é desativado (`member.update` por `system` com `"reason":"left_organization"`; o último proprietário é só recusado), e a requisição recebe 401. Uma consulta que falha só passa se uma consulta nas últimas 24 horas disse ativo, e senão também recebe 401. Chaves do gateway e donos sem identidade do Feishu ou Lark não são verificados.
+Com login único cujos escopos incluem `offline_access`, uma chave cujo dono está vinculado ao provedor também só funciona enquanto o provedor ainda confirma o dono (`RWD_OIDC_KEY_CHECK`, veja [gateway/README.pt-BR.md](../gateway/README.pt-BR.md#login-único)): o gateway renova o refresh token do dono quando ele foi confirmado por último há mais de 10 minutos. Uma recusa interrompe as chaves do dono até ele entrar de novo (`member.sso_revoked` por `system`) e desconecta os agentes dele, e a requisição recebe 401. Sem resposta, a chave passa se o dono foi confirmado nas últimas 24 horas, e senão também recebe 401. Chaves do gateway e donos sem identidade no provedor não são verificados.
 
 ### 12.5 Dispositivos e status do gateway
 
@@ -604,7 +604,7 @@ Um convite permite que um usuário coloque o dispositivo online, com a assistên
 | Ação | Quando |
 |---|---|
 | `auth.login`, `auth.login_failed` | Login no console |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestão de membros (`member.sso_join`: uma conta criada num primeiro login único; o `auth.login` então tem `"method":"sso"`; `member.invite` com `"again":true`: um novo link de convite) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.sso_revoked`, `member.update`, `member.delete` | Gestão de membros (`member.sso_join`: uma conta criada num primeiro login único; o `auth.login` então tem `"method":"sso"`; `member.sso_revoked`: o provedor recusou o refresh token de um membro, então as chaves dele esperam um novo login; `member.invite` com `"again":true`: um novo link de convite) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projetos |
 | `key.create`, `key.revoke` | Chaves de API; `detail.owner` é o e-mail do dono da chave (ausente nas chaves do gateway) |
 | `invite.create`, `invite.delete`, `invite.use` | Convites de dispositivo |

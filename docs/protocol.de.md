@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | Deutsch | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD-Protokoll (v1)
@@ -568,7 +568,7 @@ Stufen nach Rolle: Owner und Admins erstellen Keys bis `advanced`, Members bis `
 
 Ein Key funktioniert nur, solange sich sein Inhaber anmelden kann. Wird ein Mitglied deaktiviert, funktionieren seine Keys nicht mehr (MCP-Anfragen erhalten 401, `ApiKey.ownerDisabled` ist `true`) und seine Agents werden getrennt; wird es wieder aktiviert, funktionieren die Keys wieder. Wird ein Mitglied gelöscht, werden seine Keys widerrufen. Wird die Rolle eines Mitglieds herabgesetzt, werden die Agents seiner Keys oberhalb der Stufe der neuen Rolle getrennt.
 
-Mit Single Sign-on über Feishu oder Lark funktioniert ein Key, dessen Inhaber mit der App verknüpft ist, außerdem nur, solange der Inhaber noch beschäftigt ist (`RWD_OIDC_KEY_CHECK`, siehe [gateway/README.de.md](../gateway/README.de.md#single-sign-on)): Jede MCP-Anfrage fragt beim Anbieter nach, eine Antwort „aktiv“ gilt 60 Sekunden lang. Bei einem Inhaber, der als ausgeschieden oder gegangen geführt wird, werden die Agents getrennt und er wird deaktiviert (`member.update` durch `system` mit `"reason":"left_organization"`; der letzte Inhaber wird nur abgelehnt), und die Anfrage bekommt 401. Eine fehlgeschlagene Abfrage wird nur durchgelassen, wenn eine Abfrage in den letzten 24 Stunden „aktiv“ ergab, und bekommt sonst ebenfalls 401. Gateway-Keys und Inhaber ohne Feishu- oder Lark-Identität werden nicht geprüft.
+Mit Single Sign-on, dessen Scopes `offline_access` einschließen, funktioniert ein Key, dessen Inhaber mit dem Anbieter verknüpft ist, außerdem nur, solange der Anbieter den Inhaber noch bestätigt (`RWD_OIDC_KEY_CHECK`, siehe [gateway/README.de.md](../gateway/README.de.md#single-sign-on)): Das Gateway erneuert den Refresh Token des Inhabers, wenn dessen letzte Bestätigung mehr als 10 Minuten zurückliegt. Eine Verweigerung stoppt die Keys des Inhabers, bis er sich erneut anmeldet (`member.sso_revoked` durch `system`) und trennt seine Agents, und die Anfrage bekommt 401. Ohne Antwort wird der Key durchgelassen, wenn der Inhaber in den letzten 24 Stunden bestätigt wurde, und bekommt sonst ebenfalls 401. Gateway-Keys und Inhaber ohne Identität beim Anbieter werden nicht geprüft.
 
 ### 12.5 Geräte und Gateway-Status
 
@@ -604,7 +604,7 @@ Mit einer Einladung bringt ein Nutzer sein Gerät online, und zwar gleich mit ei
 | Aktion | Wann |
 |---|---|
 | `auth.login`, `auth.login_failed` | Anmeldung an der Konsole |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Mitgliederverwaltung (`member.sso_join`: ein Konto, das bei einer ersten Single-Sign-on-Anmeldung angelegt wurde; `auth.login` hat dann `"method":"sso"`; `member.invite` mit `"again":true`: ein neuer Einladungslink) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.sso_revoked`, `member.update`, `member.delete` | Mitgliederverwaltung (`member.sso_join`: ein Konto, das bei einer ersten Single-Sign-on-Anmeldung angelegt wurde; `auth.login` hat dann `"method":"sso"`; `member.sso_revoked`: der Anbieter hat den Refresh Token eines Mitglieds verweigert, daher warten dessen Keys auf eine neue Anmeldung; `member.invite` mit `"again":true`: ein neuer Einladungslink) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projekte |
 | `key.create`, `key.revoke` | API-Keys; `detail.owner` ist die E-Mail-Adresse des Key-Inhabers (fehlt bei Gateway-Keys) |
 | `invite.create`, `invite.delete`, `invite.use` | Geräteeinladungen |

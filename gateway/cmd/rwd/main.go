@@ -151,18 +151,15 @@ func oidcConfig() *server.OIDCConfig {
 		Scopes: os.Getenv("RWD_OIDC_SCOPES"), DefaultRole: os.Getenv("RWD_OIDC_DEFAULT_ROLE"),
 		InviteOnly: os.Getenv("RWD_OIDC_INVITE_ONLY") == "1", AllowedDomains: domains,
 		TrustEmail: os.Getenv("RWD_OIDC_TRUST_EMAIL") == "1", Tenant: os.Getenv("RWD_OIDC_TENANT"),
-		SyncInterval: syncInterval(provider), KeyCheck: os.Getenv("RWD_OIDC_KEY_CHECK") != "0"}
+		SyncInterval: syncInterval(), KeyCheck: os.Getenv("RWD_OIDC_KEY_CHECK") != "0"}
 }
 
-// syncInterval is RWD_OIDC_SYNC_MINUTES (default 60 for Feishu and Lark; 0
-// turns the check for members who have left off).
-func syncInterval(provider string) time.Duration {
+// syncInterval is RWD_OIDC_SYNC_MINUTES: -1 when unset (60 minutes once
+// the scopes include offline_access), 0 turns the renewals off.
+func syncInterval() time.Duration {
 	v, set := os.LookupEnv("RWD_OIDC_SYNC_MINUTES")
 	if !set {
-		if p := strings.ToLower(provider); p == server.ProviderFeishu || p == server.ProviderLark {
-			return time.Hour
-		}
-		return 0
+		return -1
 	}
 	n, _ := strconv.Atoi(v)
 	return time.Duration(max(n, 0)) * time.Minute

@@ -134,6 +134,7 @@ export const members: typeof en = {
       'member.invite': 'メンバーを招待',
       'member.accept': 'メンバー招待を承諾',
       'member.sso_join': 'シングルサインオンで参加',
+      'member.sso_revoked': 'シングルサインオンがメンバーを確認しなくなった',
       'member.update': 'メンバーを更新',
       'member.delete': 'メンバーを削除',
       'project.create': 'プロジェクトを作成',

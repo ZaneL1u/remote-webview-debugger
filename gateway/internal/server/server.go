@@ -21,7 +21,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/ZaneL1u/remote-webview-debugger/gateway/internal/hub"
@@ -79,8 +78,7 @@ type Server struct {
 	mcp        http.Handler
 	audit      chan store.AuditEvent
 	httpCodes  httpCounter
-	dir        *directory // Feishu / Lark contact lookups (key_check.go); nil otherwise
-	leaveMu    sync.Mutex // members who have left are disabled one at a time
+	refresh    *refresher // renewals of members' refresh tokens (key_check.go)
 
 	sdk          []byte
 	sdkVersion   string
@@ -111,7 +109,7 @@ func New(ctx context.Context, cfg Config, st *store.Store, log *slog.Logger) (*S
 	if err := s.bootstrapOwner(ctx, cfg.AdminEmail, cfg.AdminPassword); err != nil {
 		return nil, err
 	}
-	s.dir = newDirectory(cfg.OIDC)
+	s.refresh = newRefresher()
 	s.hub = hub.New(st, log, s.pepper, cfg.Lang)
 	s.hub.Audit = s.recordEvent
 	go s.auditWriter()
@@ -123,7 +121,7 @@ func New(ctx context.Context, cfg Config, st *store.Store, log *slog.Logger) (*S
 		s.demoLimit, s.demoTotal = newLimiter(5, time.Hour), newLimiter(500, time.Hour)
 	}
 	s.mcp = s.mcpHandler()
-	go s.resignationLoop(ctx)
+	go s.refreshLoop(ctx)
 	return s, nil
 }
 

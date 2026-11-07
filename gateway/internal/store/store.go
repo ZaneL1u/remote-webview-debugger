@@ -156,6 +156,10 @@ func (s *Store) migrate(ctx context.Context) error {
 		// Kept out of keyCols: migrateGlobal copies keyCols from tables of
 		// before keys had owners, and those keys stay gateway keys.
 		{"api_keys", "owner_id", "TEXT"},
+		// The provider still vouching for a member (server/key_check.go).
+		{"user_identities", "refresh_token", "TEXT NOT NULL DEFAULT ''"},
+		{"user_identities", "verified_at", "BIGINT"},
+		{"user_identities", "revoked_at", "BIGINT"},
 	}
 	for _, c := range cols {
 		ok, err := s.hasColumn(ctx, c.table, c.col)

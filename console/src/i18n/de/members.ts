@@ -137,6 +137,7 @@ export const members: typeof en = {
       'member.invite': 'Mitglied eingeladen',
       'member.accept': 'Mitgliedseinladung angenommen',
       'member.sso_join': 'Per Single Sign-on beigetreten',
+      'member.sso_revoked': 'Single Sign-on bestätigt Mitglied nicht mehr',
       'member.update': 'Mitglied geändert',
       'member.delete': 'Mitglied entfernt',
       'project.create': 'Projekt erstellt',

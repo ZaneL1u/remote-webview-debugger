@@ -1,4 +1,4 @@
-<!-- i18n-source: 0dcd3b6faee7da70bf01670a986f2e0c4d1d102e -->
+<!-- i18n-source: bc2d435593ba728b32ffcf6e8b957a2393449756 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd ゲートウェイ
@@ -69,15 +69,15 @@ rwd version                             バージョンを表示
 | `RWD_OIDC_CLIENT_ID`、`RWD_OIDC_CLIENT_SECRET` | — | アプリの認証情報（Feishu と Lark では App ID と App Secret）。必須 |
 | `RWD_OIDC_ISSUER` | — | OpenID Connect の issuer（例: `https://sso.example.com/realms/acme`）。各エンドポイントはその `/.well-known/openid-configuration` から読み込む（`oidc` のみ） |
 | `RWD_OIDC_AUTH_URL`、`RWD_OIDC_TOKEN_URL`、`RWD_OIDC_USERINFO_URL` | プロバイダーの既定値 | エンドポイントを上書き。ディスカバリーに対応していない OpenID Connect プロバイダーでは 3 つすべてを設定 |
-| `RWD_OIDC_SCOPES` | `openid profile email`（`oidc`）、なし（Feishu、Lark） | スペース区切りのスコープ。Feishu と Lark では、アカウントにメールアドレスが入るよう `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）を追加 |
+| `RWD_OIDC_SCOPES` | `openid profile email`（`oidc`）、なし（Feishu、Lark） | スペース区切りのスコープ。Feishu と Lark では、アカウントにメールアドレスが入るよう `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）を追加。`offline_access` も追加すると、プロバイダーがメンバーを保証しなくなったことにゲートウェイが気づけるようになる。後述 |
 | `RWD_OIDC_NAME` | プロバイダー名 | ログインボタンのラベル（例: `Okta`） |
 | `RWD_OIDC_DEFAULT_ROLE` | `member` | 初回サインイン時に作成されるアカウントのロール: `member` または `admin` |
 | `RWD_OIDC_INVITE_ONLY=1` | オフ | アカウントを作成しない。サインインできるのは既存のメンバーか招待済みのメンバー（同じメールアドレス）だけ |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | サインインを許可するメールドメイン（カンマ区切り、例: `example.com`） |
 | `RWD_OIDC_TRUST_EMAIL=1` | オフ | `oidc` のみ。`email_verified` を送らないプロバイダー（Microsoft Entra ID）のメールアドレスも信頼する。メールアドレスを組織で管理しているシングルテナントのプロバイダーでのみ使用 |
 | `RWD_OIDC_TENANT` | — | Feishu と Lark のみ。組織の `tenant_key`。ほかの組織のユーザーは拒否される（`sso_error=tenant`）。シングルサインオンごとの `auth.login` 監査記録に `tenant` が記録される |
-| `RWD_OIDC_SYNC_MINUTES` | `60`（Feishu、Lark） | 組織を離れたメンバーを無効化する間隔。`0` でオフ。後述 |
-| `RWD_OIDC_KEY_CHECK` | オン（Feishu、Lark） | API キーが使われるたびに、所有者がまだ在籍しているかを確認する。`0` でオフ。後述 |
+| `RWD_OIDC_SYNC_MINUTES` | `60`（`offline_access` がある場合） | すべてのメンバーの refresh token を更新する間隔。`0` でオフ。後述 |
+| `RWD_OIDC_KEY_CHECK` | オン（`offline_access` がある場合） | API キーを使うたびに、プロバイダーが所有者を最近確認していることを求める。`0` でオフ。後述 |
 
 プロバイダーには次のリダイレクト URL を登録してください。完全に一致している必要があります: `https://<host>/v1/api/auth/oidc/callback`。つまり `RWD_PUBLIC_URL` のオリジン（未設定ならリクエストのオリジン）の後ろに `/v1/api/auth/oidc/callback` を付けたものです。プロキシの背後では、この URL が変わらないよう `RWD_PUBLIC_URL` を設定してください。
 
@@ -91,17 +91,17 @@ rwd version                             バージョンを表示
 
 1. **Credentials & Basic Info**（認証情報と基本情報）にある App ID と App Secret を `RWD_OIDC_CLIENT_ID` と `RWD_OIDC_CLIENT_SECRET` に設定します。
 2. **Security Settings → Redirect URLs**（セキュリティ設定 → リダイレクト URL）に、上記のリダイレクト URL を追加します。
-3. **Permissions & Scopes**（権限とスコープ）で `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）を追加し、同じスコープを `RWD_OIDC_SCOPES` にも列挙します。退職者を検出するには、アプリにさらに `contact:contact.base:readonly` と `contact:user.employee:readonly` を追加し、**Data permissions → Contacts range**（データ権限 → 連絡先の範囲）にサインインする全員を含める必要があります。
+3. **Permissions & Scopes**（権限とスコープ）で `contact:user.email:readonly`（企業メールアドレスも使うなら `contact:user.employee:readonly`）と `offline_access` を追加し、同じスコープを `RWD_OIDC_SCOPES` にも列挙します。`offline_access` によってゲートウェイは退職者に気づけます。**Security Settings**（セキュリティ設定）にある `user_access_token` を更新するためのスイッチも必要ですが、誰かが切っていない限りオンになっています。
 4. アプリの利用範囲（availability）をサインインさせたいユーザーに設定し、バージョンを作成して公開すると、設定が反映されます。
 
-**退職した人。** Feishu または Lark では、ゲートウェイが `RWD_OIDC_SYNC_MINUTES` ごとに、アプリに紐付いた各メンバーについて Open Platform に問い合わせ、退職済みまたは組織を離れたとされる人を無効化します。その人はサインアウトされ、API キーは使えなくなり、エージェントはデタッチされます。監査ログには `system` による `member.update` が `"reason":"left_organization"` 付きで記録されます。その後 owner がメンバーを削除すると、キーは完全に失効します。対象になるのは明示的に「退職」とされた場合だけです。連絡先の範囲外のメンバーや失敗したリクエストでは何も変わらず（何が失敗したかはログに出ます）、最後の owner が無効化されることもありません。連絡先の権限がなければ同期では何もチェックされず、後述のキーチェックがアプリに紐付いたメンバーのキーを拒否します。さらに `RWD_OIDC_KEY_CHECK=0` にしている場合、退職した人の API キーは owner が無効化するまで使えるままです。ただし、もうサインインできないため、コンソールのセッションは 12 時間以内に終わります。
+**退職した人。** OpenID Connect には、プロバイダーに誰かがまだそこにいるかを尋ねる方法がありませんが、プロバイダーは削除または無効化した人の refresh token を拒否します。そのため、スコープに `offline_access` が含まれていると、ゲートウェイは各メンバーの refresh token を（セッションシークレットから導出した鍵で暗号化して）保持し、更新します。`RWD_OIDC_SYNC_MINUTES` ごとに、直近の半周期で確認されていないメンバー全員を更新するので、使われていないトークンも失効しません（Feishu では直近 7 日間）。API キーが使われる前にも更新します（後述）。Feishu、Lark、Keycloak、Okta、Microsoft Entra ID、Authentik はこの方式で動作します。お使いのプロバイダーが `offline_access` に対して refresh token を発行するか確認してください（発行しない場合、サインイン時にログで警告されます）。プロバイダーが拒否した場合（OAuth の `invalid_grant`。Feishu と Lark では 20008 ユーザーが見つからない、20010 アプリへのアクセス権がない、20066 ユーザーの状態が無効、20037 または 20064 は認可の期限切れまたは取り消しなど）、そのメンバーの API キーは再度サインインするまで使えなくなり、エージェントはデタッチされ、監査ログには `system` による `member.sso_revoked` が記録されます。再度サインインできるのは、プロバイダーがまだ許可している場合だけで、新しいトークンが保存されます。拒否は認可の期限切れの場合もあるため（Feishu は 365 日後に再認可を求めます）、メンバーは無効化されません。退職した人は owner が無効化または削除できますし、もうサインインできないのでコンソールのセッションは 12 時間以内に終わります。障害や、ゲートウェイまたはアプリの設定ミスでは何も変わりません。`offline_access` を追加する前にサインインしたメンバーにはトークンがなく、そのキーは再度サインインするまで拒否されます。
 
-**退職した人のキー。** Feishu または Lark では、キーの所有者がアプリに紐付いていれば、ゲートウェイは API キーが使われるたびに所有者がまだ在籍しているかも確認します。`RWD_OIDC_KEY_CHECK=0` でオフにできます。MCP リクエストは毎回認証されるので、長く続くセッションのツール呼び出しも 1 回ずつ確認されます。使うのは上と同じ連絡先の照会です。退職済みまたは組織を離れた場合、リクエストは「API キーの所有者が組織を離れた」という 401 になり、所有者のエージェントはデタッチされ、所有者は上と同じく無効化されて監査に記録されます（最後の owner のキーは拒否されますが、その owner は無効化されません）。在籍中なら結果を 60 秒間信頼するので、ツール呼び出しが続いても照会は 1 回です（同時の呼び出しは 1 回の照会を共有します）。`tenant_access_token` も期限切れの少し前まで使い回します。照会に失敗した場合（ネットワーク、連絡先の範囲外、権限不足）は、過去 24 時間以内の照会で在籍と確認できていればキーを通します。そうでなければリクエストは「API キーの所有者が在籍していることを確認できなかった。管理者に問い合わせて」という 401 になり、ログに警告が出ます。メンバーは無効化されません。ゲートウェイキーと、Feishu や Lark の ID を持たない所有者（パスワードのアカウント）はチェックされません。
+**退職した人のキー。** `offline_access` がある場合、所有者がプロバイダーに紐付いた API キーを使うたびに、プロバイダーが直近 10 分以内に所有者を確認していることが必要です。確認されていなければ、ゲートウェイがその場で所有者のトークンを更新します（同時のリクエストは 1 回の更新を共有します）。`RWD_OIDC_KEY_CHECK=0` でオフにできます。MCP リクエストは毎回認証されるので、長く続くセッションのツール呼び出しも 1 回ずつ確認されます。拒否された場合: リクエストは「サインインプロバイダーが API キーの所有者を確認しなくなりました（組織を離れた可能性があります）。所有者はコンソールにもう一度サインインしてください」という 401 になり、以降は上記と同じ扱いです。応答がない場合（ネットワーク、プロバイダーまたはアプリのエラー）: 所有者が過去 24 時間以内に確認されていればキーを通し、そうでなければリクエストは「サインインプロバイダーで API キーの所有者を確認できませんでした。しばらくしてから再試行するか、管理者に問い合わせてください」という 401 になり、ログに警告が出ます。ゲートウェイキーと、プロバイダーに ID を持たない所有者（パスワードのアカウント）はチェックされません。
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \
 RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
-RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly offline_access' \
   rwd serve
 ```
 

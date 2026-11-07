@@ -135,6 +135,7 @@ export const members: typeof en = {
       'member.invite': 'دعوة عضو',
       'member.accept': 'قبول دعوة العضوية',
       'member.sso_join': 'انضمام عبر تسجيل الدخول الموحّد',
+      'member.sso_revoked': 'لم يعد تسجيل الدخول الموحّد يؤكد العضو',
       'member.update': 'تحديث عضو',
       'member.delete': 'إزالة عضو',
       'project.create': 'إنشاء مشروع',

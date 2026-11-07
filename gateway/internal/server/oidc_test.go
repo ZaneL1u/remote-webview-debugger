@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -31,11 +32,13 @@ type fakeIdP struct {
 	codes map[string]map[string]any // code -> {challenge, redirect, claims}
 	deny  bool
 	down  bool // discovery fails
-	// Contact lookups: open_id -> "resigned", "exited", "active" or
-	// "out_of_range" (code 41050); anything else is an active user.
-	contact map[string]string
-	lookups int // contact lookups answered
-	tokens  int // tenant_access_token issued
+	// Refresh tokens (issued with offline_access) -> subject. A subject's
+	// refresh state: "refused" (removed or disabled at the provider),
+	// "down" (no answer); anything else renews.
+	refresh  map[string]string
+	state    map[string]string
+	renewals int // refresh grants answered
+	issued   int // refresh tokens issued
 }
 
 func newFakeIdP(t *testing.T, provider string) *fakeIdP {
@@ -93,6 +96,10 @@ func newFakeIdP(t *testing.T, provider string) *fakeIdP {
 			}
 			json.NewDecoder(r.Body).Decode(&p)
 		}
+		if p["grant_type"] == "refresh_token" {
+			idp.renewGrant(w, p)
+			return
+		}
 		idp.mu.Lock()
 		c := idp.codes[p["code"]]
 		delete(idp.codes, p["code"])
@@ -116,6 +123,14 @@ func newFakeIdP(t *testing.T, provider string) *fakeIdP {
 			if idp.provider != ProviderOIDC {
 				res["code"] = 0
 			}
+			if strings.Contains(" "+c["scope"].(string)+" ", " offline_access ") {
+				claims, _ := c["claims"].(map[string]any)
+				sub, _ := claims["sub"].(string)
+				if idp.provider != ProviderOIDC {
+					sub, _ = claims["open_id"].(string)
+				}
+				res["refresh_token"] = idp.issue(sub)
+			}
 			writeJSON(w, res)
 		}
 	})
@@ -134,41 +149,79 @@ func newFakeIdP(t *testing.T, provider string) *fakeIdP {
 		}
 		writeJSON(w, map[string]any{"code": 0, "msg": "success", "data": c["claims"]})
 	}
-	mux.HandleFunc("POST /open-apis/auth/v3/tenant_access_token/internal", func(w http.ResponseWriter, r *http.Request) {
-		var b map[string]string
-		json.NewDecoder(r.Body).Decode(&b)
-		if b["app_id"] != "app-id" || b["app_secret"] != "app-secret" {
-			writeJSON(w, map[string]any{"code": 10014, "msg": "app secret invalid"})
-			return
-		}
-		idp.mu.Lock()
-		idp.tokens++
-		idp.mu.Unlock()
-		writeJSON(w, map[string]any{"code": 0, "msg": "ok", "tenant_access_token": "t-tenant", "expire": 7200})
-	})
-	mux.HandleFunc("GET /open-apis/contact/v3/users/{id}", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer t-tenant" || r.URL.Query().Get("user_id_type") != "open_id" {
-			w.WriteHeader(http.StatusBadRequest)
-			writeJSON(w, map[string]any{"code": 99991663, "msg": "bad token"})
-			return
-		}
-		idp.mu.Lock()
-		state := idp.contact[r.PathValue("id")]
-		idp.lookups++
-		idp.mu.Unlock()
-		if state == "out_of_range" {
-			w.WriteHeader(http.StatusBadRequest)
-			writeJSON(w, map[string]any{"code": 41050, "msg": "no user authority"})
-			return
-		}
-		writeJSON(w, map[string]any{"code": 0, "msg": "success", "data": map[string]any{"user": map[string]any{
-			"open_id": r.PathValue("id"), "status": map[string]any{"is_resigned": state == "resigned", "is_exited": state == "exited", "is_activated": state != "resigned"}}}})
-	})
 	mux.HandleFunc("GET /userinfo", user)
 	mux.HandleFunc("GET /open-apis/authen/v1/user_info", user)
 	idp.srv = httptest.NewServer(mux)
 	t.Cleanup(idp.srv.Close)
 	return idp
+}
+
+func (idp *fakeIdP) issue(sub string) string {
+	idp.mu.Lock()
+	defer idp.mu.Unlock()
+	if idp.refresh == nil {
+		idp.refresh = map[string]string{}
+	}
+	idp.issued++
+	rt := fmt.Sprintf("rt-%d", idp.issued)
+	idp.refresh[rt] = sub
+	return rt
+}
+
+// renewGrant answers a refresh grant: Feishu and Lark rotate the refresh
+// token (the old one is then used up, 20073), OpenID Connect providers here
+// keep it.
+func (idp *fakeIdP) renewGrant(w http.ResponseWriter, p map[string]string) {
+	oidc := idp.provider == ProviderOIDC
+	fail := func(status, code int, e string) {
+		w.WriteHeader(status)
+		res := map[string]any{"error": e}
+		if !oidc {
+			res["code"] = code
+		}
+		writeJSON(w, res)
+	}
+	if p["client_id"] != "app-id" || p["client_secret"] != "app-secret" {
+		fail(http.StatusBadRequest, 20002, "invalid_client")
+		return
+	}
+	idp.mu.Lock()
+	sub, ok := idp.refresh[p["refresh_token"]]
+	state := idp.state[sub]
+	idp.renewals++
+	idp.mu.Unlock()
+	switch {
+	case !ok:
+		fail(http.StatusBadRequest, 20073, "invalid_grant")
+	case state == "down":
+		fail(http.StatusServiceUnavailable, 20072, "temporarily_unavailable")
+	case state == "refused":
+		fail(http.StatusBadRequest, 20066, "invalid_grant")
+	default:
+		res := map[string]any{"access_token": "at-" + sub, "token_type": "Bearer", "expires_in": 7200}
+		if !oidc {
+			idp.mu.Lock()
+			delete(idp.refresh, p["refresh_token"])
+			idp.mu.Unlock()
+			res["code"], res["refresh_token"] = 0, idp.issue(sub)
+		}
+		writeJSON(w, res)
+	}
+}
+
+func (idp *fakeIdP) setState(sub, state string) {
+	idp.mu.Lock()
+	defer idp.mu.Unlock()
+	if idp.state == nil {
+		idp.state = map[string]string{}
+	}
+	idp.state[sub] = state
+}
+
+func (idp *fakeIdP) renewCount() int {
+	idp.mu.Lock()
+	defer idp.mu.Unlock()
+	return idp.renewals
 }
 
 func (idp *fakeIdP) config() *OIDCConfig {
@@ -644,54 +697,41 @@ func TestSSOReinvite(t *testing.T) {
 	}
 }
 
-func TestSSOResignedMembers(t *testing.T) {
+func TestSSORenewAll(t *testing.T) {
 	idp := newFakeIdP(t, ProviderFeishu)
-	f := setupSSO(t, idp, nil)
-	owner := f.login("owner@test", "password1")
-	people := map[string]string{"ou_stay": "active", "ou_gone": "resigned", "ou_left": "exited", "ou_far": "out_of_range"}
+	f := setupSSO(t, idp, func(o *OIDCConfig) { o.Scopes += " offline_access"; o.KeyCheck = true })
+	people := map[string]string{"ou_stay": "", "ou_gone": "refused", "ou_far": "down"}
 	keys := map[string]string{}
 	for id := range people {
 		c, _ := f.ssoLogin(idp, map[string]any{"open_id": id, "enterprise_email": id + "@corp.example"}, "")
 		_, k := c.do("POST", "/keys", map[string]string{"name": "agent"})
 		keys[id] = k["key"].(string)
 	}
-	idp.mu.Lock()
-	idp.contact = people
-	idp.mu.Unlock()
-
-	n, err := f.s.syncResigned(context.Background())
-	if n != 2 || err == nil || !strings.Contains(err.Error(), "41050") {
-		t.Fatalf("sync: %d %v", n, err)
+	// Confirmed at sign-in: nothing to renew yet.
+	if n, err := f.s.renewAll(context.Background(), time.Hour); n != 0 || err != nil || idp.renewCount() != 0 {
+		t.Fatalf("renewed right after sign-in: %d %v %d", n, err, idp.renewCount())
 	}
-	_, list := owner.do("GET", "/members", nil)
 	for id, state := range people {
-		var disabled bool
-		for _, m := range list["members"].([]any) {
-			if m := m.(map[string]any); m["email"] == id+"@corp.example" {
-				disabled = m["disabled"].(bool)
-			}
+		idp.setState(id, state)
+	}
+	n, err := f.s.renewAll(context.Background(), 0)
+	if n != 1 || err == nil {
+		t.Fatalf("renew all: %d %v", n, err)
+	}
+	for id, state := range people {
+		if _, err := f.mcpWith(keys[id]); (err == nil) == (state == "refused") {
+			t.Errorf("%s (%q): key works = %v", id, state, err == nil)
 		}
-		want := state == "resigned" || state == "exited"
-		if disabled != want {
-			t.Errorf("%s (%s): disabled %v", id, state, disabled)
-		}
-		if _, err := f.mcpWith(keys[id]); (err == nil) == want {
-			t.Errorf("%s (%s): key works = %v", id, state, err == nil)
+		if f.memberDisabled(id + "@corp.example") {
+			t.Errorf("%s disabled", id)
 		}
 	}
-	// Nothing to do the second time.
-	if n, _ := f.s.syncResigned(context.Background()); n != 0 {
-		t.Fatalf("second sync disabled %d", n)
+	// Refused once: not asked again, and audited once.
+	before := idp.renewCount()
+	if n, _ := f.s.renewAll(context.Background(), 0); n != 0 || idp.renewCount() != before+2 {
+		t.Fatalf("second round: %d refused, %d renewals", n, idp.renewCount()-before)
 	}
-	f.s.flushAudit()
-	events, _ := f.st.Audit(context.Background(), store.AuditQuery{Limit: 200})
-	found := 0
-	for _, e := range events {
-		if e.Action == "member.update" && e.ActorType == "system" && strings.Contains(mustJSONTest(e.Detail), "left_organization") {
-			found++
-		}
-	}
-	if found != 2 {
-		t.Fatalf("audit: %d system disables", found)
+	if n := revokedEvents(f, "ou_gone@corp.example"); n != 1 {
+		t.Fatalf("audit: %d member.sso_revoked", n)
 	}
 }

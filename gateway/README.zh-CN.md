@@ -1,4 +1,4 @@
-<!-- i18n-source: 0dcd3b6faee7da70bf01670a986f2e0c4d1d102e -->
+<!-- i18n-source: bc2d435593ba728b32ffcf6e8b957a2393449756 -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 网关
@@ -69,15 +69,15 @@ rwd version                             打印版本号
 | `RWD_OIDC_CLIENT_ID`、`RWD_OIDC_CLIENT_SECRET` | — | 应用的凭证（飞书和 Lark 即 App ID 和 App Secret）。必填 |
 | `RWD_OIDC_ISSUER` | — | OpenID Connect issuer，如 `https://sso.example.com/realms/acme`；各端点从它的 `/.well-known/openid-configuration` 读取（仅 `oidc`） |
 | `RWD_OIDC_AUTH_URL`、`RWD_OIDC_TOKEN_URL`、`RWD_OIDC_USERINFO_URL` | 提供方的默认端点 | 覆盖端点；OpenID Connect 提供方不支持自动发现时，三个都要设置 |
-| `RWD_OIDC_SCOPES` | `openid profile email`（`oidc`），飞书和 Lark 为空 | 空格分隔的 scope。飞书和 Lark 请加上 `contact:user.email:readonly`（要拿企业邮箱再加 `contact:user.employee:readonly`），账号才有邮箱 |
+| `RWD_OIDC_SCOPES` | `openid profile email`（`oidc`），飞书和 Lark 为空 | 空格分隔的 scope。飞书和 Lark 请加上 `contact:user.email:readonly`（要拿企业邮箱再加 `contact:user.employee:readonly`），账号才有邮箱。加上 `offline_access`，网关才能发现提供方不再认可某个成员。见下文 |
 | `RWD_OIDC_NAME` | 提供方名称 | 登录按钮上显示的名字，如 `Okta` |
 | `RWD_OIDC_DEFAULT_ROLE` | `member` | 首次登录时新建账号的角色：`member` 或 `admin` |
 | `RWD_OIDC_INVITE_ONLY=1` | 关闭 | 不新建账号：只有已有成员或受邀成员（邮箱相同）能登录 |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 允许登录的邮箱域名，逗号分隔，如 `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | 关闭 | 仅 `oidc`：提供方不发送 `email_verified` 时（Microsoft Entra ID）也信任它给的邮箱。只适用于单租户、邮箱由你的组织掌控的提供方 |
 | `RWD_OIDC_TENANT` | — | 仅飞书和 Lark：你所在组织的 `tenant_key`；其他组织的人会被拒绝（`sso_error=tenant`）。每次单点登录的 `auth.login` 审计记录里都有它的 `tenant` |
-| `RWD_OIDC_SYNC_MINUTES` | `60`（飞书、Lark） | 多久检查一次并停用已离开组织的成员；`0` 表示关闭。见下文 |
-| `RWD_OIDC_KEY_CHECK` | 开启（飞书、Lark） | 每次使用 API Key 时检查其创建者是否仍在职；`0` 表示关闭。见下文 |
+| `RWD_OIDC_SYNC_MINUTES` | `60`（有 `offline_access` 时） | 多久续期一次所有成员的 refresh token；`0` 表示关闭。见下文 |
+| `RWD_OIDC_KEY_CHECK` | 开启（有 `offline_access` 时） | 每次使用 API Key 时，要求提供方最近确认过它的创建者；`0` 表示关闭。见下文 |
 
 在提供方那里登记下面这个重定向 URL，必须完全一致：`https://<host>/v1/api/auth/oidc/callback`，也就是 `RWD_PUBLIC_URL` 的 origin（未设置时取请求的 origin）加上 `/v1/api/auth/oidc/callback`。放在代理后面时请设置 `RWD_PUBLIC_URL`，让这个 URL 保持不变。
 
@@ -91,17 +91,17 @@ rwd version                             打印版本号
 
 1. 把「凭证与基础信息」里的 App ID 和 App Secret 填到 `RWD_OIDC_CLIENT_ID` 和 `RWD_OIDC_CLIENT_SECRET`。
 2. 在「安全设置 → 重定向 URL」里添加上面的重定向 URL。
-3. 在「权限管理」里开通 `contact:user.email:readonly`（要拿企业邮箱再开通 `contact:user.employee:readonly`），并在 `RWD_OIDC_SCOPES` 里写上同样的 scope。要发现谁已离职，应用还需要开通 `contact:contact.base:readonly` 和 `contact:user.employee:readonly`，并在「数据权限 → 通讯录权限范围」里包含所有会登录的人。
+3. 在「权限管理」里开通 `contact:user.email:readonly`（要拿企业邮箱再开通 `contact:user.employee:readonly`）和 `offline_access`，并在 `RWD_OIDC_SCOPES` 里写上同样的 scope。网关靠 `offline_access` 发现谁已离职；它还需要「安全设置」里「刷新 user_access_token」的开关，默认是开着的，除非有人关掉过。
 4. 把应用的「可用范围」设为需要登录的人，然后「创建版本并发布」，配置才会生效。
 
-**离职的人。** 使用飞书或 Lark 时，网关每隔 `RWD_OIDC_SYNC_MINUTES` 向开放平台查询每个关联到该应用的成员，停用被标记为已离职或已离开组织的人：他们会被登出，API Key 失效，agent 被断开，审计日志记下一条由 `system` 发起、带 `"reason":"left_organization"` 的 `member.update`。之后 owner 可以删除他们，这样他们的 Key 就被彻底吊销。只有明确的「已离职」才算数：不在通讯录权限范围内的成员或失败的请求都不会改变任何东西（日志会写明哪里失败），最后一个 owner 也永远不会被停用。没有通讯录权限时同步什么都不检查，而下文的 Key 检查会拒绝关联到该应用的成员的 Key；如果同时设置了 `RWD_OIDC_KEY_CHECK=0`，离职的人手里的 API Key 会一直可用，直到 owner 停用他们，不过他们已经无法登录，控制台会话最多 12 小时内就会结束。
+**离职的人。** OpenID Connect 没有办法向提供方询问某个人是否还在，但提供方会拒绝它已删除或停用的人的 refresh token。所以 scope 里有 `offline_access` 时，网关会保存每个成员的 refresh token（用从会话密钥派生的密钥加密）并定期续期：每隔 `RWD_OIDC_SYNC_MINUTES` 续期最近半个周期内没确认过的所有成员，这样不用的 token 也不会过期（飞书的是 7 天），使用 API Key 之前也会续期（见下文）。飞书、Lark、Keycloak、Okta、Microsoft Entra ID 和 Authentik 都是这样；请确认你的提供方会为 `offline_access` 发 refresh token（不发时登录时日志会给出警告）。提供方拒绝时（OAuth 的 `invalid_grant`；飞书和 Lark 为 20008 用户不存在、20010 用户无应用使用权限、20066 用户状态非法、20037 或 20064 授权过期或被撤销等错误码），该成员的 API Key 停止工作，直到他重新登录，他的 agent 被断开，审计日志记下一条由 `system` 发起的 `member.sso_revoked`。只有提供方仍然允许时才能重新登录，登录后会保存新的 token。成员不会被停用，因为拒绝也可能只是授权到期（飞书要求用户在授权 365 天后重新授权）；离职的人可以由 owner 停用或删除，他们已经无法登录，控制台会话最多 12 小时内就会结束。提供方故障，或者网关、应用的配置有误，都不会改变任何东西。在加上 `offline_access` 之前登录的成员没有 token：他们的 Key 会被拒绝，直到重新登录一次。
 
-**离职的人的 Key。** 使用飞书或 Lark 时，只要 Key 的创建者关联到了该应用，网关还会在每次使用 API Key 时检查创建者是否仍在职；`RWD_OIDC_KEY_CHECK=0` 可关闭。每个 MCP 请求都要认证，所以长连接会话里的每次工具调用也都会检查。用的是上文同一个通讯录查询。已离职或已离开组织：请求得到 401，提示「API Key 的创建者已离职」，创建者的 agent 被断开，并像上文那样被停用、记入审计（最后一个 owner 的 Key 会被拒绝，但不会停用这个 owner）。在职：结果信任 60 秒，一连串工具调用只查一次（并发调用共用一次查询），`tenant_access_token` 也会复用到快过期前。查询失败（网络问题、不在通讯录权限范围内、缺少权限）时，只有过去 24 小时内某次查询结果为在职才放行；否则请求得到 401，提示「无法确认 API Key 的创建者仍在职，请联系管理员」，日志记一条警告，成员不会被停用。网关 Key 以及没有飞书或 Lark 身份的创建者（密码账号）不做检查。
+**离职的人的 Key。** 有 `offline_access` 时，每次使用创建者关联到该提供方的 API Key，都要求提供方在最近 10 分钟内确认过创建者；否则网关当场续期创建者的 token（并发调用共用一次续期）。`RWD_OIDC_KEY_CHECK=0` 可关闭。每个 MCP 请求都要认证，所以长连接会话里的每次工具调用也都会检查。被拒绝：请求得到 401，提示「登录提供方已不再认可 API Key 的创建者（可能已离职），创建者需要重新登录控制台」，其余按上文处理。没有回应（网络问题、提供方或应用的错误）：创建者在过去 24 小时内确认过就放行，否则请求得到 401，提示「无法向登录提供方确认 API Key 的创建者」，日志记一条警告。网关 Key 以及没有该提供方身份的创建者（密码账号）不做检查。
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \
 RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
-RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly offline_access' \
   rwd serve
 ```
 

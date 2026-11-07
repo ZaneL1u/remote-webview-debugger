@@ -567,7 +567,7 @@ Levels by role: owners and admins create keys up to `advanced`, members up to `i
 
 A key works only while its owner can sign in. Disabling a member stops their keys (MCP requests get 401, `ApiKey.ownerDisabled` is `true`) and detaches their agents; enabling the member again brings the keys back. Deleting a member revokes their keys. Lowering a member's role detaches the agents of their keys above the new role's level.
 
-With Feishu or Lark single sign-on, a key whose owner is linked to the app also works only while the owner is still employed (`RWD_OIDC_KEY_CHECK`, see [gateway/README.md](../gateway/README.md#single-sign-on)): each MCP request asks the provider, and an active answer is trusted for 60 seconds. An owner listed as resigned or as having left has their agents detached and is disabled (`member.update` by `system` with `"reason":"left_organization"`; the last owner is only refused), and the request gets 401. A failed lookup is let through only if a lookup in the last 24 hours said active, and otherwise gets 401 too. Gateway keys and owners without a Feishu or Lark identity are not checked.
+With single sign-on whose scopes include `offline_access`, a key whose owner is linked to the provider also works only while the provider still confirms the owner (`RWD_OIDC_KEY_CHECK`, see [gateway/README.md](../gateway/README.md#single-sign-on)): the gateway renews the owner's refresh token when the owner was last confirmed more than 10 minutes ago. A refusal stops the owner's keys until they sign in again (`member.sso_revoked` by `system`) and detaches their agents, and the request gets 401. Without an answer the key is let through if the owner was confirmed in the last 24 hours, and otherwise gets 401 too. Gateway keys and owners without an identity at the provider are not checked.
 
 ### 12.5 Devices and gateway status
 
@@ -603,7 +603,7 @@ An invite lets a user bring their device online, already requesting assistance, 
 | Action | When |
 |---|---|
 | `auth.login`, `auth.login_failed` | Console sign-in |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Member management (`member.sso_join`: an account created at a first single sign-on; `auth.login` then has `"method":"sso"`; `member.invite` with `"again":true`: a new invite link) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.sso_revoked`, `member.update`, `member.delete` | Member management (`member.sso_join`: an account created at a first single sign-on; `auth.login` then has `"method":"sso"`; `member.sso_revoked`: the provider refused a member's refresh token, so their keys wait for a new sign-in; `member.invite` with `"again":true`: a new invite link) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projects |
 | `key.create`, `key.revoke` | API keys; `detail.owner` is the email of the key's owner (absent for gateway keys) |
 | `invite.create`, `invite.delete`, `invite.use` | Device invites |

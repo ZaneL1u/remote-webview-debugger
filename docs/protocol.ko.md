@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | 한국어 | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 프로토콜(v1)
@@ -568,7 +568,7 @@ API 키는 프로젝트가 아니라 키를 만든 멤버에게 속해요. 키 �
 
 키는 소유자가 로그인할 수 있는 동안에만 동작해요. 멤버를 비활성화하면 그 멤버의 키가 멈추고(MCP 요청은 401, `ApiKey.ownerDisabled`는 `true`) 에이전트 접속이 해제돼요. 다시 활성화하면 키도 다시 동작해요. 멤버를 삭제하면 그 멤버의 키가 폐기돼요. 멤버의 역할을 낮추면 새 역할의 레벨을 넘는 키의 에이전트 접속이 해제돼요.
 
-Feishu나 Lark SSO를 쓰면 소유자가 앱에 연결된 키는 소유자가 아직 재직 중일 때만 작동해요(`RWD_OIDC_KEY_CHECK`, [gateway/README.ko.md](../gateway/README.ko.md#sso-로그인) 참고). MCP 요청마다 제공자에게 묻고, 재직 중이라는 답은 60초 동안 믿어요. 퇴사했거나 조직을 떠난 것으로 나오는 소유자는 에이전트 접속이 해제되고 비활성화되며(`system`이 수행한 `member.update`, `"reason":"left_organization"`; 마지막 소유자는 거부만 해요) 요청은 401을 받아요. 조회가 실패하면 지난 24시간 안의 조회가 재직 중이라고 했을 때만 통과시키고, 그렇지 않으면 역시 401이에요. 게이트웨이 키와 Feishu나 Lark ID가 없는 소유자는 확인하지 않아요.
+SSO의 scope에 `offline_access`가 포함되면, 소유자가 공급자에 연결된 키도 공급자가 소유자를 여전히 확인해 줄 때만 작동해요(`RWD_OIDC_KEY_CHECK`, [gateway/README.ko.md](../gateway/README.ko.md#sso-로그인) 참고). 소유자가 마지막으로 확인된 지 10분이 넘으면 게이트웨이가 소유자의 refresh token을 갱신해요. 거부되면 소유자의 키는 다시 로그인할 때까지 멈추고(`system`이 수행한 `member.sso_revoked`) 에이전트 접속이 해제되며, 요청은 401을 받아요. 응답이 없으면 소유자가 지난 24시간 안에 확인됐으면 통과시키고, 그렇지 않으면 역시 401이에요. 게이트웨이 키와 공급자에 신원이 없는 소유자는 확인하지 않아요.
 
 ### 12.5 기기와 게이트웨이 상태
 
@@ -604,7 +604,7 @@ Feishu나 Lark SSO를 쓰면 소유자가 앱에 연결된 키는 소유자가 �
 | 동작 | 시점 |
 |---|---|
 | `auth.login`, `auth.login_failed` | 콘솔 로그인 |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | 멤버 관리 (`member.sso_join`: 첫 SSO 로그인 때 만들어진 계정. SSO로 로그인하면 `auth.login`에 `"method":"sso"`가 들어가요. `member.invite`에 `"again":true`가 있으면 초대 링크를 새로 만든 것) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.sso_revoked`, `member.update`, `member.delete` | 멤버 관리 (`member.sso_join`: 첫 SSO 로그인 때 만들어진 계정. SSO로 로그인하면 `auth.login`에 `"method":"sso"`가 들어가요. `member.sso_revoked`: 공급자가 멤버의 refresh token을 거부해서, 그 멤버의 키가 다시 로그인할 때까지 기다려요. `member.invite`에 `"again":true`가 있으면 초대 링크를 새로 만든 것) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | 프로젝트 |
 | `key.create`, `key.revoke` | API 키. `detail.owner`는 키 소유자의 이메일(게이트웨이 키에는 없음) |
 | `invite.create`, `invite.delete`, `invite.use` | 기기 초대 |

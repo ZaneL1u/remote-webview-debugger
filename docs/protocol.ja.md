@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -568,7 +568,7 @@ API キーはプロジェクトではなく、作成したメンバーに属し�
 
 キーが使えるのは、所有者がサインインできる間だけです。メンバーを無効化するとそのキーは使えなくなり（MCP リクエストは 401、`ApiKey.ownerDisabled` は `true`）、エージェントはデタッチされます。メンバーを再度有効にするとキーも使えるようになります。メンバーを削除するとそのキーは失効します。メンバーのロールを下げると、新しいロールのレベルを超えるキーのエージェントはデタッチされます。
 
-Feishu または Lark のシングルサインオンでは、所有者がアプリに紐付いたキーは、所有者がまだ在籍している間だけ使えます（`RWD_OIDC_KEY_CHECK`、[gateway/README.ja.md](../gateway/README.ja.md#シングルサインオン) 参照）。MCP リクエストごとにプロバイダーに照会し、在籍という結果は 60 秒間信頼します。退職済みまたは組織を離れたとされた所有者は、エージェントがデタッチされて無効化され（`system` による `member.update`、`"reason":"left_organization"` 付き。最後の owner は拒否されるだけです）、リクエストは 401 になります。照会に失敗した場合は、過去 24 時間以内の照会で在籍と確認できていれば通し、そうでなければやはり 401 です。ゲートウェイキーと、Feishu や Lark の ID を持たない所有者はチェックされません。
+シングルサインオンのスコープに `offline_access` が含まれる場合、所有者がプロバイダーに紐付いたキーも、プロバイダーが所有者をまだ確認している間だけ使えます（`RWD_OIDC_KEY_CHECK`、[gateway/README.ja.md](../gateway/README.ja.md#シングルサインオン) 参照）。所有者が最後に確認されたのが 10 分より前であれば、ゲートウェイは所有者の refresh token を更新します。拒否された場合、所有者のキーは再度サインインするまで使えなくなり（`system` による `member.sso_revoked`）、エージェントはデタッチされ、リクエストは 401 になります。応答がない場合は、所有者が過去 24 時間以内に確認されていればキーを通し、そうでなければやはり 401 になります。ゲートウェイキーと、プロバイダーに ID を持たない所有者はチェックされません。
 
 ### 12.5 デバイスとゲートウェイのステータス
 
@@ -604,7 +604,7 @@ Feishu または Lark のシングルサインオンでは、所有者がアプ�
 | アクション | タイミング |
 |---|---|
 | `auth.login`、`auth.login_failed` | 管理コンソールへのサインイン |
-| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | メンバー管理（`member.sso_join` は初回のシングルサインオンで作成されたアカウント。その後の `auth.login` には `"method":"sso"` が付く。`member.invite` に `"again":true` が付くのは招待リンクの再発行） |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.sso_revoked`、`member.update`、`member.delete` | メンバー管理（`member.sso_join` は初回のシングルサインオンで作成されたアカウント。その後の `auth.login` には `"method":"sso"` が付く。`member.sso_revoked` はプロバイダーがメンバーの refresh token を拒否し、そのキーが再サインインを待つ状態になったことを示す。`member.invite` に `"again":true` が付くのは招待リンクの再発行） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | プロジェクト |
 | `key.create`、`key.revoke` | API キー。`detail.owner` はキー所有者のメールアドレス（ゲートウェイキーにはない） |
 | `invite.create`、`invite.delete`、`invite.use` | デバイス招待 |

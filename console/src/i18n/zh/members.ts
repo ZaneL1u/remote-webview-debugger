@@ -133,6 +133,7 @@ export const members: typeof en = {
       'member.invite': '邀请成员',
       'member.accept': '接受成员邀请',
       'member.sso_join': '通过单点登录加入',
+      'member.sso_revoked': '单点登录不再认可该成员',
       'member.update': '修改成员',
       'member.delete': '删除成员',
       'project.create': '创建项目',

@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | 繁體中文 | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 協定（v1）
@@ -568,7 +568,7 @@ API 金鑰屬於建立它的成員，而不屬於某個專案：一把金鑰可�
 
 金鑰只在建立者還能登入時有效。停用成員會讓他的金鑰失效（MCP 請求收到 401，`ApiKey.ownerDisabled` 為 `true`），並中斷他的 agent；重新啟用後金鑰恢復可用。刪除成員會撤銷他的金鑰。降低成員的角色會中斷他名下超出新角色等級的金鑰的 agent。
 
-使用飛書或 Lark 單一登入時，建立者連結到該應用的金鑰還要求建立者仍在職才可用（`RWD_OIDC_KEY_CHECK`，見 [gateway/README.zh-TW.md](../gateway/README.zh-TW.md#單一登入)）：每個 MCP 請求都會詢問提供者，在職的結果信任 60 秒。被標記為已離職或已離開組織的建立者，其 agent 會被中斷接入，本人會被停用（由 `system` 發起、帶有 `"reason":"left_organization"` 的 `member.update`；最後一個 owner 只拒絕不停用），請求得到 401。查詢失敗時，只有過去 24 小時內某次查詢結果為在職才放行，否則同樣得到 401。閘道金鑰以及沒有飛書或 Lark 身分的建立者不做檢查。
+單一登入的 scope 包含 `offline_access` 時，建立者連結到該提供者的金鑰還要求提供者仍然認可建立者才可用（`RWD_OIDC_KEY_CHECK`，見 [gateway/README.zh-TW.md](../gateway/README.zh-TW.md#單一登入)）：建立者上次被確認超過 10 分鐘時，閘道會續期他的 refresh token。被拒絕時，建立者的金鑰停止工作直到他重新登入（由 `system` 發起的 `member.sso_revoked`），他的 agent 會被中斷接入，請求得到 401。沒有回應時，建立者在過去 24 小時內確認過就放行，否則同樣得到 401。閘道金鑰以及沒有該提供者身分的建立者不做檢查。
 
 ### 12.5 裝置與閘道狀態
 
@@ -604,7 +604,7 @@ API 金鑰屬於建立它的成員，而不屬於某個專案：一把金鑰可�
 | action | 時機 |
 |---|---|
 | `auth.login`、`auth.login_failed` | 主控台登入 |
-| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成員管理（`member.sso_join`：首次單一登入時建立的帳號；之後的 `auth.login` 會帶 `"method":"sso"`；`member.invite` 帶 `"again":true`：重新產生的邀請連結） |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.sso_revoked`、`member.update`、`member.delete` | 成員管理（`member.sso_join`：首次單一登入時建立的帳號；之後的 `auth.login` 會帶 `"method":"sso"`；`member.sso_revoked`：提供者拒絕了成員的 refresh token，他的金鑰要等重新登入；`member.invite` 帶 `"again":true`：重新產生的邀請連結） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 專案 |
 | `key.create`、`key.revoke` | API 金鑰；`detail.owner` 是金鑰建立者的電子郵件（閘道金鑰沒有） |
 | `invite.create`、`invite.delete`、`invite.use` | 裝置邀請 |

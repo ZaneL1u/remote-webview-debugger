@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | العربية
 
 <div dir="rtl">
@@ -606,7 +606,7 @@ type Policy = {
 
 لا يعمل المفتاح إلا ما دام مالكه قادرًا على تسجيل الدخول. تعطيل العضو يوقف مفاتيحه (تحصل طلبات MCP على 401، وتكون `ApiKey.ownerDisabled` بقيمة `true`) ويفصل وكلاءه؛ وإعادة تفعيله تعيد مفاتيحه إلى العمل. حذف العضو يلغي مفاتيحه. وخفض دور العضو يفصل وكلاء مفاتيحه التي تتجاوز مستوى الدور الجديد.
 
-مع تسجيل الدخول الموحّد عبر Feishu أو Lark، لا يعمل المفتاح الذي يرتبط مالكه بالتطبيق إلا ما دام المالك في المؤسسة (`RWD_OIDC_KEY_CHECK`، انظر [gateway/README.ar.md](../gateway/README.ar.md#تسجيل-الدخول-الموحّد)): كل طلب MCP يسأل المزوّد، ويُعتمد جواب «نشِط» لمدة 60 ثانية. المالك المدرج مستقيلًا أو مغادرًا للمؤسسة يُفصل وكلاؤه ويُعطَّل (`member.update` من `system` مع `"reason":"left_organization"`؛ آخر مالك يُرفض فقط)، ويتلقى الطلب 401. الاستعلام الفاشل لا يُمرَّر إلا إذا قال استعلام خلال آخر 24 ساعة إن المالك نشِط، وإلا يتلقى 401 كذلك. لا تُفحص مفاتيح البوابة ولا المالكون الذين ليست لهم هوية Feishu أو Lark.
+مع تسجيل الدخول الموحّد الذي تشمل نطاقاته `offline_access`، يعمل أيضًا المفتاح الذي يرتبط مالكه بالمزوّد ما دام المزوّد لا يزال يؤكد المالك (`RWD_OIDC_KEY_CHECK`، انظر [gateway/README.ar.md](../gateway/README.ar.md#تسجيل-الدخول-الموحّد)): تجدّد البوابة رمز تحديث المالك عندما يتجاوز آخر تأكيد له 10 دقائق. الرفض يوقف مفاتيح المالك حتى يسجّل الدخول من جديد (`member.sso_revoked` من `system`) ويفصل وكلاءه، ويتلقى الطلب 401. بلا إجابة، يُمرَّر المفتاح إذا أُكِّد المالك خلال آخر 24 ساعة، وإلا يتلقى 401 أيضًا. لا تُفحص مفاتيح البوابة ولا المالكون الذين ليست لهم هوية لدى المزوّد.
 
 ### 12.5 الأجهزة وحالة البوابة
 
@@ -642,7 +642,7 @@ type Policy = {
 | الإجراء | متى |
 |---|---|
 | `auth.login`، `auth.login_failed` | تسجيل الدخول إلى لوحة التحكم |
-| `member.invite`، `member.accept`، `member.sso_join`، `member.update`، `member.delete` | إدارة الأعضاء (`member.sso_join`: حساب أُنشئ عند أول تسجيل دخول موحّد؛ وعندها يحمل `auth.login` القيمة `"method":"sso"`؛ و`member.invite` مع `"again":true`: رابط دعوة جديد) |
+| `member.invite`، `member.accept`، `member.sso_join`، `member.sso_revoked`، `member.update`، `member.delete` | إدارة الأعضاء (`member.sso_join`: حساب أُنشئ عند أول تسجيل دخول موحّد؛ وعندها يحمل `auth.login` القيمة `"method":"sso"`؛ و`member.sso_revoked`: رفض المزوّد رمز تحديث عضو، فتنتظر مفاتيحه تسجيل دخول جديدًا؛ و`member.invite` مع `"again":true`: رابط دعوة جديد) |
 | `project.create`، `project.update`، `project.delete`، `project.rotate_app_key` | المشاريع |
 | `key.create`، `key.revoke` | مفاتيح API؛ `detail.owner` هو البريد الإلكتروني لمالك المفتاح (غائب في مفاتيح البوابة) |
 | `invite.create`، `invite.delete`، `invite.use` | دعوات الأجهزة |

@@ -9,7 +9,7 @@ const (
 	MCPError              Key = "mcp.error"
 	MCPSessionChanges     Key = "mcp.session_changes"
 	MCPUnauthorized       Key = "mcp.unauthorized"
-	MCPKeyOwnerLeft       Key = "mcp.key_owner_left"
+	MCPKeyOwnerSignIn     Key = "mcp.key_owner_sign_in"
 	MCPKeyOwnerUnverified Key = "mcp.key_owner_unverified"
 	MCPUntrusted          Key = "mcp.untrusted"
 	ExplainNotFoundRef    Key = "explain.not_found_ref"
@@ -176,7 +176,7 @@ const (
 	NoteAdminEnded       Key = "note.admin_ended"
 	NoteKeyRevoked       Key = "note.key_revoked"
 	NoteKeyOwnerChanged  Key = "note.key_owner_changed"
-	NoteKeyOwnerLeft     Key = "note.key_owner_left"
+	NoteKeyOwnerSignIn   Key = "note.key_owner_sign_in"
 	NotePageGoneSwitched Key = "note.page_gone_switched"
 	NoteAutoSwitched     Key = "note.auto_switched"
 

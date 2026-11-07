@@ -15,43 +15,38 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// setupKeyCheck runs a gateway with Feishu sign-in and the key check on (or
-// off), devices attached without approval.
-func setupKeyCheck(t *testing.T, on bool) (*fixture, *fakeIdP) {
+// setupKeyCheck runs a gateway with sign-in through provider asking for
+// offline_access and the key check on (or off), devices attached without
+// approval.
+func setupKeyCheck(t *testing.T, provider string, on bool) (*fixture, *fakeIdP) {
 	t.Helper()
-	idp := newFakeIdP(t, ProviderFeishu)
+	idp := newFakeIdP(t, provider)
 	cfg := idp.config()
+	if provider == ProviderOIDC {
+		cfg.Scopes = "openid email offline_access"
+	} else {
+		cfg.Scopes += " offline_access"
+	}
 	cfg.KeyCheck = on
 	return setupConfig(t, `{"approval":"none"}`, Config{OIDC: cfg, Lang: i18n.EN}), idp
 }
 
-// ssoKey signs openID in through Feishu and returns a key of theirs.
-func (f *fixture) ssoKey(idp *fakeIdP, openID string) string {
+// ssoKey signs sub in and returns a key of theirs.
+func (f *fixture) ssoKey(idp *fakeIdP, sub string) string {
 	f.t.Helper()
-	c, _ := f.ssoLogin(idp, map[string]any{"open_id": openID, "enterprise_email": openID + "@corp.example"}, "")
+	claims := map[string]any{"open_id": sub, "enterprise_email": sub + "@corp.example"}
+	if idp.provider == ProviderOIDC {
+		claims = map[string]any{"sub": sub, "email": sub + "@corp.example", "email_verified": true}
+	}
+	c, _ := f.ssoLogin(idp, claims, "")
 	return createKey(f.t, c, "agent", "interact", 200)["key"].(string)
 }
 
-func (idp *fakeIdP) set(openID, state string) {
-	idp.mu.Lock()
-	defer idp.mu.Unlock()
-	if idp.contact == nil {
-		idp.contact = map[string]string{}
-	}
-	idp.contact[openID] = state
-}
-
-func (idp *fakeIdP) lookupCount() int {
-	idp.mu.Lock()
-	defer idp.mu.Unlock()
-	return idp.lookups
-}
-
 func (f *fixture) keyCheckTimes(ttl, grace time.Duration) {
-	d := f.s.dir
-	d.mu.Lock()
-	d.ttl, d.grace = ttl, grace
-	d.mu.Unlock()
+	r := f.s.refresh
+	r.mu.Lock()
+	r.ttl, r.grace = ttl, grace
+	r.mu.Unlock()
 }
 
 func (f *fixture) memberDisabled(email string) bool {
@@ -68,64 +63,16 @@ func listDevices(s *mcp.ClientSession) error {
 	return err
 }
 
-func leftEvents(f *fixture, email string) int {
+func revokedEvents(f *fixture, email string) int {
 	f.s.flushAudit()
 	events, _ := f.st.Audit(context.Background(), store.AuditQuery{Limit: 200})
 	n := 0
 	for _, e := range events {
-		if e.Action == "member.update" && e.ActorType == "system" && e.Target == email && strings.Contains(mustJSONTest(e.Detail), "left_organization") {
+		if e.Action == "member.sso_revoked" && e.ActorType == "system" && e.Target == email {
 			n++
 		}
 	}
 	return n
-}
-
-func TestKeyCheckOwnerLeaves(t *testing.T) {
-	f, idp := setupKeyCheck(t, true)
-	key := f.ssoKey(idp, "ou_dev")
-	idp.set("ou_dev", "active")
-	s, err := f.mcpWith(key)
-	if err != nil {
-		t.Fatalf("active owner's key refused: %v", err)
-	}
-	p := f.page(pageOpts{pageID: "page1"})
-	callText(t, s, "connect_device", map[string]any{"device": p.welcome["deviceCode"]})
-	expectControl(t, p, hub.ControlObserve)
-
-	// A burst of calls, some concurrent, asks Feishu once.
-	var wg sync.WaitGroup
-	for range 8 {
-		wg.Go(func() {
-			if err := listDevices(s); err != nil {
-				t.Error(err)
-			}
-		})
-	}
-	wg.Wait()
-	if n := idp.lookupCount(); n != 1 {
-		t.Fatalf("lookups: %d, want 1 (cached)", n)
-	}
-
-	// Resigned: "active" is trusted for the cache window, then refused.
-	idp.set("ou_dev", "resigned")
-	if err := listDevices(s); err != nil {
-		t.Fatalf("within the cache window: %v", err)
-	}
-	f.keyCheckTimes(0, keyCheckGrace)
-	err = listDevices(s)
-	if err == nil {
-		t.Fatal("key of an owner who left still works")
-	}
-	expectControl(t, p, hub.ControlNone)
-	if !f.memberDisabled("ou_dev@corp.example") {
-		t.Fatal("owner who left not disabled")
-	}
-	if n := leftEvents(f, "ou_dev@corp.example"); n != 1 {
-		t.Fatalf("audit: %d left_organization events", n)
-	}
-	if _, err := f.mcpWith(key); err == nil {
-		t.Fatal("new session with the key of an owner who left")
-	}
 }
 
 // rawMCP posts an initialize request with the key and returns the status
@@ -145,83 +92,144 @@ func (f *fixture) rawMCP(key string) (int, string) {
 	return res.StatusCode, string(b)
 }
 
-func TestKeyCheckRefusalMessage(t *testing.T) {
-	f, idp := setupKeyCheck(t, true)
-	f.keyCheckTimes(0, keyCheckGrace)
-	for id, want := range map[string]i18n.Key{"exited": i18n.MCPKeyOwnerLeft, "out_of_range": i18n.MCPKeyOwnerUnverified} {
-		key := f.ssoKey(idp, "ou_"+id)
-		idp.set("ou_"+id, id)
-		if code, body := f.rawMCP(key); code != http.StatusUnauthorized || !strings.Contains(body, i18n.EN.T(want)) {
-			t.Fatalf("%s: %d %q", id, code, body)
-		}
+func TestKeyCheckOwnerRefused(t *testing.T) {
+	for _, provider := range []string{ProviderFeishu, ProviderOIDC} {
+		t.Run(provider, func(t *testing.T) {
+			f, idp := setupKeyCheck(t, provider, true)
+			key := f.ssoKey(idp, "dev")
+			s, err := f.mcpWith(key)
+			if err != nil {
+				t.Fatalf("key refused: %v", err)
+			}
+			p := f.page(pageOpts{pageID: "page1"})
+			callText(t, s, "connect_device", map[string]any{"device": p.welcome["deviceCode"]})
+			expectControl(t, p, hub.ControlObserve)
+			// Confirmed at sign-in: no renewal within the window.
+			if err := listDevices(s); err != nil || idp.renewCount() != 0 {
+				t.Fatalf("within the window: %v, %d renewals", err, idp.renewCount())
+			}
+
+			// Past the window a burst of calls, some concurrent, renews once
+			// (Feishu rotates the token each time: a second renewal with the
+			// old one would be refused).
+			f.keyCheckTimes(0, refreshGrace)
+			var wg sync.WaitGroup
+			for range 8 {
+				wg.Go(func() {
+					if err := listDevices(s); err != nil {
+						t.Error(err)
+					}
+				})
+			}
+			wg.Wait()
+			if n := idp.renewCount(); n < 1 || n > 8 {
+				t.Fatalf("renewals: %d", n)
+			}
+			if err := listDevices(s); err != nil {
+				t.Fatalf("after renewals: %v", err)
+			}
+
+			// The provider refuses: the key stops, the agent goes, the member stays.
+			idp.setState("dev", "refused")
+			if err := listDevices(s); err == nil {
+				t.Fatal("key works after the provider refused its owner")
+			}
+			expectControl(t, p, hub.ControlNone)
+			if f.memberDisabled("dev@corp.example") {
+				t.Fatal("member disabled")
+			}
+			if n := revokedEvents(f, "dev@corp.example"); n != 1 {
+				t.Fatalf("audit: %d member.sso_revoked", n)
+			}
+			before := idp.renewCount()
+			if code, body := f.rawMCP(key); code != http.StatusUnauthorized || !strings.Contains(body, i18n.EN.T(i18n.MCPKeyOwnerSignIn)) {
+				t.Fatalf("refused key: %d %q", code, body)
+			}
+			if idp.renewCount() != before {
+				t.Fatal("asked the provider again after a refusal")
+			}
+
+			// Signing in again (the provider allows it) brings the key back.
+			idp.setState("dev", "")
+			f.ssoKey(idp, "dev")
+			if _, err := f.mcpWith(key); err != nil {
+				t.Fatalf("after signing in again: %v", err)
+			}
+		})
 	}
 }
 
-func TestKeyCheckLookupFails(t *testing.T) {
-	f, idp := setupKeyCheck(t, true)
-	f.keyCheckTimes(0, keyCheckGrace)
-
-	// Active at the last lookup, within the grace period: allowed.
+func TestKeyCheckNoAnswer(t *testing.T) {
+	f, idp := setupKeyCheck(t, ProviderFeishu, true)
+	f.keyCheckTimes(0, refreshGrace)
 	key := f.ssoKey(idp, "ou_ok")
 	s, err := f.mcpWith(key)
 	if err != nil {
 		t.Fatal(err)
 	}
-	idp.set("ou_ok", "out_of_range")
+	// Confirmed recently, within the grace period: allowed.
+	idp.setState("ou_ok", "down")
 	if err := listDevices(s); err != nil {
-		t.Fatalf("lookup failed after a recent success: %v", err)
+		t.Fatalf("no answer after a recent confirmation: %v", err)
 	}
-	// Past the grace period: refused, never disabled.
+	// Past it: refused, never revoked or disabled.
 	f.keyCheckTimes(0, 0)
-	if err := listDevices(s); err == nil {
-		t.Fatal("allowed without a recent successful lookup")
+	if code, body := f.rawMCP(key); code != http.StatusUnauthorized || !strings.Contains(body, i18n.EN.T(i18n.MCPKeyOwnerUnverified)) {
+		t.Fatalf("no answer past the grace period: %d %q", code, body)
 	}
-	if f.memberDisabled("ou_ok@corp.example") {
-		t.Fatal("disabled on a failed lookup")
+	if f.memberDisabled("ou_ok@corp.example") || revokedEvents(f, "ou_ok@corp.example") != 0 {
+		t.Fatal("revoked on no answer")
 	}
-
-	// Never confirmed: refused, never disabled.
-	f.keyCheckTimes(0, keyCheckGrace)
-	key = f.ssoKey(idp, "ou_far")
-	idp.set("ou_far", "out_of_range")
-	if _, err := f.mcpWith(key); err == nil {
-		t.Fatal("allowed without any successful lookup")
-	}
-	if f.memberDisabled("ou_far@corp.example") || leftEvents(f, "ou_far@corp.example") != 0 {
-		t.Fatal("disabled on a failed lookup")
-	}
-	idp.mu.Lock()
-	tokens := idp.tokens
-	idp.mu.Unlock()
-	if tokens != 1 {
-		t.Fatalf("tenant_access_token fetched %d times, want 1 (cached)", tokens)
+	// The provider answers again: the key works.
+	idp.setState("ou_ok", "")
+	if _, err := f.mcpWith(key); err != nil {
+		t.Fatalf("provider back: %v", err)
 	}
 }
 
-func TestKeyCheckLastOwnerLeaves(t *testing.T) {
-	f, idp := setupKeyCheck(t, true)
-	f.keyCheckTimes(0, keyCheckGrace)
+func TestKeyCheckWithoutToken(t *testing.T) {
+	f, idp := setupKeyCheck(t, ProviderFeishu, true)
 	ctx := context.Background()
-	owner := f.login("owner@test", "password1")
-	u, _ := f.st.UserByEmail(ctx, "owner@test")
-	if err := f.st.LinkIdentity(ctx, u.ID, f.s.cfg.OIDC.identityProvider(), "ou_boss"); err != nil {
+	key := f.ssoKey(idp, "ou_old")
+	// As if signed in before the gateway asked for offline_access.
+	if err := f.st.SetIdentityToken(ctx, f.s.cfg.OIDC.identityProvider(), "ou_old", ""); err != nil {
 		t.Fatal(err)
 	}
-	key := createKey(t, owner, "boss", "interact", 200)["key"].(string)
+	if code, body := f.rawMCP(key); code != http.StatusUnauthorized || !strings.Contains(body, i18n.EN.T(i18n.MCPKeyOwnerSignIn)) {
+		t.Fatalf("owner without a refresh token: %d %q", code, body)
+	}
+	f.ssoKey(idp, "ou_old")
 	if _, err := f.mcpWith(key); err != nil {
+		t.Fatalf("after signing in again: %v", err)
+	}
+	// A token the gateway can't open (the session secret changed): sign in again.
+	if err := f.st.SetIdentityToken(ctx, f.s.cfg.OIDC.identityProvider(), "ou_old", "garbage"); err != nil {
 		t.Fatal(err)
 	}
-	idp.set("ou_boss", "resigned")
+	f.keyCheckTimes(0, refreshGrace)
 	if _, err := f.mcpWith(key); err == nil {
-		t.Fatal("last owner's key works after they left")
+		t.Fatal("key works with an unreadable refresh token")
 	}
-	if f.memberDisabled("owner@test") {
-		t.Fatal("the last owner was disabled")
+}
+
+func TestKeyCheckTokenSealed(t *testing.T) {
+	f, idp := setupKeyCheck(t, ProviderFeishu, true)
+	f.ssoKey(idp, "ou_x")
+	id, err := f.st.Identity(context.Background(), f.s.cfg.OIDC.identityProvider(), "ou_x")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id.RefreshToken == "" || strings.Contains(id.RefreshToken, "rt-") {
+		t.Fatalf("stored refresh token %q", id.RefreshToken)
+	}
+	if tok, err := f.s.openToken(id.RefreshToken); err != nil || !strings.HasPrefix(tok, "rt-") {
+		t.Fatalf("open: %q %v", tok, err)
 	}
 }
 
 func TestKeyCheckUnaffectedKeys(t *testing.T) {
-	f, idp := setupKeyCheck(t, true)
+	f, idp := setupKeyCheck(t, ProviderFeishu, true)
+	f.keyCheckTimes(0, refreshGrace)
 	owner := f.login("owner@test", "password1")
 	member, _ := f.addMember(owner, "pw@example.com", "member")
 	pwKey := createKey(t, member, "pw", "interact", 200)["key"].(string)
@@ -234,23 +242,36 @@ func TestKeyCheckUnaffectedKeys(t *testing.T) {
 			t.Fatalf("%s: %v", name, err)
 		}
 	}
-	if n := idp.lookupCount(); n != 0 {
-		t.Fatalf("lookups: %d", n)
+	if n := idp.renewCount(); n != 0 {
+		t.Fatalf("renewals: %d", n)
 	}
 }
 
 func TestKeyCheckOff(t *testing.T) {
-	f, idp := setupKeyCheck(t, false)
-	key := f.ssoKey(idp, "ou_gone")
-	idp.set("ou_gone", "resigned")
-	s, err := f.mcpWith(key)
-	if err != nil {
-		t.Fatalf("check off: %v", err)
-	}
-	if err := listDevices(s); err != nil {
-		t.Fatal(err)
-	}
-	if n := idp.lookupCount(); n != 0 || f.memberDisabled("ou_gone@corp.example") {
-		t.Fatalf("check off: %d lookups", n)
+	for name, edit := range map[string]func(*OIDCConfig){
+		"RWD_OIDC_KEY_CHECK=0":   func(o *OIDCConfig) { o.KeyCheck = false },
+		"without offline_access": func(o *OIDCConfig) { o.Scopes = "contact:user.email:readonly" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			idp := newFakeIdP(t, ProviderFeishu)
+			cfg := idp.config()
+			cfg.Scopes += " offline_access"
+			cfg.KeyCheck = true
+			edit(cfg)
+			f := setupConfig(t, `{"approval":"none"}`, Config{OIDC: cfg, Lang: i18n.EN})
+			f.keyCheckTimes(0, 0)
+			key := f.ssoKey(idp, "ou_gone")
+			idp.setState("ou_gone", "refused")
+			s, err := f.mcpWith(key)
+			if err != nil {
+				t.Fatalf("check off: %v", err)
+			}
+			if err := listDevices(s); err != nil {
+				t.Fatal(err)
+			}
+			if n := idp.renewCount(); n != 0 {
+				t.Fatalf("check off: %d renewals", n)
+			}
+		})
 	}
 }

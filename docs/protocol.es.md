@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | Español | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocolo RWD (v1)
@@ -568,7 +568,7 @@ Niveles por rol: los owners y admins crean claves hasta `advanced`; los members,
 
 Una clave solo funciona mientras su dueño puede iniciar sesión. Desactivar a un miembro detiene sus claves (las peticiones MCP reciben 401 y `ApiKey.ownerDisabled` es `true`) y desvincula sus agentes; al reactivarlo, las claves vuelven a funcionar. Eliminar a un miembro revoca sus claves. Bajar el rol de un miembro desvincula los agentes de sus claves que superen el nivel del nuevo rol.
 
-Con el inicio de sesión único de Feishu o Lark, una clave cuyo propietario está vinculado a la app solo funciona mientras el propietario siga en la organización (`RWD_OIDC_KEY_CHECK`, ver [gateway/README.es.md](../gateway/README.es.md#inicio-de-sesión-único)): cada petición MCP consulta al proveedor, y una respuesta de activo vale durante 60 segundos. A un propietario que figura como dimitido o que dejó la organización se le desconectan los agentes y se le desactiva (`member.update` por `system` con `"reason":"left_organization"`; al último propietario solo se le rechaza), y la petición recibe 401. Una consulta fallida solo se deja pasar si una consulta de las últimas 24 horas dijo activo; si no, también recibe 401. Las claves del gateway y los propietarios sin identidad de Feishu o Lark no se comprueban.
+Con el inicio de sesión único cuyos scopes incluyen `offline_access`, una clave cuyo propietario está vinculado al proveedor también solo funciona mientras el proveedor siga confirmando al propietario (`RWD_OIDC_KEY_CHECK`, ver [gateway/README.es.md](../gateway/README.es.md#inicio-de-sesión-único)): el gateway renueva el token de actualización del propietario cuando la última confirmación tiene más de 10 minutos. Un rechazo detiene las claves del propietario hasta que vuelva a iniciar sesión (`member.sso_revoked` por `system`) y desvincula sus agentes, y la petición recibe 401. Sin respuesta, la clave se deja pasar si el propietario se confirmó en las últimas 24 horas, y si no, también recibe 401. Las claves del gateway y los propietarios sin identidad en el proveedor no se comprueban.
 
 ### 12.5 Dispositivos y estado del gateway
 
@@ -604,7 +604,7 @@ Una invitación permite a un usuario poner su dispositivo en línea, con la asis
 | Acción | Cuándo |
 |---|---|
 | `auth.login`, `auth.login_failed` | Inicio de sesión en la consola web |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestión de miembros (`member.sso_join`: una cuenta creada en un primer inicio de sesión único; `auth.login` lleva entonces `"method":"sso"`; `member.invite` con `"again":true`: un nuevo enlace de invitación) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.sso_revoked`, `member.update`, `member.delete` | Gestión de miembros (`member.sso_join`: una cuenta creada en un primer inicio de sesión único; `auth.login` lleva entonces `"method":"sso"`; `member.sso_revoked`: el proveedor rechazó el token de actualización de un miembro, así que sus claves esperan un nuevo inicio de sesión; `member.invite` con `"again":true`: un nuevo enlace de invitación) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Proyectos |
 | `key.create`, `key.revoke` | Claves de API; `detail.owner` es el correo del dueño de la clave (no aparece en las claves del gateway) |
 | `invite.create`, `invite.delete`, `invite.use` | Invitaciones de dispositivo |

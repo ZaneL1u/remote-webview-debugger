@@ -1,4 +1,4 @@
-<!-- i18n-source: 0dcd3b6faee7da70bf01670a986f2e0c4d1d102e -->
+<!-- i18n-source: bc2d435593ba728b32ffcf6e8b957a2393449756 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # rwd 게이트웨이
@@ -69,15 +69,15 @@ rwd version                             버전 출력
 | `RWD_OIDC_CLIENT_ID`, `RWD_OIDC_CLIENT_SECRET` | — | 앱의 자격 증명(Feishu와 Lark에서는 App ID와 App Secret). 필수예요 |
 | `RWD_OIDC_ISSUER` | — | OpenID Connect issuer. 예: `https://sso.example.com/realms/acme`. 엔드포인트는 issuer의 `/.well-known/openid-configuration`에서 읽어요 (`oidc` 전용) |
 | `RWD_OIDC_AUTH_URL`, `RWD_OIDC_TOKEN_URL`, `RWD_OIDC_USERINFO_URL` | 공급자 기본값 | 엔드포인트를 덮어써요. 디스커버리를 지원하지 않는 OpenID Connect 공급자라면 세 개 모두 설정하세요 |
-| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), 없음 (Feishu, Lark) | 공백으로 구분한 scope. Feishu와 Lark에서는 계정에 이메일이 들어가도록 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하세요 |
+| `RWD_OIDC_SCOPES` | `openid profile email` (`oidc`), 없음 (Feishu, Lark) | 공백으로 구분한 scope. Feishu와 Lark에서는 계정에 이메일이 들어가도록 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하세요. `offline_access`도 추가하면 공급자가 더 이상 멤버를 보증하지 않을 때 게이트웨이가 알아차려요. 아래를 참고하세요 |
 | `RWD_OIDC_NAME` | 공급자 이름 | 로그인 버튼에 표시할 이름. 예: `Okta` |
 | `RWD_OIDC_DEFAULT_ROLE` | `member` | 첫 로그인 때 만들어지는 계정의 역할: `member` 또는 `admin` |
 | `RWD_OIDC_INVITE_ONLY=1` | 꺼짐 | 계정을 만들지 않아요. 기존 멤버나 초대받은 멤버(같은 이메일)만 로그인할 수 있어요 |
 | `RWD_OIDC_ALLOWED_DOMAINS` | — | 로그인을 허용할 이메일 도메인(쉼표로 구분). 예: `example.com` |
 | `RWD_OIDC_TRUST_EMAIL=1` | 꺼짐 | `oidc` 전용: `email_verified`를 보내지 않는 공급자(Microsoft Entra ID)의 이메일을 신뢰해요. 조직이 이메일을 관리하는 단일 테넌트 공급자에서만 쓰세요 |
 | `RWD_OIDC_TENANT` | — | Feishu와 Lark 전용: 조직의 `tenant_key`. 다른 조직 사람은 거부돼요(`sso_error=tenant`). SSO 로그인마다 `auth.login` 감사 기록에 `tenant`가 남아요 |
-| `RWD_OIDC_SYNC_MINUTES` | `60` (Feishu, Lark) | 조직을 떠난 멤버를 비활성화하는 주기(분). `0`이면 꺼져요. 아래를 참고하세요 |
-| `RWD_OIDC_KEY_CHECK` | 켜짐 (Feishu, Lark) | API 키를 쓸 때마다 소유자가 아직 재직 중인지 확인해요. `0`이면 꺼져요. 아래를 참고하세요 |
+| `RWD_OIDC_SYNC_MINUTES` | `60` (`offline_access`가 있을 때) | 모든 멤버의 refresh token을 갱신하는 주기(분). `0`이면 꺼져요. 아래를 참고하세요 |
+| `RWD_OIDC_KEY_CHECK` | 켜짐 (`offline_access`가 있을 때) | API 키를 쓸 때마다 공급자가 최근에 소유자를 확인했는지 요구해요. `0`이면 꺼져요. 아래를 참고하세요 |
 
 공급자에 다음 리디렉션 URL을 등록하세요. 정확히 일치해야 해요: `https://<host>/v1/api/auth/oidc/callback`. 즉 `RWD_PUBLIC_URL`의 origin(설정하지 않았으면 요청의 origin) 뒤에 `/v1/api/auth/oidc/callback`을 붙인 주소예요. 프록시 뒤에서는 URL이 바뀌지 않도록 `RWD_PUBLIC_URL`을 설정하세요.
 
@@ -91,17 +91,17 @@ rwd version                             버전 출력
 
 1. **Credentials & Basic Info**에서 App ID와 App Secret을 복사해 `RWD_OIDC_CLIENT_ID`와 `RWD_OIDC_CLIENT_SECRET`에 넣으세요.
 2. **Security Settings → Redirect URLs**에 위의 리디렉션 URL을 추가하세요.
-3. **Permissions & Scopes**에서 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)를 추가하고, 같은 scope를 `RWD_OIDC_SCOPES`에 나열하세요. 떠난 사람을 알아차리려면 앱에 `contact:contact.base:readonly`와 `contact:user.employee:readonly`도 필요하고, **Data permissions → Contacts range**에 로그인하는 모든 사람을 포함해야 해요.
+3. **Permissions & Scopes**에서 `contact:user.email:readonly`(기업 이메일까지 받으려면 `contact:user.employee:readonly`도)와 `offline_access`를 추가하고, 같은 scope를 `RWD_OIDC_SCOPES`에 나열하세요. `offline_access`가 있으면 게이트웨이가 떠난 사람을 알아차려요. **Security Settings**에 있는 `user_access_token` 갱신 스위치도 필요한데, 누군가 끄지 않았다면 기본으로 켜져 있어요.
 4. 앱의 사용 가능 범위를 로그인할 사람들로 설정하고, 버전을 만들어 게시하세요. 그래야 설정이 적용돼요.
 
-**떠난 사람.** Feishu나 Lark에서는 게이트웨이가 `RWD_OIDC_SYNC_MINUTES`분마다 앱과 연결된 각 멤버를 Open Platform에 조회하고, 퇴사했거나 조직을 떠난 것으로 표시된 멤버를 비활성화해요. 그 멤버는 로그아웃되고, API 키가 작동하지 않게 되고, 에이전트 접속도 해제돼요. 감사 로그에는 `system`이 수행한 `member.update`가 `"reason":"left_organization"`과 함께 기록돼요. 이후 소유자가 그 멤버를 삭제하면 키가 완전히 폐기돼요. 명시적인 "퇴사" 상태만 인정해요. 연락처 범위 밖의 멤버나 실패한 요청은 아무것도 바꾸지 않고(무엇이 실패했는지는 로그에 남아요), 마지막 소유자는 절대 비활성화하지 않아요. 연락처 권한이 없으면 동기화는 아무것도 확인하지 않고, 아래의 키 확인이 앱에 연결된 멤버의 키를 거부해요. `RWD_OIDC_KEY_CHECK=0`까지 설정했다면 떠난 사람의 API 키는 소유자가 비활성화할 때까지 계속 작동해요. 다만 더 이상 로그인할 수 없으니 콘솔 세션은 12시간 안에 끝나요.
+**떠난 사람.** OpenID Connect에는 공급자에게 누군가가 아직 있는지 물어볼 방법이 없지만, 공급자는 자신이 삭제했거나 비활성화한 사람의 refresh token을 거부해요. 그래서 scope에 `offline_access`가 있으면 게이트웨이는 각 멤버의 refresh token을(세션 비밀값에서 유도한 키로 암호화해) 보관하고 갱신해요. `RWD_OIDC_SYNC_MINUTES`마다 지난 반주기 동안 확인되지 않은 모든 멤버를 갱신하는데, 이렇게 하면 쓰지 않는 토큰도 만료되지 않고(Feishu는 최근 7일), API 키를 쓰기 전에도 갱신해요(아래 참고). Feishu, Lark, Keycloak, Okta, Microsoft Entra ID, Authentik가 이런 방식으로 동작해요. 여러분의 공급자가 `offline_access`에 refresh token을 발급하는지 확인하세요(발급하지 않으면 로그인할 때 로그에 경고가 남아요). 공급자가 거부하면(OAuth의 `invalid_grant`; Feishu와 Lark에서는 20008 사용자 없음, 20010 앱 사용 권한 없음, 20066 사용자 상태 무효, 20037 또는 20064 권한 만료 또는 취소 등의 코드), 그 멤버의 API 키는 다시 로그인할 때까지 작동하지 않고, 에이전트 접속이 해제되며, 감사 로그에는 `system`이 수행한 `member.sso_revoked`가 기록돼요. 다시 로그인하는 건 공급자가 여전히 허락할 때만 되고, 그러면 새 토큰이 저장돼요. 거부가 권한 만료 때문일 수도 있어서(Feishu는 365일 후 재인증을 요구해요) 멤버는 비활성화되지 않아요. 떠난 사람은 소유자가 비활성화하거나 삭제할 수 있고, 더 이상 로그인할 수 없으니 콘솔 세션은 12시간 안에 끝나요. 장애나 게이트웨이·앱 설정 오류로는 아무것도 바뀌지 않아요. `offline_access`를 추가하기 전에 로그인한 멤버는 토큰이 없어서, 다시 로그인할 때까지 키가 거부돼요.
 
-**떠난 사람의 키.** Feishu나 Lark에서는 키 소유자가 앱에 연결되어 있으면, 게이트웨이가 API 키를 쓸 때마다 소유자가 아직 재직 중인지도 확인해요. `RWD_OIDC_KEY_CHECK=0`이면 꺼져요. MCP 요청은 매번 인증하므로 오래 유지되는 세션의 도구 호출도 하나하나 확인해요. 위와 같은 연락처 조회를 써요. 퇴사했거나 조직을 떠났으면 요청은 "API 키 소유자가 조직을 떠났다"는 401을 받고, 소유자의 에이전트 접속이 해제되며, 소유자는 위와 같이 비활성화되고 감사 로그에 기록돼요(마지막 소유자의 키는 거부하지만 마지막 소유자를 비활성화하지는 않아요). 재직 중이면 그 결과를 60초 동안 믿기 때문에 도구 호출이 몰려도 한 번만 조회해요(동시 호출은 조회 하나를 함께 써요). `tenant_access_token`도 만료 직전까지 재사용해요. 조회가 실패하면(네트워크, 연락처 범위 밖, 권한 부족) 지난 24시간 안의 조회가 재직 중이라고 했을 때만 키를 통과시켜요. 그렇지 않으면 요청은 "API 키 소유자의 재직 여부를 확인할 수 없으니 관리자에게 문의하라"는 401을 받고, 로그에 경고가 남으며, 멤버는 비활성화되지 않아요. 게이트웨이 키와 Feishu나 Lark ID가 없는 소유자(비밀번호 계정)는 확인하지 않아요.
+**떠난 사람의 키.** `offline_access`가 있으면, 소유자가 공급자에 연결된 API 키를 쓸 때마다 공급자가 최근 10분 안에 소유자를 확인했어야 해요. 그렇지 않으면 게이트웨이가 그 자리에서 소유자의 토큰을 갱신해요(동시 호출은 갱신 하나를 함께 써요). `RWD_OIDC_KEY_CHECK=0`이면 꺼져요. MCP 요청은 매번 인증하므로 오래 유지되는 세션의 도구 호출도 하나하나 확인해요. 거부되면: 요청은 "로그인 제공자가 더 이상 API 키 소유자를 확인해 주지 않아요(조직을 떠났을 수 있어요). 소유자가 콘솔에 다시 로그인해야 해요"라는 401을 받고, 나머지는 위와 같이 처리돼요. 응답이 없으면(네트워크, 공급자나 앱의 오류): 소유자가 지난 24시간 안에 확인됐으면 키를 통과시키고, 그렇지 않으면 요청은 "로그인 제공자에서 API 키 소유자를 확인할 수 없어요. 잠시 후 다시 시도하거나 관리자에게 문의해 주세요"라는 401을 받고 로그에 경고가 남아요. 게이트웨이 키와 공급자에 신원이 없는 소유자(비밀번호 계정)는 확인하지 않아요.
 
 ```bash
 RWD_PUBLIC_URL=https://rwd.example.com/v1 \
 RWD_OIDC_PROVIDER=feishu RWD_OIDC_CLIENT_ID=cli_a1b2c3d4 RWD_OIDC_CLIENT_SECRET='…' \
-RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly' \
+RWD_OIDC_SCOPES='contact:user.email:readonly contact:user.employee:readonly offline_access' \
   rwd serve
 ```
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | Français | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # Protocole RWD (v1)
@@ -568,7 +568,7 @@ Niveaux par rôle : les owners et les admins créent des clés jusqu'à `advance
 
 Une clé ne fonctionne que tant que son propriétaire peut se connecter. Désactiver un membre arrête ses clés (les requêtes MCP reçoivent 401, `ApiKey.ownerDisabled` vaut `true`) et détache ses agents ; le réactiver rétablit ses clés. Supprimer un membre révoque ses clés. Abaisser le rôle d'un membre détache les agents de ses clés qui dépassent le niveau du nouveau rôle.
 
-Avec l'authentification unique Feishu ou Lark, une clé dont le propriétaire est lié à l'application ne fonctionne en plus que tant que ce propriétaire fait partie de l'organisation (`RWD_OIDC_KEY_CHECK`, voir [gateway/README.fr.md](../gateway/README.fr.md#authentification-unique)) : chaque requête MCP interroge le fournisseur, et une réponse « actif » vaut pendant 60 secondes. Un propriétaire indiqué comme démissionnaire ou parti voit ses agents détachés et est désactivé (`member.update` par `system` avec `"reason":"left_organization"` ; le dernier propriétaire est seulement refusé), et la requête reçoit un 401. Une consultation qui échoue n'est acceptée que si une consultation des dernières 24 heures a répondu actif, et reçoit sinon un 401 elle aussi. Les clés de la passerelle et les propriétaires sans identité Feishu ou Lark ne sont pas vérifiés.
+Avec l'authentification unique dont les scopes incluent `offline_access`, une clé dont le propriétaire est lié au fournisseur ne fonctionne elle aussi que tant que le fournisseur confirme encore ce propriétaire (`RWD_OIDC_KEY_CHECK`, voir [gateway/README.fr.md](../gateway/README.fr.md#authentification-unique)) : la passerelle renouvelle le jeton de rafraîchissement du propriétaire quand sa dernière confirmation remonte à plus de 10 minutes. Un refus arrête les clés du propriétaire jusqu'à ce qu'il se reconnecte (`member.sso_revoked` par `system`) et détache ses agents, et la requête reçoit un 401. Sans réponse, la clé est laissée passer si le propriétaire a été confirmé dans les dernières 24 heures, et reçoit sinon un 401 elle aussi. Les clés de la passerelle et les propriétaires sans identité chez le fournisseur ne sont pas vérifiés.
 
 ### 12.5 Appareils et état de la passerelle
 
@@ -604,7 +604,7 @@ Une invitation permet à un utilisateur de mettre son appareil en ligne, déjà 
 | Action | Quand |
 |---|---|
 | `auth.login`, `auth.login_failed` | Connexion à la console |
-| `member.invite`, `member.accept`, `member.sso_join`, `member.update`, `member.delete` | Gestion des membres (`member.sso_join` : un compte créé lors d'une première connexion par authentification unique ; `auth.login` porte alors `"method":"sso"` ; `member.invite` avec `"again":true` : un nouveau lien d'invitation) |
+| `member.invite`, `member.accept`, `member.sso_join`, `member.sso_revoked`, `member.update`, `member.delete` | Gestion des membres (`member.sso_join` : un compte créé lors d'une première connexion par authentification unique ; `auth.login` porte alors `"method":"sso"` ; `member.sso_revoked` : le fournisseur a refusé le jeton de rafraîchissement d'un membre, donc ses clés attendent une nouvelle connexion ; `member.invite` avec `"again":true` : un nouveau lien d'invitation) |
 | `project.create`, `project.update`, `project.delete`, `project.rotate_app_key` | Projets |
 | `key.create`, `key.revoke` | Clés d'API ; `detail.owner` est l'e-mail du propriétaire de la clé (absent pour les clés de la passerelle) |
 | `invite.create`, `invite.delete`, `invite.use` | Invitations d'appareil |

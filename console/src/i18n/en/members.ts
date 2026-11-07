@@ -133,6 +133,7 @@ export const members = {
       'member.invite': 'Invite member',
       'member.accept': 'Accept member invite',
       'member.sso_join': 'Joined via single sign-on',
+      'member.sso_revoked': 'Single sign-on no longer confirms the member',
       'member.update': 'Update member',
       'member.delete': 'Remove member',
       'project.create': 'Create project',

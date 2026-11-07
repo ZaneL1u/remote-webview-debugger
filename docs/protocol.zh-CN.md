@@ -1,4 +1,4 @@
-<!-- i18n-source: 1755e1bb9415500b291dfce1aa7a44261cb7adc0 -->
+<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
 [English](protocol.md) | 简体中文 | [繁體中文](protocol.zh-TW.md) | [日本語](protocol.ja.md) | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD 协议（v1）
@@ -568,7 +568,7 @@ API Key 属于创建它的成员，不属于某个项目：一个 Key 能访问�
 
 Key 只在创建者还能登录时有效。停用成员会让他的 Key 失效（MCP 请求返回 401，`ApiKey.ownerDisabled` 为 `true`）并断开他的 agent；重新启用后 Key 恢复可用。删除成员会吊销他的 Key。降低成员的角色会断开他名下超出新角色级别的 Key 的 agent。
 
-使用飞书或 Lark 单点登录时，创建者关联到该应用的 Key 还要求创建者仍在职才可用（`RWD_OIDC_KEY_CHECK`，见 [gateway/README.zh-CN.md](../gateway/README.zh-CN.md#单点登录)）：每个 MCP 请求都会询问提供方，在职的结果信任 60 秒。被标记为已离职或已离开组织的创建者，其 agent 会被断开，本人会被停用（由 `system` 发起、带 `"reason":"left_organization"` 的 `member.update`；最后一个 owner 只拒绝不停用），请求得到 401。查询失败时，只有过去 24 小时内某次查询结果为在职才放行，否则同样得到 401。网关 Key 以及没有飞书或 Lark 身份的创建者不做检查。
+单点登录的 scope 包含 `offline_access` 时，创建者关联到该提供方的 Key 还要求提供方仍然认可创建者才可用（`RWD_OIDC_KEY_CHECK`，见 [gateway/README.zh-CN.md](../gateway/README.zh-CN.md#单点登录)）：创建者上次被确认超过 10 分钟时，网关会续期他的 refresh token。被拒绝时，创建者的 Key 停止工作直到他重新登录（由 `system` 发起的 `member.sso_revoked`），他的 agent 被断开，请求得到 401。没有回应时，创建者在过去 24 小时内确认过就放行，否则同样得到 401。网关 Key 以及没有该提供方身份的创建者不做检查。
 
 ### 12.5 设备与网关状态
 
@@ -604,7 +604,7 @@ Key 只在创建者还能登录时有效。停用成员会让他的 Key 失效�
 | action | 场景 |
 |---|---|
 | `auth.login`、`auth.login_failed` | 控制台登录 |
-| `member.invite`、`member.accept`、`member.sso_join`、`member.update`、`member.delete` | 成员管理（`member.sso_join`：首次单点登录时创建的账号；之后的 `auth.login` 带 `"method":"sso"`；`member.invite` 带 `"again":true`：重新生成的邀请链接） |
+| `member.invite`、`member.accept`、`member.sso_join`、`member.sso_revoked`、`member.update`、`member.delete` | 成员管理（`member.sso_join`：首次单点登录时创建的账号；之后的 `auth.login` 带 `"method":"sso"`；`member.sso_revoked`：提供方拒绝了成员的 refresh token，他的 Key 要等重新登录；`member.invite` 带 `"again":true`：重新生成的邀请链接） |
 | `project.create`、`project.update`、`project.delete`、`project.rotate_app_key` | 项目 |
 | `key.create`、`key.revoke` | API Key；`detail.owner` 是 Key 创建者的邮箱（网关 Key 没有） |
 | `invite.create`、`invite.delete`、`invite.use` | 设备邀请 |

@@ -134,6 +134,7 @@ export const members: typeof en = {
       'member.invite': '멤버 초대',
       'member.accept': '멤버 초대 수락',
       'member.sso_join': 'SSO로 참여',
+      'member.sso_revoked': 'SSO가 더 이상 멤버를 확인하지 않음',
       'member.update': '멤버 변경',
       'member.delete': '멤버 삭제',
       'project.create': '프로젝트 만들기',
