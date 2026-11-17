@@ -4,6 +4,27 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded). Tags: `gateway-vX.Y.Z`.
 
+## v0.4.0 (2026-11-17)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.3.1...gateway-v0.4.0)
+
+> Embedded page SDK: v0.3.0 (plus unreleased changes)
+
+### 🚀 Enhancements
+
+- Chrome DevTools for people from the console ([8562652](https://github.com/ZaneL1u/remote-webview-debugger/commit/8562652))
+- single sign-on with Feishu, Lark or OpenID Connect ([9875e75](https://github.com/ZaneL1u/remote-webview-debugger/commit/9875e75))
+- console redesign, personal API keys, system health, leavers sync ([066ec01](https://github.com/ZaneL1u/remote-webview-debugger/commit/066ec01))
+- refuse API keys whose owner has left Feishu / Lark ([45aea2f](https://github.com/ZaneL1u/remote-webview-debugger/commit/45aea2f))
+- the sign-in provider vouches for key owners through refresh tokens ([befb848](https://github.com/ZaneL1u/remote-webview-debugger/commit/befb848))
+- **mcp:** stdio MCP package for every agent, several gateways, init and agent skill ([ff0a990](https://github.com/ZaneL1u/remote-webview-debugger/commit/ff0a990))
+- **console:** connect agents through the remote-webview-debugger-mcp npm package ([75b6c16](https://github.com/ZaneL1u/remote-webview-debugger/commit/75b6c16))
+
+### 🩹 Fixes
+
+- single sign-on hardening after review ([161ab05](https://github.com/ZaneL1u/remote-webview-debugger/commit/161ab05))
+- Feishu / Lark tenant lock, new invite links for accounts without a password ([3af17ec](https://github.com/ZaneL1u/remote-webview-debugger/commit/3af17ec))
+
 ## v0.3.1 (2026-11-04)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.3.0...gateway-v0.3.1)

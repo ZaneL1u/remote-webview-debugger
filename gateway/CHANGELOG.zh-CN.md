@@ -4,6 +4,27 @@
 
 网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）。tag 形如 `gateway-vX.Y.Z`。
 
+## v0.4.0 (2026-11-17)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.3.1...gateway-v0.4.0)
+
+> 内嵌页面 SDK：v0.3.0（含未发版的改动）
+
+### 🚀 新功能
+
+- Chrome DevTools for people from the console ([8562652](https://github.com/ZaneL1u/remote-webview-debugger/commit/8562652))
+- single sign-on with Feishu, Lark or OpenID Connect ([9875e75](https://github.com/ZaneL1u/remote-webview-debugger/commit/9875e75))
+- console redesign, personal API keys, system health, leavers sync ([066ec01](https://github.com/ZaneL1u/remote-webview-debugger/commit/066ec01))
+- refuse API keys whose owner has left Feishu / Lark ([45aea2f](https://github.com/ZaneL1u/remote-webview-debugger/commit/45aea2f))
+- the sign-in provider vouches for key owners through refresh tokens ([befb848](https://github.com/ZaneL1u/remote-webview-debugger/commit/befb848))
+- **mcp:** 新增 MCP 包 remote-webview-debugger-mcp：任意 agent 可用的 stdio MCP 服务，支持多网关、init 向导和 agent skill ([ff0a990](https://github.com/ZaneL1u/remote-webview-debugger/commit/ff0a990))
+- **console:** 控制台的 agent 接入引导改为主推 npm 包 remote-webview-debugger-mcp 的 init，并给出 Cursor、Codex、Gemini CLI 的 stdio 配置和 skill 安装命令 ([75b6c16](https://github.com/ZaneL1u/remote-webview-debugger/commit/75b6c16))
+
+### 🩹 修复
+
+- single sign-on hardening after review ([161ab05](https://github.com/ZaneL1u/remote-webview-debugger/commit/161ab05))
+- Feishu / Lark tenant lock, new invite links for accounts without a password ([3af17ec](https://github.com/ZaneL1u/remote-webview-debugger/commit/3af17ec))
+
 ## v0.3.1 (2026-11-04)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.3.0...gateway-v0.3.1)
