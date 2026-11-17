@@ -185,6 +185,11 @@ export const docs: typeof en = {
     clientsTitle: '3. Outros clientes',
     stdioTab: 'Clientes só com stdio',
     localTab: 'Ponte stdio local',
+    npmTab: 'Pacote npm (recomendado)',
+    npmBody: 'Um comando para todos os agentes: o <c>init</c> pede a chave de API (ou lê <c>RWD_API_KEY</c>), verifica neste gateway e adiciona o servidor MCP ao Claude Code, Cursor, Codex, Gemini CLI e aos outros agentes que encontrar. A chave fica em <c>~/.config/remote-webview-debugger/mcp.json</c>, não na configuração dos agentes. Execute de novo para adicionar outro gateway:',
+    skillBody: 'O skill diz ao agente quando e como usar o Remote WebView Debugger. O <c>init</c> oferece a instalação; separadamente:',
+    npmClientBody: (file: string) =>
+      `Ou com o pacote npm, em <c>${file}</c>. Ele lê o gateway e a chave que o <c>init</c> salvou (ou <c>RWD_URL</c> e <c>RWD_API_KEY</c> do env):`,
     cursorBody: 'Adicione ao <c>~/.cursor/mcp.json</c> (global) ou ao <c>.cursor/mcp.json</c> do seu projeto. A maioria dos clientes que suportam MCP remoto usa este formato:',
     stdioBody: 'Clientes que só conseguem iniciar comandos locais (por exemplo, o <c>claude_desktop_config.json</c> do Claude Desktop) podem fazer a ponte com <c>rwd mcp</c>:',
     localBody: '<c>rwd</c> é o próprio binário do gateway (o subcomando <c>rwd mcp</c>). Ele só encaminha o stdio para o <c>/mcp</c> hospedado e lê a chave da variável de ambiente <c>RWD_API_KEY</c>:',

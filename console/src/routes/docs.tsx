@@ -45,8 +45,11 @@ import { type Messages, rich, useT } from '@/i18n'
 import { levelMeta } from '@/lib/policy'
 import { configQuery, projectsQuery } from '@/lib/queries'
 import {
+  codexStdioConfig,
   cspSnippet,
   cursorMcpConfig,
+  cursorStdioConfig,
+  geminiStdioConfig,
   h5FullSnippet,
   h5PinnedSnippet,
   hostedMcpCommand,
@@ -54,7 +57,9 @@ import {
   kotlinNativeSnippet,
   localMcpCommand,
   maskSnippet,
+  mcpInitCommand,
   mcpJsonConfig,
+  skillsAddCommand,
   stdioMcpConfig,
   swiftNativeSnippet,
 } from '@/lib/snippets'
@@ -662,15 +667,34 @@ function McpSection({ ctx }: { ctx: DocCtx }) {
       <CodeBlock lang="json" code={mcpJsonConfig(ctx.gateway, KEY_PLACEHOLDER)} />
 
       <H3 id="mcp-clients">{t.clientsTitle}</H3>
-      <Tabs defaultValue="cursor" className="gap-3">
+      <Tabs defaultValue="npm" className="gap-3">
         <TabsList>
+          <TabsTrigger value="npm">{t.npmTab}</TabsTrigger>
           <TabsTrigger value="cursor">Cursor</TabsTrigger>
+          <TabsTrigger value="codex">Codex</TabsTrigger>
+          <TabsTrigger value="gemini">Gemini CLI</TabsTrigger>
           <TabsTrigger value="stdio">{t.stdioTab}</TabsTrigger>
           <TabsTrigger value="local">{t.localTab}</TabsTrigger>
         </TabsList>
+        <TabsContent value="npm" className="space-y-3">
+          <P>{rich(t.npmBody, { c })}</P>
+          <CodeBlock lang="bash" code={mcpInitCommand(ctx.gateway)} wrap />
+          <P>{rich(t.skillBody, { c })}</P>
+          <CodeBlock lang="bash" code={skillsAddCommand()} wrap />
+        </TabsContent>
+        <TabsContent value="codex" className="space-y-3">
+          <P>{rich(t.npmClientBody('~/.codex/config.toml'), { c })}</P>
+          <CodeBlock title="TOML" code={codexStdioConfig()} />
+        </TabsContent>
+        <TabsContent value="gemini" className="space-y-3">
+          <P>{rich(t.npmClientBody('~/.gemini/settings.json'), { c })}</P>
+          <CodeBlock lang="json" code={geminiStdioConfig()} />
+        </TabsContent>
         <TabsContent value="cursor" className="space-y-3">
           <P>{rich(t.cursorBody, { c })}</P>
           <CodeBlock lang="json" code={cursorMcpConfig(ctx.gateway, KEY_PLACEHOLDER)} />
+          <P>{rich(t.npmClientBody('~/.cursor/mcp.json'), { c })}</P>
+          <CodeBlock lang="json" code={cursorStdioConfig()} />
         </TabsContent>
         <TabsContent value="stdio" className="space-y-3">
           <P>{rich(t.stdioBody, { c })}</P>

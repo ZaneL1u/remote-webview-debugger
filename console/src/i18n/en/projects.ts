@@ -94,6 +94,7 @@ export const projects = {
     revokeDescription: (prefix: string) => `MCP sessions using <c>${prefix}…</c> stop working immediately. This can’t be undone.`,
 
     mcpTabs: {
+      npm: 'npm package',
       hosted: 'Hosted',
       local: 'Local stdio',
       json: 'JSON config',
@@ -102,6 +103,7 @@ export const projects = {
     /** `<c>` wraps the command name. */
     localHint: 'Requires the <c>rwd</c> command on your machine; it forwards stdio to the hosted /mcp:',
     jsonHint: 'For other clients that read an mcpServers config file:',
+    npmHint: 'Recommended: one command sets up Claude Code, Cursor, Codex, Gemini CLI and more. init asks for this key; paste it, or set RWD_API_KEY.',
 
     createdTitle: 'API key created',
     createdName: (name: string) => name,

@@ -185,6 +185,11 @@ export const docs: typeof en = {
     clientsTitle: '3. 其他用戶端',
     stdioTab: '只支援 stdio 的用戶端',
     localTab: '本機 stdio 橋接',
+    npmTab: 'npm 套件（推薦）',
+    npmBody: '一條指令設定好所有 agent：<c>init</c> 會提示輸入 API Key（或讀取 <c>RWD_API_KEY</c>），先用這個閘道驗證，再把 MCP 伺服器加到本機找到的 Claude Code、Cursor、Codex、Gemini CLI 等 agent 裡。Key 只存在 <c>~/.config/remote-webview-debugger/mcp.json</c>，不寫進 agent 的設定。再執行一次可以新增另一個閘道：',
+    skillBody: 'agent skill 告訴 agent 什麼時候、怎樣使用 Remote WebView Debugger。<c>init</c> 會詢問要不要裝，也可以單獨安裝：',
+    npmClientBody: (file: string) =>
+      `也可以用 npm 套件，寫進 <c>${file}</c>。它讀取 <c>init</c> 儲存的閘道和 Key（或 env 裡的 <c>RWD_URL</c> 和 <c>RWD_API_KEY</c>）：`,
     cursorBody: '加到 <c>~/.cursor/mcp.json</c>（全域）或專案中的 <c>.cursor/mcp.json</c>。大多數支援遠端 MCP 的用戶端都使用這種格式：',
     stdioBody: '只能啟動本機指令的用戶端（例如 Claude Desktop 的 <c>claude_desktop_config.json</c>）可以用 <c>rwd mcp</c> 橋接：',
     localBody: '<c>rwd</c> 就是閘道本身的二進位檔（它的 <c>rwd mcp</c> 子指令）。它只會把 stdio 轉送到託管的 <c>/mcp</c>，並從環境變數 <c>RWD_API_KEY</c> 讀取金鑰：',

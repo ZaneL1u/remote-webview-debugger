@@ -103,6 +103,7 @@ export const projects: typeof en = {
     revokeDescription: (prefix) => `MCP-сеансы с ключом <c>${prefix}…</c> сразу перестанут работать. Это действие нельзя отменить.`,
 
     mcpTabs: {
+      npm: 'npm-пакет',
       hosted: 'Встроенный',
       local: 'Локальный stdio',
       json: 'JSON-конфигурация',
@@ -110,6 +111,7 @@ export const projects: typeof en = {
     hostedHint: 'Claude Code подключается напрямую к встроенному MCP шлюза (Streamable HTTP), ничего устанавливать не нужно:',
     localHint: 'Нужна команда <c>rwd</c> на вашей машине; она перенаправляет stdio во встроенный /mcp:',
     jsonHint: 'Для других клиентов, которые читают конфигурационный файл mcpServers:',
+    npmHint: 'Рекомендуем: одна команда настраивает Claude Code, Cursor, Codex, Gemini CLI и других. init спросит этот ключ: вставьте его или задайте RWD_API_KEY.',
 
     createdTitle: 'API-ключ создан',
     createdName: (name) => name,

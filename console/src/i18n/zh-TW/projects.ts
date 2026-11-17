@@ -93,6 +93,7 @@ export const projects: typeof en = {
     revokeDescription: (prefix) => `撤銷後，使用 <c>${prefix}…</c> 的 MCP 工作階段會立即失效，且無法復原。`,
 
     mcpTabs: {
+      npm: 'npm 套件（推薦）',
       hosted: '託管',
       local: '本機 stdio',
       json: 'JSON 設定',
@@ -100,6 +101,7 @@ export const projects: typeof en = {
     hostedHint: 'Claude Code 直接連到閘道託管的 MCP（Streamable HTTP），不需要安裝任何東西：',
     localHint: '需要在本機安裝 <c>rwd</c> 指令，它會把 stdio 轉送到託管的 /mcp：',
     jsonHint: '適用於讀取 mcpServers 設定檔的其他用戶端：',
+    npmHint: '推薦：一條指令設定好 Claude Code、Cursor、Codex、Gemini CLI 等。init 會提示輸入這個 Key，貼上即可，或設成 RWD_API_KEY。',
 
     createdTitle: '已建立 API 金鑰',
     createdName: (name) => `「${name}」`,

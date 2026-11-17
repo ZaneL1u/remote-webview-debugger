@@ -99,6 +99,7 @@ export const projects: typeof en = {
       `MCP-Sitzungen mit <c>${prefix}…</c> funktionieren sofort nicht mehr. Dies kann nicht rückgängig gemacht werden.`,
 
     mcpTabs: {
+      npm: 'npm-Paket',
       hosted: 'Gehostet',
       local: 'Lokales stdio',
       json: 'JSON-Konfiguration',
@@ -107,6 +108,7 @@ export const projects: typeof en = {
       'Claude Code verbindet sich direkt mit dem gehosteten MCP des Gateways (Streamable HTTP), ohne Installation:',
     localHint: 'Erfordert den Befehl <c>rwd</c> auf Ihrem Rechner; er leitet stdio an das gehostete /mcp weiter:',
     jsonHint: 'Für andere Clients, die eine mcpServers-Konfigurationsdatei lesen:',
+    npmHint: 'Empfohlen: Ein Befehl richtet Claude Code, Cursor, Codex, Gemini CLI und mehr ein. init fragt nach diesem Schlüssel; einfügen oder als RWD_API_KEY setzen.',
 
     createdTitle: 'API-Key erstellt',
     createdName: (name) => name,

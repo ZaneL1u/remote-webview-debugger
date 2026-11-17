@@ -99,6 +99,7 @@ export const projects: typeof en = {
     revokeDescription: (prefix) => `Les sessions MCP qui utilisent <c>${prefix}…</c> cessent immédiatement de fonctionner. Cette action est irréversible.`,
 
     mcpTabs: {
+      npm: 'Paquet npm',
       hosted: 'Hébergé',
       local: 'stdio local',
       json: 'Configuration JSON',
@@ -106,6 +107,7 @@ export const projects: typeof en = {
     hostedHint: 'Claude Code se connecte directement au MCP hébergé de la passerelle (Streamable HTTP), sans rien installer :',
     localHint: 'Nécessite la commande <c>rwd</c> sur votre machine ; elle transmet stdio au /mcp hébergé :',
     jsonHint: 'Pour les autres clients qui lisent un fichier de configuration mcpServers :',
+    npmHint: 'Recommandé : une commande configure Claude Code, Cursor, Codex, Gemini CLI et d’autres. init demande cette clé : collez-la, ou mettez-la dans RWD_API_KEY.',
 
     createdTitle: 'Clé d’API créée',
     createdName: (name) => name,

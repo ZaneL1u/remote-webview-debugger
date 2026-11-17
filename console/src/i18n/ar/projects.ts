@@ -95,6 +95,7 @@ export const projects: typeof en = {
     revokeDescription: (prefix) => `تتوقف جلسات MCP التي تستخدم <c>${prefix}…</c> عن العمل فورًا. لا يمكن التراجع عن ذلك.`,
 
     mcpTabs: {
+      npm: 'حزمة npm',
       hosted: 'مستضاف',
       local: 'stdio محلي',
       json: 'إعداد JSON',
@@ -102,6 +103,7 @@ export const projects: typeof en = {
     hostedHint: 'يتصل Claude Code مباشرةً بخادم MCP المستضاف في البوابة (Streamable HTTP)، دون أي تثبيت:',
     localHint: 'يتطلب الأمر <c>rwd</c> على جهازك؛ وهو يمرّر stdio إلى /mcp المستضاف:',
     jsonHint: 'للعملاء الآخرين الذين يقرؤون ملف إعداد mcpServers:',
+    npmHint: 'موصى به: أمر واحد يُعِدّ Claude Code وCursor وCodex وGemini CLI وغيرها. يطلب init هذا المفتاح: الصقه، أو ضعه في RWD_API_KEY.',
 
     createdTitle: 'تم إنشاء مفتاح API',
     createdName: (name) => name,

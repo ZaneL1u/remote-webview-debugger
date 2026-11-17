@@ -93,6 +93,7 @@ export const projects: typeof en = {
     revokeDescription: (prefix) => `<c>${prefix}…</c> 키를 쓰는 MCP 세션이 즉시 동작을 멈춰요. 되돌릴 수 없어요.`,
 
     mcpTabs: {
+      npm: 'npm 패키지',
       hosted: '호스팅',
       local: '로컬 stdio',
       json: 'JSON 설정',
@@ -100,6 +101,7 @@ export const projects: typeof en = {
     hostedHint: 'Claude Code가 게이트웨이의 호스팅 MCP(Streamable HTTP)에 바로 연결해요. 설치할 것이 없어요:',
     localHint: '컴퓨터에 <c>rwd</c> 명령어가 있어야 해요. stdio를 호스팅된 /mcp로 전달해요:',
     jsonHint: 'mcpServers 설정 파일을 읽는 다른 클라이언트용:',
+    npmHint: '추천: 명령 하나로 Claude Code, Cursor, Codex, Gemini CLI 등을 설정합니다. init이 이 키를 물으면 붙여 넣거나 RWD_API_KEY로 설정하세요.',
 
     createdTitle: 'API 키를 만들었어요',
     createdName: (name) => name,
