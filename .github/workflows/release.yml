@@ -2,7 +2,8 @@ name: Release
 
 # Pushed by `make release-sdk` / `make release-gateway` (see docs/releasing.md):
 #   sdk-vX.Y.Z      npm package remote-webview-debugger + GitHub Release
-#   gateway-vX.Y.Z  rwd binaries (linux/darwin, amd64/arm64) + GHCR image + GitHub Release
+#   gateway-vX.Y.Z  rwd binaries (linux/darwin, amd64/arm64) + GHCR image + GitHub Release,
+#                   and the MCP package remote-webview-debugger-mcp on npm
 on:
   push:
     tags: ['sdk-v*', 'gateway-v*']
@@ -73,11 +74,13 @@ jobs:
     permissions:
       contents: write # the GitHub Release
       packages: write # ghcr.io
+      id-token: write # npm trusted publishing and provenance (MCP package)
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+          registry-url: https://registry.npmjs.org
       - uses: actions/setup-go@v6
         with:
           go-version-file: gateway/go.mod
@@ -87,8 +90,21 @@ jobs:
           echo "VERSION=${GITHUB_REF_NAME#gateway-v}" >> "$GITHUB_ENV"
           echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
           node scripts/release/notes.mjs "$GITHUB_REF_NAME" > notes.md
-      - name: Build the SDK and the console
-        run: make -j16 sdk console
+      - name: Build the SDK, the console and the MCP package
+        run: make -j16 sdk console mcp
+      # Same rules as the SDK: trusted publishing, skip a version already on
+      # npm, prereleases to `next`.
+      - name: MCP package to npm
+        working-directory: mcp
+        run: |
+          test "$(node -p 'require("./package.json").version')" = "$VERSION"
+          npm test
+          if npm view "remote-webview-debugger-mcp@$VERSION" version >/dev/null 2>&1; then
+            echo "remote-webview-debugger-mcp@$VERSION is already on npm"
+            exit 0
+          fi
+          case "$VERSION" in *-*) dist=next ;; *) dist=latest ;; esac
+          npm publish --provenance --access public --tag "$dist"
       # One at a time: each build stages the console and the SDK into the
       # Go embed directory.
       - name: Build the binaries

@@ -1,4 +1,4 @@
-<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
+<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -19,7 +19,7 @@
 只在某个用户手机上出现、又藏在超级 App 或自家 App 的 WebView 里的 bug 最难查：插不了数据线，开不了远程调试端口，在自己电脑上也复现不出来。Remote WebView Debugger 换个思路，把那个页面直接交到你的 AI agent 手里。
 
 - **一行脚本**（或原生注入）就能让页面上线。用户会看到一个带设备码的小胶囊，遇到问题可以点「请求协助」。
-- **agent 通过 MCP 接入**：Claude Code、Cursor 或任何 MCP 客户端，在用户于手机上同意之后即可连接。它能读取无障碍快照、console、网络请求和截图，也能像人一样点击、输入、滚动，覆盖这台设备上的所有页面和 WebView。
+- **agent 通过 MCP 接入**：Claude Code、Cursor、Codex 或任何 MCP 客户端，在用户于手机上同意之后即可连接。它能读取无障碍快照、console、网络请求和截图，也能像人一样点击、输入、滚动，覆盖这台设备上的所有页面和 WebView。
 - **真正的 Chrome DevTools，给人用。** 管理员可以在控制台里对任意一个在线页面打开 DevTools——Elements、Console、Network（能看到打开之前发生的事）和 Application 存储——同样需要用户先在设备上同意。
 - **用户始终掌握主动权。** AI 在做什么一目了然（agent 光标、列出计划步骤的任务卡片、边缘光圈），用户随时可以接管或结束。密码、手机号、银行卡号在离开手机之前就已打码。
 - **自托管。** 一个 Go 二进制文件，内嵌控制台和 SDK；数据库可选 SQLite 或 Postgres。
@@ -78,7 +78,15 @@ App 里的 WebView 需要在原生代码中于 document start 时注入同样的
 
 ### 3. 接入你的 agent
 
-在控制台创建一个 API Key（一个 Key 可以访问所有设备），然后：
+在控制台创建一个 API Key（一个 Key 可以访问所有设备），然后运行：
+
+```bash
+npx -y remote-webview-debugger-mcp init
+```
+
+它会询问网关地址和 Key，然后把 MCP 服务加到它找到的 agent 里：Cursor、Codex、Gemini CLI、Windsurf、Cline、VS Code、opencode、Claude Code 或 Claude Desktop。它还会安装 agent skill（`npx skills add ZaneL1u/remote-webview-debugger`）。一个 MCP 服务可以连接多个网关。各个 agent 的配置方法见 [MCP 包](mcp/README.zh-CN.md)。
+
+支持 HTTP 方式 MCP 的 agent 也可以直接连接网关：
 
 ```bash
 claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Authorization: Bearer rwd_sk_live_…"
@@ -116,6 +124,8 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`sdk/`](sdk) | 页面 SDK（`sdk.js`）及其页内界面 |
 | [`packages/chobitsu/`](packages/chobitsu) | 内置的 [chobitsu](https://github.com/liriliri/chobitsu)，以及我们的页面端引擎 `src/engine/` |
 | [`console/`](console) | Web 控制台（React、Vite） |
+| [`mcp/`](mcp) | 适用于所有 agent 的 MCP 包（`npx -y remote-webview-debugger-mcp`）：stdio 服务、多网关、`init` |
+| [`skills/`](skills) | agent skill（`npx skills add ZaneL1u/remote-webview-debugger`），Claude Code 插件和 Gemini CLI 扩展也用它 |
 | [`website/`](website) | 官网 [debugger.site](https://debugger.site/zh/)，含交互式演示 |
 | [`examples/`](examples) | 多页面演示商城，以及一个像 iOS App 一样承载 WKWebView 的 macOS 应用 |
 | [`deploy/platform/`](deploy/platform) | Docker Compose 部署 |
@@ -123,7 +133,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 
 ## 版本发布
 
-页面 SDK 和网关分开发版，各有自己的版本号、tag（`sdk-vX.Y.Z`、`gateway-vX.Y.Z`）和更新日志：[SDK](sdk/CHANGELOG.zh-CN.md)、[网关](gateway/CHANGELOG.zh-CN.md)。网关的每个版本都附带 Linux 和 macOS 的 `rwd` 二进制以及镜像 `ghcr.io/zanel1u/remote-webview-debugger`。见 [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases)；维护者请看[发版流程](docs/releasing.zh-CN.md)。
+页面 SDK 和网关分开发版，各有自己的版本号、tag（`sdk-vX.Y.Z`、`gateway-vX.Y.Z`）和更新日志：[SDK](sdk/CHANGELOG.zh-CN.md)、[网关](gateway/CHANGELOG.zh-CN.md)。网关的每个版本都附带 Linux 和 macOS 的 `rwd` 二进制、镜像 `ghcr.io/zanel1u/remote-webview-debugger`，以及同一版本号的 MCP 包 [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp)。见 [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases)；维护者请看[发版流程](docs/releasing.zh-CN.md)。
 
 ## 开发
 

@@ -1,4 +1,4 @@
-<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
+<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
 
 <div dir="rtl">
 
@@ -22,7 +22,7 @@
 الخلل الذي لا يظهر إلا على هاتف مستخدم واحد، داخل تطبيق شامل على غرار WeChat أو داخل WebView في تطبيقك أنت، هو أصعب أنواع الأخطاء تصحيحًا: لا كابل USB، ولا منفذ للتصحيح عن بُعد، ولا سبيل لإعادة إنتاجه على جهازك. يضع Remote WebView Debugger تلك الصفحة أمام وكيل الذكاء الاصطناعي الخاص بك بدلًا من ذلك.
 
 - **وسم سكربت واحد** (أو حقن أصلي) يجعل الصفحة متصلة. يرى المستخدم شارة صغيرة تحمل رمز الجهاز، ويمكنه النقر على *طلب المساعدة*.
-- **يتصل وكيلك عبر MCP** — Claude Code أو Cursor أو أي عميل MCP — بعد أن يوافق المستخدم على الجهاز. يقرأ لقطات إمكانية الوصول، و console، والشبكة، ولقطات الشاشة، وينقر ويكتب ويمرّر كما يفعل الإنسان، عبر كل صفحة و WebView على ذلك الجهاز.
+- **يتصل وكيلك عبر MCP** — Claude Code أو Cursor أو Codex أو أي عميل MCP — بعد أن يوافق المستخدم على الجهاز. يقرأ لقطات إمكانية الوصول، و console، والشبكة، ولقطات الشاشة، وينقر ويكتب ويمرّر كما يفعل الإنسان، عبر كل صفحة و WebView على ذلك الجهاز.
 - **Chrome DevTools حقيقية للأشخاص.** من لوحة التحكم، يفتح `admin` أداة DevTools على أي صفحة متصلة — Elements، و Console، و Network (مع ما حدث قبل فتحها)، وتخزين Application — بعد أن يوافق المستخدم على الجهاز.
 - **يبقى المستخدم متحكمًا.** يرى ما يفعله الذكاء الاصطناعي (مؤشر الوكيل، وبطاقة مهمة بالخطوات المخطط لها، وحافة متوهجة)، ويستطيع تولّي التحكم أو إنهاء الجلسة في أي وقت. وتُخفى كلمات المرور وأرقام الهواتف والبطاقات قبل أن يغادر أي شيء الهاتف.
 - **استضافة ذاتية.** ملف تنفيذي واحد بلغة Go تُضمَّن فيه لوحة التحكم و SDK؛ مع SQLite أو Postgres.
@@ -93,7 +93,19 @@ SDK هو حزمة npm [`remote-webview-debugger`](sdk/README.ar.md): حمّله 
 
 ### 3. ربط وكيلك
 
-أنشئ مفتاح API في لوحة التحكم (مفتاح واحد يصل إلى كل الأجهزة)، ثم:
+أنشئ مفتاح API في لوحة التحكم (مفتاح واحد يصل إلى كل الأجهزة)، ثم شغّل:
+
+<div dir="ltr">
+
+```bash
+npx -y remote-webview-debugger-mcp init
+```
+
+</div>
+
+يسألك الأمر عن عنوان البوابة والمفتاح، ثم يضيف خادم MCP إلى الوكلاء الذين يعثر عليهم: Cursor أو Codex أو Gemini CLI أو Windsurf أو Cline أو VS Code أو opencode أو Claude Code أو Claude Desktop. ويثبّت أيضًا مهارة الوكيل (`npx skills add ZaneL1u/remote-webview-debugger`). يستطيع خادم MCP واحد الوصول إلى عدة بوابات. انظر [حزمة MCP](mcp/README.ar.md) لإعداد كل وكيل.
+
+ويمكن للوكيل الذي يتحدث MCP عبر HTTP أن يتصل بالبوابة مباشرةً أيضًا:
 
 <div dir="ltr">
 
@@ -135,6 +147,8 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`sdk/`](sdk) | SDK الصفحة (`sdk.js`) وواجهته داخل الصفحة |
 | [`packages/chobitsu/`](packages/chobitsu) | نسخة مُضمَّنة من [chobitsu](https://github.com/liriliri/chobitsu) إضافةً إلى محركنا العامل في جانب الصفحة في `src/engine/` |
 | [`console/`](console) | لوحة التحكم (React، Vite) |
+| [`mcp/`](mcp) | حزمة MCP لكل وكيل (`npx -y remote-webview-debugger-mcp`): خادم stdio، وعدة بوابات، و `init` |
+| [`skills/`](skills) | مهارة الوكيل (`npx skills add ZaneL1u/remote-webview-debugger`)، وتستخدمها أيضًا إضافة Claude Code وامتداد Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site)، مع العرض التفاعلي |
 | [`examples/`](examples) | متجر تجريبي متعدد الصفحات وتطبيق macOS يستضيف WKWebViews كما يفعل تطبيق iOS |
 | [`deploy/platform/`](deploy/platform) | النشر عبر Docker Compose |
@@ -142,7 +156,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 
 ## الإصدارات
 
-يُصدَر SDK الصفحة والبوابة كلٌّ على حدة، ولكلٍّ منهما رقم إصدار ووسم (`sdk-vX.Y.Z`، `gateway-vX.Y.Z`) وسجل تغييرات خاص به: [SDK](sdk/CHANGELOG.md)، [البوابة](gateway/CHANGELOG.md). يأتي كل إصدار للبوابة مع ملفات `rwd` التنفيذية لـ Linux و macOS والصورة `ghcr.io/zanel1u/remote-webview-debugger`. انظر [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases)، وللمشرفين على المشروع [إصدار النسخ](docs/releasing.ar.md).
+يُصدَر SDK الصفحة والبوابة كلٌّ على حدة، ولكلٍّ منهما رقم إصدار ووسم (`sdk-vX.Y.Z`، `gateway-vX.Y.Z`) وسجل تغييرات خاص به: [SDK](sdk/CHANGELOG.md)، [البوابة](gateway/CHANGELOG.md). يأتي كل إصدار للبوابة مع ملفات `rwd` التنفيذية لـ Linux و macOS، والصورة `ghcr.io/zanel1u/remote-webview-debugger`، وحزمة MCP [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) بالإصدار نفسه. انظر [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases)، وللمشرفين على المشروع [إصدار النسخ](docs/releasing.ar.md).
 
 ## التطوير
 

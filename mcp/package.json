@@ -1,0 +1,53 @@
+{
+  "name": "remote-webview-debugger-mcp",
+  "version": "0.3.1",
+  "description": "Remote WebView Debugger MCP server for any agent (Cursor, Codex, Gemini CLI, Claude Code, …): stdio MCP that reaches one or more RWD gateways",
+  "license": "MIT",
+  "homepage": "https://debugger.site",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZaneL1u/remote-webview-debugger.git",
+    "directory": "mcp"
+  },
+  "bugs": "https://github.com/ZaneL1u/remote-webview-debugger/issues",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "webview",
+    "h5",
+    "remote-debugging",
+    "ai-agent",
+    "devtools",
+    "mobile"
+  ],
+  "type": "module",
+  "bin": {
+    "remote-webview-debugger-mcp": "dist/cli.mjs"
+  },
+  "files": [
+    "dist/cli.mjs",
+    "skills",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rolldown -c rolldown.config.mjs",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "npm run build && node --test --test-concurrency=1 test/*.test.ts",
+    "prepack": "cp ../LICENSE ../NOTICE . && rm -rf skills && cp -R ../skills ."
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@types/node": "24.19.2",
+    "rolldown": "1.2.16",
+    "typescript": "5.9.3",
+    "zod": "3.25.76"
+  }
+}

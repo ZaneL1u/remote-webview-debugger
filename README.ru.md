@@ -1,4 +1,4 @@
-<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
+<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -19,7 +19,7 @@
 Баг, который проявляется только на телефоне одного пользователя — внутри суперприложения вроде WeChat или в WebView вашего собственного приложения, — отлаживать труднее всего: ни USB-кабеля, ни порта удалённой отладки, ни способа воспроизвести его у себя. Remote WebView Debugger вместо этого открывает такую страницу вашему ИИ-агенту.
 
 - **Один тег script** (или нативная инъекция) — и страница онлайн. Пользователь видит небольшую плашку с кодом устройства и может нажать *Запросить поддержку*.
-- **Агент подключается через MCP** — Claude Code, Cursor или любой MCP-клиент — после того как пользователь разрешит это на устройстве. Он читает снимки доступности, console, сетевые запросы и скриншоты, а ещё кликает, вводит текст и прокручивает, как человек, — на всех страницах и во всех WebView этого устройства.
+- **Агент подключается через MCP** — Claude Code, Cursor, Codex или любой MCP-клиент — после того как пользователь разрешит это на устройстве. Он читает снимки доступности, console, сетевые запросы и скриншоты, а ещё кликает, вводит текст и прокручивает, как человек, — на всех страницах и во всех WebView этого устройства.
 - **Настоящий Chrome DevTools для людей.** Из консоли администратор открывает DevTools на любой подключённой странице — Elements, Console, Network (с тем, что произошло до его открытия) и хранилище Application — после того как пользователь разрешит это на устройстве.
 - **Пользователь сохраняет контроль.** Он видит, что делает ИИ (курсор агента, карточка задачи с запланированными шагами, светящаяся рамка), и может в любой момент взять управление или завершить сеанс. Пароли, номера телефонов и карт маскируются ещё до того, как что-либо покинет телефон.
 - **Самостоятельный хостинг.** Один бинарный файл на Go со встроенными веб-консолью и SDK; SQLite или Postgres.
@@ -78,7 +78,15 @@ SDK — это npm-пакет [`remote-webview-debugger`](sdk/README.ru.md): з�
 
 ### 3. Подключите агента
 
-Создайте в веб-консоли API-ключ (один ключ даёт доступ ко всем устройствам), затем:
+Создайте в веб-консоли API-ключ (один ключ даёт доступ ко всем устройствам), затем выполните:
+
+```bash
+npx -y remote-webview-debugger-mcp init
+```
+
+Команда спросит адрес шлюза и ключ, а затем добавит MCP-сервер в найденных агентов: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code или Claude Desktop. Она также установит навык агента (`npx skills add ZaneL1u/remote-webview-debugger`). Один MCP-сервер может работать с несколькими шлюзами. Настройка каждого агента описана в [MCP-пакете](mcp/README.ru.md).
+
+Агент, который поддерживает MCP по HTTP, может также подключиться к шлюзу напрямую:
 
 ```bash
 claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Authorization: Bearer rwd_sk_live_…"
@@ -116,6 +124,8 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`sdk/`](sdk) | SDK страницы (`sdk.js`) и его интерфейс на странице |
 | [`packages/chobitsu/`](packages/chobitsu) | Встроенная в репозиторий копия [chobitsu](https://github.com/liriliri/chobitsu) и наш движок на стороне страницы в `src/engine/` |
 | [`console/`](console) | Веб-консоль (React, Vite) |
+| [`mcp/`](mcp) | MCP-пакет для любого агента (`npx -y remote-webview-debugger-mcp`): stdio-сервер, несколько шлюзов, `init` |
+| [`skills/`](skills) | Навык агента (`npx skills add ZaneL1u/remote-webview-debugger`), который также используют плагин Claude Code и расширение Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site) с интерактивным демо |
 | [`examples/`](examples) | Многостраничный демо-магазин и macOS-приложение, которое размещает WKWebView так же, как iOS-приложение |
 | [`deploy/platform/`](deploy/platform) | Развёртывание через Docker Compose |
@@ -123,7 +133,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 
 ## Релизы
 
-SDK страницы и шлюз выпускаются раздельно, у каждого своя версия, свой тег (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) и свой журнал изменений: [SDK](sdk/CHANGELOG.md), [шлюз](gateway/CHANGELOG.md). К релизу шлюза прилагаются бинарные файлы `rwd` для Linux и macOS и образ `ghcr.io/zanel1u/remote-webview-debugger`. См. [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases), а для мейнтейнеров — [выпуск релизов](docs/releasing.ru.md).
+SDK страницы и шлюз выпускаются раздельно, у каждого своя версия, свой тег (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) и свой журнал изменений: [SDK](sdk/CHANGELOG.md), [шлюз](gateway/CHANGELOG.md). К релизу шлюза прилагаются бинарные файлы `rwd` для Linux и macOS, образ `ghcr.io/zanel1u/remote-webview-debugger` и MCP-пакет [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) той же версии. См. [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases), а для мейнтейнеров — [выпуск релизов](docs/releasing.ru.md).
 
 ## Разработка
 

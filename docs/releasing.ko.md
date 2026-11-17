@@ -1,4 +1,4 @@
-<!-- i18n-source: e110292ad2a3dca0ad4fca78a52a79f08f95af0b -->
+<!-- i18n-source: 28d08ede8f7ddda0f06cdeeccd3a3f3d4c8a70ce -->
 [English](releasing.md) | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | 한국어 | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | [Português (Brasil)](releasing.pt-BR.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # 릴리스
@@ -7,11 +7,11 @@
 
 | | 페이지 SDK | 게이트웨이 |
 |---|---|---|
-| 경로 | `sdk/`, `packages/chobitsu/` | `gateway/`, `console/`, `deploy/` |
+| 경로 | `sdk/`, `packages/chobitsu/` | `gateway/`, `console/`, `deploy/`, `mcp/`, `skills/`, 플러그인 매니페스트 |
 | 태그 | `sdk-vX.Y.Z` | `gateway-vX.Y.Z` |
-| 버전 위치 | `sdk/package.json` | 태그(`make`가 `git describe`로 읽어요) |
+| 버전 위치 | `sdk/package.json` | 태그(`make`가 `git describe`로 읽어요). 릴리스 때 `mcp/package.json`, `.claude-plugin/plugin.json`, `gemini-extension.json`에도 기록돼요 |
 | 변경 내역 | [`sdk/CHANGELOG.md`](../sdk/CHANGELOG.md), [`.zh-CN.md`](../sdk/CHANGELOG.zh-CN.md) | [`gateway/CHANGELOG.md`](../gateway/CHANGELOG.md), [`.zh-CN.md`](../gateway/CHANGELOG.zh-CN.md) |
-| 배포 형태 | npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (jsDelivr, unpkg) | linux / darwin × amd64 / arm64용 `rwd_<version>_<os>_<arch>.tar.gz`, 이미지 `ghcr.io/zanel1u/remote-webview-debugger` |
+| 배포 형태 | npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (jsDelivr, unpkg) | linux / darwin × amd64 / arm64용 `rwd_<version>_<os>_<arch>.tar.gz`, 이미지 `ghcr.io/zanel1u/remote-webview-debugger`, npm [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) |
 
 게이트웨이 바이너리는 같은 커밋의 SDK를 내장하고, 변경 내역의 해당 섹션에 그 SDK 버전이 적혀 있어요.
 
@@ -63,7 +63,7 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 [`.github/workflows/release.yml`](../.github/workflows/release.yml):
 
 - **`sdk-v*`:** `sdk/package.json`의 버전이 태그와 같은지 확인하고, 빌드한 뒤, 그 버전이 아직 npm에 없으면 `npm publish --provenance`를 실행해요(`-`가 들어간 버전은 `next` dist-tag로 가요). 그리고 `sdk.js`, `index.mjs`, `index.d.ts`, npm tarball을 담은 GitHub Release를 만들어요. SDK 릴리스는 저장소의 최신 릴리스로 표시되지 않아요.
-- **`gateway-v*`:** SDK와 콘솔, 태그의 버전을 넣은 `rwd` 바이너리 네 개를 빌드하고(`rwd version`으로 확인해요), 이미지를 linux/amd64와 linux/arm64용으로 `<version>`, `<major>.<minor>`, `latest` 태그를 달아 GHCR에 푸시한 뒤(프리릴리스는 `<version>`만), 아카이브와 `checksums.txt`를 담은 GitHub Release를 만들어요.
+- **`gateway-v*`:** SDK, 콘솔, MCP 패키지를 빌드하고, MCP 패키지를 SDK처럼 npm에 게시하고(그 버전이 이미 있으면 건너뛰어요), 태그의 버전을 넣은 `rwd` 바이너리 네 개를 빌드하고(`rwd version`으로 확인해요), 이미지를 linux/amd64와 linux/arm64용으로 `<version>`, `<major>.<minor>`, `latest` 태그를 달아 GHCR에 푸시한 뒤(프리릴리스는 `<version>`만), 아카이브와 `checksums.txt`를 담은 GitHub Release를 만들어요.
 
 Release 본문은 그 버전의 설치 방법 뒤에 영어와 중국어 변경 내역의 해당 섹션을 붙인 것이에요([`scripts/release/notes.mjs`](../scripts/release/notes.mjs)).
 
@@ -71,5 +71,5 @@ Release 본문은 그 버전의 설치 방법 뒤에 영어와 중국어 변경 
 
 ## 처음 한 번만 하는 설정
 
-- **npm.** 워크플로는 [trusted publishing](https://docs.npmjs.com/trusted-publishers)(OIDC, 시크릿 없음)으로 게시해요. npmjs.com에서 패키지 설정 → Trusted publishing → GitHub Actions로 가서 저장소 `ZaneL1u/remote-webview-debugger`, 워크플로 `release.yml`을 지정하세요. npm은 토큰에 일회용 비밀번호를 요구하므로, 워크플로가 게시할 수 없는 버전(패키지가 생기기 전의 첫 버전 등)은 태그를 체크아웃한 상태에서 직접 게시해요: `npm login` 후 `cd sdk && npm ci && npm run build && npm publish --access public`. 그다음 실패한 워크플로 실행을 다시 돌리면 게시는 건너뛰고 GitHub Release를 만들어요.
+- **npm.** `remote-webview-debugger`와 `remote-webview-debugger-mcp` 두 패키지 모두 이 설정이 필요해요. 워크플로는 [trusted publishing](https://docs.npmjs.com/trusted-publishers)(OIDC, 시크릿 없음)으로 게시해요. npmjs.com에서 패키지 설정 → Trusted publishing → GitHub Actions로 가서 저장소 `ZaneL1u/remote-webview-debugger`, 워크플로 `release.yml`을 지정하세요. npm은 토큰에 일회용 비밀번호를 요구하므로, 워크플로가 게시할 수 없는 버전(패키지가 생기기 전의 첫 버전 등)은 태그를 체크아웃한 상태에서 직접 게시해요: `npm login` 후 `cd sdk && npm ci && npm run build && npm publish --access public`(또는 `mcp/`에서 같은 방법으로). 그다음 실패한 워크플로 실행을 다시 돌리면 게시는 건너뛰고 GitHub Release를 만들어요.
 - **GHCR.** 이미지는 첫 게이트웨이 릴리스 뒤에 저장소 소유자의 패키지 아래에 나타나요. 공개 저장소에 연결되어 있지만, 공개 상태인지 한 번 확인하세요(패키지 설정 → Change visibility).

@@ -1,4 +1,4 @@
-<!-- i18n-source: e110292ad2a3dca0ad4fca78a52a79f08f95af0b -->
+<!-- i18n-source: 28d08ede8f7ddda0f06cdeeccd3a3f3d4c8a70ce -->
 [English](releasing.md) | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | 日本語 | [한국어](releasing.ko.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | [Português (Brasil)](releasing.pt-BR.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # リリース手順
@@ -7,11 +7,11 @@
 
 | | ページ SDK | ゲートウェイ |
 |---|---|---|
-| パス | `sdk/`、`packages/chobitsu/` | `gateway/`、`console/`、`deploy/` |
+| パス | `sdk/`、`packages/chobitsu/` | `gateway/`、`console/`、`deploy/`、`mcp/`、`skills/`、プラグインのマニフェスト |
 | タグ | `sdk-vX.Y.Z` | `gateway-vX.Y.Z` |
-| バージョンの置き場所 | `sdk/package.json` | タグ（`make` が `git describe` で読み取ります） |
+| バージョンの置き場所 | `sdk/package.json` | タグ（`make` が `git describe` で読み取ります）。リリース時に `mcp/package.json`、`.claude-plugin/plugin.json`、`gemini-extension.json` にも書き込まれます |
 | 変更履歴 | [`sdk/CHANGELOG.md`](../sdk/CHANGELOG.md)、[`.zh-CN.md`](../sdk/CHANGELOG.zh-CN.md) | [`gateway/CHANGELOG.md`](../gateway/CHANGELOG.md)、[`.zh-CN.md`](../gateway/CHANGELOG.zh-CN.md) |
-| 公開先 | npm の [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)（jsDelivr、unpkg） | linux / darwin × amd64 / arm64 向けの `rwd_<version>_<os>_<arch>.tar.gz`、イメージ `ghcr.io/zanel1u/remote-webview-debugger` |
+| 公開先 | npm の [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)（jsDelivr、unpkg） | linux / darwin × amd64 / arm64 向けの `rwd_<version>_<os>_<arch>.tar.gz`、イメージ `ghcr.io/zanel1u/remote-webview-debugger`、npm の [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) |
 
 ゲートウェイのバイナリは同じコミットの SDK を埋め込んでいます。それがどの SDK バージョンかは、ゲートウェイの変更履歴の該当セクションに記載されます。
 
@@ -63,7 +63,7 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 [`.github/workflows/release.yml`](../.github/workflows/release.yml)：
 
 - **`sdk-v*`：** `sdk/package.json` のバージョンがタグと一致することを確認してビルドし、そのバージョンがまだ npm になければ `npm publish --provenance` を実行し（`-` を含むバージョンは `next` dist-tag に公開されます）、`sdk.js`、`index.mjs`、`index.d.ts` と npm の tarball を添えた GitHub Release を作成します。SDK のリリースはリポジトリの最新リリース（latest）としてはマークされません。
-- **`gateway-v*`：** SDK と管理コンソール、タグのバージョンを埋め込んだ 4 つの `rwd` バイナリをビルドし（`rwd version` で確認します）、linux/amd64 と linux/arm64 向けのイメージを `<version>`、`<major>.<minor>`、`latest` として GHCR に push し（プレリリースは `<version>` のみ）、アーカイブと `checksums.txt` を添えた GitHub Release を作成します。
+- **`gateway-v*`：** SDK、管理コンソール、MCP パッケージをビルドし、MCP パッケージを SDK と同じように npm に公開し（そのバージョンが既にあればスキップ）、タグのバージョンを埋め込んだ 4 つの `rwd` バイナリをビルドし（`rwd version` で確認します）、linux/amd64 と linux/arm64 向けのイメージを `<version>`、`<major>.<minor>`、`latest` として GHCR に push し（プレリリースは `<version>` のみ）、アーカイブと `checksums.txt` を添えた GitHub Release を作成します。
 
 Release の本文は、そのバージョンのインストール手順に続けて、英語と中国語の変更履歴の該当セクションを並べたものです（[`scripts/release/notes.mjs`](../scripts/release/notes.mjs)）。
 
@@ -71,5 +71,5 @@ Release の本文は、そのバージョンのインストール手順に続け
 
 ## 初回のみの設定
 
-- **npm。** ワークフローは [trusted publishing](https://docs.npmjs.com/trusted-publishers)（OIDC、シークレット不要）で公開します。npmjs.com のパッケージ設定 → Trusted publishing → GitHub Actions で、リポジトリ `ZaneL1u/remote-webview-debugger`、ワークフロー `release.yml` を設定します。npm はトークンにワンタイムパスワードを要求するため、ワークフローで公開できないバージョン（パッケージが存在する前の最初のバージョンなど）は、`npm login` の後にタグをチェックアウトした状態から手動で公開します：`cd sdk && npm ci && npm run build && npm publish --access public`。その後、失敗したワークフローを再実行すると、公開をスキップして GitHub Release を作成します。
+- **npm。** `remote-webview-debugger` と `remote-webview-debugger-mcp` の両方のパッケージにこの設定が必要です。ワークフローは [trusted publishing](https://docs.npmjs.com/trusted-publishers)（OIDC、シークレット不要）で公開します。npmjs.com のパッケージ設定 → Trusted publishing → GitHub Actions で、リポジトリ `ZaneL1u/remote-webview-debugger`、ワークフロー `release.yml` を設定します。npm はトークンにワンタイムパスワードを要求するため、ワークフローで公開できないバージョン（パッケージが存在する前の最初のバージョンなど）は、`npm login` の後にタグをチェックアウトした状態から手動で公開します：`cd sdk && npm ci && npm run build && npm publish --access public`（または `mcp/` で同じ手順）。その後、失敗したワークフローを再実行すると、公開をスキップして GitHub Release を作成します。
 - **GHCR。** 最初のゲートウェイリリースの後、イメージはリポジトリオーナーのパッケージの下に現れます。イメージは公開リポジトリに紐付いています。公開設定になっているか一度確認してください（パッケージ設定 → Change visibility）。

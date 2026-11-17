@@ -1,5 +1,5 @@
-# Remote WebView Debugger: gateway (Go) + page SDK + console + website.
-# `make -j16` builds the gateway binary for this machine; GOOS / GOARCH
+# Remote WebView Debugger: gateway (Go) + page SDK + console + MCP package + website.
+# `make -j16` builds the gateway binary for this machine and the MCP package; GOOS / GOARCH
 # cross-compile it (e.g. `make -j16 GOOS=linux GOARCH=arm64`).
 # Releases: `make release-sdk` / `make release-gateway` (docs/releasing.md).
 
@@ -12,14 +12,18 @@ GOARCH ?= $(shell go env GOARCH)
 # (sed, not $${v#…}: make 3.81 and 4.3+ disagree on escaping the #.)
 RWD_VERSION ?= $(shell git describe --tags --match 'gateway-v*' --dirty 2>/dev/null | sed 's/^gateway-v//' | grep . || echo 0.0.0-dev)
 
-.PHONY: platform sdk console gateway website check release-sdk release-gateway
-platform: sdk console .WAIT gateway
+.PHONY: platform sdk console mcp gateway website check release-sdk release-gateway
+platform: sdk console mcp .WAIT gateway
 
 sdk:
 	cd sdk && npm ci && npm run build
 
 console:
 	cd console && npm ci && npm run build
+
+# The stdio MCP server agents run (npx -y remote-webview-debugger-mcp), one file in mcp/dist.
+mcp:
+	cd mcp && npm ci && npm run build
 
 # Embeds sdk/dist/sdk.js and console/dist into the binary.
 gateway:
@@ -38,6 +42,7 @@ check:
 	cd gateway && test -z "$$(gofmt -l .)" && go vet ./... && go test -race -count=1 ./...
 	cd sdk && npm run typecheck && npm run build && npm test
 	cd console && npm run typecheck && npm run build
+	cd mcp && npm run typecheck && npm test
 
 # Bump the version, prepend to both changelogs, commit and tag; nothing is
 # pushed. ARGS: --dry-run, --edit, --major / --minor / --patch, --version X.Y.Z.

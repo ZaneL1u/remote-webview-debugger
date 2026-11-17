@@ -1,4 +1,4 @@
-<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
+<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -19,7 +19,7 @@
 Ein Bug, der nur auf dem Smartphone eines einzigen Nutzers auftritt – in einer Super-App à la WeChat oder in der WebView Ihrer eigenen App –, ist am schwersten zu debuggen: kein USB-Kabel, kein Remote-Debugging-Port, keine Möglichkeit, ihn auf Ihrem Rechner nachzustellen. Remote WebView Debugger bringt diese Seite stattdessen zu Ihrem KI-Agenten.
 
 - **Ein einziges Script-Tag** (oder eine native Injektion) bringt eine Seite online. Der Nutzer sieht ein kleines Badge mit einem Gerätecode und kann auf *Unterstützung anfordern* tippen.
-- **Ihr Agent verbindet sich über MCP** – Claude Code, Cursor oder ein beliebiger MCP-Client –, nachdem der Nutzer auf dem Gerät zugestimmt hat. Er liest Barrierefreiheits-Snapshots, Console, Netzwerk und Screenshots, und er klickt, tippt und scrollt wie ein Mensch, über alle Seiten und WebViews dieses Geräts hinweg.
+- **Ihr Agent verbindet sich über MCP** – Claude Code, Cursor, Codex oder ein beliebiger MCP-Client –, nachdem der Nutzer auf dem Gerät zugestimmt hat. Er liest Barrierefreiheits-Snapshots, Console, Netzwerk und Screenshots, und er klickt, tippt und scrollt wie ein Mensch, über alle Seiten und WebViews dieses Geräts hinweg.
 - **Echtes Chrome DevTools für Menschen.** Von der Konsole aus öffnet ein Admin DevTools auf jeder Online-Seite – Elements, Console, Network (mit dem, was vor dem Öffnen geschah) und Application-Speicher –, nachdem der Nutzer auf dem Gerät zugestimmt hat.
 - **Der Nutzer behält die Kontrolle.** Er sieht, was die KI tut (Agent-Cursor, eine Aufgabenkarte mit den geplanten Schritten, ein leuchtender Rand), und kann jederzeit übernehmen oder die Sitzung beenden. Passwörter, Telefon- und Kartennummern werden maskiert, bevor irgendetwas das Smartphone verlässt.
 - **Selbst gehostet.** Ein einziges Go-Binary mit eingebetteter Konsole und eingebettetem SDK; SQLite oder Postgres.
@@ -78,7 +78,15 @@ In einer App injizieren Sie dasselbe Script bei Dokumentbeginn aus nativem Code 
 
 ### 3. Den Agenten verbinden
 
-Legen Sie in der Konsole einen API-Key an (ein Key erreicht jedes Gerät), dann:
+Legen Sie in der Konsole einen API-Key an (ein Key erreicht jedes Gerät) und führen Sie dann aus:
+
+```bash
+npx -y remote-webview-debugger-mcp init
+```
+
+Der Befehl fragt nach der Gateway-Adresse und dem Key und trägt den MCP-Server dann bei den Agenten ein, die er findet: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code oder Claude Desktop. Außerdem installiert er den Agent-Skill (`npx skills add ZaneL1u/remote-webview-debugger`). Ein MCP-Server kann mehrere Gateways erreichen. Die Einrichtung für jeden Agenten steht im [MCP-Paket](mcp/README.de.md).
+
+Ein Agent, der MCP über HTTP spricht, kann sich auch direkt mit dem Gateway verbinden:
 
 ```bash
 claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Authorization: Bearer rwd_sk_live_…"
@@ -116,6 +124,8 @@ Das Gateway spricht einfaches HTTP und funktioniert damit problemlos: Das SDK w�
 | [`sdk/`](sdk) | Seiten-SDK (`sdk.js`) und seine Oberfläche in der Seite |
 | [`packages/chobitsu/`](packages/chobitsu) | Eingebundenes [chobitsu](https://github.com/liriliri/chobitsu) plus unsere seitenseitige Engine in `src/engine/` |
 | [`console/`](console) | Web-Konsole (React, Vite) |
+| [`mcp/`](mcp) | MCP-Paket für jeden Agenten (`npx -y remote-webview-debugger-mcp`): stdio-Server, mehrere Gateways, `init` |
+| [`skills/`](skills) | Der Agent-Skill (`npx skills add ZaneL1u/remote-webview-debugger`), auch vom Claude-Code-Plugin und von der Gemini-CLI-Extension genutzt |
 | [`website/`](website) | [debugger.site](https://debugger.site) mit der interaktiven Demo |
 | [`examples/`](examples) | Ein mehrseitiger Demo-Shop und eine macOS-App, die WKWebViews wie eine iOS-App hostet |
 | [`deploy/platform/`](deploy/platform) | Deployment mit Docker Compose |
@@ -123,7 +133,7 @@ Das Gateway spricht einfaches HTTP und funktioniert damit problemlos: Das SDK w�
 
 ## Releases
 
-Das Seiten-SDK und das Gateway werden getrennt veröffentlicht, jeweils mit eigener Version, eigenem Tag (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) und eigenem Changelog: [SDK](sdk/CHANGELOG.md), [Gateway](gateway/CHANGELOG.md). Ein Gateway-Release enthält `rwd`-Binaries für Linux und macOS sowie das Image `ghcr.io/zanel1u/remote-webview-debugger`. Siehe [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) und, für Maintainer, [Releases erstellen](docs/releasing.de.md).
+Das Seiten-SDK und das Gateway werden getrennt veröffentlicht, jeweils mit eigener Version, eigenem Tag (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) und eigenem Changelog: [SDK](sdk/CHANGELOG.md), [Gateway](gateway/CHANGELOG.md). Ein Gateway-Release enthält `rwd`-Binaries für Linux und macOS, das Image `ghcr.io/zanel1u/remote-webview-debugger` und das MCP-Paket [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) derselben Version. Siehe [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) und, für Maintainer, [Releases erstellen](docs/releasing.de.md).
 
 ## Entwicklung
 

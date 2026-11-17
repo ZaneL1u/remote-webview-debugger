@@ -1,4 +1,4 @@
-<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
+<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -19,7 +19,7 @@
 특정 사용자의 휴대폰에서만, 그것도 WeChat 같은 슈퍼 앱이나 자사 앱의 WebView 안에서만 생기는 버그는 디버깅하기 가장 까다로워요. USB 케이블도, 원격 디버깅 포트도 없고, 내 컴퓨터에서 재현할 방법도 없죠. Remote WebView Debugger는 그 페이지를 대신 AI 에이전트 앞에 가져다 놓아요.
 
 - **script 태그 하나**(또는 네이티브 주입)로 페이지가 온라인이 돼요. 사용자에게는 기기 코드가 적힌 작은 배지가 보이고, *지원 요청*을 탭할 수 있어요.
-- **에이전트는 MCP로 접속해요.** Claude Code, Cursor 등 어떤 MCP 클라이언트든, 사용자가 기기에서 승인하면 접속해요. 접근성 스냅샷, console, 네트워크, 스크린샷을 읽고, 사람처럼 클릭하고 입력하고 스크롤해요. 그 기기의 모든 페이지와 WebView를 넘나들면서요.
+- **에이전트는 MCP로 접속해요.** Claude Code, Cursor, Codex 등 어떤 MCP 클라이언트든, 사용자가 기기에서 승인하면 접속해요. 접근성 스냅샷, console, 네트워크, 스크린샷을 읽고, 사람처럼 클릭하고 입력하고 스크롤해요. 그 기기의 모든 페이지와 WebView를 넘나들면서요.
 - **사람을 위한 진짜 Chrome DevTools예요.** 콘솔에서 관리자가 온라인 페이지 어디서든 DevTools를 열어요 — Elements, Console, Network(열리기 전에 있었던 일까지 포함), Application 스토리지 — 사용자가 기기에서 승인한 뒤에요.
 - **주도권은 늘 사용자에게 있어요.** AI가 무엇을 하는지(에이전트 커서, 계획한 단계를 보여 주는 작업 카드, 빛나는 화면 테두리) 볼 수 있고, 언제든 직접 조작하거나 세션을 종료할 수 있어요. 비밀번호, 전화번호, 카드 번호는 휴대폰 밖으로 나가기 전에 마스킹돼요.
 - **셀프 호스팅.** 콘솔과 SDK를 내장한 Go 바이너리 하나로 돌아가고, 데이터베이스는 SQLite나 Postgres를 써요.
@@ -81,6 +81,14 @@ SDK는 npm 패키지 [`remote-webview-debugger`](sdk/README.ko.md)예요. 위처
 콘솔에서 API 키를 만든 뒤(키 하나로 모든 기기에 접근할 수 있어요) 다음을 실행하세요.
 
 ```bash
+npx -y remote-webview-debugger-mcp init
+```
+
+게이트웨이 주소와 키를 물어본 뒤, 찾은 에이전트(Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code, Claude Desktop)에 MCP 서버를 추가해요. 에이전트 스킬(`npx skills add ZaneL1u/remote-webview-debugger`)도 설치해요. MCP 서버 하나로 여러 게이트웨이에 접근할 수 있어요. 에이전트별 설정은 [MCP 패키지](mcp/README.ko.md)를 참고하세요.
+
+HTTP로 MCP를 쓸 수 있는 에이전트는 게이트웨이에 직접 접속할 수도 있어요.
+
+```bash
 claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Authorization: Bearer rwd_sk_live_…"
 ```
 
@@ -116,6 +124,8 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`sdk/`](sdk) | 페이지 SDK(`sdk.js`)와 페이지 내 UI |
 | [`packages/chobitsu/`](packages/chobitsu) | 벤더링한 [chobitsu](https://github.com/liriliri/chobitsu)와 `src/engine/`에 있는 자체 페이지 측 엔진 |
 | [`console/`](console) | 웹 콘솔(React, Vite) |
+| [`mcp/`](mcp) | 모든 에이전트를 위한 MCP 패키지(`npx -y remote-webview-debugger-mcp`): stdio 서버, 여러 게이트웨이, `init` |
+| [`skills/`](skills) | 에이전트 스킬(`npx skills add ZaneL1u/remote-webview-debugger`). Claude Code 플러그인과 Gemini CLI 확장에서도 써요 |
 | [`website/`](website) | 인터랙티브 데모가 있는 [debugger.site](https://debugger.site) |
 | [`examples/`](examples) | 여러 페이지로 된 데모 쇼핑몰, 그리고 iOS 앱처럼 WKWebView를 호스팅하는 macOS 앱 |
 | [`deploy/platform/`](deploy/platform) | Docker Compose 배포 |
@@ -123,7 +133,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 
 ## 릴리스
 
-페이지 SDK와 게이트웨이는 따로 릴리스되고, 각자 버전, 태그(`sdk-vX.Y.Z`, `gateway-vX.Y.Z`), 변경 내역을 가져요: [SDK](sdk/CHANGELOG.md), [게이트웨이](gateway/CHANGELOG.md). 게이트웨이 릴리스에는 Linux와 macOS용 `rwd` 바이너리와 이미지 `ghcr.io/zanel1u/remote-webview-debugger`가 포함돼요. [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases)를 보고, 메인테이너라면 [릴리스](docs/releasing.ko.md) 문서도 참고하세요.
+페이지 SDK와 게이트웨이는 따로 릴리스되고, 각자 버전, 태그(`sdk-vX.Y.Z`, `gateway-vX.Y.Z`), 변경 내역을 가져요: [SDK](sdk/CHANGELOG.md), [게이트웨이](gateway/CHANGELOG.md). 게이트웨이 릴리스에는 Linux와 macOS용 `rwd` 바이너리, 이미지 `ghcr.io/zanel1u/remote-webview-debugger`, 그리고 같은 버전의 MCP 패키지 [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp)가 포함돼요. [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases)를 보고, 메인테이너라면 [릴리스](docs/releasing.ko.md) 문서도 참고하세요.
 
 ## 개발
 

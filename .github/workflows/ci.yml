@@ -100,6 +100,25 @@ jobs:
           name: sdk-test-results
           path: sdk/test-results/
 
+  mcp:
+    name: MCP package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: mcp/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Package contents
+        run: npm pack --dry-run
+
   console:
     name: Console
     runs-on: ubuntu-latest

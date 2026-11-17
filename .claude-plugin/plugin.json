@@ -1,0 +1,17 @@
+{
+  "name": "remote-webview-debugger",
+  "version": "0.3.1",
+  "description": "Debug H5 pages and app WebViews on real phones through a Remote WebView Debugger gateway: MCP server and skill",
+  "author": { "name": "zaneliu", "url": "https://github.com/ZaneL1u" },
+  "homepage": "https://debugger.site",
+  "repository": "https://github.com/ZaneL1u/remote-webview-debugger",
+  "license": "MIT",
+  "keywords": ["webview", "h5", "mobile", "remote-debugging", "mcp"],
+  "skills": ["./skills/remote-webview-debugger"],
+  "mcpServers": {
+    "remote-webview-debugger": {
+      "command": "npx",
+      "args": ["-y", "remote-webview-debugger-mcp@latest"]
+    }
+  }
+}

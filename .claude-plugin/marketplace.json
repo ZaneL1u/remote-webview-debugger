@@ -1,0 +1,11 @@
+{
+  "name": "remote-webview-debugger",
+  "owner": { "name": "zaneliu", "url": "https://github.com/ZaneL1u" },
+  "plugins": [
+    {
+      "name": "remote-webview-debugger",
+      "source": "./",
+      "description": "Debug H5 pages and app WebViews on real phones through a Remote WebView Debugger gateway: MCP server and skill"
+    }
+  ]
+}

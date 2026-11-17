@@ -1,4 +1,4 @@
-<!-- i18n-source: e110292ad2a3dca0ad4fca78a52a79f08f95af0b -->
+<!-- i18n-source: 28d08ede8f7ddda0f06cdeeccd3a3f3d4c8a70ce -->
 [English](releasing.md) | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [한국어](releasing.ko.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | Português (Brasil) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # Publicação de versões
@@ -7,11 +7,11 @@ O SDK da página e o gateway são publicados separadamente. Cada um tem sua pró
 
 | | SDK da página | Gateway |
 |---|---|---|
-| Caminhos | `sdk/`, `packages/chobitsu/` | `gateway/`, `console/`, `deploy/` |
+| Caminhos | `sdk/`, `packages/chobitsu/` | `gateway/`, `console/`, `deploy/`, `mcp/`, `skills/`, manifestos dos plugins |
 | Tag | `sdk-vX.Y.Z` | `gateway-vX.Y.Z` |
-| Onde fica a versão | `sdk/package.json` | a tag (o `make` a lê com `git describe`) |
+| Onde fica a versão | `sdk/package.json` | a tag (o `make` a lê com `git describe`); a publicação também a grava em `mcp/package.json`, `.claude-plugin/plugin.json` e `gemini-extension.json` |
 | Changelog | [`sdk/CHANGELOG.md`](../sdk/CHANGELOG.md), [`.zh-CN.md`](../sdk/CHANGELOG.zh-CN.md) | [`gateway/CHANGELOG.md`](../gateway/CHANGELOG.md), [`.zh-CN.md`](../gateway/CHANGELOG.zh-CN.md) |
-| Publicado como | npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (jsDelivr, unpkg) | `rwd_<version>_<os>_<arch>.tar.gz` para linux / darwin × amd64 / arm64, imagem `ghcr.io/zanel1u/remote-webview-debugger` |
+| Publicado como | npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (jsDelivr, unpkg) | `rwd_<version>_<os>_<arch>.tar.gz` para linux / darwin × amd64 / arm64, imagem `ghcr.io/zanel1u/remote-webview-debugger`, npm [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) |
 
 Um binário do gateway embute o SDK do mesmo commit; a seção do changelog dele diz qual versão do SDK é essa.
 
@@ -63,7 +63,7 @@ Para escrever ou revisar as entradas em chinês na hora de publicar a versão, u
 [`.github/workflows/release.yml`](../.github/workflows/release.yml):
 
 - **`sdk-v*`:** verifica se `sdk/package.json` tem a versão da tag, compila, executa `npm publish --provenance`, a menos que essa versão já esteja no npm (uma versão com `-` vai para a dist-tag `next`), e cria um GitHub Release com `sdk.js`, `index.mjs`, `index.d.ts` e o tarball do npm. As versões do SDK não são marcadas como a versão mais recente (latest) do repositório.
-- **`gateway-v*`:** compila o SDK e o console, os quatro binários `rwd` com a versão da tag (verificada com `rwd version`), envia a imagem para o GHCR para linux/amd64 e linux/arm64 como `<version>`, `<major>.<minor>` e `latest` (pré-versões: apenas `<version>`) e cria um GitHub Release com os arquivos compactados e o `checksums.txt`.
+- **`gateway-v*`:** compila o SDK, o console e o pacote MCP; publica o pacote MCP no npm como o SDK (pulado se essa versão já estiver lá); compila os quatro binários `rwd` com a versão da tag (verificada com `rwd version`), envia a imagem para o GHCR para linux/amd64 e linux/arm64 como `<version>`, `<major>.<minor>` e `latest` (pré-versões: apenas `<version>`) e cria um GitHub Release com os arquivos compactados e o `checksums.txt`.
 
 O corpo do Release é a seção correspondente do changelog em inglês e em chinês ([`scripts/release/notes.mjs`](../scripts/release/notes.mjs)), depois das instruções de instalação daquela versão.
 
@@ -71,5 +71,5 @@ Se o workflow falhar antes de publicar qualquer coisa, apague a tag (`git push -
 
 ## Configuração inicial
 
-- **npm.** O workflow publica com [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, sem segredo): em npmjs.com, configurações do pacote → Trusted publishing → GitHub Actions, repositório `ZaneL1u/remote-webview-debugger`, workflow `release.yml`. O npm exige uma senha de uso único (OTP) de um token, então uma versão que o workflow não consegue publicar (como a primeira, antes de o pacote existir) é publicada à mão a partir de um checkout da tag: `cd sdk && npm ci && npm run build && npm publish --access public` depois de `npm login`. Depois, rode de novo a execução do workflow que falhou; ela pula a publicação e cria o GitHub Release.
+- **npm.** Os dois pacotes, `remote-webview-debugger` e `remote-webview-debugger-mcp`, precisam dessa configuração. O workflow publica com [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC, sem segredo): em npmjs.com, configurações do pacote → Trusted publishing → GitHub Actions, repositório `ZaneL1u/remote-webview-debugger`, workflow `release.yml`. O npm exige uma senha de uso único (OTP) de um token, então uma versão que o workflow não consegue publicar (como a primeira, antes de o pacote existir) é publicada à mão a partir de um checkout da tag: `cd sdk && npm ci && npm run build && npm publish --access public` (ou o mesmo em `mcp/`) depois de `npm login`. Depois, rode de novo a execução do workflow que falhou; ela pula a publicação e cria o GitHub Release.
 - **GHCR.** A imagem aparece nos pacotes do dono do repositório depois da primeira versão do gateway. Ela fica vinculada ao repositório público; confira uma vez se ela é pública (configurações do pacote → Change visibility).

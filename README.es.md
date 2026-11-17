@@ -1,4 +1,4 @@
-<!-- i18n-source: 17d2a3687452758f5c2d903bfc5e90dd1d96013b -->
+<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -19,7 +19,7 @@
 Un bug que solo aparece en el teléfono de un usuario, dentro de una superapp al estilo de WeChat o de la WebView de tu propia app, es de lo más difícil de depurar: no hay cable USB, no hay puerto de depuración remota y no hay forma de reproducirlo en tu máquina. Remote WebView Debugger, en cambio, pone esa página delante de tu agente de IA.
 
 - **Una etiqueta script** (o una inyección nativa) pone una página en línea. El usuario ve una pequeña píldora con un código de dispositivo y puede tocar *Solicitar asistencia*.
-- **Tu agente se conecta por MCP** (Claude Code, Cursor o cualquier cliente MCP) después de que el usuario lo apruebe en el dispositivo. Lee instantáneas de accesibilidad, la console, la red y capturas de pantalla, y hace clic, escribe y se desplaza como lo haría una persona, en todas las páginas y WebViews de ese dispositivo.
+- **Tu agente se conecta por MCP** (Claude Code, Cursor, Codex o cualquier cliente MCP) después de que el usuario lo apruebe en el dispositivo. Lee instantáneas de accesibilidad, la console, la red y capturas de pantalla, y hace clic, escribe y se desplaza como lo haría una persona, en todas las páginas y WebViews de ese dispositivo.
 - **Chrome DevTools de verdad para personas.** Desde la consola web, un admin abre DevTools sobre cualquier página en línea: Elements, Console, Network (con lo que pasó antes de abrirla) y el almacenamiento de Application, después de que el usuario lo apruebe en el dispositivo.
 - **El usuario mantiene el control.** Ve lo que hace la IA (el cursor del agente, una tarjeta de tarea con los pasos previstos, un borde luminoso) y puede tomar el control o finalizar la sesión en cualquier momento. Las contraseñas y los números de teléfono y de tarjeta se enmascaran antes de que nada salga del teléfono.
 - **Autoalojado.** Un único binario de Go con la consola web y el SDK integrados; SQLite o Postgres.
@@ -78,7 +78,15 @@ En una app, inyecta el mismo script al inicio del documento desde el código nat
 
 ### 3. Conecta tu agente
 
-Crea una clave de API en la consola web (una sola clave llega a todos los dispositivos) y luego:
+Crea una clave de API en la consola web (una sola clave llega a todos los dispositivos) y luego ejecuta:
+
+```bash
+npx -y remote-webview-debugger-mcp init
+```
+
+Pide la dirección del gateway y la clave, y luego añade el servidor MCP a los agentes que encuentra: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code o Claude Desktop. También instala la skill del agente (`npx skills add ZaneL1u/remote-webview-debugger`). Un solo servidor MCP puede llegar a varios gateways. Consulta [el paquete MCP](mcp/README.es.md) para la configuración de cada agente.
+
+Un agente que hable MCP por HTTP también puede conectarse directamente al gateway:
 
 ```bash
 claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Authorization: Bearer rwd_sk_live_…"
@@ -116,6 +124,8 @@ Por HTTP plano, las claves de API y las contraseñas de la consola web viajan si
 | [`sdk/`](sdk) | SDK de página (`sdk.js`) y su interfaz dentro de la página |
 | [`packages/chobitsu/`](packages/chobitsu) | Copia integrada de [chobitsu](https://github.com/liriliri/chobitsu) más nuestro motor del lado de la página en `src/engine/` |
 | [`console/`](console) | Consola web (React, Vite) |
+| [`mcp/`](mcp) | Paquete MCP para todos los agentes (`npx -y remote-webview-debugger-mcp`): servidor stdio, varios gateways, `init` |
+| [`skills/`](skills) | La skill del agente (`npx skills add ZaneL1u/remote-webview-debugger`), que también usan el plugin de Claude Code y la extensión de Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site), con la demo interactiva |
 | [`examples/`](examples) | Una tienda de demostración con varias páginas y una app de macOS que aloja WKWebViews como una app de iOS |
 | [`deploy/platform/`](deploy/platform) | Despliegue con Docker Compose |
@@ -123,7 +133,7 @@ Por HTTP plano, las claves de API y las contraseñas de la consola web viajan si
 
 ## Versiones
 
-El SDK de página y el gateway se publican por separado, cada uno con su propia versión, su etiqueta (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) y su registro de cambios: [SDK](sdk/CHANGELOG.md), [gateway](gateway/CHANGELOG.md). Cada versión del gateway incluye binarios `rwd` para Linux y macOS y la imagen `ghcr.io/zanel1u/remote-webview-debugger`. Consulta [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) y, si mantienes el proyecto, [publicación de versiones](docs/releasing.es.md).
+El SDK de página y el gateway se publican por separado, cada uno con su propia versión, su etiqueta (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) y su registro de cambios: [SDK](sdk/CHANGELOG.md), [gateway](gateway/CHANGELOG.md). Cada versión del gateway incluye binarios `rwd` para Linux y macOS, la imagen `ghcr.io/zanel1u/remote-webview-debugger` y el paquete MCP [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) de la misma versión. Consulta [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) y, si mantienes el proyecto, [publicación de versiones](docs/releasing.es.md).
 
 ## Desarrollo
 
