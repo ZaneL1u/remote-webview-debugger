@@ -28,7 +28,7 @@ import { formatDate, formatDay, relativeTime, untilTime } from '@/lib/format'
 import { useCan, useMe } from '@/lib/permissions'
 import { levelMeta, levels, parseCidrs } from '@/lib/policy'
 import { configQuery, keysQuery } from '@/lib/queries'
-import { hostedMcpCommand, localMcpCommand, mcpJsonConfig } from '@/lib/snippets'
+import { hostedMcpCommand, localMcpCommand, mcpInitCommand, mcpJsonConfig } from '@/lib/snippets'
 import type { ApiKey, CreatedApiKey, Level } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -355,12 +355,17 @@ function RevokeButton({ k, meId }: { k: ApiKey; meId?: string }) {
 function McpCommands({ gateway, apiKey }: { gateway: string; apiKey: string }) {
   const t = useT()
   return (
-    <Tabs defaultValue="hosted" className="gap-3">
+    <Tabs defaultValue="npm" className="gap-3">
       <TabsList>
+        <TabsTrigger value="npm">{t.projects.keys.mcpTabs.npm}</TabsTrigger>
         <TabsTrigger value="hosted">{t.projects.keys.mcpTabs.hosted}</TabsTrigger>
         <TabsTrigger value="local">{t.projects.keys.mcpTabs.local}</TabsTrigger>
         <TabsTrigger value="json">{t.projects.keys.mcpTabs.json}</TabsTrigger>
       </TabsList>
+      <TabsContent value="npm" className="space-y-2">
+        <p className="text-xs text-muted-foreground">{t.projects.keys.npmHint}</p>
+        <CodeBlock lang="bash" code={mcpInitCommand(gateway)} wrap />
+      </TabsContent>
       <TabsContent value="hosted" className="space-y-2">
         <p className="text-xs text-muted-foreground">{t.projects.keys.hostedHint}</p>
         <CodeBlock lang="bash" code={hostedMcpCommand(gateway, apiKey)} wrap />

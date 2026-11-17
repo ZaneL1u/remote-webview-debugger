@@ -93,6 +93,7 @@ export const projects: typeof en = {
     revokeDescription: (prefix) => `<c>${prefix}…</c> を使用している MCP セッションはすぐに使えなくなります。この操作は元に戻せません。`,
 
     mcpTabs: {
+      npm: 'npm パッケージ',
       hosted: 'ホスト型',
       local: 'ローカル stdio',
       json: 'JSON 設定',
@@ -100,6 +101,7 @@ export const projects: typeof en = {
     hostedHint: 'Claude Code はゲートウェイのホスト型 MCP（Streamable HTTP）に直接接続します。インストールは不要です：',
     localHint: 'お使いのマシンに <c>rwd</c> コマンドが必要です。stdio をホスト型の /mcp に転送します：',
     jsonHint: 'mcpServers 設定ファイルを読み込むその他のクライアント向け：',
+    npmHint: 'おすすめ：コマンド一つで Claude Code・Cursor・Codex・Gemini CLI などを設定します。init がこのキーを尋ねるので貼り付けるか、RWD_API_KEY に設定してください。',
 
     createdTitle: 'API キーを作成しました',
     createdName: (name) => `「${name}」`,

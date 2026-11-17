@@ -185,6 +185,11 @@ export const docs: typeof en = {
     clientsTitle: '3. 다른 클라이언트',
     stdioTab: 'stdio 전용 클라이언트',
     localTab: '로컬 stdio 브리지',
+    npmTab: 'npm 패키지(추천)',
+    npmBody: '명령 하나로 모든 에이전트를 설정합니다. <c>init</c>은 API 키를 묻고(또는 <c>RWD_API_KEY</c>를 읽고) 이 게이트웨이에서 확인한 뒤, 찾은 Claude Code, Cursor, Codex, Gemini CLI 등에 MCP 서버를 추가합니다. 키는 <c>~/.config/remote-webview-debugger/mcp.json</c>에만 저장되고 에이전트 설정에는 들어가지 않습니다. 다시 실행하면 다른 게이트웨이를 추가할 수 있습니다:',
+    skillBody: '에이전트 skill은 Remote WebView Debugger를 언제, 어떻게 쓰는지 에이전트에게 알려 줍니다. <c>init</c>에서도 제안하며, 따로 설치하려면:',
+    npmClientBody: (file: string) =>
+      `npm 패키지로 설정하려면 <c>${file}</c>에 추가합니다. <c>init</c>이 저장한 게이트웨이와 키(또는 env의 <c>RWD_URL</c>, <c>RWD_API_KEY</c>)를 읽습니다:`,
     cursorBody: '<c>~/.cursor/mcp.json</c>(전역) 또는 프로젝트의 <c>.cursor/mcp.json</c>에 추가하세요. 원격 MCP를 지원하는 대부분의 클라이언트가 이 형식을 사용해요:',
     stdioBody: '로컬 명령어만 실행할 수 있는 클라이언트(예: Claude Desktop의 <c>claude_desktop_config.json</c>)는 <c>rwd mcp</c>로 연결할 수 있어요:',
     localBody: '<c>rwd</c>는 게이트웨이 바이너리 자체예요(<c>rwd mcp</c> 하위 명령어). stdio를 호스팅된 <c>/mcp</c>로 전달하기만 하며, 키는 <c>RWD_API_KEY</c> 환경 변수에서 읽어요:',

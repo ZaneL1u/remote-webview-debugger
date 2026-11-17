@@ -185,6 +185,11 @@ export const docs: typeof en = {
     clientsTitle: '3. Другие клиенты',
     stdioTab: 'Клиенты только с stdio',
     localTab: 'Локальный мост stdio',
+    npmTab: 'npm-пакет (рекомендуем)',
+    npmBody: 'Одна команда для всех агентов: <c>init</c> спрашивает API-ключ (или берёт <c>RWD_API_KEY</c>), проверяет его на этом шлюзе и добавляет MCP-сервер в Claude Code, Cursor, Codex, Gemini CLI и других найденных агентов. Ключ хранится только в <c>~/.config/remote-webview-debugger/mcp.json</c>, не в конфигурациях агентов. Запустите ещё раз, чтобы добавить другой шлюз:',
+    skillBody: 'Skill агента подсказывает, когда и как пользоваться Remote WebView Debugger. <c>init</c> предлагает его установить; отдельно:',
+    npmClientBody: (file: string) =>
+      `Или через npm-пакет, в <c>${file}</c>. Он читает шлюз и ключ, сохранённые <c>init</c> (или <c>RWD_URL</c> и <c>RWD_API_KEY</c> из своего env):`,
     cursorBody: 'Добавьте в <c>~/.cursor/mcp.json</c> (глобально) или в <c>.cursor/mcp.json</c> своего проекта. Этот формат понимает большинство клиентов с поддержкой удалённого MCP:',
     stdioBody: 'Клиенты, которые умеют запускать только локальные команды (например, <c>claude_desktop_config.json</c> в Claude Desktop), могут подключиться через мост <c>rwd mcp</c>:',
     localBody: '<c>rwd</c> — это сам бинарный файл шлюза (его подкоманда <c>rwd mcp</c>). Он лишь перенаправляет stdio во встроенный <c>/mcp</c> и берёт ключ из переменной окружения <c>RWD_API_KEY</c>:',

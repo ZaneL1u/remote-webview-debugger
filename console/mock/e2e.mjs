@@ -121,6 +121,7 @@ async function run(vp) {
 
   // 2. device-first home, gateway status, integration guide
   await devicesHome(page, n)
+  await onboarding(page, n)
   await gatewayStatus(page, n)
   await docs(page, n)
 
@@ -257,6 +258,8 @@ async function run(vp) {
   await page.getByRole('button', { name: '创建', exact: true }).click()
   await page.getByText('这是唯一一次显示完整 Key').waitFor()
   await page.getByRole('dialog').getByText('203.0.113.0/24').waitFor()
+  // the npm package's init comes first and never carries the key
+  await page.getByRole('dialog').getByText(`npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`, { exact: true }).waitFor()
   await shot(page, `${n}-14-key-created`, { fullPage: false })
   // pressing Escape must not close the dialog while the plaintext key is shown
   await page.keyboard.press('Escape')
@@ -585,6 +588,33 @@ async function devicesHome(page, n) {
 }
 
 /** Header connection indicator: connected, SSE down (degraded, polling) and gateway unreachable. */
+/** 把你的 agent 接上: `init` with this gateway (never the key), the skill, and the stdio snippets from mcp/README.md. */
+async function onboarding(page, n) {
+  const card = page.locator('section[aria-labelledby="onboard-title"]')
+  await card.waitFor()
+  const init = `npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`
+  await card.getByText(init, { exact: true }).waitFor()
+  await card.getByText('npx skills add ZaneL1u/remote-webview-debugger', { exact: true }).waitFor()
+  if (/rwd_sk_|RWD_API_KEY=/.test(init)) throw new Error('the init command must not carry the key')
+  await card.getByText('手动配置 agent').click()
+  await card.getByText(/帮我配置 Remote Debugger 的 MCP 服务器/).waitFor()
+  await card.getByRole('tab', { name: 'Cursor' }).click()
+  await card.getByText('~/.cursor/mcp.json', { exact: false }).waitFor()
+  await card.getByText(/"remote-webview-debugger-mcp@latest"/).first().waitFor()
+  await card.getByRole('tab', { name: 'Codex' }).click()
+  await card.getByText(/tool_timeout_sec = 660/).waitFor()
+  await card.getByText(/\[mcp_servers\.remote-webview-debugger\]/).waitFor()
+  await card.getByRole('tab', { name: 'Gemini CLI' }).click()
+  await card.getByText(/"timeout": 660000/).waitFor()
+  await card.getByRole('tab', { name: 'Claude Code' }).click()
+  await card.getByText('claude mcp add -s user remote-webview-debugger -- npx -y remote-webview-debugger-mcp@latest', { exact: true }).waitFor()
+  await card.getByText(/claude mcp add --transport http -s user rwd /).waitFor()
+  await card.getByRole('tab', { name: 'Codex' }).click()
+  await card.scrollIntoViewIfNeeded()
+  await shot(page, `${n}-03a-onboarding`, { fullPage: false })
+  await card.getByText('手动配置 agent').click()
+}
+
 async function gatewayStatus(page, n) {
   const pill = page.locator('[data-gateway]:visible')
   await page.locator('[data-gateway="connected"]:visible').waitFor({ timeout: 20_000 })
@@ -651,6 +681,15 @@ async function docs(page, n) {
   await page.getByRole('combobox', { name: '选择项目' }).selectOption({ label: '会员中心' })
   await page.waitForFunction((k) => !document.body.innerText.includes(k), appKey)
   await page.getByText(`claude mcp add --transport http rwd ${gateway}/mcp`).first().waitFor()
+  // other clients: the npm package first (init with this gateway, the skill), then its stdio snippets
+  const init = `npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`
+  await visible(page.getByRole('tab', { name: 'npm 包（推荐）' })).waitFor()
+  await visible(page.getByText(init, { exact: true })).waitFor()
+  await visible(page.getByText('npx skills add ZaneL1u/remote-webview-debugger', { exact: true })).waitFor()
+  await page.getByRole('tab', { name: 'Codex' }).click()
+  await visible(page.getByText(/tool_timeout_sec = 660/)).waitFor()
+  await page.getByRole('tab', { name: 'Gemini CLI' }).click()
+  await visible(page.getByText(/"timeout": 660000/)).waitFor()
   for (const tool of ['wait_for_event', 'find_elements', 'batch_actions', 'get_storage']) await page.getByText(tool, { exact: true }).first().waitFor()
   if (n === 'desktop') {
     await page.getByRole('navigation', { name: '目录' }).first().getByRole('link', { name: 'MCP 工具一览' }).click()
@@ -832,6 +871,7 @@ async function runEnglish(vp) {
   // Sign out: the auth layout has its own switcher.
   await openNav(page)
   await page.getByRole('button', { name: 'Account menu' }).filter({ visible: true }).first().click()
+  loggedOut.add(page)
   await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.waitForURL(/\/login/)
   await page.getByTestId('nav-drawer').waitFor({ state: 'detached' })

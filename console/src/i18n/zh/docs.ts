@@ -185,6 +185,11 @@ export const docs: typeof en = {
     clientsTitle: '3. 其他客户端',
     stdioTab: '只支持 stdio 的客户端',
     localTab: '本地 stdio 桥',
+    npmTab: 'npm 包（推荐）',
+    npmBody: '一条命令配好所有 agent：<c>init</c> 会提示输入 API Key（或读取 <c>RWD_API_KEY</c>），先拿这个网关验证，再把 MCP 服务器加到本机找到的 Claude Code、Cursor、Codex、Gemini CLI 等 agent 里。Key 只存在 <c>~/.config/remote-webview-debugger/mcp.json</c>，不写进 agent 的配置。再运行一次可以添加另一个网关：',
+    skillBody: 'agent skill 告诉 agent 什么时候、怎样使用 Remote WebView Debugger。<c>init</c> 会问你要不要装，也可以单独安装：',
+    npmClientBody: (file: string) =>
+      `也可以用 npm 包，写进 <c>${file}</c>。它读取 <c>init</c> 保存的网关和 Key（或者 env 里的 <c>RWD_URL</c> 和 <c>RWD_API_KEY</c>）：`,
     cursorBody: '写进 <c>~/.cursor/mcp.json</c>（全局）或项目里的 <c>.cursor/mcp.json</c>，支持远程 MCP 的客户端大多是这个格式：',
     stdioBody: '只能启动本地命令的客户端（例如 Claude Desktop 的 <c>claude_desktop_config.json</c>），用 <c>rwd mcp</c> 桥接：',
     localBody: '<c>rwd</c> 就是网关的那个二进制（<c>rwd mcp</c> 子命令），它只把 stdio 转发到托管的 <c>/mcp</c>，Key 从环境变量 <c>RWD_API_KEY</c> 读取：',

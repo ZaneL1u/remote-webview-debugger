@@ -481,3 +481,64 @@ export function stdioMcpConfig(gateway: string, key: string) {
     2,
   )
 }
+
+// ---- The stdio MCP package `remote-webview-debugger-mcp` (mcp/README.md) ----
+
+export const MCP_PACKAGE = 'remote-webview-debugger-mcp'
+const MCP_SERVER = 'remote-webview-debugger'
+const MCP_ARGS = ['-y', `${MCP_PACKAGE}@latest`]
+
+/** The gateway's origin (the package takes `https://host`, `…/v1` or `…/v1/mcp` alike). */
+export function gatewayOrigin(gateway: string) {
+  try {
+    return new URL(gateway).origin
+  } catch {
+    return gateway.replace(/\/v1(\/mcp)?\/?$/, '')
+  }
+}
+
+/** The name `init` would give this gateway: rwd.example.com → example, localhost → localhost. */
+export function gatewayName(gateway: string) {
+  let host = ''
+  try {
+    host = new URL(gateway).hostname
+  } catch {
+    return 'gateway'
+  }
+  if (/^[\d.]+$/.test(host) || host.includes(':') || host.startsWith('[')) return 'gateway'
+  const parts = host.split('.')
+  const base = (parts.length > 2 ? parts[parts.length - 2] : parts[0]) ?? ''
+  return base.toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/^[-_]+/, '').slice(0, 24) || 'gateway'
+}
+
+/** `init` with this gateway filled in; it asks for the key (or reads RWD_API_KEY), so the key never goes into the command. */
+export function mcpInitCommand(gateway: string) {
+  return `npx -y ${MCP_PACKAGE} init --gateway ${gatewayName(gateway)}=${gatewayOrigin(gateway)}`
+}
+
+export function skillsAddCommand() {
+  return 'npx skills add ZaneL1u/remote-webview-debugger'
+}
+
+/** Cursor (`~/.cursor/mcp.json`); also Windsurf and Claude Desktop. */
+export function cursorStdioConfig() {
+  return JSON.stringify({ mcpServers: { [MCP_SERVER]: { command: 'npx', args: MCP_ARGS } } }, null, 2)
+}
+
+/** Codex (`~/.codex/config.toml`); the gateway's wait tools can run up to 10 minutes. */
+export function codexStdioConfig() {
+  return `[mcp_servers.${MCP_SERVER}]
+command = "npx"
+args = ${JSON.stringify(MCP_ARGS).replace(/,/g, ', ')}
+startup_timeout_sec = 30
+tool_timeout_sec = 660`
+}
+
+/** Gemini CLI (`~/.gemini/settings.json`, `timeout` in milliseconds). */
+export function geminiStdioConfig() {
+  return JSON.stringify({ mcpServers: { [MCP_SERVER]: { command: 'npx', args: MCP_ARGS, timeout: 660000 } } }, null, 2)
+}
+
+export function claudeStdioCommand() {
+  return `claude mcp add -s user ${MCP_SERVER} -- npx ${MCP_ARGS.join(' ')}`
+}

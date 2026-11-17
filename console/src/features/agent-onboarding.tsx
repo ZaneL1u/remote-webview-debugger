@@ -3,16 +3,26 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRightIcon, BotMessageSquareIcon, ChevronDownIcon, KeyRoundIcon, LoaderCircleIcon, SquareTerminalIcon, WandSparklesIcon } from 'lucide-react'
 import { Fragment, useState } from 'react'
 
+import { CodeBlock } from '@/components/code-block'
 import { CopyButton } from '@/components/copy-button'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useT } from '@/i18n'
 import { api } from '@/lib/api'
 import { configQuery, keysQuery } from '@/lib/queries'
+import {
+  claudeStdioCommand,
+  codexStdioConfig,
+  cursorStdioConfig,
+  geminiStdioConfig,
+  mcpInitCommand,
+  skillsAddCommand,
+} from '@/lib/snippets'
 import { cn } from '@/lib/utils'
 
 const HIDDEN = 'rwd:onboard-hidden'
 const PLACEHOLDER = '<API_KEY>'
-// Marks where the key goes in the sentence, to put the create button there instead.
+// Marks where the key goes in the sentence, to show a placeholder chip there instead.
 const SLOT = '\u0000'
 
 function readHidden() {
@@ -24,8 +34,9 @@ function readHidden() {
 }
 
 /**
- * "Connect your agent" on the home page: one personal key and one sentence the member pastes into Claude Code,
- * Cursor or Codex, which then sets up the MCP server itself.
+ * "Connect your agent" on the home page: one personal key, then `npx remote-webview-debugger-mcp init` with this
+ * gateway filled in (it asks for the key and sets up every agent it finds). By hand: a sentence for the agent
+ * (MCP over HTTP), or the stdio snippets from mcp/README.md for Cursor, Codex, Gemini CLI and Claude Code.
  */
 export function AgentOnboarding() {
   const t = useT().shell.onboard
@@ -53,6 +64,7 @@ export function AgentOnboarding() {
   const url = `${gateway ?? `${location.origin}/v1`}/mcp`
   const sentence = t.prompt(url, key ?? PLACEHOLDER)
   const command = `claude mcp add --transport http -s user rwd ${url} --header "Authorization: Bearer ${key ?? PLACEHOLDER}"`
+  const init = mcpInitCommand(gateway ?? `${location.origin}/v1`)
 
   if (hidden) {
     return (
@@ -103,13 +115,23 @@ export function AgentOnboarding() {
                     <p className="text-xs text-muted-foreground">{t.keyHint}</p>
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground">{t.needKey}</p>
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">{t.needKey}</p>
+                    <Button variant="brand" size="xs" onClick={() => create.mutate()} disabled={create.isPending}>
+                      {create.isPending ? <LoaderCircleIcon className="animate-spin" /> : <KeyRoundIcon />}
+                      {create.isPending ? t.creating : t.createKey}
+                    </Button>
+                  </div>
                 )}
               </div>
             </li>
             <li className="flex gap-3">
               <StepDot n={2} done={false} />
-              <p className="pt-0.5 text-sm font-medium">{t.stepPrompt}</p>
+              <p className="pt-0.5 text-sm font-medium">{t.stepInit}</p>
+            </li>
+            <li className="flex gap-3">
+              <StepDot n={3} done={false} />
+              <p className="pt-0.5 text-sm font-medium">{t.stepRestart}</p>
             </li>
           </ol>
           <div className="flex items-center gap-4 text-sm">
@@ -123,53 +145,98 @@ export function AgentOnboarding() {
           </div>
         </div>
         <div className="flex min-w-0 flex-col gap-3">
-          <div className="relative flex-1 rounded-xl border bg-muted/35 p-4">
-            <div className="mb-2.5 flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <BotMessageSquareIcon className="size-3.5" />
-                {t.stepPrompt}
-              </span>
-              {key && <CopyButton value={sentence} label={t.copy} size="xs" variant="brand" />}
+          <div className="rounded-xl border border-brand/30 bg-brand-soft/30 p-4">
+            <div className="mb-2.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <SquareTerminalIcon className="size-3.5" />
+              {t.stepInit}
+              <span className="rounded-full bg-brand/10 px-1.5 py-px text-[11px] text-brand">{t.recommended}</span>
             </div>
-            <p className="text-[13px] leading-relaxed break-words">
-              {key
-                ? sentence
-                : t.prompt(url, SLOT).split(SLOT).map((part, i, parts) => (
-                    <Fragment key={i}>
-                      <span className="text-muted-foreground">{part}</span>
-                      {i < parts.length - 1 && i > 0 && (
-                        <span className="rounded border border-dashed border-brand/40 px-1 font-mono text-[11px] text-brand">{PLACEHOLDER}</span>
-                      )}
-                      {i === 0 && parts.length > 1 && (
-                        <Button
-                          variant="brand"
-                          size="xs"
-                          className="mx-0.5 inline-flex h-6 translate-y-[-1px] align-middle"
-                          onClick={() => create.mutate()}
-                          disabled={create.isPending}
-                        >
-                          {create.isPending ? <LoaderCircleIcon className="animate-spin" /> : <KeyRoundIcon />}
-                          {create.isPending ? t.creating : t.createKey}
-                        </Button>
-                      )}
-                    </Fragment>
-                  ))}
-            </p>
+            <CommandLine value={init} />
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t.initHint}</p>
+            <div className="mt-3 border-t border-brand/15 pt-3">
+              <CommandLine value={skillsAddCommand()} />
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t.skillHint}</p>
+            </div>
           </div>
           <details className="group rounded-xl border bg-muted/20 px-4 py-2.5 text-sm">
             <summary className="flex cursor-pointer list-none items-center gap-2 text-muted-foreground hover:text-foreground">
-              <SquareTerminalIcon className="size-4" />
-              {t.command}
+              <BotMessageSquareIcon className="size-4" />
+              {t.manual}
               <ChevronDownIcon className="ms-auto size-4 transition-transform group-open:rotate-180" />
             </summary>
-            <div className="mt-2.5 flex items-start gap-2">
-              <code className="min-w-0 flex-1 font-mono text-xs leading-relaxed break-all">{command}</code>
-              <CopyButton value={command} size="icon-xs" variant="ghost" />
-            </div>
+            <Tabs defaultValue="prompt" className="mt-1 gap-3">
+              <TabsList>
+                <TabsTrigger value="prompt">{t.tabPrompt}</TabsTrigger>
+                <TabsTrigger value="cursor">Cursor</TabsTrigger>
+                <TabsTrigger value="codex">Codex</TabsTrigger>
+                <TabsTrigger value="gemini">Gemini CLI</TabsTrigger>
+                <TabsTrigger value="claude">Claude Code</TabsTrigger>
+              </TabsList>
+              <TabsContent value="prompt" className="space-y-2.5">
+                <p className="text-xs leading-relaxed text-muted-foreground">{t.promptHint}</p>
+                <div className="rounded-lg border bg-card/60 p-3">
+                  <p className="text-[13px] leading-relaxed break-words">
+                    {key
+                      ? sentence
+                      : t.prompt(url, SLOT).split(SLOT).map((part, i, parts) => (
+                          <Fragment key={i}>
+                            <span className="text-muted-foreground">{part}</span>
+                            {i < parts.length - 1 && (
+                              <span className="rounded border border-dashed border-brand/40 px-1 font-mono text-[11px] text-brand">{PLACEHOLDER}</span>
+                            )}
+                          </Fragment>
+                        ))}
+                  </p>
+                  {key && (
+                    <div className="mt-2.5 flex justify-end">
+                      <CopyButton value={sentence} label={t.copy} size="xs" variant="brand" />
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="cursor" className="space-y-2.5">
+                <ConfigHint file="~/.cursor/mcp.json" />
+                <CodeBlock lang="json" code={cursorStdioConfig()} />
+              </TabsContent>
+              <TabsContent value="codex" className="space-y-2.5">
+                <ConfigHint file="~/.codex/config.toml" />
+                <CodeBlock title="TOML" code={codexStdioConfig()} />
+              </TabsContent>
+              <TabsContent value="gemini" className="space-y-2.5">
+                <ConfigHint file="~/.gemini/settings.json" />
+                <CodeBlock lang="json" code={geminiStdioConfig()} />
+              </TabsContent>
+              <TabsContent value="claude" className="space-y-2.5">
+                <p className="text-xs leading-relaxed text-muted-foreground">{t.claudeStdio}</p>
+                <CodeBlock lang="bash" code={claudeStdioCommand()} wrap />
+                <p className="text-xs leading-relaxed text-muted-foreground">{t.claudeHttp}</p>
+                <CodeBlock lang="bash" code={command} wrap />
+              </TabsContent>
+            </Tabs>
           </details>
         </div>
       </div>
     </section>
+  )
+}
+
+/** One shell command with a copy button, on the card's own surface. */
+function CommandLine({ value }: { value: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-lg border bg-card/80 px-3 py-2">
+      <code className="min-w-0 flex-1 font-mono text-xs leading-relaxed break-all">{value}</code>
+      <CopyButton value={value} size="icon-xs" variant="ghost" />
+    </div>
+  )
+}
+
+function ConfigHint({ file }: { file: string }) {
+  const t = useT().shell.onboard
+  return (
+    <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
+      <p className="font-medium text-foreground">{t.addTo(file)}</p>
+      <p>{t.stdioHint}</p>
+    </div>
   )
 }
 

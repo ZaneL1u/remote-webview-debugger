@@ -185,6 +185,11 @@ export const docs: typeof en = {
     clientsTitle: '3. العملاء الآخرون',
     stdioTab: 'عملاء stdio فقط',
     localTab: 'جسر stdio محلي',
+    npmTab: 'حزمة npm (موصى بها)',
+    npmBody: 'أمر واحد لكل الوكلاء: يطلب <c>init</c> مفتاح API (أو يقرأ <c>RWD_API_KEY</c>) ويتحقق منه مع هذه البوابة، ثم يضيف خادم MCP إلى Claude Code وCursor وCodex وGemini CLI وغيرها من الوكلاء الذين يجدهم. يبقى المفتاح في <c>~/.config/remote-webview-debugger/mcp.json</c> فقط، لا في إعدادات الوكلاء. شغّله مرة أخرى لإضافة بوابة أخرى:',
+    skillBody: 'يخبر skill الوكيل متى وكيف يستخدم Remote WebView Debugger. يعرض <c>init</c> تثبيته؛ أو وحده:',
+    npmClientBody: (file: string) =>
+      `أو عبر حزمة npm، في <c>${file}</c>. تقرأ البوابة والمفتاح اللذين حفظهما <c>init</c> (أو <c>RWD_URL</c> و<c>RWD_API_KEY</c> من env):`,
     cursorBody: 'أضفه إلى <c>~/.cursor/mcp.json</c> (عام) أو <c>.cursor/mcp.json</c> في مشروعك. يستخدم معظم العملاء الذين يدعمون MCP البعيد هذه الصيغة:',
     stdioBody: 'يمكن للعملاء الذين لا يستطيعون إلا تشغيل أوامر محلية (مثل <c>claude_desktop_config.json</c> في Claude Desktop) الوصل عبر <c>rwd mcp</c>:',
     localBody: '<c>rwd</c> هو الملف التنفيذي للبوابة نفسه (أمره الفرعي <c>rwd mcp</c>). يكتفي بتمرير stdio إلى <c>/mcp</c> المستضاف ويقرأ المفتاح من متغير البيئة <c>RWD_API_KEY</c>:',

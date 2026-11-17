@@ -215,6 +215,11 @@ export const docs: typeof en = {
     clientsTitle: '3. Otros clientes',
     stdioTab: 'Clientes solo stdio',
     localTab: 'Puente stdio local',
+    npmTab: 'Paquete npm (recomendado)',
+    npmBody: 'Un comando para todos los agentes: <c>init</c> pide la clave de API (o lee <c>RWD_API_KEY</c>), la comprueba contra este gateway y añade el servidor MCP a Claude Code, Cursor, Codex, Gemini CLI y los demás agentes que encuentra. La clave queda en <c>~/.config/remote-webview-debugger/mcp.json</c>, no en la configuración de los agentes. Vuelve a ejecutarlo para añadir otro gateway:',
+    skillBody: 'El skill le dice al agente cuándo y cómo usar Remote WebView Debugger. <c>init</c> ofrece instalarlo; por separado:',
+    npmClientBody: (file: string) =>
+      `O con el paquete npm, en <c>${file}</c>. Lee el gateway y la clave que guardó <c>init</c> (o <c>RWD_URL</c> y <c>RWD_API_KEY</c> de su env):`,
     cursorBody:
       'Añádelo a <c>~/.cursor/mcp.json</c> (global) o a <c>.cursor/mcp.json</c> en tu proyecto. La mayoría de los clientes que admiten MCP remoto usan este formato:',
     stdioBody:

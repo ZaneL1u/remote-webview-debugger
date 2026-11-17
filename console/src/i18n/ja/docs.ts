@@ -185,6 +185,11 @@ export const docs: typeof en = {
     clientsTitle: '3. その他のクライアント',
     stdioTab: 'stdio のみのクライアント',
     localTab: 'ローカル stdio ブリッジ',
+    npmTab: 'npm パッケージ（おすすめ）',
+    npmBody: 'コマンド一つですべてのエージェントを設定します。<c>init</c> は API キーを尋ね（または <c>RWD_API_KEY</c> を読み）、このゲートウェイで確認してから、見つかった Claude Code・Cursor・Codex・Gemini CLI などに MCP サーバーを追加します。キーは <c>~/.config/remote-webview-debugger/mcp.json</c> にだけ保存され、エージェントの設定には入りません。もう一度実行すると別のゲートウェイを追加できます：',
+    skillBody: 'エージェント skill は、Remote WebView Debugger をいつ・どう使うかをエージェントに教えます。<c>init</c> でも提案されますが、単独で入れる場合：',
+    npmClientBody: (file: string) =>
+      `npm パッケージを使う場合は <c>${file}</c> に追加します。<c>init</c> が保存したゲートウェイとキー（または env の <c>RWD_URL</c> と <c>RWD_API_KEY</c>）を読みます：`,
     cursorBody: '<c>~/.cursor/mcp.json</c>（グローバル）またはプロジェクトの <c>.cursor/mcp.json</c> に追加します。リモート MCP に対応するほとんどのクライアントはこの形式を使います：',
     stdioBody: 'ローカルコマンドしか起動できないクライアント（例：Claude Desktop の <c>claude_desktop_config.json</c>）は、<c>rwd mcp</c> でブリッジできます：',
     localBody: '<c>rwd</c> はゲートウェイのバイナリそのもの（<c>rwd mcp</c> サブコマンド）です。stdio をホスト型の <c>/mcp</c> に転送するだけで、キーは環境変数 <c>RWD_API_KEY</c> から読み取ります：',
