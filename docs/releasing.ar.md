@@ -1,4 +1,4 @@
-<!-- i18n-source: e110292ad2a3dca0ad4fca78a52a79f08f95af0b -->
+<!-- i18n-source: 28d08ede8f7ddda0f06cdeeccd3a3f3d4c8a70ce -->
 [English](releasing.md) | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [한국어](releasing.ko.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | [Português (Brasil)](releasing.pt-BR.md) | [Русский](releasing.ru.md) | العربية
 
 <div dir="rtl">
@@ -9,11 +9,11 @@
 
 | | SDK الصفحة | البوابة |
 |---|---|---|
-| المسارات | `sdk/`، `packages/chobitsu/` | `gateway/`، `console/`، `deploy/` |
+| المسارات | `sdk/`، `packages/chobitsu/` | `gateway/`، `console/`، `deploy/`، `mcp/`، `skills/`، وملفات تعريف الإضافات (plugin manifests) |
 | الوسم | `sdk-vX.Y.Z` | `gateway-vX.Y.Z` |
-| موضع رقم الإصدار | `sdk/package.json` | الوسم نفسه (يقرؤه `make` عبر `git describe`) |
+| موضع رقم الإصدار | `sdk/package.json` | الوسم نفسه (يقرؤه `make` عبر `git describe`)؛ ويكتبه الإصدار أيضًا في `mcp/package.json` و `.claude-plugin/plugin.json` و `gemini-extension.json` |
 | سجل التغييرات | [`sdk/CHANGELOG.md`](../sdk/CHANGELOG.md)، [`.zh-CN.md`](../sdk/CHANGELOG.zh-CN.md) | [`gateway/CHANGELOG.md`](../gateway/CHANGELOG.md)، [`.zh-CN.md`](../gateway/CHANGELOG.zh-CN.md) |
-| يُنشَر على شكل | حزمة npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (عبر jsDelivr و unpkg) | `rwd_<version>_<os>_<arch>.tar.gz` لـ linux / darwin × amd64 / arm64، والصورة `ghcr.io/zanel1u/remote-webview-debugger` |
+| يُنشَر على شكل | حزمة npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (عبر jsDelivr و unpkg) | `rwd_<version>_<os>_<arch>.tar.gz` لـ linux / darwin × amd64 / arm64، والصورة `ghcr.io/zanel1u/remote-webview-debugger`، وحزمة npm [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) |
 
 يضمّ الملف التنفيذي للبوابة SDK الإيداع نفسه، ويذكر قسمها في سجل التغييرات أيّ إصدار من SDK هو.
 
@@ -73,7 +73,7 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 [`.github/workflows/release.yml`](../.github/workflows/release.yml):
 
 - **`sdk-v*`:** يتحقق من أن `sdk/package.json` يحمل رقم إصدار الوسم، ويبني، ويشغّل `npm publish --provenance` ما لم يكن ذلك الإصدار موجودًا على npm مسبقًا (الإصدار الذي يحتوي على `-` يذهب إلى dist-tag `next`)، وينشئ GitHub Release يضم `sdk.js` و `index.mjs` و `index.d.ts` وأرشيف npm. لا تُعلَّم إصدارات SDK بوصفها أحدث إصدار في المستودع.
-- **`gateway-v*`:** يبني SDK ولوحة التحكم، والملفات التنفيذية الأربعة لـ `rwd` برقم الإصدار المأخوذ من الوسم (ويتحقق منه عبر `rwd version`)، ويدفع الصورة إلى GHCR لـ linux/amd64 و linux/arm64 بالأوسمة `<version>` و `<major>.<minor>` و `latest` (الإصدارات التجريبية: `<version>` فقط)، وينشئ GitHub Release يضم الأرشيفات و `checksums.txt`.
+- **`gateway-v*`:** يبني SDK ولوحة التحكم وحزمة MCP؛ وينشر حزمة MCP على npm كما يفعل مع SDK (ويتخطى ذلك إن كان الإصدار موجودًا هناك)؛ ويبني الملفات التنفيذية الأربعة لـ `rwd` برقم الإصدار المأخوذ من الوسم (ويتحقق منه عبر `rwd version`)، ويدفع الصورة إلى GHCR لـ linux/amd64 و linux/arm64 بالأوسمة `<version>` و `<major>.<minor>` و `latest` (الإصدارات التجريبية: `<version>` فقط)، وينشئ GitHub Release يضم الأرشيفات و `checksums.txt`.
 
 نص الـ Release هو القسم المقابل من سجل التغييرات الإنجليزي والصيني ([`scripts/release/notes.mjs`](../scripts/release/notes.mjs))، تسبقه تعليمات التثبيت لذلك الإصدار.
 
@@ -81,7 +81,7 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 
 ## الإعداد لمرة واحدة
 
-- **npm.** ينشر سير العمل عبر [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC، دون أي سرّ): على npmjs.com، إعدادات الحزمة ← Trusted publishing ← GitHub Actions، المستودع `ZaneL1u/remote-webview-debugger`، وسير العمل `release.yml`. يطلب npm من التوكن كلمة مرور لمرة واحدة، لذا فالإصدار الذي لا يستطيع سير العمل نشره (مثل الإصدار الأول، قبل أن تُنشأ الحزمة) يُنشر يدويًا من نسخة مسحوبة على الوسم: `cd sdk && npm ci && npm run build && npm publish --access public` بعد `npm login`. بعدها أعد تشغيل سير العمل الفاشل؛ فسيتخطى النشر وينشئ GitHub Release.
+- **npm.** تحتاج الحزمتان كلتاهما، `remote-webview-debugger` و `remote-webview-debugger-mcp`، إلى هذا الإعداد. ينشر سير العمل عبر [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC، دون أي سرّ): على npmjs.com، إعدادات الحزمة ← Trusted publishing ← GitHub Actions، المستودع `ZaneL1u/remote-webview-debugger`، وسير العمل `release.yml`. يطلب npm من التوكن كلمة مرور لمرة واحدة، لذا فالإصدار الذي لا يستطيع سير العمل نشره (مثل الإصدار الأول، قبل أن تُنشأ الحزمة) يُنشر يدويًا من نسخة مسحوبة على الوسم: `cd sdk && npm ci && npm run build && npm publish --access public` (أو الأمر نفسه في `mcp/`) بعد `npm login`. بعدها أعد تشغيل سير العمل الفاشل؛ فسيتخطى النشر وينشئ GitHub Release.
 - **GHCR.** تظهر الصورة ضمن حزم مالك المستودع بعد أول إصدار للبوابة. وهي مرتبطة بالمستودع العام؛ تحقّق مرة واحدة من أنها عامة (إعدادات الحزمة ← Change visibility).
 
 </div>

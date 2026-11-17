@@ -1,4 +1,4 @@
-<!-- i18n-source: e110292ad2a3dca0ad4fca78a52a79f08f95af0b -->
+<!-- i18n-source: 28d08ede8f7ddda0f06cdeeccd3a3f3d4c8a70ce -->
 [English](releasing.md) | 简体中文 | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [한국어](releasing.ko.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | [Português (Brasil)](releasing.pt-BR.md) | [Русский](releasing.ru.md) | [العربية](releasing.ar.md)
 
 # 发版流程
@@ -7,11 +7,11 @@
 
 | | 页面 SDK | 网关 |
 |---|---|---|
-| 路径 | `sdk/`、`packages/chobitsu/` | `gateway/`、`console/`、`deploy/` |
+| 路径 | `sdk/`、`packages/chobitsu/` | `gateway/`、`console/`、`deploy/`、`mcp/`、`skills/`、插件清单文件 |
 | tag | `sdk-vX.Y.Z` | `gateway-vX.Y.Z` |
-| 版本号记录在 | `sdk/package.json` | tag 本身（`make` 用 `git describe` 读取） |
+| 版本号记录在 | `sdk/package.json` | tag 本身（`make` 用 `git describe` 读取）；发版时还会写入 `mcp/package.json`、`.claude-plugin/plugin.json` 和 `gemini-extension.json` |
 | 更新日志 | [`sdk/CHANGELOG.zh-CN.md`](../sdk/CHANGELOG.zh-CN.md)、[英文版](../sdk/CHANGELOG.md) | [`gateway/CHANGELOG.zh-CN.md`](../gateway/CHANGELOG.zh-CN.md)、[英文版](../gateway/CHANGELOG.md) |
-| 发布为 | npm 包 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)（jsDelivr、unpkg） | linux / darwin × amd64 / arm64 的 `rwd_<版本号>_<os>_<arch>.tar.gz`，镜像 `ghcr.io/zanel1u/remote-webview-debugger` |
+| 发布为 | npm 包 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)（jsDelivr、unpkg） | linux / darwin × amd64 / arm64 的 `rwd_<版本号>_<os>_<arch>.tar.gz`，镜像 `ghcr.io/zanel1u/remote-webview-debugger`，npm 包 [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) |
 
 网关二进制内嵌的是同一个提交里的 SDK，它的更新日志会写明对应的 SDK 版本。
 
@@ -63,7 +63,7 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 [`.github/workflows/release.yml`](../.github/workflows/release.yml)：
 
 - **`sdk-v*`：** 检查 `sdk/package.json` 的版本号与 tag 一致，构建；如果这个版本还不在 npm 上，执行 `npm publish --provenance`（版本号带 `-` 的发到 `next` dist-tag），然后创建 GitHub Release，附上 `sdk.js`、`index.mjs`、`index.d.ts` 和 npm 包文件。SDK 的 Release 不会被标为仓库的最新版本。
-- **`gateway-v*`：** 构建 SDK 和控制台，再用 tag 里的版本号构建四个 `rwd` 二进制（用 `rwd version` 校验），把 linux/amd64 和 linux/arm64 镜像推到 GHCR，tag 为 `<版本号>`、`<主版本>.<次版本>` 和 `latest`（预发布版只有 `<版本号>`），最后创建 GitHub Release，附上压缩包和 `checksums.txt`。
+- **`gateway-v*`：** 构建 SDK、控制台和 MCP 包；像 SDK 一样把 MCP 包发布到 npm（该版本已在 npm 上则跳过）；用 tag 里的版本号构建四个 `rwd` 二进制（用 `rwd version` 校验），把 linux/amd64 和 linux/arm64 镜像推到 GHCR，tag 为 `<版本号>`、`<主版本>.<次版本>` 和 `latest`（预发布版只有 `<版本号>`），最后创建 GitHub Release，附上压缩包和 `checksums.txt`。
 
 Release 正文是该版本的安装方式，加上英文和中文更新日志里对应的段落（[`scripts/release/notes.mjs`](../scripts/release/notes.mjs)）。
 
@@ -71,5 +71,5 @@ Release 正文是该版本的安装方式，加上英文和中文更新日志里
 
 ## 一次性设置
 
-- **npm。** 工作流用 [trusted publishing](https://docs.npmjs.com/trusted-publishers)（OIDC，不需要 secret）发布：在 npmjs.com 的包设置 → Trusted publishing → GitHub Actions，填仓库 `ZaneL1u/remote-webview-debugger`、工作流 `release.yml`。用 token 发布时 npm 会要求一次性密码，所以工作流发不了的版本（比如包还不存在时的第一个版本）要在该 tag 的检出目录里手动发布：`npm login` 之后执行 `cd sdk && npm ci && npm run build && npm publish --access public`。然后重跑失败的那次工作流，它会跳过发布，只创建 GitHub Release。
+- **npm。** `remote-webview-debugger` 和 `remote-webview-debugger-mcp` 两个包都要做这项设置。工作流用 [trusted publishing](https://docs.npmjs.com/trusted-publishers)（OIDC，不需要 secret）发布：在 npmjs.com 的包设置 → Trusted publishing → GitHub Actions，填仓库 `ZaneL1u/remote-webview-debugger`、工作流 `release.yml`。用 token 发布时 npm 会要求一次性密码，所以工作流发不了的版本（比如包还不存在时的第一个版本）要在该 tag 的检出目录里手动发布：`npm login` 之后执行 `cd sdk && npm ci && npm run build && npm publish --access public`（MCP 包则在 `mcp/` 里执行同样的命令）。然后重跑失败的那次工作流，它会跳过发布，只创建 GitHub Release。
 - **GHCR。** 第一次网关发版后，镜像出现在仓库所有者的 packages 里。它关联到公开的仓库，确认一次它是公开的即可（包设置 → Change visibility）。

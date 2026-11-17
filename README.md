@@ -18,7 +18,7 @@ English | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [�
 A bug that only happens on one user's phone, inside a WeChat-style super app or your own app's WebView, is the hardest kind to debug: no USB cable, no remote-debugging port, no way to reproduce it on your machine. Remote WebView Debugger puts that page in front of your AI agent instead.
 
 - **One script tag** (or a native injection) puts a page online. The user sees a small pill with a device code, and can tap *Request assistance*.
-- **Your agent connects through MCP** — Claude Code, Cursor or any MCP client — after the user approves on the device. It reads accessibility snapshots, console, network and screenshots, and clicks, types and scrolls like a person, across every page and WebView of that device.
+- **Your agent connects through MCP** — Claude Code, Cursor, Codex or any MCP client — after the user approves on the device. It reads accessibility snapshots, console, network and screenshots, and clicks, types and scrolls like a person, across every page and WebView of that device.
 - **Real Chrome DevTools for people.** From the console, an admin opens DevTools on any online page — Elements, Console, Network (with what happened before it opened) and Application storage — after the user approves on the device.
 - **The user stays in control.** They see what the AI is doing (agent cursor, a task card with the planned steps, a glowing edge) and can take over or end the session at any time. Passwords, phone and card numbers are masked before anything leaves the phone.
 - **Self-hosted.** One Go binary with the console and the SDK embedded; SQLite or Postgres.
@@ -77,7 +77,15 @@ In an app, inject the same script at document start from native code (iOS `WKUse
 
 ### 3. Connect your agent
 
-Create an API key in the console (one key reaches every device), then:
+Create an API key in the console (one key reaches every device), then run:
+
+```bash
+npx -y remote-webview-debugger-mcp init
+```
+
+It asks for the gateway address and the key, then adds the MCP server to the agents it finds: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code or Claude Desktop. It also installs the agent skill (`npx skills add ZaneL1u/remote-webview-debugger`). One MCP server can reach several gateways. See [the MCP package](mcp/README.md) for the setup of each agent.
+
+An agent that speaks MCP over HTTP can also connect to the gateway directly:
 
 ```bash
 claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Authorization: Bearer rwd_sk_live_…"
@@ -115,6 +123,8 @@ Over plain HTTP, API keys and console passwords travel unencrypted, so keep it t
 | [`sdk/`](sdk) | Page SDK (`sdk.js`) and its in-page UI |
 | [`packages/chobitsu/`](packages/chobitsu) | Vendored [chobitsu](https://github.com/liriliri/chobitsu) plus our page-side engine in `src/engine/` |
 | [`console/`](console) | Web console (React, Vite) |
+| [`mcp/`](mcp) | MCP package for every agent (`npx -y remote-webview-debugger-mcp`): stdio server, several gateways, `init` |
+| [`skills/`](skills) | The agent skill (`npx skills add ZaneL1u/remote-webview-debugger`), also used by the Claude Code plugin and the Gemini CLI extension |
 | [`website/`](website) | [debugger.site](https://debugger.site), with the interactive demo |
 | [`examples/`](examples) | A multi-page demo shop and a macOS app that hosts WKWebViews like an iOS app |
 | [`deploy/platform/`](deploy/platform) | Docker Compose deployment |
@@ -122,7 +132,7 @@ Over plain HTTP, API keys and console passwords travel unencrypted, so keep it t
 
 ## Releases
 
-The page SDK and the gateway are released separately, each with its own version, tag (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) and changelog: [SDK](sdk/CHANGELOG.md), [gateway](gateway/CHANGELOG.md). A gateway release comes with `rwd` binaries for Linux and macOS and the image `ghcr.io/zanel1u/remote-webview-debugger`. See [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) and, for maintainers, [releasing](docs/releasing.md).
+The page SDK and the gateway are released separately, each with its own version, tag (`sdk-vX.Y.Z`, `gateway-vX.Y.Z`) and changelog: [SDK](sdk/CHANGELOG.md), [gateway](gateway/CHANGELOG.md). A gateway release comes with `rwd` binaries for Linux and macOS, the image `ghcr.io/zanel1u/remote-webview-debugger` and the MCP package [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) of the same version. See [GitHub Releases](https://github.com/ZaneL1u/remote-webview-debugger/releases) and, for maintainers, [releasing](docs/releasing.md).
 
 ## Development
 

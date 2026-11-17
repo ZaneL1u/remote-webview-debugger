@@ -44,6 +44,7 @@ export const DOCS = [
   { path: 'docs/translating.md', langs: ['en', 'zh-CN'] },
   { path: 'sdk/README.md', langs: ALL },
   { path: 'gateway/README.md', langs: ALL },
+  { path: 'mcp/README.md', langs: ALL },
   { path: 'deploy/platform/README.md', langs: ALL },
 ]
 

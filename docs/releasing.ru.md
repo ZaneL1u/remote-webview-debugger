@@ -1,4 +1,4 @@
-<!-- i18n-source: e110292ad2a3dca0ad4fca78a52a79f08f95af0b -->
+<!-- i18n-source: 28d08ede8f7ddda0f06cdeeccd3a3f3d4c8a70ce -->
 [English](releasing.md) | [简体中文](releasing.zh-CN.md) | [繁體中文](releasing.zh-TW.md) | [日本語](releasing.ja.md) | [한국어](releasing.ko.md) | [Español](releasing.es.md) | [Français](releasing.fr.md) | [Deutsch](releasing.de.md) | [Português (Brasil)](releasing.pt-BR.md) | Русский | [العربية](releasing.ar.md)
 
 # Выпуск релизов
@@ -7,11 +7,11 @@ SDK страницы и шлюз выпускаются раздельно. У �
 
 | | SDK страницы | Шлюз |
 |---|---|---|
-| Пути | `sdk/`, `packages/chobitsu/` | `gateway/`, `console/`, `deploy/` |
+| Пути | `sdk/`, `packages/chobitsu/` | `gateway/`, `console/`, `deploy/`, `mcp/`, `skills/`, манифесты плагинов |
 | Тег | `sdk-vX.Y.Z` | `gateway-vX.Y.Z` |
-| Где хранится версия | `sdk/package.json` | в теге (`make` читает её через `git describe`) |
+| Где хранится версия | `sdk/package.json` | в теге (`make` читает её через `git describe`); при релизе она также записывается в `mcp/package.json`, `.claude-plugin/plugin.json` и `gemini-extension.json` |
 | Журнал изменений | [`sdk/CHANGELOG.md`](../sdk/CHANGELOG.md), [`.zh-CN.md`](../sdk/CHANGELOG.zh-CN.md) | [`gateway/CHANGELOG.md`](../gateway/CHANGELOG.md), [`.zh-CN.md`](../gateway/CHANGELOG.zh-CN.md) |
-| Публикуется как | npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (jsDelivr, unpkg) | `rwd_<version>_<os>_<arch>.tar.gz` для linux / darwin × amd64 / arm64, образ `ghcr.io/zanel1u/remote-webview-debugger` |
+| Публикуется как | npm [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger) (jsDelivr, unpkg) | `rwd_<version>_<os>_<arch>.tar.gz` для linux / darwin × amd64 / arm64, образ `ghcr.io/zanel1u/remote-webview-debugger`, npm [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp) |
 
 Бинарный файл шлюза содержит SDK из того же коммита; какая это версия SDK, указано в соответствующем разделе журнала изменений шлюза.
 
@@ -63,7 +63,7 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 [`.github/workflows/release.yml`](../.github/workflows/release.yml):
 
 - **`sdk-v*`:** проверяет, что в `sdk/package.json` указана версия из тега, собирает, выполняет `npm publish --provenance`, если этой версии ещё нет в npm (версия с `-` уходит в dist-tag `next`), и создаёт GitHub Release с `sdk.js`, `index.mjs`, `index.d.ts` и npm-архивом пакета. Релизы SDK не помечаются как последний релиз репозитория.
-- **`gateway-v*`:** собирает SDK и веб-консоль, четыре бинарных файла `rwd` с версией из тега (проверяется через `rwd version`), отправляет образ в GHCR для linux/amd64 и linux/arm64 с тегами `<version>`, `<major>.<minor>` и `latest` (для пререлизов — только `<version>`) и создаёт GitHub Release с архивами и `checksums.txt`.
+- **`gateway-v*`:** собирает SDK, веб-консоль и MCP-пакет; публикует MCP-пакет в npm так же, как SDK (пропускается, если эта версия там уже есть); собирает четыре бинарных файла `rwd` с версией из тега (проверяется через `rwd version`), отправляет образ в GHCR для linux/amd64 и linux/arm64 с тегами `<version>`, `<major>.<minor>` и `latest` (для пререлизов — только `<version>`) и создаёт GitHub Release с архивами и `checksums.txt`.
 
 Текст релиза — соответствующий раздел английского и китайского журналов изменений ([`scripts/release/notes.mjs`](../scripts/release/notes.mjs)), после инструкций по установке этой версии.
 
@@ -71,5 +71,5 @@ Changelog-Zh: 设备码胶囊不再遮住底栏
 
 ## Первоначальная настройка
 
-- **npm.** Workflow публикует пакет через [доверенную публикацию](https://docs.npmjs.com/trusted-publishers) (OIDC, без секретов): на npmjs.com в настройках пакета → Trusted publishing → GitHub Actions, репозиторий `ZaneL1u/remote-webview-debugger`, workflow `release.yml`. С токеном npm требует одноразовый пароль, поэтому версию, которую workflow опубликовать не может (например, самую первую, пока пакета ещё нет), публикуют вручную из checkout тега: `cd sdk && npm ci && npm run build && npm publish --access public` после `npm login`. Затем перезапустите упавший запуск workflow; он пропустит публикацию и создаст GitHub Release.
+- **npm.** Эта настройка нужна обоим пакетам, `remote-webview-debugger` и `remote-webview-debugger-mcp`. Workflow публикует пакет через [доверенную публикацию](https://docs.npmjs.com/trusted-publishers) (OIDC, без секретов): на npmjs.com в настройках пакета → Trusted publishing → GitHub Actions, репозиторий `ZaneL1u/remote-webview-debugger`, workflow `release.yml`. С токеном npm требует одноразовый пароль, поэтому версию, которую workflow опубликовать не может (например, самую первую, пока пакета ещё нет), публикуют вручную из checkout тега: `cd sdk && npm ci && npm run build && npm publish --access public` (или то же самое в `mcp/`) после `npm login`. Затем перезапустите упавший запуск workflow; он пропустит публикацию и создаст GitHub Release.
 - **GHCR.** Образ появляется среди пакетов владельца репозитория после первого релиза шлюза. Он связан с публичным репозиторием; один раз проверьте, что он публичный (настройки пакета → Change visibility).

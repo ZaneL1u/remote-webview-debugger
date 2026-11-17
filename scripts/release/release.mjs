@@ -37,11 +37,13 @@ const COMPONENTS = {
   gateway: {
     name: 'gateway',
     nameZh: '网关',
-    // The binary embeds the console; deploy/ is how it ships.
-    paths: ['gateway', 'console', 'deploy'],
+    // The binary embeds the console; deploy/ is how it ships. The MCP package
+    // (mcp/, with the agent skill and the plugin manifests) is the gateway's
+    // client and ships with it, under the same version.
+    paths: ['gateway', 'console', 'deploy', 'mcp', 'skills', '.claude-plugin', 'gemini-extension.json'],
     changelog: 'gateway/CHANGELOG',
-    intro: 'The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded). Tags: `gateway-vX.Y.Z`.',
-    introZh: '网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）。tag 形如 `gateway-vX.Y.Z`。',
+    intro: 'The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded) and its MCP package [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp). Tags: `gateway-vX.Y.Z`.',
+    introZh: '网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）及其 MCP 包 [`remote-webview-debugger-mcp`](https://www.npmjs.com/package/remote-webview-debugger-mcp)。tag 形如 `gateway-vX.Y.Z`。',
     docs: [],
   },
 }
@@ -212,6 +214,20 @@ if (id === 'sdk') {
     }
   }
   if (restamp.length) execFileSync('node', ['scripts/docs/i18n.mjs', 'stamp', ...restamp], { cwd: root, stdio: 'ignore' })
+}
+
+if (id === 'gateway') {
+  execFileSync('npm', ['version', version, '--no-git-tag-version', '--allow-same-version'], { cwd: path.join(root, 'mcp'), stdio: 'ignore' })
+  changed.push('mcp/package.json', 'mcp/package-lock.json')
+  for (const file of ['.claude-plugin/plugin.json', 'gemini-extension.json']) {
+    const p = path.join(root, file)
+    const s = fs.readFileSync(p, 'utf8')
+    const t = s.replace(/("version":\s*")[^"]*(")/, `$1${version}$2`)
+    if (t !== s) {
+      fs.writeFileSync(p, t)
+      changed.push(file)
+    }
+  }
 }
 
 if (opts.edit) {
