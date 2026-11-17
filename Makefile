@@ -13,7 +13,10 @@ GOARCH ?= $(shell go env GOARCH)
 RWD_VERSION ?= $(shell git describe --tags --match 'gateway-v*' --dirty 2>/dev/null | sed 's/^gateway-v//' | grep . || echo 0.0.0-dev)
 
 .PHONY: platform sdk console mcp gateway website check release-sdk release-gateway
-platform: sdk console mcp .WAIT gateway
+# The gateway embeds what the others build, so it runs after them (a sub-make,
+# not .WAIT: macOS ships make 3.81, which has no .WAIT).
+platform: sdk console mcp
+	@$(MAKE) --no-print-directory gateway
 
 sdk:
 	cd sdk && npm ci && npm run build
