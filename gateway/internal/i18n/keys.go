@@ -58,6 +58,8 @@ const (
 	ResLongPressed       Key = "res.long_pressed"
 	ResClickMatches      Key = "res.click_matches"
 	ResSnapshotOmitted   Key = "res.snapshot_omitted"
+	ResDebugPanelClosed  Key = "res.debug_panel_closed"
+	ResNoDebugPanel      Key = "res.no_debug_panel"
 	ResNoScreenshotAfter Key = "res.no_screenshot_after"
 	ResHovered           Key = "res.hovered"
 	ResFilled            Key = "res.filled"

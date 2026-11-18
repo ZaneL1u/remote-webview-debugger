@@ -123,6 +123,8 @@ const agent: AgentMessages = {
 
   overlayHeader:
     '[Overlays] Diese Elemente liegen über dem Seiteninhalt. Wenn ein Klick blockiert wird, klicken Sie direkt auf sie (z. B. auf den Hintergrund, um ein Popup zu schließen):',
+  debugPanelOpen: (name, coverage) =>
+    `[Debug-Panel] Das Panel von ${name} ist offen und bedeckt ${coverage} % des Bildschirms. Deine Klicks gehen hindurch, aber der Nutzer und Screenshots sehen es; close_debug_panel schließt es.`,
   overlayMask: (tag, coverage, ref) => `- Hintergrund ${tag}, bedeckt ${coverage} % des Viewports [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- Ebene ${tag}${text ? ` „${text}“` : ''}, bedeckt ${coverage} % des Viewports [ref=${ref}]`,

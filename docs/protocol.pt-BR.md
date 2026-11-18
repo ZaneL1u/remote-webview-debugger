@@ -244,7 +244,7 @@ Todo método age sobre a página que o recebe.
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
 | `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: um snapshot de acessibilidade no formato de IA do Playwright (YAML, elementos marcados com `[ref=eN]`), seguido de uma seção de sobreposições quando algo flutua sobre a página ([§5.3](#53-comportamento-na-página)). A página inteira por padrão; `scope: "viewport"` omite os elementos totalmente fora da tela (`omitted` conta os que têm ref), `ref` dá só a subárvore desse elemento (sem a seção de sobreposições). As refs são atribuídas para a página inteira em ambos os casos |
-| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (pelo menos um critério; `limit` 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
+| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (pelo menos um critério; `limit` 1–100) | `{"matches":[{"ref","role","name","text","reach"}],"total"}`; `reach`: `"yes"` um toque o alcança agora, `"covered"` algo o cobre, `"offscreen"` é preciso rolar antes |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
@@ -257,6 +257,7 @@ Todo método age sobre a página que o recebe.
 | `rwd.press` | interact | `{"key"}`: nomes de teclas do Playwright, combinações como `Control+A` | `{}` |
 | `rwd.select` | interact | `{"ref","values":["…"]}` | `{"selected":["…"]}` |
 | `rwd.scroll` | interact | `{"ref"?,"dx"?:0,"dy"?:0}` | `{}` |
+| `rwd.closeDebugPanel` | interact | `{}` | `{"closed":["eruda"]}`: Recolhe um painel do eruda ou do vConsole aberto no seu botão flutuante; `closed` lista as ferramentas fechadas (vazio se nenhum estava aberto) |
 | `rwd.drag` | interact | `{"fromRef","toRef"}` | `{}` |
 | `rwd.navigate` | interact | `{"url"}` | `{}` (depois a página se reconecta) |
 | `rwd.back` / `rwd.reload` | interact | `{}` | `{}` |
@@ -351,7 +352,7 @@ Erros e avisos do console, requisições com falha, toques, entradas e envios do
 | Nível | Métodos permitidos |
 |---|---|
 | `observe` | `rwd.ping`, `rwd.snapshot`, `rwd.query`, `rwd.screenshot`, `rwd.console`, `rwd.network`, `rwd.waitFor`, `rwd.log` |
-| `interact` | `observe` + `rwd.click`, `rwd.fill`, `rwd.type`, `rwd.press`, `rwd.select`, `rwd.hover`, `rwd.scroll`, `rwd.drag`, `rwd.navigate`, `rwd.back`, `rwd.reload` |
+| `interact` | `observe` + `rwd.click`, `rwd.fill`, `rwd.type`, `rwd.press`, `rwd.select`, `rwd.hover`, `rwd.scroll`, `rwd.closeDebugPanel`, `rwd.drag`, `rwd.navigate`, `rwd.back`, `rwd.reload` |
 | `advanced` | `interact` + `rwd.evaluate`, `rwd.networkDetail`, `rwd.storage`, `rwd.logDetail` |
 
 O nível de uma conexão é

@@ -124,6 +124,8 @@ const agent: AgentMessages = {
 
   overlayHeader:
     '[Sobreposições] Estes elementos ficam por cima da página. Quando um clique for bloqueado, clique neles diretamente (por exemplo no fundo para fechar um pop-up):',
+  debugPanelOpen: (name, coverage) =>
+    `[Painel de depuração] O painel do ${name} está aberto e cobre ${coverage}% da tela. Seus cliques passam por ele, mas o usuário e as capturas o veem; close_debug_panel o fecha.`,
   overlayMask: (tag, coverage, ref) => `- fundo ${tag}, cobre ${coverage}% da viewport [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- camada ${tag}${text ? ` “${text}”` : ''}, cobre ${coverage}% da viewport [ref=${ref}]`,

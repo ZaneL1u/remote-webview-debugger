@@ -118,6 +118,8 @@ const agent: AgentMessages = {
   reasonObscured: (tag, ref) => `点击位置被 ${tag} 遮挡（遮挡元素 ref=${ref}，可以直接 click 它，比如点遮罩关闭弹窗）`,
 
   overlayHeader: '[浮层] 下面这些元素盖在页面内容上方。点击被挡住时，可以直接点它们（比如点遮罩关闭弹窗）：',
+  debugPanelOpen: (name, coverage) =>
+    `[调试面板] ${name} 的面板开着，挡住了屏幕的 ${coverage}%。你的点击会穿过它，但用户和截图都看得到它；close_debug_panel 可以把它收起。`,
   overlayMask: (tag, coverage, ref) => `- 遮罩 ${tag}，覆盖视口 ${coverage}% [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) => `- 弹层 ${tag}${text ? `「${text}」` : ''}，覆盖视口 ${coverage}% [ref=${ref}]`,
   reasonHidden: '元素不可见',

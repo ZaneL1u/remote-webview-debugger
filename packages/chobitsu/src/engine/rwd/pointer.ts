@@ -143,6 +143,20 @@ function visiblePoints(r: DOMRect): Point[] {
   return points
 }
 
+/**
+ * Whether a tap could reach the element right now: "yes" when a visible spot
+ * of it is not covered, "covered" when something sits on all of them (a sheet
+ * over the page), "offscreen" when it needs scrolling first. For choosing
+ * among elements with the same text.
+ */
+export function reach(el: Element): 'yes' | 'covered' | 'offscreen' {
+  return withDomCompat(() => {
+    const points = visiblePoints(clientRect(el))
+    if (!points.length) return 'offscreen'
+    return points.some(p => hitsTarget(el, elementFromPoint(p.x, p.y))) ? 'yes' : 'covered'
+  })
+}
+
 function hitsTarget(el: Element, hit: Element) {
   if (containsComposed(el, hit)) return true
   // A styled checkbox: the input sits under its label's custom box.

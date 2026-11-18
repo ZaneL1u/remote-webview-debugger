@@ -244,7 +244,7 @@ SDK 產生的錯誤訊息使用 agent 的語言（`welcome.agentLang`，[§15](#
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<毫秒>}` |
 | `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`：Playwright AI 格式的無障礙快照（YAML，元素標上 `[ref=eN]`）；有東西浮在頁面內容上方時，末尾會附上一段覆蓋層清單（[§5.3](#53-頁面內的行為)）。預設整頁；`scope: "viewport"` 去掉完全在螢幕外的元素（`omitted` 是其中帶 ref 的個數），`ref` 只給該元素的子樹（不附浮層清單）。兩種情況 ref 都按整頁分配。 |
-| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（至少一個條件；`limit` 1–100） | `{"matches":[{"ref","role","name","text"}],"total"}` |
+| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（至少一個條件；`limit` 1–100） | `{"matches":[{"ref","role","name","text","reach"}],"total"}`；`reach`：`"yes"` 現在點得到，`"covered"` 被別的東西蓋住，`"offscreen"` 要先捲動 |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
@@ -257,6 +257,7 @@ SDK 產生的錯誤訊息使用 agent 的語言（`welcome.agentLang`，[§15](#
 | `rwd.press` | interact | `{"key"}`：Playwright 按鍵名稱，支援 `Control+A` 這類組合鍵 | `{}` |
 | `rwd.select` | interact | `{"ref","values":["…"]}` | `{"selected":["…"]}` |
 | `rwd.scroll` | interact | `{"ref"?,"dx"?:0,"dy"?:0}` | `{}` |
+| `rwd.closeDebugPanel` | interact | `{}` | `{"closed":["eruda"]}`：把開著的 eruda 或 vConsole 面板收回懸浮按鈕；`closed` 是收起的工具（都沒開時為空） |
 | `rwd.drag` | interact | `{"fromRef","toRef"}` | `{}` |
 | `rwd.navigate` | interact | `{"url"}` | `{}`（頁面隨後會重新連線） |
 | `rwd.back` / `rwd.reload` | interact | `{}` | `{}` |
@@ -351,7 +352,7 @@ console 的 error 和 warn、失敗的請求、使用者的點按 / 輸入 / 送
 | 等級 | 允許的方法 |
 |---|---|
 | `observe` | `rwd.ping`、`rwd.snapshot`、`rwd.query`、`rwd.screenshot`、`rwd.console`、`rwd.network`、`rwd.waitFor`、`rwd.log` |
-| `interact` | `observe` + `rwd.click`、`rwd.fill`、`rwd.type`、`rwd.press`、`rwd.select`、`rwd.hover`、`rwd.scroll`、`rwd.drag`、`rwd.navigate`、`rwd.back`、`rwd.reload` |
+| `interact` | `observe` + `rwd.click`、`rwd.fill`、`rwd.type`、`rwd.press`、`rwd.select`、`rwd.hover`、`rwd.scroll`、`rwd.closeDebugPanel`、`rwd.drag`、`rwd.navigate`、`rwd.back`、`rwd.reload` |
 | `advanced` | `interact` + `rwd.evaluate`、`rwd.networkDetail`、`rwd.storage`、`rwd.logDetail` |
 
 一次接入的實際等級為：

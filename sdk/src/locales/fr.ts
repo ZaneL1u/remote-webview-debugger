@@ -124,6 +124,8 @@ const agent: AgentMessages = {
 
   overlayHeader:
     '[Superpositions] Ces éléments recouvrent la page. Si un clic est bloqué, cliquez directement dessus (par exemple sur le fond pour fermer une fenêtre contextuelle) :',
+  debugPanelOpen: (name, coverage) =>
+    `[Panneau de débogage] Le panneau de ${name} est ouvert et couvre ${coverage} % de l’écran. Vos clics le traversent, mais l’utilisateur et les captures le voient ; close_debug_panel le ferme.`,
   overlayMask: (tag, coverage, ref) => `- fond ${tag}, couvre ${coverage} % de la fenêtre d’affichage [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- calque ${tag}${text ? ` « ${text} »` : ''}, couvre ${coverage} % de la fenêtre d’affichage [ref=${ref}]`,

@@ -244,7 +244,7 @@ SDK понимает `reconnect`; сейчас шлюз его не отправ
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
 | `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: снимок доступности в AI-формате Playwright (YAML, элементы помечены `[ref=eN]`), а за ним — раздел оверлеев, если что-то парит над страницей ([§5.3](#53-поведение-на-странице)). По умолчанию вся страница; `scope: "viewport"` опускает элементы, целиком находящиеся вне экрана (`omitted` — число таких с ref), `ref` возвращает только поддерево этого элемента (без раздела оверлеев). Ref в любом случае назначаются для всей страницы |
-| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (хотя бы один критерий; `limit` 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
+| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (хотя бы один критерий; `limit` 1–100) | `{"matches":[{"ref","role","name","text","reach"}],"total"}`; `reach`: `"yes"` нажатие сейчас до него дойдёт, `"covered"` его что-то закрывает, `"offscreen"` сначала нужна прокрутка |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
@@ -257,6 +257,7 @@ SDK понимает `reconnect`; сейчас шлюз его не отправ
 | `rwd.press` | interact | `{"key"}`: имена клавиш Playwright, сочетания вроде `Control+A` | `{}` |
 | `rwd.select` | interact | `{"ref","values":["…"]}` | `{"selected":["…"]}` |
 | `rwd.scroll` | interact | `{"ref"?,"dx"?:0,"dy"?:0}` | `{}` |
+| `rwd.closeDebugPanel` | interact | `{}` | `{"closed":["eruda"]}`: Сворачивает открытую панель eruda или vConsole в плавающую кнопку; `closed` — закрытые инструменты (пусто, если ничего не было открыто) |
 | `rwd.drag` | interact | `{"fromRef","toRef"}` | `{}` |
 | `rwd.navigate` | interact | `{"url"}` | `{}` (затем страница переподключается) |
 | `rwd.back` / `rwd.reload` | interact | `{}` | `{}` |
@@ -351,7 +352,7 @@ SDK понимает `reconnect`; сейчас шлюз его не отправ
 | Уровень | Разрешённые методы |
 |---|---|
 | `observe` | `rwd.ping`, `rwd.snapshot`, `rwd.query`, `rwd.screenshot`, `rwd.console`, `rwd.network`, `rwd.waitFor`, `rwd.log` |
-| `interact` | `observe` + `rwd.click`, `rwd.fill`, `rwd.type`, `rwd.press`, `rwd.select`, `rwd.hover`, `rwd.scroll`, `rwd.drag`, `rwd.navigate`, `rwd.back`, `rwd.reload` |
+| `interact` | `observe` + `rwd.click`, `rwd.fill`, `rwd.type`, `rwd.press`, `rwd.select`, `rwd.hover`, `rwd.scroll`, `rwd.closeDebugPanel`, `rwd.drag`, `rwd.navigate`, `rwd.back`, `rwd.reload` |
 | `advanced` | `interact` + `rwd.evaluate`, `rwd.networkDetail`, `rwd.storage`, `rwd.logDetail` |
 
 Уровень подключения вычисляется так:

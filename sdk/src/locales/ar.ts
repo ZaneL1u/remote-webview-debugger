@@ -120,6 +120,8 @@ const agent: AgentMessages = {
     `نقطة النقر مغطاة بـ ${tag} (ref=${ref}؛ انقر عليه مباشرة، مثل خلفية نافذة منبثقة لإغلاقها)`,
 
   overlayHeader: '[طبقات علوية] هذه العناصر فوق محتوى الصفحة. عندما تُحجب نقرة، انقر عليها مباشرة (مثل الخلفية لإغلاق نافذة منبثقة):',
+  debugPanelOpen: (name, coverage) =>
+    `[لوحة التصحيح] لوحة ${name} مفتوحة وتغطي ${coverage}% من الشاشة. تمر نقراتك عبرها، لكن المستخدم ولقطات الشاشة يرونها؛ يغلقها close_debug_panel.`,
   overlayMask: (tag, coverage, ref) => `- خلفية ${tag}، تغطي ${coverage}% من منطقة العرض [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- طبقة ${tag}${text ? ` «${text}»` : ''}، تغطي ${coverage}% من منطقة العرض [ref=${ref}]`,

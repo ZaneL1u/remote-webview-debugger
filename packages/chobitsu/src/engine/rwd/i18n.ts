@@ -62,6 +62,8 @@ export const AGENT_EN = {
 
   // overlays listed after the snapshot
   overlayHeader: '[Overlays] These elements sit on top of the page. When a click is blocked, click them directly (e.g. the backdrop to close a popup):',
+  debugPanelOpen: (name: string, coverage: number) =>
+    `[Debug panel] ${name}'s panel is open and covers ${coverage}% of the screen. Your clicks pass through it, but the user and screenshots see it; close_debug_panel closes it.`,
   overlayMask: (tag: string, coverage: number, ref: string) => `- backdrop ${tag}, covers ${coverage}% of the viewport [ref=${ref}]`,
   overlayLayer: (tag: string, text: string, coverage: number, ref: string) =>
     `- layer ${tag}${text ? ` "${text}"` : ''}, covers ${coverage}% of the viewport [ref=${ref}]`,

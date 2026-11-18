@@ -13,7 +13,7 @@ var methodLevel = map[string]store.Level{
 	"rwd.query": store.LevelObserve, "rwd.log": store.LevelObserve,
 	"rwd.click": store.LevelInteract, "rwd.fill": store.LevelInteract, "rwd.type": store.LevelInteract,
 	"rwd.press": store.LevelInteract, "rwd.select": store.LevelInteract, "rwd.hover": store.LevelInteract,
-	"rwd.scroll": store.LevelInteract, "rwd.drag": store.LevelInteract, "rwd.navigate": store.LevelInteract,
+	"rwd.scroll": store.LevelInteract, "rwd.closeDebugPanel": store.LevelInteract, "rwd.drag": store.LevelInteract, "rwd.navigate": store.LevelInteract,
 	"rwd.back": store.LevelInteract, "rwd.reload": store.LevelInteract,
 	"rwd.evaluate": store.LevelAdvanced, "rwd.networkDetail": store.LevelAdvanced, "rwd.storage": store.LevelAdvanced,
 	"rwd.logDetail": store.LevelAdvanced,

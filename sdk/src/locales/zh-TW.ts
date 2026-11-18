@@ -118,6 +118,8 @@ const agent: AgentMessages = {
   reasonObscured: (tag, ref) => `點擊位置被 ${tag} 遮住（遮住它的元素 ref=${ref}，可以直接 click 它，例如點遮罩來關閉彈出視窗）`,
 
   overlayHeader: '[浮層] 以下元素蓋在頁面內容上方。點擊被擋住時，可以直接點它們（例如點遮罩來關閉彈出視窗）：',
+  debugPanelOpen: (name, coverage) =>
+    `[除錯面板] ${name} 的面板開著，擋住了螢幕的 ${coverage}%。你的點擊會穿過它，但使用者和截圖都看得到它；close_debug_panel 可以把它收起。`,
   overlayMask: (tag, coverage, ref) => `- 遮罩 ${tag}，覆蓋可視區域的 ${coverage}% [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) => `- 浮層 ${tag}${text ? `「${text}」` : ''}，覆蓋可視區域的 ${coverage}% [ref=${ref}]`,
   reasonHidden: '元素不可見',

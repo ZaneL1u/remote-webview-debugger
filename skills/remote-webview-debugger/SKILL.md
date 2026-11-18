@@ -47,8 +47,9 @@ Every tool call is a round trip the user waits for, often several seconds of thi
 
 ## Act
 
-- `click`, `fill`, `type_text`, `press_key`, `select_option`, `scroll`, `drag`, `hover` take refs from the snapshot; `click` also takes `text` / `role` / `name` (an exact text match wins; it tells you when several matched).
+- `click`, `fill`, `type_text`, `press_key`, `select_option`, `scroll`, `drag`, `hover` take refs from the snapshot; `click` also takes `text` / `role` / `name`. When several elements match, it picks one a tap reaches now (not one under a sheet or popup), then an exact text match, and tells you how many matched.
 - Long press: `click` with `holdMs` (for example `800`) presses, holds and releases, for menus or popovers that open on a held touch (such as the full text of a truncated title).
+- If the snapshot ends with **[Debug panel]**, an eruda or vConsole panel is open over the page. Your clicks pass through it, but the user and screenshots see it: call `close_debug_panel` before screenshots or a visual check. Its floating button stays, so the user can open it again.
 - If `click` says the point is covered by another element, don't click the covering element instead: that taps something else. Take a fresh snapshot; close the popup or backdrop if one is in the way, otherwise tell the user what covers the target.
 - `batch_actions` runs several of them in one call (a click in it can use `text` too); use it for forms and short sequences.
 - `navigate_page`, `go_back`, `reload_page`; then `wait_for` (text appears/disappears) or `wait_for_page` (a new WebView or a navigation).

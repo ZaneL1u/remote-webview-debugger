@@ -123,6 +123,8 @@ const agent: AgentMessages = {
 
   overlayHeader:
     '[Оверлеи] Эти элементы лежат поверх страницы. Если нажатие перекрыто, нажимайте на них напрямую (например, на фон, чтобы закрыть всплывающее окно):',
+  debugPanelOpen: (name, coverage) =>
+    `[Панель отладки] Панель ${name} открыта и закрывает ${coverage}% экрана. Нажатия проходят сквозь неё, но пользователь и скриншоты её видят; close_debug_panel её закрывает.`,
   overlayMask: (tag, coverage, ref) => `- фон ${tag}, закрывает ${coverage}% области просмотра [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- слой ${tag}${text ? ` «${text}»` : ''}, закрывает ${coverage}% области просмотра [ref=${ref}]`,

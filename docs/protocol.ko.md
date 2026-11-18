@@ -244,7 +244,7 @@ SDK가 작성하는 메시지는 에이전트의 언어(`welcome.agentLang`, [§
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
 | `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: Playwright의 AI 형식(YAML, 요소에 `[ref=eN]` 태그)으로 된 접근성 스냅샷이에요. 페이지 위에 무언가 떠 있으면 그 뒤에 오버레이 섹션이 붙어요([§5.3](#53-페이지-안에서의-동작)). 기본은 페이지 전체. `scope: "viewport"`는 화면 밖에 완전히 있는 요소를 빼고(`omitted`는 그중 ref가 있는 수), `ref`는 그 요소의 하위 트리만 준다(오버레이 목록 없음). 어느 쪽이든 ref는 페이지 전체에 매긴다 |
-| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`(기준이 하나 이상 필요, `limit`은 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
+| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`(기준이 하나 이상 필요, `limit`은 1–100) | `{"matches":[{"ref","role","name","text","reach"}],"total"}`; `reach`: `"yes"` 지금 탭이 닿음, `"covered"` 다른 것에 가려짐, `"offscreen"` 먼저 스크롤 필요 |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
@@ -257,6 +257,7 @@ SDK가 작성하는 메시지는 에이전트의 언어(`welcome.agentLang`, [§
 | `rwd.press` | interact | `{"key"}`: Playwright 키 이름, `Control+A` 같은 조합 | `{}` |
 | `rwd.select` | interact | `{"ref","values":["…"]}` | `{"selected":["…"]}` |
 | `rwd.scroll` | interact | `{"ref"?,"dx"?:0,"dy"?:0}` | `{}` |
+| `rwd.closeDebugPanel` | interact | `{}` | `{"closed":["eruda"]}`: 열린 eruda나 vConsole 패널을 플로팅 버튼으로 되돌림. `closed`는 닫은 도구(열린 것이 없으면 비어 있음) |
 | `rwd.drag` | interact | `{"fromRef","toRef"}` | `{}` |
 | `rwd.navigate` | interact | `{"url"}` | `{}`(이후 페이지가 다시 연결됨) |
 | `rwd.back` / `rwd.reload` | interact | `{}` | `{}` |
@@ -351,7 +352,7 @@ console 오류와 경고, 실패한 요청, 사용자의 탭·입력·제출, �
 | 수준 | 허용되는 메서드 |
 |---|---|
 | `observe` | `rwd.ping`, `rwd.snapshot`, `rwd.query`, `rwd.screenshot`, `rwd.console`, `rwd.network`, `rwd.waitFor`, `rwd.log` |
-| `interact` | `observe` + `rwd.click`, `rwd.fill`, `rwd.type`, `rwd.press`, `rwd.select`, `rwd.hover`, `rwd.scroll`, `rwd.drag`, `rwd.navigate`, `rwd.back`, `rwd.reload` |
+| `interact` | `observe` + `rwd.click`, `rwd.fill`, `rwd.type`, `rwd.press`, `rwd.select`, `rwd.hover`, `rwd.scroll`, `rwd.closeDebugPanel`, `rwd.drag`, `rwd.navigate`, `rwd.back`, `rwd.reload` |
 | `advanced` | `interact` + `rwd.evaluate`, `rwd.networkDetail`, `rwd.storage`, `rwd.logDetail` |
 
 접속의 권한 수준은 다음과 같이 정해져요.

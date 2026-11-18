@@ -134,6 +134,8 @@ const agent: AgentMessages = {
     `클릭 지점이 ${tag} 요소에 가려져 있습니다(ref=${ref}. 이 요소를 직접 클릭할 수 있습니다. 예: 팝업 배경을 클릭해 팝업 닫기)`,
 
   overlayHeader: '[오버레이] 아래 요소들이 페이지 위를 덮고 있습니다. 클릭이 막히면 이 요소들을 직접 클릭하세요(예: 배경을 클릭해 팝업 닫기):',
+  debugPanelOpen: (name, coverage) =>
+    `[디버그 패널] ${name} 패널이 열려 화면의 ${coverage}%를 가립니다. 클릭은 통과하지만 사용자와 스크린샷에는 보입니다. close_debug_panel로 닫을 수 있습니다.`,
   overlayMask: (tag, coverage, ref) => `- 배경 ${tag}, 뷰포트의 ${coverage}%를 덮음 [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- 레이어 ${tag}${text ? ` “${text}”` : ''}, 뷰포트의 ${coverage}%를 덮음 [ref=${ref}]`,

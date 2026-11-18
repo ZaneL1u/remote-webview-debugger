@@ -725,6 +725,20 @@ func (s *Server) addTools(srv *mcp.Server) {
 	addTool(s, srv, "navigate_page", false, func(ctx context.Context, a *hub.Agent, in NavigateIn, o *out) error {
 		return s.action(ctx, a, o, "rwd.navigate", map[string]any{"url": in.URL}, i18n.M(i18n.ResNavigating, in.URL))
 	})
+	addTool(s, srv, "close_debug_panel", false, func(ctx context.Context, a *hub.Agent, in NoIn, o *out) error {
+		raw, sess, err := s.call(ctx, a, "", "rwd.closeDebugPanel", map[string]any{}, true)
+		if err != nil {
+			return err
+		}
+		var r struct{ Closed []string }
+		_ = json.Unmarshal(raw, &r)
+		if len(r.Closed) == 0 {
+			o.t(i18n.ResNoDebugPanel, sess.Label)
+			return nil
+		}
+		o.t(i18n.ResDebugPanelClosed, strings.Join(r.Closed, ", "), sess.Label)
+		return nil
+	})
 	addTool(s, srv, "go_back", false, func(ctx context.Context, a *hub.Agent, in NoIn, o *out) error {
 		return s.action(ctx, a, o, "rwd.back", nil, i18n.M(i18n.ResWentBack))
 	})
@@ -987,11 +1001,14 @@ func (s *Server) addTools(srv *mcp.Server) {
 				}
 				o.t(i18n.ResBatchStepDone, i+1, act.Tool)
 			}
-			var err error
 			if failed > 0 {
-				err = s.errorf(i18n.ErrBatchFailed, failed)
+				// The steps before the failure did run: show where the page is.
+				if in.Screenshot {
+					_ = s.after(ctx, a, true, o, nil)
+				}
+				return s.errorf(i18n.ErrBatchFailed, failed)
 			}
-			return s.after(ctx, a, in.Screenshot, o, err)
+			return s.after(ctx, a, in.Screenshot, o, nil)
 		})
 
 	addTool(s, srv, "find_elements", true,
@@ -1183,22 +1200,34 @@ func (s *Server) target(ctx context.Context, a *hub.Agent, ref, text, role, name
 		return "", err
 	}
 	var r struct {
-		Matches []struct{ Ref, Role, Name, Text string } `json:"matches"`
-		Total   int                                      `json:"total"`
+		Matches []struct{ Ref, Role, Name, Text, Reach string } `json:"matches"`
+		Total   int                                             `json:"total"`
 	}
 	_ = json.Unmarshal(raw, &r)
 	if len(r.Matches) == 0 {
 		return "", s.errorf(i18n.ErrClickNoMatch, sess.Label)
 	}
-	pick := r.Matches[0]
-	for _, m := range r.Matches {
-		if (text != "" && (strings.EqualFold(strings.TrimSpace(m.Text), strings.TrimSpace(text)) ||
-			strings.EqualFold(strings.TrimSpace(m.Name), strings.TrimSpace(text)))) ||
-			(text == "" && name != "" && strings.EqualFold(strings.TrimSpace(m.Name), strings.TrimSpace(name))) {
-			pick = m
-			break
+	// The best match: one a tap reaches now (not under a sheet or popup),
+	// then one that only needs scrolling; among those, the exact text or name
+	// first, then page order. Pages without reach (older SDKs) rank by text.
+	same := func(a, b string) bool {
+		return b != "" && strings.EqualFold(strings.TrimSpace(a), strings.TrimSpace(b))
+	}
+	score := func(i int) int {
+		m := r.Matches[i]
+		n := map[string]int{"yes": 4, "": 2, "offscreen": 2, "covered": 0}[m.Reach]
+		if same(m.Text, text) || same(m.Name, text) || (text == "" && same(m.Name, name)) {
+			n++
+		}
+		return n
+	}
+	best := 0
+	for i := range r.Matches {
+		if score(i) > score(best) {
+			best = i
 		}
 	}
+	pick := r.Matches[best]
 	o.add("%s", untrusted(o.lang, "element", fmt.Sprintf("%s \"%s\" [ref=%s]", pick.Role, clipRunes(pick.Name, 60), pick.Ref)))
 	if r.Total > 1 {
 		o.t(i18n.ResClickMatches, r.Total)

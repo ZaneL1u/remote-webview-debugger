@@ -124,6 +124,8 @@ const agent: AgentMessages = {
 
   overlayHeader:
     '[オーバーレイ] 以下の要素がページの上に重なっています。クリックが遮られる場合は、これらを直接クリックしてください（例：背景のオーバーレイをクリックしてポップアップを閉じる）：',
+  debugPanelOpen: (name, coverage) =>
+    `[デバッグパネル] ${name} のパネルが開いていて、画面の ${coverage}% を覆っています。クリックは通り抜けますが、ユーザーとスクリーンショットには見えます。close_debug_panel で閉じられます。`,
   overlayMask: (tag, coverage, ref) => `- 背景オーバーレイ ${tag}、ビューポートの ${coverage}% を覆う [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- レイヤー ${tag}${text ? `「${text}」` : ''}、ビューポートの ${coverage}% を覆う [ref=${ref}]`,

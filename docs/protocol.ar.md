@@ -258,7 +258,7 @@
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
 | `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: لقطة إمكانية الوصول بصيغة AI الخاصة بـ Playwright (YAML، والعناصر موسومة بـ `[ref=eN]`)، يليها قسم للطبقات العائمة عندما يطفو شيء فوق الصفحة ([§5.3](#53-السلوك-داخل-الصفحة)). الصفحة كاملة افتراضياً؛ `scope: "viewport"` يحذف العناصر الواقعة كلياً خارج الشاشة (`omitted` عدد ما له ref منها)، و`ref` يعطي الشجرة الفرعية لذلك العنصر فقط (دون قسم الطبقات العائمة). تُعيَّن الـ ref للصفحة كاملة في الحالتين |
-| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (معيار واحد على الأقل؛ `limit` من 1 إلى 100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
+| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (معيار واحد على الأقل؛ `limit` من 1 إلى 100) | `{"matches":[{"ref","role","name","text","reach"}],"total"}`; `reach`: `"yes"` تصله النقرة الآن، `"covered"` يغطيه شيء آخر، `"offscreen"` يحتاج إلى تمرير أولاً |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
@@ -271,6 +271,7 @@
 | `rwd.press` | interact | `{"key"}`: أسماء المفاتيح في Playwright، وتركيبات مثل `Control+A` | `{}` |
 | `rwd.select` | interact | `{"ref","values":["…"]}` | `{"selected":["…"]}` |
 | `rwd.scroll` | interact | `{"ref"?,"dx"?:0,"dy"?:0}` | `{}` |
+| `rwd.closeDebugPanel` | interact | `{}` | `{"closed":["eruda"]}`: يطوي لوحة eruda أو vConsole المفتوحة إلى زرها العائم؛ `closed` أسماء الأدوات المغلقة (فارغة إن لم يكن أي منها مفتوحاً) |
 | `rwd.drag` | interact | `{"fromRef","toRef"}` | `{}` |
 | `rwd.navigate` | interact | `{"url"}` | `{}` (ثم تعيد الصفحة الاتصال) |
 | `rwd.back` / `rwd.reload` | interact | `{}` | `{}` |
@@ -369,7 +370,7 @@
 | المستوى | الطرق المسموح بها |
 |---|---|
 | `observe` | `rwd.ping`، `rwd.snapshot`، `rwd.query`، `rwd.screenshot`، `rwd.console`، `rwd.network`، `rwd.waitFor`، `rwd.log` |
-| `interact` | `observe` + `rwd.click`، `rwd.fill`، `rwd.type`، `rwd.press`، `rwd.select`، `rwd.hover`، `rwd.scroll`، `rwd.drag`، `rwd.navigate`، `rwd.back`، `rwd.reload` |
+| `interact` | `observe` + `rwd.click`، `rwd.fill`، `rwd.type`، `rwd.press`، `rwd.select`، `rwd.hover`، `rwd.scroll`، `rwd.closeDebugPanel`، `rwd.drag`، `rwd.navigate`، `rwd.back`، `rwd.reload` |
 | `advanced` | `interact` + `rwd.evaluate`، `rwd.networkDetail`، `rwd.storage`، `rwd.logDetail` |
 
 مستوى الارتباط هو أصغر القيم الأربع التالية: المستوى الذي طلبه الوكيل (الافتراضي `interact`)، و `maxLevel` لمفتاح API، و `maxLevel` لسياسة المشروع المدمجة، والمستوى الذي اختاره المستخدم على الجهاز:

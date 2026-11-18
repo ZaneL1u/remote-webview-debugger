@@ -9,6 +9,7 @@ import { isDebugUi, isMasked, maskedElements, MASK, scrubPatterns, shownText } f
 import { isFormField, tagOf, withDomCompat } from './dom'
 import { rwdError } from './errors'
 import { agentText } from './i18n'
+import { openDebugPanels } from './debugPanels'
 import { findOverlays } from './overlays'
 
 // The agent's view of the page: Playwright's AI-mode aria snapshot (the same
@@ -146,17 +147,24 @@ export function refFor(el: Element): string {
 }
 
 // Popups and their backdrops, listed after the tree so the agent knows what
-// sits on top and can click a backdrop to close its popup.
+// sits on top and can click a backdrop to close its popup. Then an open
+// debug tool panel (eruda, vConsole), which the snapshot itself leaves out.
 function overlaySection(content: Element[]) {
   const overlays = findOverlays(content)
-  if (!overlays.length) return ''
+  const panels = openDebugPanels()
+  if (!overlays.length && !panels.length) return ''
   const t = agentText()
-  const lines = overlays.map(o =>
-    o.kind === 'mask'
-      ? t.overlayMask(tagOf(o.element), o.coverage, refFor(o.element))
-      : t.overlayLayer(tagOf(o.element), o.text, o.coverage, refFor(o.element))
-  )
-  return '\n\n' + t.overlayHeader + '\n' + lines.join('\n') + '\n'
+  let section = '\n'
+  if (overlays.length) {
+    const lines = overlays.map(o =>
+      o.kind === 'mask'
+        ? t.overlayMask(tagOf(o.element), o.coverage, refFor(o.element))
+        : t.overlayLayer(tagOf(o.element), o.text, o.coverage, refFor(o.element))
+    )
+    section += '\n' + t.overlayHeader + '\n' + lines.join('\n') + '\n'
+  }
+  for (const p of panels) section += '\n' + t.debugPanelOpen(p.name, p.coverage) + '\n'
+  return section
 }
 
 /** The element behind a ref of the latest snapshot. */

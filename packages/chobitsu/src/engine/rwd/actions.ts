@@ -3,7 +3,8 @@ import { querySnapshot, resolveRef, snapshotIn } from './snapshot'
 import { readStorage } from './storage'
 import { clickConfirmation, enterConfirmation } from './policy'
 import { press, typeText } from './keyboard'
-import { click, drag, hover, longPress, targetAt, waitForActionable, wheel, type Point } from './pointer'
+import { closeDebugPanels } from './debugPanels'
+import { click, drag, hover, longPress, reach, targetAt, waitForActionable, wheel, type Point } from './pointer'
 import { deepActiveElement, tagOf, sleep } from './dom'
 import { queryConsole, queryNetwork, networkDetail, networkHidden } from './observe'
 import { listSessions, overview, queryLog, recordDetail } from './coldlog'
@@ -48,6 +49,7 @@ export const INTERACTIVE_METHODS = [
   'rwd.scroll',
   'rwd.drag',
   'rwd.navigate',
+  'rwd.closeDebugPanel',
   'rwd.back',
   'rwd.reload',
 ]
@@ -213,6 +215,9 @@ const methods: { [name: string]: Method } = {
 
   // scope: "viewport" (only what is on screen) or the whole page (default,
   // what older gateways expect); ref: only the part under that element.
+  // Fold an open eruda / vConsole panel back into its button.
+  'rwd.closeDebugPanel': () => ({ closed: closeDebugPanels() }),
+
   'rwd.snapshot': params => {
     const p = params || {}
     const { snapshot, omitted } = snapshotIn({
@@ -222,7 +227,23 @@ const methods: { [name: string]: Method } = {
     return { url: location.href, title: document.title, snapshot, omitted }
   },
 
-  'rwd.query': params => querySnapshot(params),
+  // Each match says whether a tap reaches it now, so a click by text can
+  // pick the copy on top (a sheet's tab) over one it covers.
+  'rwd.query': params => {
+    const res = querySnapshot(params)
+    return {
+      ...res,
+      matches: res.matches.map(m => {
+        let r: string
+        try {
+          r = reach(resolveRef(m.ref))
+        } catch {
+          r = 'offscreen'
+        }
+        return { ...m, reach: r }
+      }),
+    }
+  },
 
   'rwd.click': async (params, hooks) => {
     const el = resolveRef(params.ref)

@@ -109,3 +109,38 @@ test('eruda 3.0.1: the policy turning dock off removes the lowercased tab and br
   await expect.poll(() => page.evaluate(() => !!(window as any).eruda.get('remote debugger')), { timeout: 15000 }).toBe(false)
   await expect(page.locator('#__rwd .pill')).toBeVisible()
 })
+
+test('an open eruda panel is reported in the snapshot; rwd.closeDebugPanel folds it back into its button', async ({ page, gw }) => {
+  await page.goto('/test/compat.html')
+  await expect.poll(() => page.evaluate(() => !!(window as any).eruda)).toBe(true)
+  const s = await waitOnline(page, gw)
+  const pageId = s.pageId!
+  expect(await snapshot(gw, pageId)).not.toContain('[调试面板]')
+  expect((await rpc(gw, pageId, 'rwd.closeDebugPanel')).closed).toEqual([])
+
+  await page.evaluate(() => (window as any).eruda.show())
+  await expect.poll(() => page.evaluate(() => (window as any).eruda._devTools._isShow)).toBe(true)
+  const snap = await snapshot(gw, pageId)
+  expect(snap).toMatch(/\[调试面板\] eruda 的面板开着，挡住了屏幕的 \d+%/)
+  // The snapshot itself still shows the page only.
+  expect(snap).toContain('heading "共存测试"')
+
+  expect((await rpc(gw, pageId, 'rwd.closeDebugPanel')).closed).toEqual(['eruda'])
+  await expect.poll(() => page.evaluate(() => (window as any).eruda._devTools._isShow)).toBe(false)
+  // The floating button stays for the user.
+  await expect(page.locator('#eruda')).toHaveCount(1)
+  expect(await snapshot(gw, pageId)).not.toContain('[调试面板]')
+})
+
+test('rwd.query tells whether a tap reaches each match: a sheet over the page covers the copy under it', async ({ page, gw }) => {
+  await page.goto('/test/compat.html')
+  const s = await waitOnline(page, gw)
+  await page.evaluate(() => {
+    const sheet = document.createElement('div')
+    sheet.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:10'
+    sheet.innerHTML = '<button>按钮 A</button>'
+    document.body.appendChild(sheet)
+  })
+  const res = await rpc(gw, s.pageId!, 'rwd.query', { text: '按钮 A', role: 'button' })
+  expect(res.matches.map((m: any) => m.reach).sort()).toEqual(['covered', 'yes'])
+})

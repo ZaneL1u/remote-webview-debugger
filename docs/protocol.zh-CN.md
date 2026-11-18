@@ -244,7 +244,7 @@ SDK 写的错误信息使用 agent 的语言（`welcome.agentLang`，§15）。
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<毫秒>}` |
 | `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`：Playwright AI 模式的无障碍快照（YAML，元素带 `[ref=eN]`）；页面上有东西浮在内容之上时，末尾附一段浮层清单（§5.3）。默认整页；`scope: "viewport"` 去掉完全在屏幕外的元素（`omitted` 是其中带 ref 的个数），`ref` 只给该元素的子树（不附浮层清单）。两种情况 ref 都按整页分配。 |
-| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（至少一个条件；`limit` 1–100） | `{"matches":[{"ref","role","name","text"}],"total"}` |
+| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（至少一个条件；`limit` 1–100） | `{"matches":[{"ref","role","name","text","reach"}],"total"}`；`reach`：`"yes"` 现在点得到，`"covered"` 被别的东西盖住，`"offscreen"` 要先滚动 |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
@@ -257,6 +257,7 @@ SDK 写的错误信息使用 agent 的语言（`welcome.agentLang`，§15）。
 | `rwd.press` | interact | `{"key"}`：Playwright 键名，支持 `Control+A` 这样的组合 | `{}` |
 | `rwd.select` | interact | `{"ref","values":["…"]}` | `{"selected":["…"]}` |
 | `rwd.scroll` | interact | `{"ref"?,"dx"?:0,"dy"?:0}` | `{}` |
+| `rwd.closeDebugPanel` | interact | `{}` | `{"closed":["eruda"]}`：把开着的 eruda 或 vConsole 面板收回悬浮按钮；`closed` 是收起的工具（都没开时为空） |
 | `rwd.drag` | interact | `{"fromRef","toRef"}` | `{}` |
 | `rwd.navigate` | interact | `{"url"}` | `{}`（页面随后会重连） |
 | `rwd.back` / `rwd.reload` | interact | `{}` | `{}` |
@@ -351,7 +352,7 @@ console 的 error 和 warn、失败的请求、用户的点击 / 输入 / 提交
 | 级别 | 允许的方法 |
 |---|---|
 | `observe` | `rwd.ping`、`rwd.snapshot`、`rwd.query`、`rwd.screenshot`、`rwd.console`、`rwd.network`、`rwd.waitFor`、`rwd.log` |
-| `interact` | `observe` + `rwd.click`、`rwd.fill`、`rwd.type`、`rwd.press`、`rwd.select`、`rwd.hover`、`rwd.scroll`、`rwd.drag`、`rwd.navigate`、`rwd.back`、`rwd.reload` |
+| `interact` | `observe` + `rwd.click`、`rwd.fill`、`rwd.type`、`rwd.press`、`rwd.select`、`rwd.hover`、`rwd.scroll`、`rwd.closeDebugPanel`、`rwd.drag`、`rwd.navigate`、`rwd.back`、`rwd.reload` |
 | `advanced` | `interact` + `rwd.evaluate`、`rwd.networkDetail`、`rwd.storage`、`rwd.logDetail` |
 
 一次接入的生效级别为：

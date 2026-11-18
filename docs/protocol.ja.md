@@ -244,7 +244,7 @@ SDK が書くメッセージはエージェントの言語（`welcome.agentLang`
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
 | `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: Playwright の AI 形式（YAML、要素に `[ref=eN]` タグ付き）のアクセシビリティスナップショット。ページの上に何かが浮いている場合は、その後にオーバーレイのセクションが続く（[§5.3](#53-ページ内での動作)）。既定はページ全体。`scope: "viewport"` は完全に画面外の要素を省き（`omitted` はそのうち ref を持つ数）、`ref` はその要素のサブツリーだけを返す（オーバーレイ一覧なし）。どちらでも ref はページ全体に割り当てる。 |
-| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（条件を 1 つ以上。`limit` は 1〜100） | `{"matches":[{"ref","role","name","text"}],"total"}` |
+| `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（条件を 1 つ以上。`limit` は 1〜100） | `{"matches":[{"ref","role","name","text","reach"}],"total"}`；`reach`：`"yes"` 今タップが届く、`"covered"` 何かに覆われている、`"offscreen"` 先にスクロールが必要 |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
@@ -257,6 +257,7 @@ SDK が書くメッセージはエージェントの言語（`welcome.agentLang`
 | `rwd.press` | interact | `{"key"}`: Playwright のキー名。`Control+A` のような組み合わせも可 | `{}` |
 | `rwd.select` | interact | `{"ref","values":["…"]}` | `{"selected":["…"]}` |
 | `rwd.scroll` | interact | `{"ref"?,"dx"?:0,"dy"?:0}` | `{}` |
+| `rwd.closeDebugPanel` | interact | `{}` | `{"closed":["eruda"]}`：開いている eruda や vConsole のパネルをフローティングボタンに戻す。`closed` は閉じたツール（開いていなければ空） |
 | `rwd.drag` | interact | `{"fromRef","toRef"}` | `{}` |
 | `rwd.navigate` | interact | `{"url"}` | `{}`（その後ページは再接続する） |
 | `rwd.back` / `rwd.reload` | interact | `{}` | `{}` |
@@ -351,7 +352,7 @@ console のエラーと警告、失敗したリクエスト、ユーザーのタ
 | レベル | 許可されるメソッド |
 |---|---|
 | `observe` | `rwd.ping`、`rwd.snapshot`、`rwd.query`、`rwd.screenshot`、`rwd.console`、`rwd.network`、`rwd.waitFor`、`rwd.log` |
-| `interact` | `observe` + `rwd.click`、`rwd.fill`、`rwd.type`、`rwd.press`、`rwd.select`、`rwd.hover`、`rwd.scroll`、`rwd.drag`、`rwd.navigate`、`rwd.back`、`rwd.reload` |
+| `interact` | `observe` + `rwd.click`、`rwd.fill`、`rwd.type`、`rwd.press`、`rwd.select`、`rwd.hover`、`rwd.scroll`、`rwd.closeDebugPanel`、`rwd.drag`、`rwd.navigate`、`rwd.back`、`rwd.reload` |
 | `advanced` | `interact` + `rwd.evaluate`、`rwd.networkDetail`、`rwd.storage`、`rwd.logDetail` |
 
 アタッチのレベルは次のように決まります。

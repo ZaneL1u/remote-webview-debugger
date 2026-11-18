@@ -123,6 +123,8 @@ const agent: AgentMessages = {
 
   overlayHeader:
     '[Capas superpuestas] Estos elementos están encima de la página. Si un clic queda bloqueado, haz clic en ellos directamente (p. ej. en el fondo para cerrar una ventana emergente):',
+  debugPanelOpen: (name, coverage) =>
+    `[Panel de depuración] El panel de ${name} está abierto y cubre el ${coverage} % de la pantalla. Tus clics lo atraviesan, pero el usuario y las capturas lo ven; close_debug_panel lo cierra.`,
   overlayMask: (tag, coverage, ref) => `- fondo ${tag}, cubre el ${coverage} % del área visible [ref=${ref}]`,
   overlayLayer: (tag, text, coverage, ref) =>
     `- capa ${tag}${text ? ` “${text}”` : ''}, cubre el ${coverage} % del área visible [ref=${ref}]`,

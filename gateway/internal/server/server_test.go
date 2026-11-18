@@ -225,8 +225,17 @@ func (f *fixture) page(o pageOpts) *fakePage {
 				}
 				if method == "rwd.query" {
 					result = map[string]any{"total": 2, "matches": []map[string]any{
-						{"ref": "e7", "role": "button", "name": "设置中心", "text": "设置中心"},
-						{"ref": "e8", "role": "button", "name": "设置", "text": "设置"}}}
+						{"ref": "e7", "role": "button", "name": "设置中心", "text": "设置中心", "reach": "yes"},
+						{"ref": "e8", "role": "button", "name": "设置", "text": "设置", "reach": "yes"}}}
+					// The same text twice: once on the page under a sheet, once on the sheet.
+					if params, _ := m["params"].(map[string]any); params != nil && params["text"] == "数学" {
+						result = map[string]any{"total": 2, "matches": []map[string]any{
+							{"ref": "e62", "role": "generic", "name": "", "text": "数学", "reach": "covered"},
+							{"ref": "e184", "role": "generic", "name": "", "text": "数学", "reach": "yes"}}}
+					}
+				}
+				if method == "rwd.closeDebugPanel" {
+					result = map[string]any{"closed": []string{"eruda"}}
 				}
 				if method == "rwd.screenshot" {
 					result = map[string]any{"data": base64.StdEncoding.EncodeToString([]byte("jpeg")), "mimeType": "image/jpeg",
@@ -425,6 +434,12 @@ func TestAgentFlow(t *testing.T) {
 		got[1]["params"].(map[string]any)["ref"] != "e8" {
 		t.Fatalf("click by text rpcs: %v", got)
 	}
+	// A copy a tap can reach wins over one a sheet covers.
+	drainRPCs(p1)
+	if out, isErr := callText(t, s, "click", map[string]any{"text": "数学"}); isErr || !strings.Contains(out, "已点击 e184") {
+		t.Fatalf("click by text under a sheet: %s", out)
+	}
+	drainRPCs(p1)
 	if out, isErr := callText(t, s, "click", nil); !isErr || !strings.Contains(out, "请给 ref") {
 		t.Fatalf("click without target: %s", out)
 	}
@@ -439,6 +454,10 @@ func TestAgentFlow(t *testing.T) {
 	if got := drainRPCs(p1); len(got) != 2 || got[1]["method"] != "rwd.screenshot" {
 		t.Fatalf("click with screenshot rpcs: %v", got)
 	}
+	if out, isErr := callText(t, s, "close_debug_panel", nil); isErr || !strings.Contains(out, "已收起 eruda 的面板") {
+		t.Fatalf("close_debug_panel: %s", out)
+	}
+	drainRPCs(p1)
 	// The snapshot is the screen by default (with a note on what is left out),
 	// the whole page or one part on request.
 	out, _ = callText(t, s, "take_snapshot", nil)
@@ -493,6 +512,12 @@ func TestAgentFlow(t *testing.T) {
 	if got := drainRPCs(p2); len(got) != 3 || got[0]["method"] != "rwd.query" || got[1]["params"].(map[string]any)["ref"] != "e8" ||
 		got[2]["method"] != "rwd.screenshot" {
 		t.Fatalf("batch by text rpcs: %v", got)
+	}
+	// A failed step still brings the screenshot: the steps before it ran.
+	res, err = s.CallTool(context.Background(), &mcp.CallToolParams{Name: "batch_actions", Arguments: map[string]any{
+		"actions": []map[string]any{{"tool": "click", "args": map[string]any{"ref": "e1"}}, {"tool": "drag"}}, "screenshot": true}})
+	if err != nil || !res.IsError || len(res.Content) != 2 {
+		t.Fatalf("failed batch with screenshot: %v %+v", err, res)
 	}
 
 	p1.send(t, map[string]string{"t": "control", "action": "end"})
