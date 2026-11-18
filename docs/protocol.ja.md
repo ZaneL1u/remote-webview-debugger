@@ -1,4 +1,4 @@
-<!-- i18n-source: a4b7248d89940771266d3986ef5cb0a669bbe423 -->
+<!-- i18n-source: 51ee117aed0e0c1de3c27d846247b25b78799775 -->
 [English](protocol.md) | [简体中文](protocol.zh-CN.md) | [繁體中文](protocol.zh-TW.md) | 日本語 | [한국어](protocol.ko.md) | [Español](protocol.es.md) | [Français](protocol.fr.md) | [Deutsch](protocol.de.md) | [Português (Brasil)](protocol.pt-BR.md) | [Русский](protocol.ru.md) | [العربية](protocol.ar.md)
 
 # RWD プロトコル（v1）
@@ -250,7 +250,7 @@ SDK が書くメッセージはエージェントの言語（`welcome.agentLang`
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
 | `rwd.waitFor` | observe | `{"text"?,"textGone"?,"timeMs"?,"timeoutMs"?:10000}` | `{}` |
 | `rwd.log` | observe | `{"op":"sessions"\|"overview"\|"records", …}`。[§5.4](#54-セッションログ) を参照 | `op` による |
-| `rwd.click` | interact | `{"ref","button"?:"left","clickCount"?:1}` | `{}` |
+| `rwd.click` | interact | `{"ref","button"?:"left","clickCount"?:1,"holdMs"?:0}` | `{}` |
 | `rwd.hover` | interact | `{"ref"}` | `{}` |
 | `rwd.fill` | interact | `{"ref","value"}` | `{}` |
 | `rwd.type` | interact | `{"text","ref"?,"submit"?:false}` | `{}` |

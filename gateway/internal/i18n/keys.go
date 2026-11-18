@@ -55,6 +55,7 @@ const (
 	ResScreenshotNative Key = "res.screenshot_native"
 	ResScreenshotDOM    Key = "res.screenshot_dom"
 	ResClicked          Key = "res.clicked"
+	ResLongPressed      Key = "res.long_pressed"
 	ResHovered          Key = "res.hovered"
 	ResFilled           Key = "res.filled"
 	ResTyped            Key = "res.typed"

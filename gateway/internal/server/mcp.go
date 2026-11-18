@@ -398,6 +398,15 @@ type RefIn struct {
 	Ref string `json:"ref" jsonschema:"param.ref"`
 }
 
+// ClickIn is a click, or with holdMs a long press (press, hold, release).
+type ClickIn struct {
+	Ref    string `json:"ref" jsonschema:"param.ref"`
+	HoldMs int    `json:"holdMs,omitempty" jsonschema:"param.click.hold_ms"`
+}
+
+// maxHoldMs caps a long press; the page call's timeout leaves room for it.
+const maxHoldMs = 10000
+
 type FillIn struct {
 	Ref   string `json:"ref" jsonschema:"param.fill.ref"`
 	Value string `json:"value" jsonschema:"param.fill.value"`
@@ -655,7 +664,10 @@ func (s *Server) addTools(srv *mcp.Server) {
 			return nil
 		})
 
-	addTool(s, srv, "click", false, func(ctx context.Context, a *hub.Agent, in RefIn, o *out) error {
+	addTool(s, srv, "click", false, func(ctx context.Context, a *hub.Agent, in ClickIn, o *out) error {
+		if hold := min(max(in.HoldMs, 0), maxHoldMs); hold > 0 {
+			return s.action(ctx, a, o, "rwd.click", map[string]any{"ref": in.Ref, "holdMs": hold}, i18n.M(i18n.ResLongPressed, in.Ref, hold))
+		}
 		return s.action(ctx, a, o, "rwd.click", map[string]any{"ref": in.Ref}, i18n.M(i18n.ResClicked, in.Ref))
 	})
 	addTool(s, srv, "hover", false, func(ctx context.Context, a *hub.Agent, in RefIn, o *out) error {
@@ -1042,7 +1054,11 @@ func batchStep(l i18n.Lang, tool string, args map[string]any) (method string, pa
 	}
 	switch tool {
 	case "click":
-		return "rwd.click", pick("ref"), true, nil
+		p := pick("ref")
+		if v, ok := args["holdMs"].(float64); ok && v > 0 {
+			p["holdMs"] = min(int(v), maxHoldMs)
+		}
+		return "rwd.click", p, true, nil
 	case "hover":
 		return "rwd.hover", pick("ref"), true, nil
 	case "fill":

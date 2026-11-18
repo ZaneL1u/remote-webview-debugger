@@ -379,6 +379,10 @@ func TestAgentFlow(t *testing.T) {
 		t.Fatalf("click: %s", out)
 	}
 	expectControl(t, p1, hub.ControlAgent)
+	// holdMs makes it a long press, capped at 10 s.
+	if out, isErr := callText(t, s, "click", map[string]any{"ref": "e1", "holdMs": 60000}); isErr || !strings.Contains(out, "已长按 e1（按住 10000 毫秒）") {
+		t.Fatalf("long press: %s", out)
+	}
 
 	// Granted interact, so advanced tools are refused even though the key allows them.
 	if out, isErr := callText(t, s, "evaluate_script", map[string]any{"function": "() => 1"}); !isErr || !strings.Contains(out, "advanced") {

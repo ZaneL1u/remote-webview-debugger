@@ -3,7 +3,7 @@ import { querySnapshot, resolveRef, takeSnapshot } from './snapshot'
 import { readStorage } from './storage'
 import { clickConfirmation, enterConfirmation } from './policy'
 import { press, typeText } from './keyboard'
-import { click, drag, hover, targetAt, waitForActionable, wheel, type Point } from './pointer'
+import { click, drag, hover, longPress, targetAt, waitForActionable, wheel, type Point } from './pointer'
 import { deepActiveElement, tagOf, sleep } from './dom'
 import { queryConsole, queryNetwork, networkDetail, networkHidden } from './observe'
 import { listSessions, overview, queryLog, recordDetail } from './coldlog'
@@ -218,7 +218,9 @@ const methods: { [name: string]: Method } = {
     const point = await waitForActionable(el, { hitTest: true })
     await aim(hooks, point, 'click', el)
     show(hooks, el)
-    click(targetAt(el, point), point, { button: params.button || 'left', clickCount: params.clickCount || 1 })
+    const hold = Math.min(Math.max(Number(params.holdMs) || 0, 0), 10000)
+    if (hold > 0) await longPress(targetAt(el, point), point, hold)
+    else click(targetAt(el, point), point, { button: params.button || 'left', clickCount: params.clickCount || 1 })
     return {}
   },
 

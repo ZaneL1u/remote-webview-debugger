@@ -38,10 +38,17 @@ The page runs on a real phone (the user's or a tester's), inside an app WebView 
 ## Act
 
 - `click`, `fill`, `type_text`, `press_key`, `select_option`, `scroll`, `drag`, `hover` take refs from the snapshot.
+- Long press: `click` with `holdMs` (for example `800`) presses, holds and releases, for menus or popovers that open on a held touch (such as the full text of a truncated title).
+- If `click` says the point is covered by another element, don't click the covering element instead: that taps something else. Take a fresh snapshot; close the popup or backdrop if one is in the way, otherwise tell the user what covers the target.
 - `batch_actions` runs several of them in one call; use it for forms.
 - `navigate_page`, `go_back`, `reload_page`; then `wait_for` (text appears/disappears) or `wait_for_page` (a new WebView or a navigation).
 - Every result ends with **[Session changes]**: new pages, navigations, errors, a user takeover. Read it.
 - If the user takes over, your actions are refused: call `wait_for_control` and continue when they hand back.
+
+## What needs the person holding the phone
+
+- Rotating the phone (landscape layouts), system settings, and the app's own native screens: ask the user to do it, then take a new snapshot or screenshot.
+- Something that shows only once (an onboarding tip, a guide already dismissed): it is usually a flag in local storage. With `advanced` access and only when the user asks (on a test device or account), find it with `get_storage`, remove it with `evaluate_script`, then `reload_page`. Otherwise ask the user to reset it.
 
 ## Find out why something is broken
 

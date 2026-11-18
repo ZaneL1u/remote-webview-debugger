@@ -249,7 +249,7 @@ Every method acts on the page that receives it.
 | `rwd.network` | observe | `{"sinceId"?,"limit"?:100,"failedOnly"?:false,"exclude"?:[],"includeExcluded"?:false}` | `{"requests":[{"id","method","url","status","type","durationMs","size","error"?,"at"}],"dropped","hidden"}` |
 | `rwd.waitFor` | observe | `{"text"?,"textGone"?,"timeMs"?,"timeoutMs"?:10000}` | `{}` |
 | `rwd.log` | observe | `{"op":"sessions"\|"overview"\|"records", …}`, see [§5.4](#54-session-log) | Depends on `op` |
-| `rwd.click` | interact | `{"ref","button"?:"left","clickCount"?:1}` | `{}` |
+| `rwd.click` | interact | `{"ref","button"?:"left","clickCount"?:1,"holdMs"?:0}` | `{}` |
 | `rwd.hover` | interact | `{"ref"}` | `{}` |
 | `rwd.fill` | interact | `{"ref","value"}` | `{}` |
 | `rwd.type` | interact | `{"text","ref"?,"submit"?:false}` | `{}` |

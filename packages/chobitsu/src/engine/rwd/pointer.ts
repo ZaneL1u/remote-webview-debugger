@@ -4,7 +4,7 @@ import {
   endAriaCaches,
   getAriaDisabled,
 } from '../vendor/playwright/injected/roleUtils'
-import { elementFromPoint } from '../hitTest'
+import { clientRect, elementFromPoint } from '../hitTest'
 import { closestComposed } from '../privacy'
 import { containsComposed, deepActiveElement, nextFrame, sleep, tagOf, withDomCompat } from './dom'
 import { rwdError } from './errors'
@@ -52,13 +52,13 @@ export async function waitForActionable(
     reason = withDomCompat(() => checkState(el))
     if (reason) continue
 
-    if (!centerInViewport(el.getBoundingClientRect())) {
+    if (!centerInViewport(clientRect(el))) {
       el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' as ScrollBehavior })
     }
-    const before = el.getBoundingClientRect()
+    const before = clientRect(el)
     await nextFrame()
     if (!el.isConnected) continue
-    const rect = el.getBoundingClientRect()
+    const rect = clientRect(el)
     if (!sameRect(before, rect)) {
       reason = agentText().reasonMoving
       continue
@@ -275,6 +275,37 @@ export function focusFor(el: Element) {
   } else if (active && active !== document.body && typeof active.blur === 'function') {
     active.blur()
   }
+}
+
+/**
+ * A long press: down, hold, up. On a touch device it is a touch held in place,
+ * which fires no click (as on a phone, where pages time the touch to open a
+ * popover or menu); with a mouse, mousedown and mouseup around the hold, then
+ * a click.
+ */
+export async function longPress(el: Element, p: Point, holdMs: number) {
+  const down = { button: 0, buttons: 1 }
+  const up = { button: 0, buttons: 0 }
+  touchId++
+  if (hasTouch) {
+    firePointer('pointerover', el, p.x, p.y)
+    firePointer('pointerenter', el, p.x, p.y)
+    firePointer('pointerdown', el, p.x, p.y, down)
+    fireTouch('touchstart', el, p.x, p.y)
+    await sleep(holdMs)
+    firePointer('pointerup', el, p.x, p.y, up)
+    fireTouch('touchend', el, p.x, p.y)
+    firePointer('pointerout', el, p.x, p.y)
+    firePointer('pointerleave', el, p.x, p.y)
+    return
+  }
+  moveTo(el, p)
+  const pointerDown = firePointer('pointerdown', el, p.x, p.y, down)
+  if (pointerDown && fireMouse('mousedown', el, p.x, p.y, { ...down, detail: 1 })) focusFor(el)
+  await sleep(holdMs)
+  firePointer('pointerup', el, p.x, p.y, up)
+  if (pointerDown) fireMouse('mouseup', el, p.x, p.y, { ...up, detail: 1 })
+  fireMouse('click', el, p.x, p.y, { ...up, detail: 1 })
 }
 
 export function click(
