@@ -28,6 +28,38 @@ export class GatewayError extends Error {
   }
 }
 
+/**
+ * fetch for gateway calls. Node 26 (undici 8) speaks HTTP/2 to TLS gateways and
+ * runs one request at a time on that connection: the transport's standalone
+ * GET stream, or a long wait_for_device, then holds up every other call until
+ * it times out. So: no standalone GET stream (this proxy uses no server-sent
+ * notifications; a 405 tells the SDK to skip it), and HTTP/1.1 where Node
+ * would pick HTTP/2.
+ */
+export async function gatewayFetch(url: string | URL | Request, init?: RequestInit): Promise<Response> {
+  if ((init?.method ?? 'GET').toUpperCase() === 'GET') return new Response(null, { status: 405 })
+  const dispatcher = await http1Dispatcher()
+  return fetch(url, dispatcher ? ({ ...init, dispatcher } as RequestInit) : init)
+}
+
+let http1: Promise<unknown> | null = null
+function http1Dispatcher(): Promise<unknown> {
+  http1 ??= (async () => {
+    // Node creates its global dispatcher on the first fetch. Node 22 and 24
+    // keep HTTP/1.1 by default and have no ".2" slot: nothing to change there.
+    await fetch('data:,').catch(() => {})
+    const current = (globalThis as Record<symbol, unknown>)[Symbol.for('undici.globalDispatcher.2')]
+    const Agent = (current as { constructor?: new (o: object) => unknown } | undefined)?.constructor
+    if (!Agent || Agent.name !== 'Agent') return null
+    try {
+      return new Agent({ allowH2: false })
+    } catch {
+      return null
+    }
+  })()
+  return http1
+}
+
 export class Gateway {
   readonly cfg: GatewayConfig
   readonly version: string
@@ -68,7 +100,7 @@ export class Gateway {
     const client = new Client({ name: CLIENT_NAME, version: this.version })
     const transport = new StreamableHTTPClientTransport(new URL(this.cfg.url), {
       requestInit: { headers: { Authorization: `Bearer ${this.cfg.apiKey}`, 'User-Agent': `${CLIENT_NAME}/${this.version}` } },
-      ...(this.fetchImpl ? { fetch: this.fetchImpl } : {}),
+      fetch: this.fetchImpl ?? gatewayFetch,
     })
     client.onclose = () => {
       if (this.client === client) this.client = null
