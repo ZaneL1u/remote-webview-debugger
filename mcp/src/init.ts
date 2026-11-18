@@ -107,12 +107,13 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
     const n = (name || nameFromUrl(endpoint, new Set(Object.keys(cfg.gateways)))).toLowerCase()
     if (!validName(n)) throw new Error(`gateway name "${n}": use lower-case letters, digits, - or _`)
     const apiKey = key.apiKeyEnv ? ctx.env[key.apiKeyEnv] : key.apiKey
-    if (!apiKey) throw new Error(key.apiKeyEnv ? `${key.apiKeyEnv} is not set` : `gateway "${n}" needs an API key`)
-    if (o.verify) {
+    // With --api-key-env and --no-verify only the variable's name is saved, so it may be set later (in the agent's env).
+    if (!apiKey && !(key.apiKeyEnv && !o.verify)) throw new Error(key.apiKeyEnv ? `${key.apiKeyEnv} is not set` : `gateway "${n}" needs an API key`)
+    if (o.verify && apiKey) {
       io.log(`Checking ${n} (${base}) …`)
       io.log(`✓ ${n}: ${await check(n, endpoint, apiKey, version, fetchImpl)}`)
     }
-    const entry: FileGateway = key.apiKeyEnv ? { url: base, apiKeyEnv: key.apiKeyEnv } : { url: base, apiKey }
+    const entry: FileGateway = key.apiKeyEnv ? { url: base, apiKeyEnv: key.apiKeyEnv } : { url: base, apiKey: apiKey as string }
     cfg.gateways[n] = entry
     return n
   }

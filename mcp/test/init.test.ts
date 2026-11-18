@@ -114,6 +114,18 @@ describe('init', () => {
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(home, '.cursor', 'mcp.json'), 'utf8')).mcpServers['remote-webview-debugger'].env, { RWD_CONFIG: file })
   })
 
+  test('--api-key-env with --no-verify saves the variable name even when it is not set yet', async () => {
+    const home = tmp()
+    const file = path.join(home, 'mcp.json')
+    const code = await runInit(opts({ config: file, gateways: [{ name: 'lab', url: 'https://lab.example.com' }], apiKeyEnv: 'LAB_KEY', verify: false, clients: [] }), quietIo(), fakeCtx(home), '0.0.0')
+    assert.equal(code, 0)
+    assert.deepEqual(JSON.parse(fs.readFileSync(file, 'utf8')).gateways, { lab: { url: 'https://lab.example.com', apiKeyEnv: 'LAB_KEY' } })
+    // Checking the gateway still needs the key.
+    const io = quietIo()
+    assert.equal(await runInit(opts({ config: file, gateways: [{ name: 'lab2', url: 'https://lab.example.com' }], apiKeyEnv: 'LAB_KEY', clients: [] }), io, fakeCtx(home), '0.0.0'), 1)
+    assert.match(io.out.join('\n'), /LAB_KEY is not set/)
+  })
+
   test('a wrong key is refused and nothing is written', async () => {
     const home = tmp()
     const io = quietIo()
