@@ -66,3 +66,20 @@ test('snapshot scopes: only the screen (with a count of what is left out), one p
   const gone = await gw.rpc(s.pageId!, 'rwd.snapshot', { ref: 'e99999' })
   expect(gone.error.code).toBe('not_found')
 })
+
+test('snapshot by ref of a popup wrapper the tree folds away: what is inside it', async ({ page, gw }) => {
+  const s = await openDemo(page, gw)
+  await page.evaluate(() => {
+    const sheet = document.createElement('div')
+    sheet.className = 'entrySheet'
+    sheet.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:10'
+    sheet.innerHTML = '<div><span>常用功能</span><button>教材同步</button></div>'
+    document.body.appendChild(sheet)
+  })
+  const full = await rpc(gw, s.pageId!, 'rwd.snapshot')
+  const ref = /<div\.entrySheet>.*\[ref=(\w+)\]/.exec(full.snapshot)![1]
+  const part = await rpc(gw, s.pageId!, 'rwd.snapshot', { ref })
+  expect(part.snapshot).toContain('button "教材同步"')
+  expect(part.snapshot).toContain('常用功能')
+  expect(part.snapshot).not.toContain('演示商城')
+})

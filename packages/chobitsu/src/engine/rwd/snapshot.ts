@@ -74,9 +74,10 @@ export function snapshotIn(scope: SnapshotScope): ScopedSnapshot {
     let shown = snapshot.root
     let omitted = 0
     if (under) {
-      const node = findNode(snapshot.root, n => elementOf(n) === under)
-      if (!node) throw rwdError('not_found', agentText().refDetached(scope.ref!))
-      shown = { ...snapshot.root, children: [node] }
+      if (!under.isConnected) throw rwdError('not_found', agentText().refDetached(scope.ref!))
+      // The element's own node, or (a plain container the tree folded away,
+      // such as a popup's wrapper) the outermost nodes inside it.
+      shown = { ...snapshot.root, children: nodesWithin(snapshot.root, under) }
     } else if (scope.viewport) {
       const kept = onScreen(snapshot.root, { w: window.innerWidth, h: window.innerHeight })
       shown = kept.node || { ...snapshot.root, children: [] }
@@ -89,14 +90,14 @@ export function snapshotIn(scope: SnapshotScope): ScopedSnapshot {
   })
 }
 
-function findNode(node: AriaNode, test: (n: AriaNode) => boolean): AriaNode | undefined {
-  if (test(node)) return node
+function nodesWithin(node: AriaNode, under: Element): AriaNode[] {
+  const el = elementOf(node)
+  if (el && node !== lastTree && under.contains(el)) return [node]
+  const found: AriaNode[] = []
   for (const child of node.children) {
-    if (typeof child === 'string') continue
-    const found = findNode(child, test)
-    if (found) return found
+    if (typeof child !== 'string') found.push(...nodesWithin(child, under))
   }
-  return undefined
+  return found
 }
 
 /**
