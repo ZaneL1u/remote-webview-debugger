@@ -66,3 +66,31 @@ test('screenshot: native bridge first, masked regions covered', async ({ page, g
   const fallback = await rpc(gw, s.pageId!, 'rwd.screenshot', {})
   expect(fallback.source).toBe('dom')
 })
+
+test('screenshot: our UI (glow, bar, task card, pointer) is off the screen for a native capture, then back', async ({ page, gw }) => {
+  const s = await openDemo(page, gw)
+  gw.setControl(s.deviceId!, 'agent')
+  gw.setTask(s.deviceId!, { title: '排查', steps: ['一', '二'], current: 0 })
+  const host = page.locator('#__rwd')
+  await expect(host.locator('.bar')).toBeVisible()
+  await expect(host.locator('.task')).toBeVisible()
+  await page.evaluate(() => {
+    const w = window as any
+    w.__seen = []
+    w.RWDNativeScreenshot = () => {
+      // What the host app would capture: is our UI painted right now?
+      w.__seen.push(getComputedStyle(document.getElementById('__rwd')!).opacity)
+      const c = document.createElement('canvas')
+      c.width = innerWidth
+      c.height = innerHeight
+      return c.toDataURL('image/png')
+    }
+  })
+  const shot = await rpc(gw, s.pageId!, 'rwd.screenshot', { format: 'png' })
+  expect(shot.source).toBe('native')
+  expect(await page.evaluate(() => (window as any).__seen)).toEqual(['0'])
+  // Back right after, and still locked meanwhile.
+  expect(await host.evaluate(el => getComputedStyle(el).opacity)).toBe('1')
+  await expect(host.locator('.bar')).toBeVisible()
+  await expect(host.locator('.glow')).toBeVisible()
+})

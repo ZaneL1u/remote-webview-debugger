@@ -47,10 +47,13 @@ export interface ScreenshotResult extends Page.CaptureScreenshotResponse {
   height: number
 }
 
+/** Runs right before a native capture; returns what undoes it afterwards. */
+type BeforeNative = () => Promise<() => void>
+
 export async function captureScreenshot(
-  params: Page.CaptureScreenshotRequest
+  params: Page.CaptureScreenshotRequest & { beforeNative?: BeforeNative }
 ): Promise<ScreenshotResult> {
-  const { format = 'png', quality, clip, captureBeyondViewport } = params
+  const { format = 'png', quality, clip, captureBeyondViewport, beforeNative } = params
 
   const viewport: Region = {
     x: window.scrollX,
@@ -73,7 +76,7 @@ export async function captureScreenshot(
   let canvas: HTMLCanvasElement | undefined
   let source: ScreenshotSource = 'native'
   if (contains(viewport, region)) {
-    canvas = await captureNative(viewport, region)
+    canvas = await captureNative(viewport, region, beforeNative)
   }
   if (!canvas) {
     canvas = await renderDom(region, clip?.scale)
@@ -121,13 +124,30 @@ function getNativeCapture(): (() => unknown) | undefined {
   }
 }
 
-async function captureNative(viewport: Region, region: Region) {
+async function captureNative(
+  viewport: Region,
+  region: Region,
+  beforeNative?: BeforeNative
+) {
   const capture = getNativeCapture()
   if (!capture) return
 
   let image: HTMLImageElement
+  // Real pixels include our own UI on top of the page: hide it meanwhile
+  // (the DOM re-render leaves it out by itself).
+  let restore: (() => void) | undefined
   try {
-    const result = await capture()
+    if (beforeNative) restore = await beforeNative()
+  } catch {
+    // Capture anyway.
+  }
+  try {
+    let result: unknown
+    try {
+      result = await capture()
+    } finally {
+      if (restore) restore()
+    }
     if (typeof result !== 'string' || !result) return
     image = await loadImage(
       result.startsWith('data:')

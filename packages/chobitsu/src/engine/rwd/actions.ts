@@ -25,6 +25,12 @@ export interface ActionHooks {
    * Awaited before the input is dispatched, so the cursor gets there first.
    */
   pointer?(p: Point, kind: PointerKind, el: Element): Promise<void> | void
+  /**
+   * Take our own UI (edge glow, bar, task card, pointer) off the screen for a
+   * native screenshot, which captures real pixels; resolves once that is
+   * painted, with the function that brings it back.
+   */
+  hideForCapture?(): Promise<() => void>
 }
 
 export type PointerKind = 'click' | 'hover' | 'focus' | 'select' | 'scroll' | 'drag' | 'drop'
@@ -407,7 +413,7 @@ const methods: { [name: string]: Method } = {
     }
   },
 
-  'rwd.screenshot': async params => {
+  'rwd.screenshot': async (params, hooks) => {
     const format = params.format === 'png' || params.format === 'webp' ? params.format : 'jpeg'
     const quality = typeof params.quality === 'number' ? Math.max(1, Math.min(100, params.quality)) : 80
     let clip
@@ -423,6 +429,7 @@ const methods: { [name: string]: Method } = {
       quality: format === 'png' ? undefined : quality,
       clip,
       captureBeyondViewport: !clip && !!params.fullPage,
+      beforeNative: hooks.hideForCapture && (() => hooks.hideForCapture!()),
     })
     return {
       data: shot.data,

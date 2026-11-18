@@ -432,6 +432,7 @@ async function onRpc(s: Session, msg: { id: number; method: string; params?: any
       highlight: el => s.ui.highlight(el),
       pointer: (p, kind) => s.ui.pointer(p.x, p.y, kind),
       confirm: action => s.approvals.confirm(action),
+      hideForCapture: () => s.ui.hideForCapture(),
     })
     reply = { id: msg.id, result: res === undefined ? {} : res }
   } catch (e) {

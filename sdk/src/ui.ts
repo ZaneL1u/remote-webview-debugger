@@ -116,7 +116,16 @@ const CURSOR_KEY = 'rwd:cursor'
 const TASK_KEY = 'rwd:task-min'
 const AUTO_KEY = 'rwd:auto'
 const LOCK_KEY = 'rwd:lock'
+const SHOWN_KEY = 'rwd:shown'
+/** How long after leaving a page the next one still counts as the same visit (ms). */
+const CARRY_MS = 5000
 const EDGE = 8
+/** How long the bar or the task card stays solid after the user last touched it (ms). */
+const HOLD_SOLID = 4000
+
+type Box = { left: number; top: number; right: number; bottom: number }
+/** What the agent's pointer at (x, y) covers on screen: the arrow and its shadow. */
+const cursorBox = (x: number, y: number): Box => ({ left: x - 6, top: y - 6, right: x + 26, bottom: y + 30 })
 // A tap that started before the dialog appeared must not answer it.
 const ARM_MS = 400
 const FONT = `-apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif`
@@ -171,11 +180,12 @@ ${CJK_FONTS}
   -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
 }
 .win.glass, .dlg.glass { background: rgba(var(--paper), .96); }
-/* The bar and the task card float over the page the agent works on: frosted,
-   so the page shows through, and nearly clear while the agent's pointer or a
-   highlight is right under them (.see-through, set from pointer()). */
-.bar.glass, .task.glass { background: rgba(var(--paper), .74); transition-property: opacity, transform, visibility, background; }
-.bar.see-through, .task.see-through { opacity: .28 !important; }
+/* The bar and the task card float over the page the agent works on. They stay
+   solid, and fade to see-through only while the agent's pointer or a highlight
+   is on them (.see-through, set from pointer()), so the user sees what is being
+   done there; they fade back once the pointer moves away. */
+.bar.glass, .task.glass { background: rgba(var(--paper), .96); }
+.bar.see-through, .task.see-through { opacity: .32 !important; }
 .pill, .bar, .btn { font: 500 12px/16px var(--font); }
 
 /* idle floating window: a translucent pill that expands into a card */
@@ -273,19 +283,21 @@ ${CJK_FONTS}
 .btn.help { background: rgb(var(--warning-rgb)); color: #0b0d12; padding: 4px 10px; }
 .btn.help.on { background: rgba(var(--warning-rgb), .18); color: #fcd34d; }
 
-/* bottom bar while an agent is attached */
+/* bottom bar while an agent is attached: slides up from below the screen, and
+   back down when it goes */
 .bar {
   position: fixed; z-index: 3; left: 50%; transform: translateX(-50%);
   bottom: calc(env(safe-area-inset-bottom, 0px) + var(--rwd-bar-bottom, 14px));
   display: flex; align-items: center; gap: 12px; padding: 7px 7px 7px 18px; border-radius: var(--button-radius);
   white-space: nowrap; pointer-events: none; max-width: calc(100vw - 24px);
   user-select: none; -webkit-user-select: none;
-  opacity: 0; visibility: hidden; transform: translate(-50%, 18px) scale(.96);
-  transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1), visibility 0s linear .3s;
+  opacity: 0; visibility: hidden;
+  transform: translate(-50%, calc(100% + env(safe-area-inset-bottom, 0px) + var(--rwd-bar-bottom, 14px) + 24px));
+  transition: opacity .3s ease-in .06s, transform .4s cubic-bezier(.55, 0, .8, .3), visibility 0s linear .4s;
 }
 .observe .bar, .agent .bar, .user .bar, .devtools .bar {
   pointer-events: auto; opacity: 1; visibility: visible; transform: translateX(-50%);
-  transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1);
+  transition: opacity .35s ease, transform .55s cubic-bezier(.2, .9, .2, 1);
 }
 .bar .status { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 14px; font-weight: 650; letter-spacing: .3px; }
 .bar .text { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
@@ -302,19 +314,20 @@ ${CJK_FONTS}
 .bar .acts { display: flex; gap: 8px; }
 .bar .btn { min-width: 78px; min-height: 46px; padding: 12px 22px; font-size: 15px; line-height: 20px; font-weight: 700; text-align: center; }
 
-/* task card */
+/* task card: slides down from above the screen, and back up when it goes */
 .task {
   position: fixed; z-index: 3; left: 50%; transform: translateX(-50%);
   top: calc(env(safe-area-inset-top, 0px) + var(--rwd-task-top, 10px));
   width: min(calc(100vw - 24px), 380px); padding: 12px 14px 12px; border-radius: calc(var(--radius) - 2px);
   pointer-events: none; cursor: pointer; font: 13px/18px var(--font);
   user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
-  opacity: 0; visibility: hidden; transform: translate(-50%, -14px) scale(.97);
-  transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1), visibility 0s linear .3s;
+  opacity: 0; visibility: hidden;
+  transform: translate(-50%, calc(-100% - env(safe-area-inset-top, 0px) - var(--rwd-task-top, 10px) - 24px));
+  transition: opacity .3s ease-in .06s, transform .4s cubic-bezier(.55, 0, .8, .3), visibility 0s linear .4s;
 }
 .task.on {
   pointer-events: auto; opacity: 1; visibility: visible; transform: translateX(-50%);
-  transition: opacity .22s ease, transform .3s cubic-bezier(.2, .9, .2, 1);
+  transition: opacity .35s ease, transform .55s cubic-bezier(.2, .9, .2, 1);
 }
 .task li { transition: color .25s ease; }
 .task .mark { transition: background .25s ease, box-shadow .25s ease; }
@@ -508,6 +521,15 @@ export class Ui {
   private taskEl: HTMLElement
   private cursor: HTMLElement
   private cursorAt: { x: number; y: number } | null = null
+  /** Where the agent's pointer (or its last highlight) is: the bar and the task card fade while it is on them. */
+  private seeAt: Box | null = null
+  /** Until when the bar / the task card stays solid because the user touched it. */
+  private solidUntil = new Map<HTMLElement, number>()
+  private barOn = false
+  /** Native screenshots in progress (the UI is hidden while any is). */
+  private capturing = 0
+  /** Up on the page we came from (same visit): here they are just there, no slide in. */
+  private carried = { bar: false, task: false }
   private panel: HTMLElement | null = null
   private control: ControlState = 'none'
   /** When the agent attached (local clock); null: none attached. */
@@ -570,7 +592,33 @@ export class Ui {
     // element itself listens for it.
     this.taskEl.addEventListener('click', e => this.onClick(e))
     this.pill.addEventListener('click', e => this.onClick(e))
+    // A touch (or a scroll of the step list) makes the bar / the task card solid
+    // again right away; it stays solid until the user leaves it alone for a while.
+    // Their show / hide / resize transitions move them: check the pointer again.
+    for (const el of [this.bar, this.taskEl]) {
+      const hold = (e: Event) => {
+        if (e.isTrusted) this.holdSolid(el)
+      }
+      for (const type of ['pointerdown', 'touchstart', 'touchmove', 'wheel', 'scroll'])
+        el.addEventListener(type, hold, { capture: true, passive: true })
+      el.addEventListener('transitionend', e => {
+        if (e.target === el) this.fade()
+      })
+    }
     this.bindDrag()
+    // The bar and the task card slide in when an agent arrives, not again on
+    // every page it opens: remember what is up when we leave this page.
+    try {
+      const was = JSON.parse(read('sessionStorage', SHOWN_KEY) || 'null')
+      if (was && Date.now() - was.at < CARRY_MS) this.carried = { bar: !!was.bar, task: !!was.task }
+    } catch (e) {
+      // Ignore.
+    }
+    write('sessionStorage', SHOWN_KEY, '')
+    setTimeout(() => (this.carried = { bar: false, task: false }), CARRY_MS)
+    window.addEventListener('pagehide', () =>
+      write('sessionStorage', SHOWN_KEY, JSON.stringify({ at: Date.now(), bar: this.barOn, task: this.taskEl.classList.contains('on') }))
+    )
     window.addEventListener('resize', () => this.place())
     this.render()
   }
@@ -838,7 +886,7 @@ export class Ui {
     c.style.transform = `translate3d(${x}px, ${y}px, 0)`
     c.classList.add('on')
     this.saveCursor(x, y)
-    this.seeThrough({ left: x - 6, top: y - 6, right: x + 26, bottom: y + 30 })
+    this.seeThrough(cursorBox(x, y))
     return new Promise(resolve => {
       setTimeout(() => {
         if (kind === 'click' || kind === 'focus' || kind === 'select' || kind === 'drop') this.tap(x, y)
@@ -852,12 +900,64 @@ export class Ui {
    * under them, so the user sees what is being done there; they come back
    * once the pointer moves away (or the agent stops).
    */
-  private seeThrough(r: { left: number; top: number; right: number; bottom: number } | null) {
+  private seeThrough(r: Box | null) {
+    this.seeAt = r
+    this.fade()
+  }
+
+  /**
+   * Check the bar and the task card against where the pointer is now: on
+   * every move, and whenever they move or change size (render, resize, their
+   * transitions, a new page with the pointer restored). One the user touched
+   * stays solid for HOLD_SOLID ms after the last touch.
+   */
+  private fade() {
+    const r = this.seeAt
+    const now = Date.now()
     for (const el of [this.bar, this.taskEl]) {
-      const b = el.getBoundingClientRect()
-      const over = !!r && b.width > 0 && r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top
+      let over = false
+      const shown = el !== this.taskEl || el.classList.contains('on')
+      if (r && shown && (this.solidUntil.get(el) || 0) <= now) {
+        const b = el.getBoundingClientRect()
+        over = b.width > 0 && r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top
+      }
       el.classList.toggle('see-through', over)
     }
+  }
+
+  /**
+   * For a native screenshot (real pixels): take the whole UI (edge glow, bar,
+   * task card, pointer, dialogs) off the screen at once, no fade, and resolve
+   * once that is painted; the returned function brings it back as it was.
+   * Only invisible: the lock overlay keeps holding the page meanwhile.
+   */
+  hideForCapture(): Promise<() => void> {
+    this.capturing++
+    this.host.style.opacity = '0'
+    let done = false
+    const restore = () => {
+      if (done) return
+      done = true
+      if (--this.capturing === 0) this.host.style.opacity = ''
+    }
+    // Two frames so the change is committed to the screen the host captures.
+    return new Promise(resolve =>
+      requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => resolve(restore), 16)))
+    )
+  }
+
+  /** Show a part that was up on the previous page in place, without its slide in. */
+  private arrive(el: HTMLElement, on: boolean, key: 'bar' | 'task') {
+    if (!on || !this.carried[key]) return
+    this.carried[key] = false
+    el.style.transition = 'none'
+    void el.offsetWidth
+    requestAnimationFrame(() => requestAnimationFrame(() => (el.style.transition = '')))
+  }
+
+  private holdSolid(el: HTMLElement) {
+    this.solidUntil.set(el, Date.now() + HOLD_SOLID)
+    el.classList.remove('see-through')
   }
 
   private tap(x: number, y: number) {
@@ -892,6 +992,8 @@ export class Ui {
     this.placeCursor(at.x, at.y)
     this.cursor.classList.add('on')
     this.saveCursor(at.x, at.y)
+    // On a new page the pointer comes back where it was, maybe on the bar.
+    this.seeThrough(cursorBox(at.x, at.y))
   }
 
   private placeCursor(x: number, y: number) {
@@ -983,39 +1085,45 @@ export class Ui {
     // Bottom bar.
     const bar = this.bar
     bar.className = `bar glass${bar.classList.contains('see-through') ? ' see-through' : ''}`
-    clear(bar)
-    const status = make('span', 'status', '', bar)
-    make('span', 'dot', '', status)
-    const text = make('span', 'text', '', status)
-    const line = make('span', 'head', '', text)
-    const acts = make('span', 'acts', '', bar)
-    if (inspecting) {
-      make('span', 'label', t.barDevtools, line)
-      make('span', 'who', this.inspectors.join(t.nameSep), line)
-      make('button', 'btn stop', t.end, acts, 'end')
+    this.barOn = this.control !== 'none' || inspecting
+    this.arrive(bar, this.barOn, 'bar')
+    // Hidden: keep the last content while it slides away.
+    if (!this.barOn) this.sinceEl = null
+    else {
+      clear(bar)
+      const status = make('span', 'status', '', bar)
+      make('span', 'dot', '', status)
+      const text = make('span', 'text', '', status)
+      const line = make('span', 'head', '', text)
+      const acts = make('span', 'acts', '', bar)
+      if (inspecting) {
+        make('span', 'label', t.barDevtools, line)
+        make('span', 'who', this.inspectors.join(t.nameSep), line)
+        make('button', 'btn stop', t.end, acts, 'end')
+      }
+      switch (this.control) {
+        case 'observe':
+          make('span', 'label', t.barViewing, line)
+          make('span', 'who', this.agent, line)
+          // Locked already: the user needs a way back in before the agent acts.
+          make('button', 'btn light', t.takeover, acts, 'takeover')
+          make('button', 'btn stop', t.end, acts, 'end')
+          break
+        case 'agent':
+          make('span', 'label', t.barAgent, line)
+          make('button', 'btn light', t.takeover, acts, 'takeover')
+          make('button', 'btn stop', t.end, acts, 'end')
+          break
+        case 'user':
+          make('span', 'label', t.barUser, line)
+          make('button', 'btn accent', t.handback, acts, 'handback')
+          make('button', 'btn stop', t.end, acts, 'end')
+          break
+      }
+      this.sinceEl = this.control === 'none' ? null : make('span', 'since', '', text)
+      this.tick()
+      bar.setAttribute('aria-label', bar.textContent || '')
     }
-    switch (this.control) {
-      case 'observe':
-        make('span', 'label', t.barViewing, line)
-        make('span', 'who', this.agent, line)
-        // Locked already: the user needs a way back in before the agent acts.
-        make('button', 'btn light', t.takeover, acts, 'takeover')
-        make('button', 'btn stop', t.end, acts, 'end')
-        break
-      case 'agent':
-        make('span', 'label', t.barAgent, line)
-        make('button', 'btn light', t.takeover, acts, 'takeover')
-        make('button', 'btn stop', t.end, acts, 'end')
-        break
-      case 'user':
-        make('span', 'label', t.barUser, line)
-        make('button', 'btn accent', t.handback, acts, 'handback')
-        make('button', 'btn stop', t.end, acts, 'end')
-        break
-    }
-    this.sinceEl = this.control === 'none' ? null : make('span', 'since', '', text)
-    this.tick()
-    bar.setAttribute('aria-label', bar.textContent || '')
 
     this.renderTask(make, clear)
     this.renderPanel(make, clear)
@@ -1068,6 +1176,7 @@ export class Ui {
     const show = !!task && this.control !== 'none'
     const min = read('sessionStorage', TASK_KEY) === '1'
     el.className = `task glass${show ? ' on' : ''}${min ? ' min' : ''}${el.classList.contains('see-through') ? ' see-through' : ''}`
+    this.arrive(el, show, 'task')
     // Keep the last content while it fades out.
     if (!task || !show) {
       this.taskKey = ''
@@ -1268,6 +1377,7 @@ export class Ui {
     this.win.style.left = `${wx}px`
     this.win.style.top = `${wy}px`
     this.win.style.transformOrigin = `${side === 'left' ? 'left' : 'right'} ${below ? 'top' : 'bottom'}`
+    this.fade()
   }
 
   private bindDrag() {

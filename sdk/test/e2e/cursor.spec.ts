@@ -104,6 +104,8 @@ test('under the agent lock the user can scroll the step list and use 接管 / �
   })
   const list = page.locator('#__rwd .task ol')
   await expect(list).toBeVisible()
+  // It slides down from above the screen: aim once it is in place.
+  await expect.poll(() => page.locator('#__rwd .task').evaluate(el => new DOMMatrix(getComputedStyle(el).transform).f)).toBe(0)
   const dims = await list.evaluate(el => ({ sh: el.scrollHeight, ch: el.clientHeight, top: el.scrollTop }))
   expect(dims.sh).toBeGreaterThan(dims.ch)
   // The current step was scrolled into view.
