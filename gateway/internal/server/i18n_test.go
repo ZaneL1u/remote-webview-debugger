@@ -122,13 +122,13 @@ func TestAgentChinese(t *testing.T) {
 		t.Fatalf("instructions: %s", instr)
 	}
 	tools := listTools(t, s)
-	if tools["click"].Description != "点击元素。" {
+	if !strings.HasPrefix(tools["click"].Description, "点击元素：") {
 		t.Errorf("click: %q", tools["click"].Description)
 	}
 	if d := schemaTexts(t, tools["hover"].InputSchema); len(d) != 1 || d[0] != "快照中的元素引用，如 e12" {
 		t.Errorf("hover params: %v", d)
 	}
-	if d := schemaTexts(t, tools["click"].InputSchema); len(d) != 2 {
+	if d := schemaTexts(t, tools["click"].InputSchema); len(d) != 6 {
 		t.Errorf("click params: %v", d)
 	}
 	if out, isErr := callText(t, s, "list_pages", nil); !isErr || out != "错误：当前没有接入设备，请先调用 connect_device" {

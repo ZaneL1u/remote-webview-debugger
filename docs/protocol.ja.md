@@ -243,7 +243,7 @@ SDK が書くメッセージはエージェントの言語（`welcome.agentLang`
 | メソッド | レベル | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`: Playwright の AI 形式（YAML、要素に `[ref=eN]` タグ付き）のアクセシビリティスナップショット。ページの上に何かが浮いている場合は、その後にオーバーレイのセクションが続く（[§5.3](#53-ページ内での動作)） |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: Playwright の AI 形式（YAML、要素に `[ref=eN]` タグ付き）のアクセシビリティスナップショット。ページの上に何かが浮いている場合は、その後にオーバーレイのセクションが続く（[§5.3](#53-ページ内での動作)）。既定はページ全体。`scope: "viewport"` は完全に画面外の要素を省き（`omitted` はそのうち ref を持つ数）、`ref` はその要素のサブツリーだけを返す（オーバーレイ一覧なし）。どちらでも ref はページ全体に割り当てる。 |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（条件を 1 つ以上。`limit` は 1〜100） | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

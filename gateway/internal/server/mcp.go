@@ -352,6 +352,7 @@ type BatchIn struct {
 		Args map[string]any `json:"args,omitempty" jsonschema:"param.batch.args"`
 	} `json:"actions" jsonschema:"param.batch.actions"`
 	StopOnError *bool `json:"stopOnError,omitempty" jsonschema:"param.batch.stop_on_error"`
+	Screenshot  bool  `json:"screenshot,omitempty" jsonschema:"param.screenshot_after"`
 }
 
 type FindIn struct {
@@ -388,6 +389,14 @@ type OptPageIn struct {
 	Page string `json:"page,omitempty" jsonschema:"param.page_selected"`
 }
 
+// SnapshotIn: by default only what is on screen; the whole page, or the part
+// under one element, on request.
+type SnapshotIn struct {
+	Page string `json:"page,omitempty" jsonschema:"param.page_selected"`
+	Full bool   `json:"full,omitempty" jsonschema:"param.snapshot.full"`
+	Ref  string `json:"ref,omitempty" jsonschema:"param.snapshot.ref"`
+}
+
 type ScreenshotIn struct {
 	Page     string `json:"page,omitempty" jsonschema:"param.page_opt"`
 	FullPage bool   `json:"fullPage,omitempty" jsonschema:"param.screenshot.full_page"`
@@ -399,9 +408,15 @@ type RefIn struct {
 }
 
 // ClickIn is a click, or with holdMs a long press (press, hold, release).
+// The element is a ref, or found by text / role / name (find_elements' rules)
+// without a separate lookup.
 type ClickIn struct {
-	Ref    string `json:"ref" jsonschema:"param.ref"`
-	HoldMs int    `json:"holdMs,omitempty" jsonschema:"param.click.hold_ms"`
+	Ref        string `json:"ref,omitempty" jsonschema:"param.click.ref"`
+	Text       string `json:"text,omitempty" jsonschema:"param.find.text"`
+	Role       string `json:"role,omitempty" jsonschema:"param.find.role"`
+	Name       string `json:"name,omitempty" jsonschema:"param.find.name"`
+	HoldMs     int    `json:"holdMs,omitempty" jsonschema:"param.click.hold_ms"`
+	Screenshot bool   `json:"screenshot,omitempty" jsonschema:"param.screenshot_after"`
 }
 
 // maxHoldMs caps a long press; the page call's timeout leaves room for it.
@@ -419,7 +434,8 @@ type TypeIn struct {
 }
 
 type PressIn struct {
-	Key string `json:"key" jsonschema:"param.press.key"`
+	Key        string `json:"key" jsonschema:"param.press.key"`
+	Screenshot bool   `json:"screenshot,omitempty" jsonschema:"param.screenshot_after"`
 }
 
 type SelectIn struct {
@@ -431,6 +447,8 @@ type ScrollIn struct {
 	Ref string `json:"ref,omitempty" jsonschema:"param.scroll.ref"`
 	Dx  int    `json:"dx,omitempty" jsonschema:"param.scroll.dx"`
 	Dy  int    `json:"dy,omitempty" jsonschema:"param.scroll.dy"`
+
+	Screenshot bool `json:"screenshot,omitempty" jsonschema:"param.screenshot_after"`
 }
 
 type DragIn struct {
@@ -627,48 +645,47 @@ func (s *Server) addTools(srv *mcp.Server) {
 		})
 
 	addTool(s, srv, "take_snapshot", true,
-		func(ctx context.Context, a *hub.Agent, in OptPageIn, o *out) error {
-			raw, sess, err := s.call(ctx, a, in.Page, "rwd.snapshot", nil, false)
+		func(ctx context.Context, a *hub.Agent, in SnapshotIn, o *out) error {
+			params := map[string]any{}
+			switch {
+			case in.Ref != "":
+				params["ref"] = in.Ref
+			case !in.Full:
+				params["scope"] = "viewport"
+			}
+			raw, sess, err := s.call(ctx, a, in.Page, "rwd.snapshot", params, false)
 			if err != nil {
 				return err
 			}
-			var r struct{ URL, Title, Snapshot string }
+			var r struct {
+				URL, Title, Snapshot string
+				Omitted              int
+			}
 			_ = json.Unmarshal(raw, &r)
 			o.t(i18n.ResSnapshotHeader, sess.Label, r.Title, r.URL)
 			o.add("%s", untrusted(o.lang, "page_snapshot", r.Snapshot))
+			if r.Omitted > 0 {
+				o.t(i18n.ResSnapshotOmitted, r.Omitted)
+			}
 			return nil
 		})
 
 	addTool(s, srv, "take_screenshot", true,
 		func(ctx context.Context, a *hub.Agent, in ScreenshotIn, o *out) error {
-			format := in.Format
-			if format != "png" {
-				format = "jpeg"
-			}
-			raw, sess, err := s.call(ctx, a, in.Page, "rwd.screenshot", map[string]any{"format": format, "quality": 80, "fullPage": in.FullPage}, false)
-			if err != nil {
-				return err
-			}
-			var r struct {
-				Data, MimeType, Source string
-				Width, Height          int
-			}
-			_ = json.Unmarshal(raw, &r)
-			data, err := base64.StdEncoding.DecodeString(r.Data)
-			if err != nil {
-				return s.errorf(i18n.ErrBadScreenshot)
-			}
-			o.image = &mcp.ImageContent{Data: data, MIMEType: r.MimeType}
-			src := map[string]string{"native": o.lang.T(i18n.ResScreenshotNative), "dom": o.lang.T(i18n.ResScreenshotDOM)}[r.Source]
-			o.t(i18n.ResScreenshot, sess.Label, r.Width, r.Height, src)
-			return nil
+			return s.screenshot(ctx, a, in.Page, in.Format, in.FullPage, o)
 		})
 
 	addTool(s, srv, "click", false, func(ctx context.Context, a *hub.Agent, in ClickIn, o *out) error {
-		if hold := min(max(in.HoldMs, 0), maxHoldMs); hold > 0 {
-			return s.action(ctx, a, o, "rwd.click", map[string]any{"ref": in.Ref, "holdMs": hold}, i18n.M(i18n.ResLongPressed, in.Ref, hold))
+		ref, err := s.target(ctx, a, in.Ref, in.Text, in.Role, in.Name, o)
+		if err != nil {
+			return err
 		}
-		return s.action(ctx, a, o, "rwd.click", map[string]any{"ref": in.Ref}, i18n.M(i18n.ResClicked, in.Ref))
+		if hold := min(max(in.HoldMs, 0), maxHoldMs); hold > 0 {
+			err = s.action(ctx, a, o, "rwd.click", map[string]any{"ref": ref, "holdMs": hold}, i18n.M(i18n.ResLongPressed, ref, hold))
+		} else {
+			err = s.action(ctx, a, o, "rwd.click", map[string]any{"ref": ref}, i18n.M(i18n.ResClicked, ref))
+		}
+		return s.after(ctx, a, in.Screenshot, o, err)
 	})
 	addTool(s, srv, "hover", false, func(ctx context.Context, a *hub.Agent, in RefIn, o *out) error {
 		return s.action(ctx, a, o, "rwd.hover", map[string]any{"ref": in.Ref}, i18n.M(i18n.ResHovered, in.Ref))
@@ -684,7 +701,8 @@ func (s *Server) addTools(srv *mcp.Server) {
 		return s.action(ctx, a, o, "rwd.type", p, i18n.M(i18n.ResTyped))
 	})
 	addTool(s, srv, "press_key", false, func(ctx context.Context, a *hub.Agent, in PressIn, o *out) error {
-		return s.action(ctx, a, o, "rwd.press", map[string]any{"key": in.Key}, i18n.M(i18n.ResPressed, in.Key))
+		err := s.action(ctx, a, o, "rwd.press", map[string]any{"key": in.Key}, i18n.M(i18n.ResPressed, in.Key))
+		return s.after(ctx, a, in.Screenshot, o, err)
 	})
 	addTool(s, srv, "select_option", false, func(ctx context.Context, a *hub.Agent, in SelectIn, o *out) error {
 		return s.action(ctx, a, o, "rwd.select", map[string]any{"ref": in.Ref, "values": in.Values}, i18n.M(i18n.ResSelected))
@@ -698,7 +716,8 @@ func (s *Server) addTools(srv *mcp.Server) {
 		if in.Ref != "" {
 			p["ref"] = in.Ref
 		}
-		return s.action(ctx, a, o, "rwd.scroll", p, i18n.M(i18n.ResScrolled))
+		err := s.action(ctx, a, o, "rwd.scroll", p, i18n.M(i18n.ResScrolled))
+		return s.after(ctx, a, in.Screenshot, o, err)
 	})
 	addTool(s, srv, "drag", false, func(ctx context.Context, a *hub.Agent, in DragIn, o *out) error {
 		return s.action(ctx, a, o, "rwd.drag", map[string]any{"fromRef": in.FromRef, "toRef": in.ToRef}, i18n.M(i18n.ResDragged))
@@ -946,6 +965,14 @@ func (s *Server) addTools(srv *mcp.Server) {
 			failed := 0
 			for i, act := range in.Actions {
 				method, params, interactive, err := batchStep(o.lang, act.Tool, act.Args)
+				if err == nil && method == "rwd.click" && params["ref"] == nil {
+					// A click by text / role / name, as with the click tool.
+					str := func(k string) string { v, _ := act.Args[k].(string); return v }
+					var ref string
+					if ref, err = s.target(ctx, a, "", str("text"), str("role"), str("name"), o); err == nil {
+						params["ref"] = ref
+					}
+				}
 				if err == nil {
 					_, _, err = s.call(ctx, a, "", method, params, interactive)
 				}
@@ -960,10 +987,11 @@ func (s *Server) addTools(srv *mcp.Server) {
 				}
 				o.t(i18n.ResBatchStepDone, i+1, act.Tool)
 			}
+			var err error
 			if failed > 0 {
-				return s.errorf(i18n.ErrBatchFailed, failed)
+				err = s.errorf(i18n.ErrBatchFailed, failed)
 			}
-			return nil
+			return s.after(ctx, a, in.Screenshot, o, err)
 		})
 
 	addTool(s, srv, "find_elements", true,
@@ -1092,6 +1120,90 @@ func jsonID(id string) any {
 		return n
 	}
 	return id
+}
+
+// screenshot captures a page into o (take_screenshot, and screenshot: true on actions).
+func (s *Server) screenshot(ctx context.Context, a *hub.Agent, page, format string, fullPage bool, o *out) error {
+	if format != "png" {
+		format = "jpeg"
+	}
+	raw, sess, err := s.call(ctx, a, page, "rwd.screenshot", map[string]any{"format": format, "quality": 80, "fullPage": fullPage}, false)
+	if err != nil {
+		return err
+	}
+	var r struct {
+		Data, MimeType, Source string
+		Width, Height          int
+	}
+	_ = json.Unmarshal(raw, &r)
+	data, err := base64.StdEncoding.DecodeString(r.Data)
+	if err != nil {
+		return s.errorf(i18n.ErrBadScreenshot)
+	}
+	o.image = &mcp.ImageContent{Data: data, MIMEType: r.MimeType}
+	src := map[string]string{"native": o.lang.T(i18n.ResScreenshotNative), "dom": o.lang.T(i18n.ResScreenshotDOM)}[r.Source]
+	o.t(i18n.ResScreenshot, sess.Label, r.Width, r.Height, src)
+	return nil
+}
+
+// settleAfterAction lets the page react to an action (a menu opening, a tab
+// switching) before the screenshot that comes with it.
+var settleAfterAction = 400 * time.Millisecond
+
+// after adds the screenshot an action asked for (screenshot: true), saving
+// the agent a take_screenshot call. Not after a failed action, and a failed
+// capture only adds a note: the action itself happened.
+func (s *Server) after(ctx context.Context, a *hub.Agent, shot bool, o *out, err error) error {
+	if err != nil || !shot {
+		return err
+	}
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-time.After(settleAfterAction):
+	}
+	if e := s.screenshot(ctx, a, "", "", false, o); e != nil {
+		o.t(i18n.ResNoScreenshotAfter, explain(o.lang, e))
+	}
+	return nil
+}
+
+// target is the ref to act on: the given ref, or the element find_elements
+// would list first for text / role / name (an exact text or name match
+// first), which is added to o (page text: untrusted).
+func (s *Server) target(ctx context.Context, a *hub.Agent, ref, text, role, name string, o *out) (string, error) {
+	if ref != "" {
+		return ref, nil
+	}
+	if text == "" && role == "" && name == "" {
+		return "", s.errorf(i18n.ErrClickTarget)
+	}
+	raw, sess, err := s.call(ctx, a, "", "rwd.query", map[string]any{"text": text, "role": role, "name": name, "limit": 20}, false)
+	if err != nil {
+		return "", err
+	}
+	var r struct {
+		Matches []struct{ Ref, Role, Name, Text string } `json:"matches"`
+		Total   int                                      `json:"total"`
+	}
+	_ = json.Unmarshal(raw, &r)
+	if len(r.Matches) == 0 {
+		return "", s.errorf(i18n.ErrClickNoMatch, sess.Label)
+	}
+	pick := r.Matches[0]
+	for _, m := range r.Matches {
+		if (text != "" && (strings.EqualFold(strings.TrimSpace(m.Text), strings.TrimSpace(text)) ||
+			strings.EqualFold(strings.TrimSpace(m.Name), strings.TrimSpace(text)))) ||
+			(text == "" && name != "" && strings.EqualFold(strings.TrimSpace(m.Name), strings.TrimSpace(name))) {
+			pick = m
+			break
+		}
+	}
+	o.add("%s", untrusted(o.lang, "element", fmt.Sprintf("%s \"%s\" [ref=%s]", pick.Role, clipRunes(pick.Name, 60), pick.Ref)))
+	if r.Total > 1 {
+		o.t(i18n.ResClickMatches, r.Total)
+	}
+	return pick.Ref, nil
 }
 
 // action runs an interactive RPC on the current page.

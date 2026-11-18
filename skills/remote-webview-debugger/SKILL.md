@@ -28,19 +28,29 @@ The page runs on a real phone (the user's or a tester's), inside an app WebView 
 3. `set_task` right away: a short title and the planned steps. It is shown on the phone. Update `current` after each step.
 4. `disconnect_device` when you are done, so the phone goes back to normal.
 
+## Keep it quick
+
+Every tool call is a round trip the user waits for, often several seconds of thinking on your side. A test that needs fifty calls takes many minutes. Cut calls, not care:
+
+- Click by what you see: `click({ text: "Settings" })` (or `role` / `name`) finds and clicks in one call. No `find_elements` first.
+- Add `screenshot: true` to `click`, `press_key`, `scroll` or `batch_actions` when you need to see the result, instead of calling `take_screenshot` afterwards.
+- Put steps that don't need a look in between into one `batch_actions` (a form, open a menu and pick an item).
+- `take_snapshot` returns only what is on screen; it says how many elements it left out. Use `ref` for one part, `full: true` only when you need the whole page.
+- Long device tests are faster in a fresh conversation (or a subagent) than at the end of a long coding session.
+
 ## Look before you act
 
-- `take_snapshot` — the page as YAML with element refs (`[ref=e12]`). Prefer it to screenshots; take a fresh one when a ref is stale.
-- `find_elements` — find a button or field by text / role / name without a full snapshot (cheaper on long pages).
+- `take_snapshot` — what is on screen as YAML with element refs (`[ref=e12]`); `full: true` for the whole page, `ref` for one part. Prefer it to screenshots; take a fresh one when a ref is stale.
+- `find_elements` — list buttons or fields by text / role / name without a snapshot, when you need to choose between several.
 - `take_screenshot` — only when the visual result matters (layout, images, colors).
 - `list_pages` / `select_page` — a device can have several pages (p1, p2, …); tools act on the selected one, and by default you follow pages that open or come to the front.
 
 ## Act
 
-- `click`, `fill`, `type_text`, `press_key`, `select_option`, `scroll`, `drag`, `hover` take refs from the snapshot.
+- `click`, `fill`, `type_text`, `press_key`, `select_option`, `scroll`, `drag`, `hover` take refs from the snapshot; `click` also takes `text` / `role` / `name` (an exact text match wins; it tells you when several matched).
 - Long press: `click` with `holdMs` (for example `800`) presses, holds and releases, for menus or popovers that open on a held touch (such as the full text of a truncated title).
 - If `click` says the point is covered by another element, don't click the covering element instead: that taps something else. Take a fresh snapshot; close the popup or backdrop if one is in the way, otherwise tell the user what covers the target.
-- `batch_actions` runs several of them in one call; use it for forms.
+- `batch_actions` runs several of them in one call (a click in it can use `text` too); use it for forms and short sequences.
 - `navigate_page`, `go_back`, `reload_page`; then `wait_for` (text appears/disappears) or `wait_for_page` (a new WebView or a navigation).
 - Every result ends with **[Session changes]**: new pages, navigations, errors, a user takeover. Read it.
 - If the user takes over, your actions are refused: call `wait_for_control` and continue when they hand back.

@@ -243,7 +243,7 @@ SDK가 작성하는 메시지는 에이전트의 언어(`welcome.agentLang`, [§
 | 메서드 | 수준 | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`: Playwright의 AI 형식(YAML, 요소에 `[ref=eN]` 태그)으로 된 접근성 스냅샷이에요. 페이지 위에 무언가 떠 있으면 그 뒤에 오버레이 섹션이 붙어요([§5.3](#53-페이지-안에서의-동작)) |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: Playwright의 AI 형식(YAML, 요소에 `[ref=eN]` 태그)으로 된 접근성 스냅샷이에요. 페이지 위에 무언가 떠 있으면 그 뒤에 오버레이 섹션이 붙어요([§5.3](#53-페이지-안에서의-동작)). 기본은 페이지 전체. `scope: "viewport"`는 화면 밖에 완전히 있는 요소를 빼고(`omitted`는 그중 ref가 있는 수), `ref`는 그 요소의 하위 트리만 준다(오버레이 목록 없음). 어느 쪽이든 ref는 페이지 전체에 매긴다 |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`(기준이 하나 이상 필요, `limit`은 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

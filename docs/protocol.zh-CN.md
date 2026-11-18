@@ -243,7 +243,7 @@ SDK 写的错误信息使用 agent 的语言（`welcome.agentLang`，§15）。
 | 方法 | 级别 | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<毫秒>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`：Playwright AI 模式的无障碍快照（YAML，元素带 `[ref=eN]`）；页面上有东西浮在内容之上时，末尾附一段浮层清单（§5.3） |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`：Playwright AI 模式的无障碍快照（YAML，元素带 `[ref=eN]`）；页面上有东西浮在内容之上时，末尾附一段浮层清单（§5.3）。默认整页；`scope: "viewport"` 去掉完全在屏幕外的元素（`omitted` 是其中带 ref 的个数），`ref` 只给该元素的子树（不附浮层清单）。两种情况 ref 都按整页分配。 |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（至少一个条件；`limit` 1–100） | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

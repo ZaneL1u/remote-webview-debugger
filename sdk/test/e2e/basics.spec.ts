@@ -41,3 +41,28 @@ test('snapshot: Playwright AI YAML with refs, without our UI', async ({ page, gw
   const ping = await rpc(gw, s.pageId!, 'rwd.ping')
   expect(typeof ping.at).toBe('number')
 })
+
+test('snapshot scopes: only the screen (with a count of what is left out), one part by ref; refs cover the whole page', async ({ page, gw }) => {
+  await page.setViewportSize({ width: 390, height: 260 })
+  const s = await openDemo(page, gw)
+  await expect(page.locator('.card')).toHaveCount(4)
+  const full = await rpc(gw, s.pageId!, 'rwd.snapshot')
+  expect(full.omitted).toBe(0)
+  const lastCard = refOf(full.snapshot, 'link', '机械键盘 K8')
+
+  const screen = await rpc(gw, s.pageId!, 'rwd.snapshot', { scope: 'viewport' })
+  expect(screen.snapshot).toContain('heading "演示商城" [level=1]')
+  expect(screen.snapshot).not.toContain('机械键盘 K8')
+  expect(screen.omitted).toBeGreaterThan(0)
+  expect(screen.snapshot.length).toBeLessThan(full.snapshot.length)
+  // An off-screen element's ref still works (it is scrolled into view).
+  expect((await gw.rpc(s.pageId!, 'rwd.hover', { ref: lastCard })).error).toBeUndefined()
+
+  const fresh = await rpc(gw, s.pageId!, 'rwd.snapshot')
+  const card = refOf(fresh.snapshot, 'link', '无线降噪耳机 Pro')
+  const part = await rpc(gw, s.pageId!, 'rwd.snapshot', { ref: card })
+  expect(part.snapshot).toContain('无线降噪耳机 Pro')
+  expect(part.snapshot).not.toContain('演示商城')
+  const gone = await gw.rpc(s.pageId!, 'rwd.snapshot', { ref: 'e99999' })
+  expect(gone.error.code).toBe('not_found')
+})

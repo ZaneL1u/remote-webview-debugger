@@ -243,7 +243,7 @@ SDK понимает `reconnect`; сейчас шлюз его не отправ
 | Метод | Уровень | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`: снимок доступности в AI-формате Playwright (YAML, элементы помечены `[ref=eN]`), а за ним — раздел оверлеев, если что-то парит над страницей ([§5.3](#53-поведение-на-странице)) |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: снимок доступности в AI-формате Playwright (YAML, элементы помечены `[ref=eN]`), а за ним — раздел оверлеев, если что-то парит над страницей ([§5.3](#53-поведение-на-странице)). По умолчанию вся страница; `scope: "viewport"` опускает элементы, целиком находящиеся вне экрана (`omitted` — число таких с ref), `ref` возвращает только поддерево этого элемента (без раздела оверлеев). Ref в любом случае назначаются для всей страницы |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (хотя бы один критерий; `limit` 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

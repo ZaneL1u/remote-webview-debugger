@@ -242,7 +242,7 @@ Every method acts on the page that receives it.
 | Method | Level | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`: an accessibility snapshot in Playwright's AI format (YAML, elements tagged `[ref=eN]`), followed by an overlays section when something floats over the page ([§5.3](#53-behavior-in-the-page)) |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: an accessibility snapshot in Playwright's AI format (YAML, elements tagged `[ref=eN]`), followed by an overlays section when something floats over the page ([§5.3](#53-behavior-in-the-page)). The whole page by default; `scope: "viewport"` leaves out elements wholly off screen (`omitted` counts those with refs), `ref` gives only that element's subtree (no overlays section). Refs are assigned for the whole page either way |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (at least one criterion; `limit` 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

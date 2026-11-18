@@ -28,9 +28,34 @@ let extraSeq = 0
 // The cleaned tree of the latest snapshot (what the agent saw), for rwd.query.
 let lastTree: AriaNode | undefined
 
+export interface SnapshotScope {
+  /** Only the part of the page under this ref (of the previous snapshot or query). */
+  ref?: string
+  /** Only what is on screen (and its ancestors); elements wholly off screen are left out. */
+  viewport?: boolean
+}
+
+export interface ScopedSnapshot {
+  snapshot: string
+  /** Elements with refs left out because they are off screen. */
+  omitted: number
+}
+
+/** The whole page, as the agent saw it last; refs cover the whole page in every scope. */
 export function takeSnapshot(): string {
+  return snapshotIn({}).snapshot
+}
+
+/**
+ * A snapshot of the page, or of part of it. Refs are assigned for the whole
+ * page either way, so a ref seen in find_elements works after a scoped
+ * snapshot, and the next snapshot keeps them for unchanged elements.
+ */
+export function snapshotIn(scope: SnapshotScope): ScopedSnapshot {
   const root = document.body || document.documentElement
   return withDomCompat(() => {
+    // The subtree's element, before the refs are renewed.
+    const under = scope.ref ? resolveRef(scope.ref) : null
     const snapshot = generateAriaTree(root, OPTIONS)
     clean(snapshot.root, collectSecrets())
     applyPatterns(snapshot.root)
@@ -45,9 +70,64 @@ export function takeSnapshot(): string {
       if (!el.isConnected) extraRefs.delete(ref)
     })
 
-    const { json } = renderAriaTreeAsJSON(snapshot, OPTIONS)
-    return renderAriaSnapshotAsYaml(json) + overlaySection(Array.from(next.values()))
+    let shown = snapshot.root
+    let omitted = 0
+    if (under) {
+      const node = findNode(snapshot.root, n => elementOf(n) === under)
+      if (!node) throw rwdError('not_found', agentText().refDetached(scope.ref!))
+      shown = { ...snapshot.root, children: [node] }
+    } else if (scope.viewport) {
+      const kept = onScreen(snapshot.root, { w: window.innerWidth, h: window.innerHeight })
+      shown = kept.node || { ...snapshot.root, children: [] }
+      omitted = kept.omitted
+    }
+    const { json } = renderAriaTreeAsJSON({ ...snapshot, root: shown }, OPTIONS)
+    // The popups section is about the whole screen; a subtree leaves it out.
+    const overlays = under ? '' : overlaySection(Array.from(next.values()))
+    return { snapshot: renderAriaSnapshotAsYaml(json) + overlays, omitted }
   })
+}
+
+function findNode(node: AriaNode, test: (n: AriaNode) => boolean): AriaNode | undefined {
+  if (test(node)) return node
+  for (const child of node.children) {
+    if (typeof child === 'string') continue
+    const found = findNode(child, test)
+    if (found) return found
+  }
+  return undefined
+}
+
+/**
+ * A copy of the tree without the elements that lie wholly outside the screen,
+ * keeping the ancestors of what is on it (a fixed bar inside a long list
+ * stays). Elements without a box of their own (display: contents) are judged
+ * by their children.
+ */
+function onScreen(node: AriaNode, view: { w: number; h: number }): { node: AriaNode | null; omitted: number } {
+  const el = elementOf(node)
+  let off = false
+  if (el && el !== document.body && el !== document.documentElement) {
+    const r = el.getBoundingClientRect()
+    off = (r.width > 0 || r.height > 0) && (r.bottom <= 0 || r.top >= view.h || r.right <= 0 || r.left >= view.w)
+  }
+  let omitted = 0
+  let keptElements = 0
+  const children: (AriaNode | string)[] = []
+  for (const child of node.children) {
+    if (typeof child === 'string') {
+      children.push(child)
+      continue
+    }
+    const sub = onScreen(child, view)
+    omitted += sub.omitted
+    if (sub.node) {
+      children.push(sub.node)
+      keptElements++
+    }
+  }
+  if (off && !keptElements) return { node: null, omitted: omitted + (node.ref ? 1 : 0) }
+  return { node: { ...node, children }, omitted }
 }
 
 /** A ref for any element: its snapshot ref, or an oN ref of its own. */

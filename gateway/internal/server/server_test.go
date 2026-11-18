@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -121,6 +122,7 @@ type fakePage struct {
 	requests chan map[string]any
 	devtools chan map[string]any // devtools on/off
 	cdp      chan map[string]any // CDP commands relayed to the page
+	rpcs     chan map[string]any // rwd.* calls: method and params
 	closed   chan websocket.StatusCode
 	decide   func(req map[string]any) any // attach_request -> level (string) or nil
 }
@@ -163,7 +165,7 @@ func (f *fixture) page(o pageOpts) *fakePage {
 		"device": map[string]any{"platform": "ios", "ua": o.ua}, "deviceToken": token, "resume": o.resume, "invite": o.invite})
 	ws.Write(ctx, websocket.MessageText, hello)
 	p := &fakePage{ws: ws, controls: make(chan map[string]any, 16), tasks: make(chan map[string]any, 8), requests: make(chan map[string]any, 4),
-		devtools: make(chan map[string]any, 8), cdp: make(chan map[string]any, 8), closed: make(chan websocket.StatusCode, 1), decide: o.decide}
+		devtools: make(chan map[string]any, 8), cdp: make(chan map[string]any, 8), rpcs: make(chan map[string]any, 64), closed: make(chan websocket.StatusCode, 1), decide: o.decide}
 	ready := make(chan struct{})
 	go func() {
 		for {
@@ -210,9 +212,25 @@ func (f *fixture) page(o pageOpts) *fakePage {
 				}
 			case m["method"] != nil:
 				method := m["method"].(string)
+				select {
+				case p.rpcs <- m:
+				default:
+				}
 				result := map[string]any{}
 				if method == "rwd.snapshot" {
 					result = map[string]any{"url": o.url, "title": o.title, "snapshot": `- button "提交" [ref=e1]`}
+					if params, _ := m["params"].(map[string]any); params != nil && params["scope"] == "viewport" {
+						result["omitted"] = 3
+					}
+				}
+				if method == "rwd.query" {
+					result = map[string]any{"total": 2, "matches": []map[string]any{
+						{"ref": "e7", "role": "button", "name": "设置中心", "text": "设置中心"},
+						{"ref": "e8", "role": "button", "name": "设置", "text": "设置"}}}
+				}
+				if method == "rwd.screenshot" {
+					result = map[string]any{"data": base64.StdEncoding.EncodeToString([]byte("jpeg")), "mimeType": "image/jpeg",
+						"source": "native", "width": 750, "height": 1334}
 				}
 				if method == "rwd.log" {
 					result = fakeSessionLog(m["params"].(map[string]any), o.pageID)
@@ -231,6 +249,19 @@ func (f *fixture) page(o pageOpts) *fakePage {
 		f.t.Fatal("no welcome")
 	}
 	return p
+}
+
+// drainRPCs returns the rwd.* calls the page has received since the last drain.
+func drainRPCs(p *fakePage) []map[string]any {
+	var got []map[string]any
+	for {
+		select {
+		case m := <-p.rpcs:
+			got = append(got, m)
+		case <-time.After(50 * time.Millisecond):
+			return got
+		}
+	}
 }
 
 func (p *fakePage) send(t *testing.T, v any) {
@@ -384,13 +415,50 @@ func TestAgentFlow(t *testing.T) {
 		t.Fatalf("long press: %s", out)
 	}
 
+	// Click by text: one lookup, then the click; an exact text match wins over the first.
+	drainRPCs(p1)
+	out, isErr = callText(t, s, "click", map[string]any{"text": "设置"})
+	if isErr || !strings.Contains(out, "已点击 e8") || !strings.Contains(out, "匹配到 2 个元素") {
+		t.Fatalf("click by text: %s", out)
+	}
+	if got := drainRPCs(p1); len(got) != 2 || got[0]["method"] != "rwd.query" || got[1]["method"] != "rwd.click" ||
+		got[1]["params"].(map[string]any)["ref"] != "e8" {
+		t.Fatalf("click by text rpcs: %v", got)
+	}
+	if out, isErr := callText(t, s, "click", nil); !isErr || !strings.Contains(out, "请给 ref") {
+		t.Fatalf("click without target: %s", out)
+	}
+	// screenshot: true brings the screenshot with the action.
+	res, err := s.CallTool(context.Background(), &mcp.CallToolParams{Name: "click", Arguments: map[string]any{"ref": "e1", "screenshot": true}})
+	if err != nil || res.IsError || len(res.Content) != 2 {
+		t.Fatalf("click with screenshot: %v %+v", err, res)
+	}
+	if img, ok := res.Content[0].(*mcp.ImageContent); !ok || string(img.Data) != "jpeg" {
+		t.Fatalf("click with screenshot: content %+v", res.Content[0])
+	}
+	if got := drainRPCs(p1); len(got) != 2 || got[1]["method"] != "rwd.screenshot" {
+		t.Fatalf("click with screenshot rpcs: %v", got)
+	}
+	// The snapshot is the screen by default (with a note on what is left out),
+	// the whole page or one part on request.
+	out, _ = callText(t, s, "take_snapshot", nil)
+	if !strings.Contains(out, "屏幕外的 3 个元素") {
+		t.Fatalf("viewport snapshot: %s", out)
+	}
+	callText(t, s, "take_snapshot", map[string]any{"full": true})
+	callText(t, s, "take_snapshot", map[string]any{"ref": "e5"})
+	if got := drainRPCs(p1); len(got) != 3 || got[0]["params"].(map[string]any)["scope"] != "viewport" ||
+		len(got[1]["params"].(map[string]any)) != 0 || got[2]["params"].(map[string]any)["ref"] != "e5" {
+		t.Fatalf("snapshot params: %v", got)
+	}
+
 	// Granted interact, so advanced tools are refused even though the key allows them.
 	if out, isErr := callText(t, s, "evaluate_script", map[string]any{"function": "() => 1"}); !isErr || !strings.Contains(out, "advanced") {
 		t.Fatalf("evaluate at interact: %s", out)
 	}
 
 	// A page opened from p1 (same device, carries the device token) is followed.
-	f.page(pageOpts{pageID: "page2", title: "结算", opener: "page1"})
+	p2 := f.page(pageOpts{pageID: "page2", title: "结算", opener: "page1"})
 	time.Sleep(100 * time.Millisecond)
 	out, _ = callText(t, s, "list_pages", nil)
 	if !strings.Contains(out, "p2「结算」") || !strings.Contains(out, "由 p1 打开") || !strings.Contains(out, "已自动切换到 p2") {
@@ -415,6 +483,16 @@ func TestAgentFlow(t *testing.T) {
 	}})
 	if isErr || strings.Count(out, "完成") != 2 {
 		t.Fatalf("batch: %s", out)
+	}
+	drainRPCs(p2) // p2 is followed
+	res, err = s.CallTool(context.Background(), &mcp.CallToolParams{Name: "batch_actions", Arguments: map[string]any{
+		"actions": []map[string]any{{"tool": "click", "args": map[string]any{"text": "设置"}}}, "screenshot": true}})
+	if err != nil || res.IsError || len(res.Content) != 2 {
+		t.Fatalf("batch by text with screenshot: %v %+v", err, res)
+	}
+	if got := drainRPCs(p2); len(got) != 3 || got[0]["method"] != "rwd.query" || got[1]["params"].(map[string]any)["ref"] != "e8" ||
+		got[2]["method"] != "rwd.screenshot" {
+		t.Fatalf("batch by text rpcs: %v", got)
 	}
 
 	p1.send(t, map[string]string{"t": "control", "action": "end"})

@@ -243,7 +243,7 @@ Todo método age sobre a página que o recebe.
 | Método | Nível | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`: um snapshot de acessibilidade no formato de IA do Playwright (YAML, elementos marcados com `[ref=eN]`), seguido de uma seção de sobreposições quando algo flutua sobre a página ([§5.3](#53-comportamento-na-página)) |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: um snapshot de acessibilidade no formato de IA do Playwright (YAML, elementos marcados com `[ref=eN]`), seguido de uma seção de sobreposições quando algo flutua sobre a página ([§5.3](#53-comportamento-na-página)). A página inteira por padrão; `scope: "viewport"` omite os elementos totalmente fora da tela (`omitted` conta os que têm ref), `ref` dá só a subárvore desse elemento (sem a seção de sobreposições). As refs são atribuídas para a página inteira em ambos os casos |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (pelo menos um critério; `limit` 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

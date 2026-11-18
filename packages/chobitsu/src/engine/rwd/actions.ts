@@ -1,5 +1,5 @@
 import { captureScreenshot } from '../screenshot'
-import { querySnapshot, resolveRef, takeSnapshot } from './snapshot'
+import { querySnapshot, resolveRef, snapshotIn } from './snapshot'
 import { readStorage } from './storage'
 import { clickConfirmation, enterConfirmation } from './policy'
 import { press, typeText } from './keyboard'
@@ -211,9 +211,15 @@ function toJson(value: any): any {
 const methods: { [name: string]: Method } = {
   'rwd.ping': () => ({ at: Date.now() }),
 
-  'rwd.snapshot': () => {
-    const snapshot = takeSnapshot()
-    return { url: location.href, title: document.title, snapshot }
+  // scope: "viewport" (only what is on screen) or the whole page (default,
+  // what older gateways expect); ref: only the part under that element.
+  'rwd.snapshot': params => {
+    const p = params || {}
+    const { snapshot, omitted } = snapshotIn({
+      ref: typeof p.ref === 'string' && p.ref ? p.ref : undefined,
+      viewport: p.scope === 'viewport',
+    })
+    return { url: location.href, title: document.title, snapshot, omitted }
   },
 
   'rwd.query': params => querySnapshot(params),

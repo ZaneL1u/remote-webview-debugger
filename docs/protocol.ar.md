@@ -257,7 +257,7 @@
 | الطريقة | المستوى | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`: لقطة إمكانية الوصول بصيغة AI الخاصة بـ Playwright (YAML، والعناصر موسومة بـ `[ref=eN]`)، يليها قسم للطبقات العائمة عندما يطفو شيء فوق الصفحة ([§5.3](#53-السلوك-داخل-الصفحة)) |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: لقطة إمكانية الوصول بصيغة AI الخاصة بـ Playwright (YAML، والعناصر موسومة بـ `[ref=eN]`)، يليها قسم للطبقات العائمة عندما يطفو شيء فوق الصفحة ([§5.3](#53-السلوك-داخل-الصفحة)). الصفحة كاملة افتراضياً؛ `scope: "viewport"` يحذف العناصر الواقعة كلياً خارج الشاشة (`omitted` عدد ما له ref منها)، و`ref` يعطي الشجرة الفرعية لذلك العنصر فقط (دون قسم الطبقات العائمة). تُعيَّن الـ ref للصفحة كاملة في الحالتين |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (معيار واحد على الأقل؛ `limit` من 1 إلى 100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

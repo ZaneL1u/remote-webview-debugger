@@ -243,7 +243,7 @@ SDK 產生的錯誤訊息使用 agent 的語言（`welcome.agentLang`，[§15](#
 | 方法 | 等級 | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<毫秒>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`：Playwright AI 格式的無障礙快照（YAML，元素標上 `[ref=eN]`）；有東西浮在頁面內容上方時，末尾會附上一段覆蓋層清單（[§5.3](#53-頁面內的行為)） |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`：Playwright AI 格式的無障礙快照（YAML，元素標上 `[ref=eN]`）；有東西浮在頁面內容上方時，末尾會附上一段覆蓋層清單（[§5.3](#53-頁面內的行為)）。預設整頁；`scope: "viewport"` 去掉完全在螢幕外的元素（`omitted` 是其中帶 ref 的個數），`ref` 只給該元素的子樹（不附浮層清單）。兩種情況 ref 都按整頁分配。 |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}`（至少一個條件；`limit` 1–100） | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |

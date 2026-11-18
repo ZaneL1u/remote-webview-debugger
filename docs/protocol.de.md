@@ -243,7 +243,7 @@ Jede Methode wirkt auf die Seite, die sie empfängt.
 | Methode | Stufe | params | result |
 |---|---|---|---|
 | `rwd.ping` | observe | `{}` | `{"at":<ms>}` |
-| `rwd.snapshot` | observe | `{}` | `{"url","title","snapshot"}`: ein Barrierefreiheits-Snapshot im AI-Format von Playwright (YAML, Elemente mit `[ref=eN]` markiert), gefolgt von einem Overlay-Abschnitt, wenn etwas über der Seite schwebt ([§5.3](#53-verhalten-in-der-seite)) |
+| `rwd.snapshot` | observe | `{"scope"?:"viewport","ref"?}` | `{"url","title","snapshot","omitted"}`: ein Barrierefreiheits-Snapshot im AI-Format von Playwright (YAML, Elemente mit `[ref=eN]` markiert), gefolgt von einem Overlay-Abschnitt, wenn etwas über der Seite schwebt ([§5.3](#53-verhalten-in-der-seite)). Standardmäßig die ganze Seite; `scope: "viewport"` lässt Elemente ganz außerhalb des Bildschirms weg (`omitted` zählt die mit ref), `ref` liefert nur den Teilbaum dieses Elements (ohne Overlay-Abschnitt). Refs werden in jedem Fall für die ganze Seite vergeben |
 | `rwd.query` | observe | `{"text"?,"role"?,"name"?,"limit"?:20}` (mindestens ein Kriterium; `limit` 1–100) | `{"matches":[{"ref","role","name","text"}],"total"}` |
 | `rwd.screenshot` | observe | `{"format"?:"jpeg"\|"png"\|"webp","quality"?:80,"fullPage"?:false,"ref"?}` | `{"data":"<base64>","mimeType","source":"native"\|"dom","width","height"}` |
 | `rwd.console` | observe | `{"sinceId"?,"limit"?:100,"types"?:["error","warn"]}` | `{"messages":[{"id","type","text","at","source"?}],"dropped"}` |
