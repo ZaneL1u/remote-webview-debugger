@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -84,7 +84,7 @@ Crea una clave de API en la consola web (una sola clave llega a todos los dispos
 npx -y remote-webview-debugger-mcp init
 ```
 
-Pide la dirección del gateway y la clave, y luego añade el servidor MCP a los agentes que encuentra: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code o Claude Desktop. También instala la skill del agente (`npx skills add ZaneL1u/remote-webview-debugger`). Un solo servidor MCP puede llegar a varios gateways. Consulta [el paquete MCP](mcp/README.es.md) para la configuración de cada agente.
+Pide la dirección del gateway y la clave, y luego añade el servidor MCP a los agentes que encuentra: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code o Claude Desktop. También instala la skill del agente (`npx skills add zanel1u/remote-webview-debugger`). Un solo servidor MCP puede llegar a varios gateways. Consulta [el paquete MCP](mcp/README.es.md) para la configuración de cada agente.
 
 Un agente que hable MCP por HTTP también puede conectarse directamente al gateway:
 
@@ -125,7 +125,7 @@ Por HTTP plano, las claves de API y las contraseñas de la consola web viajan si
 | [`packages/chobitsu/`](packages/chobitsu) | Copia integrada de [chobitsu](https://github.com/liriliri/chobitsu) más nuestro motor del lado de la página en `src/engine/` |
 | [`console/`](console) | Consola web (React, Vite) |
 | [`mcp/`](mcp) | Paquete MCP para todos los agentes (`npx -y remote-webview-debugger-mcp`): servidor stdio, varios gateways, `init` |
-| [`skills/`](skills) | La skill del agente (`npx skills add ZaneL1u/remote-webview-debugger`), que también usan el plugin de Claude Code y la extensión de Gemini CLI |
+| [`skills/`](skills) | La skill del agente (`npx skills add zanel1u/remote-webview-debugger`), que también usan el plugin de Claude Code y la extensión de Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site), con la demo interactiva |
 | [`examples/`](examples) | Una tienda de demostración con varias páginas y una app de macOS que aloja WKWebViews como una app de iOS |
 | [`deploy/platform/`](deploy/platform) | Despliegue con Docker Compose |

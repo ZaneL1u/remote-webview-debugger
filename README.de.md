@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -84,7 +84,7 @@ Legen Sie in der Konsole einen API-Key an (ein Key erreicht jedes Gerät) und f�
 npx -y remote-webview-debugger-mcp init
 ```
 
-Der Befehl fragt nach der Gateway-Adresse und dem Key und trägt den MCP-Server dann bei den Agenten ein, die er findet: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code oder Claude Desktop. Außerdem installiert er den Agent-Skill (`npx skills add ZaneL1u/remote-webview-debugger`). Ein MCP-Server kann mehrere Gateways erreichen. Die Einrichtung für jeden Agenten steht im [MCP-Paket](mcp/README.de.md).
+Der Befehl fragt nach der Gateway-Adresse und dem Key und trägt den MCP-Server dann bei den Agenten ein, die er findet: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code oder Claude Desktop. Außerdem installiert er den Agent-Skill (`npx skills add zanel1u/remote-webview-debugger`). Ein MCP-Server kann mehrere Gateways erreichen. Die Einrichtung für jeden Agenten steht im [MCP-Paket](mcp/README.de.md).
 
 Ein Agent, der MCP über HTTP spricht, kann sich auch direkt mit dem Gateway verbinden:
 
@@ -125,7 +125,7 @@ Das Gateway spricht einfaches HTTP und funktioniert damit problemlos: Das SDK w�
 | [`packages/chobitsu/`](packages/chobitsu) | Eingebundenes [chobitsu](https://github.com/liriliri/chobitsu) plus unsere seitenseitige Engine in `src/engine/` |
 | [`console/`](console) | Web-Konsole (React, Vite) |
 | [`mcp/`](mcp) | MCP-Paket für jeden Agenten (`npx -y remote-webview-debugger-mcp`): stdio-Server, mehrere Gateways, `init` |
-| [`skills/`](skills) | Der Agent-Skill (`npx skills add ZaneL1u/remote-webview-debugger`), auch vom Claude-Code-Plugin und von der Gemini-CLI-Extension genutzt |
+| [`skills/`](skills) | Der Agent-Skill (`npx skills add zanel1u/remote-webview-debugger`), auch vom Claude-Code-Plugin und von der Gemini-CLI-Extension genutzt |
 | [`website/`](website) | [debugger.site](https://debugger.site) mit der interaktiven Demo |
 | [`examples/`](examples) | Ein mehrseitiger Demo-Shop und eine macOS-App, die WKWebViews wie eine iOS-App hostet |
 | [`deploy/platform/`](deploy/platform) | Deployment mit Docker Compose |

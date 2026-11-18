@@ -1,4 +1,4 @@
-<!-- i18n-source: 1de93768d1f6453d5cd81a0a70e3d0d7449a8e4e -->
+<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Servidor MCP do RWD (`mcp/`)
@@ -28,7 +28,7 @@ O que o `init` altera:
 |---|---|
 | Gateways e chaves | `~/.config/remote-webview-debugger/mcp.json` (modo 0600; `%APPDATA%\remote-webview-debugger\mcp.json` no Windows) |
 | Agentes | Adiciona o servidor como `remote-webview-debugger` à config MCP de cada agente e faz backup do arquivo antigo como `<file>.bak`. Um arquivo com comentários não é alterado; em vez disso, você recebe o trecho para colar |
-| Skill | `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g`, se você concordar |
+| Skill | `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g`, se você concordar |
 
 Execute o `init` de novo para adicionar outro gateway ou outro agente. Os gateways existentes são mantidos, e um gateway com o mesmo nome é substituído.
 
@@ -37,7 +37,7 @@ Execute o `init` de novo para adicionar outro gateway ou outro agente. Os gatewa
 A skill diz ao agente quando usar o Remote WebView Debugger e como: conectar, a aprovação no celular, `set_task`, snapshots antes das ações e como investigar um bug. Ela segue o formato [Agent Skills](https://agentskills.io) e é instalada com o [`skills`](https://github.com/vercel-labs/skills):
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 O `skills add` só instala a skill; o servidor MCP vem do `init` (ou de um plugin, abaixo). A skill sabe disso: quando as ferramentas estão faltando, ela diz ao agente para pedir que você execute o `init`. A skill também está no pacote npm, em `skills/`.

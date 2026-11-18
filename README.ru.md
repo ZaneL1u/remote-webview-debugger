@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -84,7 +84,7 @@ SDK — это npm-пакет [`remote-webview-debugger`](sdk/README.ru.md): з�
 npx -y remote-webview-debugger-mcp init
 ```
 
-Команда спросит адрес шлюза и ключ, а затем добавит MCP-сервер в найденных агентов: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code или Claude Desktop. Она также установит навык агента (`npx skills add ZaneL1u/remote-webview-debugger`). Один MCP-сервер может работать с несколькими шлюзами. Настройка каждого агента описана в [MCP-пакете](mcp/README.ru.md).
+Команда спросит адрес шлюза и ключ, а затем добавит MCP-сервер в найденных агентов: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code или Claude Desktop. Она также установит навык агента (`npx skills add zanel1u/remote-webview-debugger`). Один MCP-сервер может работать с несколькими шлюзами. Настройка каждого агента описана в [MCP-пакете](mcp/README.ru.md).
 
 Агент, который поддерживает MCP по HTTP, может также подключиться к шлюзу напрямую:
 
@@ -125,7 +125,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`packages/chobitsu/`](packages/chobitsu) | Встроенная в репозиторий копия [chobitsu](https://github.com/liriliri/chobitsu) и наш движок на стороне страницы в `src/engine/` |
 | [`console/`](console) | Веб-консоль (React, Vite) |
 | [`mcp/`](mcp) | MCP-пакет для любого агента (`npx -y remote-webview-debugger-mcp`): stdio-сервер, несколько шлюзов, `init` |
-| [`skills/`](skills) | Навык агента (`npx skills add ZaneL1u/remote-webview-debugger`), который также используют плагин Claude Code и расширение Gemini CLI |
+| [`skills/`](skills) | Навык агента (`npx skills add zanel1u/remote-webview-debugger`), который также используют плагин Claude Code и расширение Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site) с интерактивным демо |
 | [`examples/`](examples) | Многостраничный демо-магазин и macOS-приложение, которое размещает WKWebView так же, как iOS-приложение |
 | [`deploy/platform/`](deploy/platform) | Развёртывание через Docker Compose |

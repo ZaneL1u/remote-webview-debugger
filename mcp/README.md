@@ -27,7 +27,7 @@ What `init` changes:
 |---|---|
 | Gateways and keys | `~/.config/remote-webview-debugger/mcp.json` (mode 0600; `%APPDATA%\remote-webview-debugger\mcp.json` on Windows) |
 | Agents | Adds the server as `remote-webview-debugger` to each agent's own MCP config, and backs up the old file as `<file>.bak`. A file with comments isn't touched; you get the snippet to paste instead |
-| Skill | `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g`, if you agree |
+| Skill | `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g`, if you agree |
 
 Run `init` again to add another gateway or another agent. Existing gateways are kept, and a gateway with the same name is replaced.
 
@@ -36,7 +36,7 @@ Run `init` again to add another gateway or another agent. Existing gateways are 
 The skill tells the agent when to use Remote WebView Debugger and how: connect, approval on the phone, `set_task`, snapshots before actions, and how to look into a bug. It follows the [Agent Skills](https://agentskills.io) format, and you install it with [`skills`](https://github.com/vercel-labs/skills):
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 `skills add` only installs the skill; the MCP server comes from `init` (or from a plugin, below). The skill knows this: when the tools are missing, it tells the agent to ask you to run `init`. The skill is also in the npm package under `skills/`.

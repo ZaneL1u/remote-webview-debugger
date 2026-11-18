@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -84,7 +84,7 @@ SDK는 npm 패키지 [`remote-webview-debugger`](sdk/README.ko.md)예요. 위처
 npx -y remote-webview-debugger-mcp init
 ```
 
-게이트웨이 주소와 키를 물어본 뒤, 찾은 에이전트(Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code, Claude Desktop)에 MCP 서버를 추가해요. 에이전트 스킬(`npx skills add ZaneL1u/remote-webview-debugger`)도 설치해요. MCP 서버 하나로 여러 게이트웨이에 접근할 수 있어요. 에이전트별 설정은 [MCP 패키지](mcp/README.ko.md)를 참고하세요.
+게이트웨이 주소와 키를 물어본 뒤, 찾은 에이전트(Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code, Claude Desktop)에 MCP 서버를 추가해요. 에이전트 스킬(`npx skills add zanel1u/remote-webview-debugger`)도 설치해요. MCP 서버 하나로 여러 게이트웨이에 접근할 수 있어요. 에이전트별 설정은 [MCP 패키지](mcp/README.ko.md)를 참고하세요.
 
 HTTP로 MCP를 쓸 수 있는 에이전트는 게이트웨이에 직접 접속할 수도 있어요.
 
@@ -125,7 +125,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`packages/chobitsu/`](packages/chobitsu) | 벤더링한 [chobitsu](https://github.com/liriliri/chobitsu)와 `src/engine/`에 있는 자체 페이지 측 엔진 |
 | [`console/`](console) | 웹 콘솔(React, Vite) |
 | [`mcp/`](mcp) | 모든 에이전트를 위한 MCP 패키지(`npx -y remote-webview-debugger-mcp`): stdio 서버, 여러 게이트웨이, `init` |
-| [`skills/`](skills) | 에이전트 스킬(`npx skills add ZaneL1u/remote-webview-debugger`). Claude Code 플러그인과 Gemini CLI 확장에서도 써요 |
+| [`skills/`](skills) | 에이전트 스킬(`npx skills add zanel1u/remote-webview-debugger`). Claude Code 플러그인과 Gemini CLI 확장에서도 써요 |
 | [`website/`](website) | 인터랙티브 데모가 있는 [debugger.site](https://debugger.site) |
 | [`examples/`](examples) | 여러 페이지로 된 데모 쇼핑몰, 그리고 iOS 앱처럼 WKWebView를 호스팅하는 macOS 앱 |
 | [`deploy/platform/`](deploy/platform) | Docker Compose 배포 |

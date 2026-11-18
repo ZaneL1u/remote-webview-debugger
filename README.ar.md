@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 
 <div dir="rtl">
 
@@ -103,7 +103,7 @@ npx -y remote-webview-debugger-mcp init
 
 </div>
 
-يسألك الأمر عن عنوان البوابة والمفتاح، ثم يضيف خادم MCP إلى الوكلاء الذين يعثر عليهم: Cursor أو Codex أو Gemini CLI أو Windsurf أو Cline أو VS Code أو opencode أو Claude Code أو Claude Desktop. ويثبّت أيضًا مهارة الوكيل (`npx skills add ZaneL1u/remote-webview-debugger`). يستطيع خادم MCP واحد الوصول إلى عدة بوابات. انظر [حزمة MCP](mcp/README.ar.md) لإعداد كل وكيل.
+يسألك الأمر عن عنوان البوابة والمفتاح، ثم يضيف خادم MCP إلى الوكلاء الذين يعثر عليهم: Cursor أو Codex أو Gemini CLI أو Windsurf أو Cline أو VS Code أو opencode أو Claude Code أو Claude Desktop. ويثبّت أيضًا مهارة الوكيل (`npx skills add zanel1u/remote-webview-debugger`). يستطيع خادم MCP واحد الوصول إلى عدة بوابات. انظر [حزمة MCP](mcp/README.ar.md) لإعداد كل وكيل.
 
 ويمكن للوكيل الذي يتحدث MCP عبر HTTP أن يتصل بالبوابة مباشرةً أيضًا:
 
@@ -148,7 +148,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`packages/chobitsu/`](packages/chobitsu) | نسخة مُضمَّنة من [chobitsu](https://github.com/liriliri/chobitsu) إضافةً إلى محركنا العامل في جانب الصفحة في `src/engine/` |
 | [`console/`](console) | لوحة التحكم (React، Vite) |
 | [`mcp/`](mcp) | حزمة MCP لكل وكيل (`npx -y remote-webview-debugger-mcp`): خادم stdio، وعدة بوابات، و `init` |
-| [`skills/`](skills) | مهارة الوكيل (`npx skills add ZaneL1u/remote-webview-debugger`)، وتستخدمها أيضًا إضافة Claude Code وامتداد Gemini CLI |
+| [`skills/`](skills) | مهارة الوكيل (`npx skills add zanel1u/remote-webview-debugger`)، وتستخدمها أيضًا إضافة Claude Code وامتداد Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site)، مع العرض التفاعلي |
 | [`examples/`](examples) | متجر تجريبي متعدد الصفحات وتطبيق macOS يستضيف WKWebViews كما يفعل تطبيق iOS |
 | [`deploy/platform/`](deploy/platform) | النشر عبر Docker Compose |

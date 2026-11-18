@@ -1,4 +1,4 @@
-<!-- i18n-source: 1de93768d1f6453d5cd81a0a70e3d0d7449a8e4e -->
+<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP 服务（`mcp/`）
@@ -28,7 +28,7 @@ npx -y remote-webview-debugger-mcp init
 |---|---|
 | 网关和 Key | `~/.config/remote-webview-debugger/mcp.json`（权限 0600；Windows 上是 `%APPDATA%\remote-webview-debugger\mcp.json`） |
 | agent | 以 `remote-webview-debugger` 为名把服务加到每个 agent 自己的 MCP 配置里，并把原文件备份为 `<file>.bak`。带注释的文件不会被改动，而是给出一段配置让你自己粘贴 |
-| skill | 你同意的话，执行 `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g` |
+| skill | 你同意的话，执行 `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g` |
 
 再次运行 `init` 可以添加另一个网关或另一个 agent。已有的网关会保留，同名的网关会被替换。
 
@@ -37,7 +37,7 @@ npx -y remote-webview-debugger-mcp init
 这个 skill 告诉 agent 什么时候用 Remote WebView Debugger、怎么用：连接、在手机上审批、`set_task`、操作前先拍快照，以及如何排查 bug。它遵循 [Agent Skills](https://agentskills.io) 格式，用 [`skills`](https://github.com/vercel-labs/skills) 安装：
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 `skills add` 只安装 skill；MCP 服务来自 `init`（或下面的插件）。skill 知道这一点：工具不存在时，它会让 agent 请你运行 `init`。npm 包的 `skills/` 目录里也带有这个 skill。

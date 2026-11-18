@@ -594,7 +594,7 @@ async function onboarding(page, n) {
   await card.waitFor()
   const init = `npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`
   await card.getByText(init, { exact: true }).waitFor()
-  await card.getByText('npx skills add ZaneL1u/remote-webview-debugger', { exact: true }).waitFor()
+  await card.getByText('npx skills add zanel1u/remote-webview-debugger', { exact: true }).waitFor()
   if (/rwd_sk_|RWD_API_KEY=/.test(init)) throw new Error('the init command must not carry the key')
   await card.getByText('手动配置 agent').click()
   await card.getByText(/帮我配置 Remote Debugger 的 MCP 服务器/).waitFor()
@@ -685,7 +685,7 @@ async function docs(page, n) {
   const init = `npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`
   await visible(page.getByRole('tab', { name: 'npm 包（推荐）' })).waitFor()
   await visible(page.getByText(init, { exact: true })).waitFor()
-  await visible(page.getByText('npx skills add ZaneL1u/remote-webview-debugger', { exact: true })).waitFor()
+  await visible(page.getByText('npx skills add zanel1u/remote-webview-debugger', { exact: true })).waitFor()
   await page.getByRole('tab', { name: 'Codex' }).click()
   await visible(page.getByText(/tool_timeout_sec = 660/)).waitFor()
   await page.getByRole('tab', { name: 'Gemini CLI' }).click()

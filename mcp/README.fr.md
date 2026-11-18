@@ -1,4 +1,4 @@
-<!-- i18n-source: 1de93768d1f6453d5cd81a0a70e3d0d7449a8e4e -->
+<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Serveur MCP RWD (`mcp/`)
@@ -28,7 +28,7 @@ Ce que `init` modifie :
 |---|---|
 | Passerelles et clés | `~/.config/remote-webview-debugger/mcp.json` (mode 0600 ; `%APPDATA%\remote-webview-debugger\mcp.json` sous Windows) |
 | Agents | Ajoute le serveur sous le nom `remote-webview-debugger` à la configuration MCP propre à chaque agent, et sauvegarde l'ancien fichier sous `<file>.bak`. Un fichier qui contient des commentaires n'est pas modifié ; vous obtenez à la place l'extrait à coller |
-| Skill | `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g`, si vous acceptez |
+| Skill | `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g`, si vous acceptez |
 
 Relancez `init` pour ajouter une autre passerelle ou un autre agent. Les passerelles existantes sont conservées, et une passerelle de même nom est remplacée.
 
@@ -37,7 +37,7 @@ Relancez `init` pour ajouter une autre passerelle ou un autre agent. Les passere
 Le skill indique à l'agent quand utiliser Remote WebView Debugger et comment : la connexion, l'approbation sur le téléphone, `set_task`, les instantanés avant les actions, et la manière d'examiner un bug. Il suit le format [Agent Skills](https://agentskills.io), et s'installe avec [`skills`](https://github.com/vercel-labs/skills) :
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 `skills add` installe uniquement le skill ; le serveur MCP vient de `init` (ou d'un plugin, ci-dessous). Le skill le sait : quand les outils manquent, il dit à l'agent de vous demander de lancer `init`. Le skill se trouve aussi dans le paquet npm, sous `skills/`.

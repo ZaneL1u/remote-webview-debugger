@@ -83,7 +83,7 @@ Create an API key in the console (one key reaches every device), then run:
 npx -y remote-webview-debugger-mcp init
 ```
 
-It asks for the gateway address and the key, then adds the MCP server to the agents it finds: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code or Claude Desktop. It also installs the agent skill (`npx skills add ZaneL1u/remote-webview-debugger`). One MCP server can reach several gateways. See [the MCP package](mcp/README.md) for the setup of each agent.
+It asks for the gateway address and the key, then adds the MCP server to the agents it finds: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code or Claude Desktop. It also installs the agent skill (`npx skills add zanel1u/remote-webview-debugger`). One MCP server can reach several gateways. See [the MCP package](mcp/README.md) for the setup of each agent.
 
 An agent that speaks MCP over HTTP can also connect to the gateway directly:
 
@@ -124,7 +124,7 @@ Over plain HTTP, API keys and console passwords travel unencrypted, so keep it t
 | [`packages/chobitsu/`](packages/chobitsu) | Vendored [chobitsu](https://github.com/liriliri/chobitsu) plus our page-side engine in `src/engine/` |
 | [`console/`](console) | Web console (React, Vite) |
 | [`mcp/`](mcp) | MCP package for every agent (`npx -y remote-webview-debugger-mcp`): stdio server, several gateways, `init` |
-| [`skills/`](skills) | The agent skill (`npx skills add ZaneL1u/remote-webview-debugger`), also used by the Claude Code plugin and the Gemini CLI extension |
+| [`skills/`](skills) | The agent skill (`npx skills add zanel1u/remote-webview-debugger`), also used by the Claude Code plugin and the Gemini CLI extension |
 | [`website/`](website) | [debugger.site](https://debugger.site), with the interactive demo |
 | [`examples/`](examples) | A multi-page demo shop and a macOS app that hosts WKWebViews like an iOS app |
 | [`deploy/platform/`](deploy/platform) | Docker Compose deployment |

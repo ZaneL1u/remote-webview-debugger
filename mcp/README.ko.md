@@ -1,4 +1,4 @@
-<!-- i18n-source: 1de93768d1f6453d5cd81a0a70e3d0d7449a8e4e -->
+<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP 서버(`mcp/`)
@@ -28,7 +28,7 @@ npx -y remote-webview-debugger-mcp init
 |---|---|
 | 게이트웨이와 키 | `~/.config/remote-webview-debugger/mcp.json`(모드 0600, Windows에서는 `%APPDATA%\remote-webview-debugger\mcp.json`) |
 | 에이전트 | 각 에이전트의 MCP 설정에 서버를 `remote-webview-debugger`로 추가하고, 기존 파일을 `<file>.bak`으로 백업해요. 주석이 있는 파일은 건드리지 않고, 대신 붙여 넣을 스니펫을 보여 줘요 |
-| 스킬 | 동의하면 `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g` |
+| 스킬 | 동의하면 `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g` |
 
 다른 게이트웨이나 다른 에이전트를 추가하려면 `init`을 다시 실행하세요. 기존 게이트웨이는 유지되고, 같은 이름의 게이트웨이는 교체돼요.
 
@@ -37,7 +37,7 @@ npx -y remote-webview-debugger-mcp init
 스킬은 에이전트에게 Remote WebView Debugger를 언제, 어떻게 쓸지 알려 줘요: 연결, 휴대폰에서의 승인, `set_task`, 동작 전 스냅샷, 버그를 살펴보는 방법. [Agent Skills](https://agentskills.io) 형식을 따르고, [`skills`](https://github.com/vercel-labs/skills)로 설치해요.
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 `skills add`는 스킬만 설치하고, MCP 서버는 `init`(또는 아래의 플러그인)으로 들어와요. 스킬도 이 사실을 알고 있어서, 도구가 없으면 `init`을 실행해 달라고 사용자에게 요청하라고 에이전트에게 알려 줘요. 스킬은 npm 패키지의 `skills/`에도 들어 있어요.

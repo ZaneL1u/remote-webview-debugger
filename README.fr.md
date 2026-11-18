@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -84,7 +84,7 @@ Créez une clé d'API dans la console web (une seule clé donne accès à tous l
 npx -y remote-webview-debugger-mcp init
 ```
 
-La commande demande l'adresse de la passerelle et la clé, puis ajoute le serveur MCP aux agents qu'elle trouve : Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code ou Claude Desktop. Elle installe aussi le skill de l'agent (`npx skills add ZaneL1u/remote-webview-debugger`). Un seul serveur MCP peut atteindre plusieurs passerelles. Voir [le paquet MCP](mcp/README.fr.md) pour la configuration de chaque agent.
+La commande demande l'adresse de la passerelle et la clé, puis ajoute le serveur MCP aux agents qu'elle trouve : Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code ou Claude Desktop. Elle installe aussi le skill de l'agent (`npx skills add zanel1u/remote-webview-debugger`). Un seul serveur MCP peut atteindre plusieurs passerelles. Voir [le paquet MCP](mcp/README.fr.md) pour la configuration de chaque agent.
 
 Un agent qui parle MCP sur HTTP peut aussi se connecter directement à la passerelle :
 
@@ -125,7 +125,7 @@ En HTTP simple, les clés d'API et les mots de passe de la console web circulent
 | [`packages/chobitsu/`](packages/chobitsu) | [chobitsu](https://github.com/liriliri/chobitsu) intégré au dépôt, plus notre moteur côté page dans `src/engine/` |
 | [`console/`](console) | Console web (React, Vite) |
 | [`mcp/`](mcp) | Paquet MCP pour tous les agents (`npx -y remote-webview-debugger-mcp`) : serveur stdio, plusieurs passerelles, `init` |
-| [`skills/`](skills) | Le skill de l'agent (`npx skills add ZaneL1u/remote-webview-debugger`), utilisé aussi par le plugin Claude Code et l'extension Gemini CLI |
+| [`skills/`](skills) | Le skill de l'agent (`npx skills add zanel1u/remote-webview-debugger`), utilisé aussi par le plugin Claude Code et l'extension Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site), avec la démo interactive |
 | [`examples/`](examples) | Une boutique de démonstration multipage et une application macOS qui héberge des WKWebViews comme une application iOS |
 | [`deploy/platform/`](deploy/platform) | Déploiement Docker Compose |

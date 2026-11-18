@@ -1,4 +1,4 @@
-<!-- i18n-source: 1de93768d1f6453d5cd81a0a70e3d0d7449a8e4e -->
+<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -34,7 +34,7 @@ npx -y remote-webview-debugger-mcp init
 |---|---|
 | البوابات والمفاتيح | `~/.config/remote-webview-debugger/mcp.json` (الصلاحيات 0600؛ و `%APPDATA%\remote-webview-debugger\mcp.json` على Windows) |
 | الوكلاء | يضيف الخادم باسم `remote-webview-debugger` إلى إعداد MCP الخاص بكل وكيل، ويحفظ نسخة احتياطية من الملف القديم باسم `<file>.bak`. لا يمسّ ملفًا يحتوي على تعليقات؛ بل يعطيك المقطع لتلصقه بنفسك |
-| المهارة | `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g`، إن وافقت |
+| المهارة | `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g`، إن وافقت |
 
 شغّل `init` مرة أخرى لإضافة بوابة أخرى أو وكيل آخر. تبقى البوابات الموجودة كما هي، وتُستبدل البوابة التي تحمل الاسم نفسه.
 
@@ -45,7 +45,7 @@ npx -y remote-webview-debugger-mcp init
 <div dir="ltr">
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 </div>

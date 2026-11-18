@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -84,7 +84,7 @@ Crie uma chave de API no console (uma chave alcança todos os dispositivos) e de
 npx -y remote-webview-debugger-mcp init
 ```
 
-Ele pede o endereço do gateway e a chave e depois adiciona o servidor MCP aos agentes que encontrar: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code ou Claude Desktop. Ele também instala a skill do agente (`npx skills add ZaneL1u/remote-webview-debugger`). Um servidor MCP pode alcançar vários gateways. Veja [o pacote MCP](mcp/README.pt-BR.md) para a configuração de cada agente.
+Ele pede o endereço do gateway e a chave e depois adiciona o servidor MCP aos agentes que encontrar: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code ou Claude Desktop. Ele também instala a skill do agente (`npx skills add zanel1u/remote-webview-debugger`). Um servidor MCP pode alcançar vários gateways. Veja [o pacote MCP](mcp/README.pt-BR.md) para a configuração de cada agente.
 
 Um agente que fala MCP via HTTP também pode se conectar diretamente ao gateway:
 
@@ -125,7 +125,7 @@ Em HTTP simples, as chaves de API e as senhas do console trafegam sem criptograf
 | [`packages/chobitsu/`](packages/chobitsu) | Cópia incorporada (vendored) do [chobitsu](https://github.com/liriliri/chobitsu) mais o nosso motor do lado da página em `src/engine/` |
 | [`console/`](console) | Console web (React, Vite) |
 | [`mcp/`](mcp) | Pacote MCP para todos os agentes (`npx -y remote-webview-debugger-mcp`): servidor stdio, vários gateways, `init` |
-| [`skills/`](skills) | A skill do agente (`npx skills add ZaneL1u/remote-webview-debugger`), usada também pelo plugin do Claude Code e pela extensão do Gemini CLI |
+| [`skills/`](skills) | A skill do agente (`npx skills add zanel1u/remote-webview-debugger`), usada também pelo plugin do Claude Code e pela extensão do Gemini CLI |
 | [`website/`](website) | [debugger.site](https://debugger.site), com a demo interativa |
 | [`examples/`](examples) | Uma loja de demonstração com várias páginas e um app macOS que hospeda WKWebViews como um app iOS |
 | [`deploy/platform/`](deploy/platform) | Implantação com Docker Compose |

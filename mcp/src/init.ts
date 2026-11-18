@@ -9,7 +9,7 @@ import { configPath, defaultConfigPath, mcpEndpoint, readConfigFile, validName, 
 import { CLIENTS, DEFAULT_SERVER_NAME, findClient, makeEntry, type Client, type Ctx, type Outcome } from './clients.ts'
 import { Gateway } from './gateway.ts'
 
-export const SKILL_SOURCE = 'ZaneL1u/remote-webview-debugger'
+export const SKILL_SOURCE = 'zanel1u/remote-webview-debugger'
 export const SKILL_NAME = 'remote-webview-debugger'
 
 export interface InitOptions {

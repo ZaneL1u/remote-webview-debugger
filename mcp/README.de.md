@@ -1,4 +1,4 @@
-<!-- i18n-source: 1de93768d1f6453d5cd81a0a70e3d0d7449a8e4e -->
+<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | Deutsch | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD-MCP-Server (`mcp/`)
@@ -28,7 +28,7 @@ Was `init` ändert:
 |---|---|
 | Gateways und Keys | `~/.config/remote-webview-debugger/mcp.json` (Modus 0600; unter Windows `%APPDATA%\remote-webview-debugger\mcp.json`) |
 | Agenten | Trägt den Server als `remote-webview-debugger` in die eigene MCP-Konfiguration jedes Agenten ein und sichert die alte Datei als `<file>.bak`. Eine Datei mit Kommentaren bleibt unangetastet; stattdessen erhalten Sie das Snippet zum Einfügen |
-| Skill | `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g`, wenn Sie zustimmen |
+| Skill | `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g`, wenn Sie zustimmen |
 
 Führen Sie `init` erneut aus, um ein weiteres Gateway oder einen weiteren Agenten hinzuzufügen. Vorhandene Gateways bleiben erhalten, und ein Gateway mit demselben Namen wird ersetzt.
 
@@ -37,7 +37,7 @@ Führen Sie `init` erneut aus, um ein weiteres Gateway oder einen weiteren Agent
 Der Skill sagt dem Agenten, wann und wie er Remote WebView Debugger verwendet: Verbinden, Freigabe auf dem Smartphone, `set_task`, Snapshots vor Aktionen und wie man einem Bug nachgeht. Er folgt dem Format [Agent Skills](https://agentskills.io) und wird mit [`skills`](https://github.com/vercel-labs/skills) installiert:
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 `skills add` installiert nur den Skill; der MCP-Server kommt von `init` (oder von einem Plugin, siehe unten). Das weiß der Skill: Wenn die Tools fehlen, weist er den Agenten an, Sie zu bitten, `init` auszuführen. Der Skill liegt auch im npm-Paket unter `skills/`.

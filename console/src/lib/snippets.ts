@@ -517,7 +517,7 @@ export function mcpInitCommand(gateway: string) {
 }
 
 export function skillsAddCommand() {
-  return 'npx skills add ZaneL1u/remote-webview-debugger'
+  return 'npx skills add zanel1u/remote-webview-debugger'
 }
 
 /** Cursor (`~/.cursor/mcp.json`); also Windsurf and Claude Desktop. */

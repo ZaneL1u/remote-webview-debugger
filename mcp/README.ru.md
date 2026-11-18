@@ -1,4 +1,4 @@
-<!-- i18n-source: 1de93768d1f6453d5cd81a0a70e3d0d7449a8e4e -->
+<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # MCP-сервер RWD (`mcp/`)
@@ -28,7 +28,7 @@ npx -y remote-webview-debugger-mcp init
 |---|---|
 | Шлюзы и ключи | `~/.config/remote-webview-debugger/mcp.json` (права 0600; в Windows — `%APPDATA%\remote-webview-debugger\mcp.json`) |
 | Агенты | Добавляет сервер под именем `remote-webview-debugger` в собственный MCP-конфиг каждого агента, а старый файл сохраняет как `<file>.bak`. Файл с комментариями не трогает — вместо этого выводит фрагмент, который нужно вставить вручную |
-| Навык | `npx skills add ZaneL1u/remote-webview-debugger --skill remote-webview-debugger -g`, если вы согласитесь |
+| Навык | `npx skills add zanel1u/remote-webview-debugger --skill remote-webview-debugger -g`, если вы согласитесь |
 
 Запустите `init` ещё раз, чтобы добавить другой шлюз или другого агента. Уже настроенные шлюзы сохраняются, а шлюз с тем же именем заменяется.
 
@@ -37,7 +37,7 @@ npx -y remote-webview-debugger-mcp init
 Навык объясняет агенту, когда и как пользоваться Remote WebView Debugger: подключение, одобрение на телефоне, `set_task`, снимки перед действиями и как разбираться в баге. Он следует формату [Agent Skills](https://agentskills.io), а устанавливается через [`skills`](https://github.com/vercel-labs/skills):
 
 ```bash
-npx skills add ZaneL1u/remote-webview-debugger
+npx skills add zanel1u/remote-webview-debugger
 ```
 
 `skills add` устанавливает только навык; MCP-сервер появляется после `init` (или из плагина, см. ниже). Навык это учитывает: если инструментов нет, он велит агенту попросить вас запустить `init`. Навык также есть в npm-пакете в каталоге `skills/`.

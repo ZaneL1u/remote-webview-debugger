@@ -1,4 +1,4 @@
-<!-- i18n-source: 65efd19fb1e643df685439dc8f291d7c0ff30768 -->
+<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -84,7 +84,7 @@ App 裡的 WebView 則要在原生程式碼中於 document start 時注入同一
 npx -y remote-webview-debugger-mcp init
 ```
 
-它會詢問閘道位址和金鑰，然後把 MCP 伺服器加到它找到的 agent 裡：Cursor、Codex、Gemini CLI、Windsurf、Cline、VS Code、opencode、Claude Code 或 Claude Desktop。它也會安裝 agent skill（`npx skills add ZaneL1u/remote-webview-debugger`）。一個 MCP 伺服器可以連接多個閘道。各個 agent 的設定方式請見 [MCP 套件](mcp/README.zh-TW.md)。
+它會詢問閘道位址和金鑰，然後把 MCP 伺服器加到它找到的 agent 裡：Cursor、Codex、Gemini CLI、Windsurf、Cline、VS Code、opencode、Claude Code 或 Claude Desktop。它也會安裝 agent skill（`npx skills add zanel1u/remote-webview-debugger`）。一個 MCP 伺服器可以連接多個閘道。各個 agent 的設定方式請見 [MCP 套件](mcp/README.zh-TW.md)。
 
 支援以 HTTP 傳輸 MCP 的 agent 也可以直接連接閘道：
 
@@ -125,7 +125,7 @@ claude mcp add --transport http rwd https://rwd.example.com/v1/mcp --header "Aut
 | [`packages/chobitsu/`](packages/chobitsu) | 內建的 [chobitsu](https://github.com/liriliri/chobitsu)，以及我們的頁面端引擎 `src/engine/` |
 | [`console/`](console) | Web 主控台（React、Vite） |
 | [`mcp/`](mcp) | 適用於所有 agent 的 MCP 套件（`npx -y remote-webview-debugger-mcp`）：stdio 伺服器、多個閘道、`init` |
-| [`skills/`](skills) | agent skill（`npx skills add ZaneL1u/remote-webview-debugger`），Claude Code 外掛和 Gemini CLI 擴充功能也使用它 |
+| [`skills/`](skills) | agent skill（`npx skills add zanel1u/remote-webview-debugger`），Claude Code 外掛和 Gemini CLI 擴充功能也使用它 |
 | [`website/`](website) | 官方網站 [debugger.site](https://debugger.site)，含互動式展示 |
 | [`examples/`](examples) | 多頁面展示商店，以及一個像 iOS App 一樣承載 WKWebView 的 macOS 應用程式 |
 | [`deploy/platform/`](deploy/platform) | Docker Compose 部署 |
