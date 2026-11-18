@@ -210,6 +210,22 @@ func mayConfirm(method string, params any) bool {
 	return false
 }
 
+// waitFor is how long the page may spend on an rwd.waitFor call (a plain
+// wait of timeMs, then up to timeoutMs for the text).
+func waitFor(method string, params any) time.Duration {
+	m, _ := params.(map[string]any)
+	if method != "rwd.waitFor" || m == nil {
+		return 0
+	}
+	ms := 0
+	for _, k := range []string{"timeMs", "timeoutMs"} {
+		if v, ok := m[k].(int); ok {
+			ms += v
+		}
+	}
+	return time.Duration(ms) * time.Millisecond
+}
+
 func (s *Server) call(ctx context.Context, a *hub.Agent, page, method string, params any, interactive bool) (json.RawMessage, *hub.Session, error) {
 	sess, err := s.hub.Current(a, page)
 	if err != nil {
@@ -226,6 +242,9 @@ func (s *Server) call(ctx context.Context, a *hub.Agent, page, method string, pa
 	timeout := rpcTimeout
 	if mayConfirm(method, params) {
 		timeout = 45 * time.Second // the user may be asked to confirm (protocol §8)
+	}
+	if d := waitFor(method, params); d+5*time.Second > timeout {
+		timeout = d + 5*time.Second // wait_for may wait up to 30 s on the page
 	}
 	start := time.Now()
 	raw, err := s.hub.Call(ctx, sess.Device, sess.PageID, method, params, timeout)
