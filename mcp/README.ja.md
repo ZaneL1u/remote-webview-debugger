@@ -1,4 +1,4 @@
-<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
+<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP サーバー（`mcp/`）
@@ -20,7 +20,7 @@ HTTP 経由の MCP に対応したエージェントは、ゲートウェイに�
 npx -y remote-webview-debugger-mcp init
 ```
 
-`init` はゲートウェイのアドレスと API キーを尋ね、それをゲートウェイに照会して確認します。続いて、このマシンで見つかったエージェントに MCP サーバーを追加し、エージェントスキルのインストールを提案します。エージェントを再起動して、こう頼んでください：*「オンラインのデバイスを一覧表示して」*。
+`init` はゲートウェイのアドレスと API キーを尋ね、それをゲートウェイに照会して確認します。続いて、このマシンで見つかったエージェントに MCP サーバーを追加し、エージェントスキルのインストールを提案します。エージェントを再起動して、こう頼んでください：*「オンラインのデバイスを一覧表示して」*。表示はターミナルの言語に合わせます（`--lang` で変更可）。エージェントは一覧でチェックして選べます。
 
 `init` が変更するもの：
 

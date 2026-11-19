@@ -1,4 +1,4 @@
-<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
+<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Servidor MCP do RWD (`mcp/`)
@@ -20,7 +20,7 @@ Crie uma chave de API no console do gateway (Chaves de API; uma chave alcança t
 npx -y remote-webview-debugger-mcp init
 ```
 
-O `init` pede o endereço do gateway e a chave de API e os verifica no gateway. Depois, adiciona o servidor MCP aos agentes que encontra nesta máquina e oferece instalar a skill do agente. Reinicie o agente e peça: *“liste os dispositivos online”*.
+O `init` pede o endereço do gateway e a chave de API e os verifica no gateway. Depois, adiciona o servidor MCP aos agentes que encontra nesta máquina e oferece instalar a skill do agente. Reinicie o agente e peça: *“liste os dispositivos online”*. Ele fala o idioma do seu terminal (`--lang` escolhe outro) e deixa você marcar os agentes numa lista.
 
 O que o `init` altera:
 

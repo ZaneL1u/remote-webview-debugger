@@ -1,4 +1,4 @@
-<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
+<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP 伺服器（`mcp/`）
@@ -20,7 +20,7 @@
 npx -y remote-webview-debugger-mcp init
 ```
 
-`init` 會詢問閘道位址和 API 金鑰，並向閘道驗證。接著它會把 MCP 伺服器加到這台電腦上找到的 agent 裡，並詢問是否安裝 agent skill。重新啟動 agent，然後問它：*「列出線上裝置」*。
+`init` 會詢問閘道位址和 API 金鑰，並向閘道驗證。接著它會把 MCP 伺服器加到這台電腦上找到的 agent 裡，並詢問是否安裝 agent skill。重新啟動 agent，然後問它：*「列出線上裝置」*。它會跟隨終端機的語言顯示（用 `--lang` 可以切換），agent 在清單裡勾選即可。
 
 `init` 會變更的內容：
 

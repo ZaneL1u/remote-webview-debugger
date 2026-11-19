@@ -1,4 +1,4 @@
-<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
+<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Serveur MCP RWD (`mcp/`)
@@ -20,7 +20,7 @@ Créez une clé d'API dans la console web de la passerelle (Clés d'API ; une s
 npx -y remote-webview-debugger-mcp init
 ```
 
-`init` demande l'adresse de la passerelle et la clé d'API, et les vérifie auprès de la passerelle. Il ajoute ensuite le serveur MCP aux agents qu'il trouve sur cette machine et propose d'installer le skill de l'agent. Redémarrez votre agent et demandez-lui : *« liste les appareils en ligne »*.
+`init` demande l'adresse de la passerelle et la clé d'API, et les vérifie auprès de la passerelle. Il ajoute ensuite le serveur MCP aux agents qu'il trouve sur cette machine et propose d'installer le skill de l'agent. Redémarrez votre agent et demandez-lui : *« liste les appareils en ligne »*. Il parle la langue de votre terminal (`--lang` pour en choisir une autre) et vous laisse cocher les agents dans une liste.
 
 Ce que `init` modifie :
 
