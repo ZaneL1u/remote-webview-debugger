@@ -69,7 +69,8 @@ jobs:
 
   sdk:
     name: Page SDK
-    runs-on: ubuntu-latest
+    # Playwright 1.58 has no browsers for ubuntu-latest (26.04) yet.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
@@ -121,7 +122,8 @@ jobs:
 
   console:
     name: Console
-    runs-on: ubuntu-latest
+    # Playwright 1.58 has no browsers for ubuntu-latest (26.04) yet.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: console
