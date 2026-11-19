@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | العربية
 
 <div dir="rtl">
@@ -21,7 +21,7 @@
 <div dir="ltr">
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 </div>
@@ -213,8 +213,8 @@ claude mcp add -s user remote-webview-debugger -- npx -y remote-webview-debugger
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # خادم MCP عبر stdio (ما يشغّله الوكلاء)
-npx -y remote-webview-debugger-mcp init            # إضافة البوابات، وإعداد الوكلاء، وتثبيت المهارة
-npx -y remote-webview-debugger-mcp doctor          # فحص كل بوابة ومفتاح؛ وعرض الوكلاء الذين عُثر عليهم
+npx -y remote-webview-debugger-mcp@latest init            # إضافة البوابات، وإعداد الوكلاء، وتثبيت المهارة
+npx -y remote-webview-debugger-mcp@latest doctor          # فحص كل بوابة ومفتاح؛ وعرض الوكلاء الذين عُثر عليهم
 ```
 
 </div>
@@ -224,7 +224,7 @@ npx -y remote-webview-debugger-mcp doctor          # فحص كل بوابة وم
 <div dir="ltr">
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -244,7 +244,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## استكشاف الأخطاء وإصلاحها
 
-- **لا توجد لدى الوكيل أدوات Remote WebView Debugger.** أعد تشغيل الوكيل بعد `init`. وشغّل `npx -y remote-webview-debugger-mcp doctor` للتحقق من سلامة ملف الإعداد والبوابات.
+- **لا توجد لدى الوكيل أدوات Remote WebView Debugger.** أعد تشغيل الوكيل بعد `init`. وشغّل `npx -y remote-webview-debugger-mcp@latest doctor` للتحقق من سلامة ملف الإعداد والبوابات.
 - **«rejected the API key».** أُلغي المفتاح، أو انتهت صلاحيته، أو أُزيل مالكه. أنشئ مفتاحًا جديدًا في لوحة التحكم وشغّل `init` مرة أخرى باسم البوابة نفسه.
 - **البدء الأول بطيء.** ينزّل npx الحزمة في المرة الأولى، ومرة أخرى بعد كل إصدار جديد. وتستخدم مرات البدء اللاحقة ذاكرة npx المؤقتة.
 - **ينتهي الاستدعاء بانقضاء المهلة بعد 60 ثانية.** مهلة الأدوات الخاصة بالوكيل نفسه قصيرة جدًا. ارفعها كما هو موضّح في [الإعداد اليدوي لوكيل](#الإعداد-اليدوي-لوكيل).

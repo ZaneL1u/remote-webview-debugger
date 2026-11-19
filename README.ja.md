@@ -1,4 +1,4 @@
-<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
+<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -81,7 +81,7 @@ SDK は npm パッケージ [`remote-webview-debugger`](sdk/README.ja.md) です
 管理コンソールで API キーを作成し（1 つのキーですべての端末に届きます）、次を実行します：
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 ゲートウェイのアドレスとキーを尋ねたうえで、見つかったエージェント（Cursor、Codex、Gemini CLI、Windsurf、Cline、VS Code、opencode、Claude Code、Claude Desktop）に MCP サーバーを追加します。エージェントスキル（`npx skills add zanel1u/remote-webview-debugger`）もインストールします。1 つの MCP サーバーで複数のゲートウェイにアクセスできます。各エージェントの設定方法は [MCP パッケージ](mcp/README.ja.md)を参照してください。

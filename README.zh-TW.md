@@ -1,4 +1,4 @@
-<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
+<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -81,7 +81,7 @@ App 裡的 WebView 則要在原生程式碼中於 document start 時注入同一
 在主控台建立一把 API 金鑰（一把金鑰就能存取所有裝置），然後執行：
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 它會詢問閘道位址和金鑰，然後把 MCP 伺服器加到它找到的 agent 裡：Cursor、Codex、Gemini CLI、Windsurf、Cline、VS Code、opencode、Claude Code 或 Claude Desktop。它也會安裝 agent skill（`npx skills add zanel1u/remote-webview-debugger`）。一個 MCP 伺服器可以連接多個閘道。各個 agent 的設定方式請見 [MCP 套件](mcp/README.zh-TW.md)。

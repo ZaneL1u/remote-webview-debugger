@@ -176,7 +176,7 @@ export class Gateway {
     const where = `gateway "${this.name}" (${this.host})`
     if (e instanceof StreamableHTTPError) {
       if (e.code === 401 || e.code === 403)
-        return new GatewayError(`${where} rejected the API key (HTTP ${e.code}). Check the key in the gateway's console (API Key) and run \`npx -y remote-webview-debugger-mcp init\` to update it.`, false, 'auth', String(e.code))
+        return new GatewayError(`${where} rejected the API key (HTTP ${e.code}). Check the key in the gateway's console (API Key) and run \`npx -y remote-webview-debugger-mcp@latest init\` to update it.`, false, 'auth', String(e.code))
       // The gateway no longer knows our session (it restarted): the call was not run.
       if (e.code === 404) return new GatewayError(`${where} lost the MCP session (HTTP 404)`, true, 'session_lost', '404')
       if (e.code === 429) return new GatewayError(`${where} is rate limiting this machine (HTTP 429); try again in a minute`, false, 'rate', '429')

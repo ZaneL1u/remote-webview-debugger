@@ -80,7 +80,7 @@ In an app, inject the same script at document start from native code (iOS `WKUse
 Create an API key in the console (one key reaches every device), then run:
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 It asks for the gateway address and the key, then adds the MCP server to the agents it finds: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code or Claude Desktop. It also installs the agent skill (`npx skills add zanel1u/remote-webview-debugger`). One MCP server can reach several gateways. See [the MCP package](mcp/README.md) for the setup of each agent.

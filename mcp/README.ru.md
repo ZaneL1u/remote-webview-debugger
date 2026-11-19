@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | Русский | [العربية](README.ar.md)
 
 # MCP-сервер RWD (`mcp/`)
@@ -17,7 +17,7 @@
 Создайте API-ключ в веб-консоли шлюза (API-ключи; один ключ даёт доступ ко всем устройствам), затем выполните:
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 `init` спрашивает адрес шлюза и API-ключ и проверяет их на шлюзе. Затем добавляет MCP-сервер в агентов, которых находит на этой машине, и предлагает установить навык агента. Перезапустите агента и попросите: *«покажи устройства в сети»*. Он говорит на языке вашего терминала (`--lang` выбирает другой) и даёт отметить агентов в списке.
@@ -173,14 +173,14 @@ claude mcp add -s user remote-webview-debugger -- npx -y remote-webview-debugger
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # stdio MCP-сервер (его запускают агенты)
-npx -y remote-webview-debugger-mcp init            # добавить шлюзы, настроить агентов, установить навык
-npx -y remote-webview-debugger-mcp doctor          # проверить все шлюзы и ключи; показать найденных агентов
+npx -y remote-webview-debugger-mcp@latest init            # добавить шлюзы, настроить агентов, установить навык
+npx -y remote-webview-debugger-mcp@latest doctor          # проверить все шлюзы и ключи; показать найденных агентов
 ```
 
 `init` работает и без вопросов — для скриптов и командных инструкций по настройке:
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -198,7 +198,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## Решение проблем
 
-- **У агента нет инструментов Remote WebView Debugger.** Перезапустите агента после `init`. Запустите `npx -y remote-webview-debugger-mcp doctor`, чтобы проверить, что с файлом конфигурации и шлюзами всё в порядке.
+- **У агента нет инструментов Remote WebView Debugger.** Перезапустите агента после `init`. Запустите `npx -y remote-webview-debugger-mcp@latest doctor`, чтобы проверить, что с файлом конфигурации и шлюзами всё в порядке.
 - **«rejected the API key».** Ключ отозван, истёк или его владелец удалён. Создайте новый ключ в веб-консоли и снова запустите `init` с тем же именем шлюза.
 - **Первый запуск медленный.** npx скачивает пакет в первый раз и снова после каждой новой версии. Последующие запуски используют кэш npx.
 - **Вызов прерывается по тайм-ауту через 60 секунд.** Собственный тайм-аут инструментов у агента слишком короткий. Увеличьте его, как показано в разделе [Ручная настройка агента](#ручная-настройка-агента).

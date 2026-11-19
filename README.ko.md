@@ -1,4 +1,4 @@
-<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
+<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -81,7 +81,7 @@ SDK는 npm 패키지 [`remote-webview-debugger`](sdk/README.ko.md)예요. 위처
 콘솔에서 API 키를 만든 뒤(키 하나로 모든 기기에 접근할 수 있어요) 다음을 실행하세요.
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 게이트웨이 주소와 키를 물어본 뒤, 찾은 에이전트(Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code, Claude Desktop)에 MCP 서버를 추가해요. 에이전트 스킬(`npx skills add zanel1u/remote-webview-debugger`)도 설치해요. MCP 서버 하나로 여러 게이트웨이에 접근할 수 있어요. 에이전트별 설정은 [MCP 패키지](mcp/README.ko.md)를 참고하세요.

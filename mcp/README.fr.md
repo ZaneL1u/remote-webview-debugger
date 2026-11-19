@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | Français | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Serveur MCP RWD (`mcp/`)
@@ -17,7 +17,7 @@ Les agents qui prennent en charge MCP sur HTTP peuvent aussi se connecter direct
 Créez une clé d'API dans la console web de la passerelle (Clés d'API ; une seule clé donne accès à tous les appareils), puis lancez :
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 `init` demande l'adresse de la passerelle et la clé d'API, et les vérifie auprès de la passerelle. Il ajoute ensuite le serveur MCP aux agents qu'il trouve sur cette machine et propose d'installer le skill de l'agent. Redémarrez votre agent et demandez-lui : *« liste les appareils en ligne »*. Il parle la langue de votre terminal (`--lang` pour en choisir une autre) et vous laisse cocher les agents dans une liste.
@@ -173,14 +173,14 @@ Avec une seule passerelle, le serveur transmet les outils et les résultats sans
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # le serveur MCP stdio (ce que lancent les agents)
-npx -y remote-webview-debugger-mcp init            # ajoute des passerelles, configure les agents, installe le skill
-npx -y remote-webview-debugger-mcp doctor          # vérifie chaque passerelle et chaque clé ; liste les agents trouvés
+npx -y remote-webview-debugger-mcp@latest init            # ajoute des passerelles, configure les agents, installe le skill
+npx -y remote-webview-debugger-mcp@latest doctor          # vérifie chaque passerelle et chaque clé ; liste les agents trouvés
 ```
 
 `init` fonctionne aussi sans questions, pour les scripts et les documents de configuration d'équipe :
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -198,7 +198,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## Dépannage
 
-- **L'agent n'a aucun outil Remote WebView Debugger.** Redémarrez l'agent après `init`. Lancez `npx -y remote-webview-debugger-mcp doctor` pour vérifier que le fichier de configuration et les passerelles sont en ordre.
+- **L'agent n'a aucun outil Remote WebView Debugger.** Redémarrez l'agent après `init`. Lancez `npx -y remote-webview-debugger-mcp@latest doctor` pour vérifier que le fichier de configuration et les passerelles sont en ordre.
 - **« rejected the API key ».** La clé a été révoquée, a expiré, ou son propriétaire a été retiré. Créez une nouvelle clé dans la console web et relancez `init` avec le même nom de passerelle.
 - **Le premier démarrage est lent.** npx télécharge le paquet la première fois, puis à chaque nouvelle version. Les démarrages suivants utilisent le cache de npx.
 - **Un appel expire au bout de 60 secondes.** Le délai d'expiration des outils propre à l'agent est trop court. Augmentez-le comme indiqué dans [Configurer un agent à la main](#configurer-un-agent-à-la-main).

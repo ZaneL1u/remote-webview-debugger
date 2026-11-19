@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { after, before, describe, test } from 'node:test'
-import { CLIENTS, makeEntry, upsertCodexToml, upsertJson, type Ctx } from '../src/clients.ts'
+import { agentShell, CLIENTS, makeEntry, upsertCodexToml, upsertJson, type Ctx } from '../src/clients.ts'
 import { loadConfig } from '../src/config.ts'
 import { langFromEnv, langOf } from '../src/i18n.ts'
 import { nameFromUrl, parseSelection, runInit, yesNo, type InitOptions, type Io } from '../src/init.ts'
@@ -185,6 +185,55 @@ describe('init', () => {
     assert.ok(fs.existsSync(path.join(home, '.gemini', 'settings.json')))
   })
 
+  test('the key: where to get it first; empty, not a key, or refused is asked again', async () => {
+    const home = tmp()
+    const asked: string[] = []
+    const answers = ['', 'hello', 'rwd_sk_wrong', 'rwd_sk_test', 'n', 'none', 'n']
+    const io: Io & { out: string[] } = {
+      ...quietIo(['x']),
+      ask: async (q) => (asked.push(q), answers.shift() ?? ''),
+    }
+    const code = await runInit({ gateways: [{ name: 'lab', url: gw.url }], yes: false, verify: true, serverName: 'rwd' }, io, fakeCtx(home), '0.0.0')
+    const out = io.out.join('\n')
+    assert.equal(code, 0, out)
+    assert.ok(out.includes(`${gw.url}/keys`), 'says where to make a key')
+    assert.match(out, /Nothing was pasted yet/)
+    assert.match(out, /doesn't look like an API key/)
+    assert.match(out, /rejected the API key\. .*Please paste another key\./)
+    assert.equal(asked.filter((q) => q === 'Paste your API key').length, 4)
+    assert.equal(out.match(/you need your own API key/g)?.length, 1, 'the steps are shown once')
+  })
+
+  test('run by an agent: no questions, only that agent; a missing key goes back to the person', async () => {
+    const home = tmp()
+    fs.mkdirSync(path.join(home, '.codex'))
+    const file = path.join(home, '.config', 'remote-webview-debugger', 'mcp.json')
+    // Nothing configured yet: the key must not go through the agent.
+    let io = quietIo(['must not be asked'])
+    assert.equal(await runInit({ gateways: [{ name: 'lab', url: gw.url }], yes: false, verify: true, serverName: 'rwd', agent: 'cursor' }, io, fakeCtx(home), '0.0.0'), 1)
+    assert.match(io.out.join('\n'), /should not go through the AI agent[\s\S]*npx -y remote-webview-debugger-mcp@latest init --gateway lab=/)
+    // With a gateway saved: Cursor only (not the Codex found), nothing asked.
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    fs.writeFileSync(file, JSON.stringify({ gateways: { lab: { url: gw.url, apiKey: 'rwd_sk_test' } } }))
+    io = quietIo(['must not be asked'])
+    const code = await runInit({ gateways: [], yes: false, verify: true, serverName: 'rwd', agent: 'cursor' }, io, fakeCtx(home), '0.0.0')
+    assert.equal(code, 0, io.out.join('\n'))
+    assert.match(io.out.join('\n'), /Running inside Cursor/)
+    assert.ok(fs.existsSync(path.join(home, '.cursor', 'mcp.json')))
+    assert.equal(fs.existsSync(path.join(home, '.codex', 'config.toml')), false)
+  })
+
+  test('-y asks nothing, not even "add a gateway?"', async () => {
+    const home = tmp()
+    const file = path.join(home, '.config', 'remote-webview-debugger', 'mcp.json')
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    fs.writeFileSync(file, JSON.stringify({ gateways: { lab: { url: gw.url, apiKey: 'rwd_sk_test' } } }))
+    const asked: string[] = []
+    const io: Io & { out: string[] } = { ...quietIo(['x']), ask: async (q) => (asked.push(q), '') }
+    assert.equal(await runInit({ gateways: [], yes: true, verify: true, serverName: 'rwd', clients: ['cursor'] }, io, fakeCtx(home), '0.0.0'), 0)
+    assert.deepEqual(asked, [])
+  })
+
   test('a wrong key in Japanese', async () => {
     const io = quietIo()
     const code = await runInit(opts({ gateways: [{ url: gw.url }], apiKey: 'wrong', clients: [], lang: 'ja' }), io, fakeCtx(tmp()), '0.0.0')
@@ -223,3 +272,10 @@ test('yes and no in several languages', () => {
   assert.equal(yesNo('', true), true)
 })
 
+test('which agent runs us', () => {
+  assert.equal(agentShell({ CLAUDECODE: '1' }), 'claude-code')
+  assert.equal(agentShell({ CURSOR_AGENT: '1' }), 'cursor')
+  assert.equal(agentShell({ GEMINI_CLI: '1' }), 'gemini')
+  assert.equal(agentShell({ CODEX_SANDBOX: 'seatbelt' }), 'codex')
+  assert.equal(agentShell({ TERM_PROGRAM: 'vscode' }), undefined)
+})

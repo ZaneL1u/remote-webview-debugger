@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | Português (Brasil) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # Servidor MCP do RWD (`mcp/`)
@@ -17,7 +17,7 @@ Agentes que suportam MCP via HTTP também podem se conectar diretamente ao gatew
 Crie uma chave de API no console do gateway (Chaves de API; uma chave alcança todos os dispositivos) e depois execute:
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 O `init` pede o endereço do gateway e a chave de API e os verifica no gateway. Depois, adiciona o servidor MCP aos agentes que encontra nesta máquina e oferece instalar a skill do agente. Reinicie o agente e peça: *“liste os dispositivos online”*. Ele fala o idioma do seu terminal (`--lang` escolhe outro) e deixa você marcar os agentes numa lista.
@@ -173,14 +173,14 @@ Com um gateway, o servidor repassa as ferramentas e os resultados sem alteraçã
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # o servidor MCP via stdio (o que os agentes executam)
-npx -y remote-webview-debugger-mcp init            # adiciona gateways, configura agentes, instala a skill
-npx -y remote-webview-debugger-mcp doctor          # verifica cada gateway e chave; lista os agentes encontrados
+npx -y remote-webview-debugger-mcp@latest init            # adiciona gateways, configura agentes, instala a skill
+npx -y remote-webview-debugger-mcp@latest doctor          # verifica cada gateway e chave; lista os agentes encontrados
 ```
 
 O `init` também roda sem perguntas, para scripts e documentação de configuração de equipe:
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -198,7 +198,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## Solução de problemas
 
-- **O agente não tem as ferramentas do Remote WebView Debugger.** Reinicie o agente depois do `init`. Execute `npx -y remote-webview-debugger-mcp doctor` para verificar se o arquivo de configuração e os gateways estão ok.
+- **O agente não tem as ferramentas do Remote WebView Debugger.** Reinicie o agente depois do `init`. Execute `npx -y remote-webview-debugger-mcp@latest doctor` para verificar se o arquivo de configuração e os gateways estão ok.
 - **"rejected the API key".** A chave foi revogada, expirou ou o dono dela foi removido. Crie uma nova chave no console e execute o `init` de novo com o mesmo nome de gateway.
 - **A primeira inicialização é lenta.** O npx baixa o pacote na primeira vez, e de novo a cada nova versão. As inicializações seguintes usam o cache do npx.
 - **Uma chamada expira depois de 60 segundos.** O timeout de ferramenta do próprio agente é curto demais. Aumente-o como mostrado em [Configure um agente manualmente](#configure-um-agente-manualmente).

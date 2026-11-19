@@ -34,7 +34,7 @@ function readHidden() {
 }
 
 /**
- * "Connect your agent" on the home page: one personal key, then `npx remote-webview-debugger-mcp init` with this
+ * "Connect your agent" on the home page: one personal key, then `npx remote-webview-debugger-mcp@latest init` with this
  * gateway filled in (it asks for the key and sets up every agent it finds). By hand: a sentence for the agent
  * (MCP over HTTP), or the stdio snippets from mcp/README.md for Cursor, Codex, Gemini CLI and Claude Code.
  */

@@ -513,7 +513,8 @@ export function gatewayName(gateway: string) {
 
 /** `init` with this gateway filled in; it asks for the key (or reads RWD_API_KEY), so the key never goes into the command. */
 export function mcpInitCommand(gateway: string) {
-  return `npx -y ${MCP_PACKAGE} init --gateway ${gatewayName(gateway)}=${gatewayOrigin(gateway)}`
+  // @latest: npx would otherwise reuse whatever version it cached before.
+  return `npx -y ${MCP_PACKAGE}@latest init --gateway ${gatewayName(gateway)}=${gatewayOrigin(gateway)}`
 }
 
 export function skillsAddCommand() {

@@ -16,7 +16,7 @@ Agents that support MCP over HTTP can also connect to the gateway directly (see 
 Create an API key in the gateway's console (API Key; one key reaches every device), then run:
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 `init` asks for the gateway address and the API key, and checks them against the gateway. Then it adds the MCP server to the agents it finds on this machine and offers to install the agent skill. Restart your agent and ask it: *"list online devices"*. It talks in your terminal's language (`--lang` picks another) and lets you tick the agents in a list.
@@ -172,14 +172,14 @@ With one gateway, the server passes tools and results through unchanged. With se
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # the stdio MCP server (what agents run)
-npx -y remote-webview-debugger-mcp init            # add gateways, set up agents, install the skill
-npx -y remote-webview-debugger-mcp doctor          # check every gateway and key; list the agents found
+npx -y remote-webview-debugger-mcp@latest init            # add gateways, set up agents, install the skill
+npx -y remote-webview-debugger-mcp@latest doctor          # check every gateway and key; list the agents found
 ```
 
 `init` also runs without questions, for scripts and team setup docs:
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -197,7 +197,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## Troubleshooting
 
-- **The agent has no Remote WebView Debugger tools.** Restart the agent after `init`. Run `npx -y remote-webview-debugger-mcp doctor` to check that the config file and the gateways are fine.
+- **The agent has no Remote WebView Debugger tools.** Restart the agent after `init`. Run `npx -y remote-webview-debugger-mcp@latest doctor` to check that the config file and the gateways are fine.
 - **"rejected the API key".** The key was revoked, expired, or its owner was removed. Create a new key in the console and run `init` again with the same gateway name.
 - **The first start is slow.** npx downloads the package the first time, and again after each new version. Later starts use npx's cache.
 - **A call times out after 60 seconds.** The agent's own tool timeout is too short. Raise it as shown in [Set up an agent by hand](#set-up-an-agent-by-hand).

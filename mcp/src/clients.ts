@@ -316,6 +316,21 @@ export const CLIENTS: Client[] = [
   }),
 ]
 
+/**
+ * The agent whose shell runs us, from the variables agents set for the
+ * commands they run: 'claude-code', 'cursor', … or 'unknown' for an agent we
+ * can tell is one but not which; undefined for a person's terminal. An agent
+ * can't answer `init`'s questions, so `init` asks none there.
+ */
+export function agentShell(env: Record<string, string | undefined>): string | undefined {
+  if (env.CLAUDECODE) return 'claude-code'
+  if (env.CURSOR_AGENT) return 'cursor'
+  if (env.GEMINI_CLI) return 'gemini'
+  if (env.CODEX_SANDBOX || env.CODEX_SANDBOX_NETWORK_DISABLED || env.CODEX_THREAD_ID) return 'codex'
+  if (env.OPENCODE) return 'opencode'
+  return undefined
+}
+
 export function findClient(id: string): Client | undefined {
   return CLIENTS.find((c) => c.id === id)
 }

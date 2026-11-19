@@ -164,7 +164,7 @@ describe('problems and a single gateway', () => {
     assert.deepEqual(tools.map((t) => t.name), ['list_gateways'])
     const r = await c.client.callTool({ name: 'list_devices', arguments: {} })
     assert.equal(r.isError, true)
-    assert.match(textOf(r), /remote-webview-debugger-mcp init/)
+    assert.match(textOf(r), /remote-webview-debugger-mcp@latest init/)
     assert.match(c.client.getInstructions() ?? '', /No gateway is configured yet/)
     await c.close()
   })

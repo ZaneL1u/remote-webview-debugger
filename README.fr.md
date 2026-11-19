@@ -1,4 +1,4 @@
-<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
+<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -81,7 +81,7 @@ Dans une application, injectez le même script au début du document depuis le c
 Créez une clé d'API dans la console web (une seule clé donne accès à tous les appareils), puis lancez :
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 La commande demande l'adresse de la passerelle et la clé, puis ajoute le serveur MCP aux agents qu'elle trouve : Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code ou Claude Desktop. Elle installe aussi le skill de l'agent (`npx skills add zanel1u/remote-webview-debugger`). Un seul serveur MCP peut atteindre plusieurs passerelles. Voir [le paquet MCP](mcp/README.fr.md) pour la configuration de chaque agent.

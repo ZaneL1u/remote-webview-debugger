@@ -28,6 +28,8 @@ export interface InitOptions {
   serverName: string
   /** The language to talk in; default: from the environment, else English. */
   lang?: Lang
+  /** Run by an AI agent (its id, or 'unknown'): no questions, set up that agent. */
+  agent?: string
 }
 
 export interface Io {
@@ -182,6 +184,15 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
   }
   io.log(`${s.brand('◆')} ${s.bold('Remote WebView Debugger')} ${s.dim(`MCP ${version}`)}`)
   io.log(`  ${s.dim(t.configFile)}  ${tilde(file)}`)
+  const runner = o.agent ? findClient(o.agent) : undefined
+  if (o.agent) io.log(`  ${s.yellow('◇')} ${runner ? t.agentMode(runner.label) : t.agentModeUnknown}`)
+  // Questions only for a person at a terminal.
+  const askingOk = io.interactive && !o.yes && !o.agent
+  const runYourself = (cmd: string) => {
+    fail(t.agentNeedsYou)
+    io.log(`    ${s.cyan(cmd)}`)
+    return 1
+  }
   const existing = Object.entries(cfg.gateways)
   if (existing.length) {
     io.log(`  ${s.dim(t.gateways)}`)
@@ -206,7 +217,9 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
         try {
           info = await (io.spin ? io.spin(label, () => check(n, endpoint, apiKey, version, fetchImpl)) : check(n, endpoint, apiKey, version, fetchImpl))
         } catch (e) {
-          throw new Error(explain(e, t, n, base))
+          const err = new Error(explain(e, t, n, base)) as Error & { auth?: boolean }
+          err.auth = e instanceof GatewayError && e.kind === 'auth'
+          throw err
         }
         const [server, tools] = info.split('\u0000')
         ok(`${s.bold(n)}  ${server} ${s.dim('·')} ${t.tools(Number(tools))}`)
@@ -214,6 +227,38 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
       const entry: FileGateway = key.apiKeyEnv ? { url: base, apiKeyEnv: key.apiKeyEnv } : { url: base, apiKey: apiKey as string }
       cfg.gateways[n] = entry
       return n
+    }
+
+    // A key from the person: where to get it first, then ask until it looks
+    // like a key and the gateway takes it.
+    const askKey = async (n: string, base: string, intro: boolean) => {
+      if (intro) {
+        io.log(`\n  ${t.keyWhy(s.bold(n))}`)
+        io.log(`    ${t.keyStep1(s.cyan(`${base}/keys`))}`)
+        io.log(`    ${t.keyStep2}`)
+        io.log(`    ${t.keyStep3}`)
+      }
+      for (let i = 0; i < 5; i++) {
+        const k = (await io.ask(t.pasteKey, { secret: true, hint: t.pasteKeyHint })).trim()
+        if (!k) warn(t.keyEmpty)
+        else if (!/^rwd_/.test(k)) warn(t.keyLooksWrong)
+        else return k
+      }
+      throw new Error(t.errNeedKey(n))
+    }
+    const addAsking = async (name: string | undefined, url: string) => {
+      const base = mcpEndpoint(url).replace(/\/v1\/mcp$/, '')
+      const n = (name || nameFromUrl(mcpEndpoint(url), new Set(Object.keys(cfg.gateways)))).toLowerCase()
+      let key = await askKey(n, base, true)
+      for (let i = 0; ; i++) {
+        try {
+          return await add(n, url, { apiKey: key })
+        } catch (e) {
+          if (!(e as { auth?: boolean }).auth || i >= 4) throw e
+          warn(`${(e as Error).message}${/[。！？]$/.test((e as Error).message) ? '' : ' '}${t.pasteAgain}`)
+          key = await askKey(n, base, false)
+        }
+      }
     }
 
     if (o.gateways.length) {
@@ -228,12 +273,13 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
               ? { apiKeyEnv: envName }
               : ctx.env.RWD_API_KEY
                 ? { apiKey: ctx.env.RWD_API_KEY }
-                : io.interactive
-                  ? { apiKey: await io.ask(t.apiKeyFor(g.url), { secret: true, hint: t.apiKeyHint }) }
-                  : {}
-        await add(g.name, g.url, key)
+                : undefined
+        if (key) await add(g.name, g.url, key)
+        else if (askingOk) await addAsking(g.name, g.url)
+        else if (o.agent) return runYourself(`npx -y remote-webview-debugger-mcp@latest init --gateway ${g.name ? `${g.name}=` : ''}${g.url}`)
+        else await add(g.name, g.url, {})
       }
-    } else if (io.interactive) {
+    } else if (askingOk) {
       let more = existing.length === 0 || (await confirm(t.addGateway, false))
       while (more) {
         const url = await io.ask(t.gatewayAddress, { hint: t.gatewayAddressHint })
@@ -241,8 +287,7 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
         try {
           const suggested = nameFromUrl(mcpEndpoint(url), new Set(Object.keys(cfg.gateways)))
           const name = await io.ask(t.gatewayName, { def: suggested })
-          const apiKey = await io.ask(t.apiKey, { secret: true, hint: t.apiKeyHint })
-          await add(name, url, { apiKey })
+          await addAsking(name, url)
         } catch (e) {
           if (e instanceof Cancelled) throw e
           fail((e as Error).message)
@@ -254,6 +299,7 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
     }
 
     if (Object.keys(cfg.gateways).length === 0) {
+      if (o.agent) return runYourself('npx -y remote-webview-debugger-mcp@latest init')
       fail(t.noGateway)
       return 1
     }
@@ -265,7 +311,8 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
     const detected = CLIENTS.filter((c) => c.detect(ctx))
     let chosen: Client[]
     if (o.clients) chosen = pickClients(o.clients, detected, t)
-    else if (o.yes || !io.interactive) chosen = detected
+    else if (runner) chosen = [runner]
+    else if (!askingOk) chosen = detected
     else if (io.choose) {
       const picked = await io.choose(
         t.pickAgents,
@@ -316,7 +363,7 @@ export async function runInit(o: InitOptions, io: Io, ctx: Ctx, version: string,
 
     // --- skill
     const agents = chosen.map((c) => c.skillsAgent).filter((a): a is string => !!a)
-    const ask = o.skill === undefined && !o.yes && io.interactive
+    const ask = o.skill === undefined && askingOk
     if (ask || o.skill) step(3, t.stepSkill)
     const skill = o.skill ?? (ask ? await confirm(t.installSkill(SKILL_NAME), true) : false)
     if (skill) {

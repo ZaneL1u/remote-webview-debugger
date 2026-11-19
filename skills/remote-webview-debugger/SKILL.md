@@ -9,13 +9,20 @@ The page runs on a real phone (the user's or a tester's), inside an app WebView 
 
 ## Check the setup first
 
-1. If tools such as `list_devices` and `connect_device` are **not** available, the MCP server isn't set up. Tell the user to run this in a terminal, then restart the agent:
+1. If tools such as `list_devices` and `connect_device` are **not** available, the MCP server isn't set up for you. Run `npx -y remote-webview-debugger-mcp@latest doctor` to see whether a gateway is configured on this machine.
+   - **A gateway is configured** (it shows ✔ and a tool count): add the server to yourself, with your own id (`claude-code`, `cursor`, `codex`, `gemini`, `windsurf`, `cline`, `vscode`, `opencode`), then ask the user to reload MCP servers or restart you:
 
-   ```bash
-   npx -y remote-webview-debugger-mcp init
-   ```
+     ```bash
+     npx -y remote-webview-debugger-mcp@latest init --clients cursor -y
+     ```
 
-   It asks for the gateway address and an API key (gateway console → API Key) and adds the MCP server to the agents on the machine. Don't ask the user to paste the API key into the chat.
+   - **No gateway yet**: the user has to run this **in their own terminal**, not through you. It asks for the gateway address and their API key, which must not go through the chat:
+
+     ```bash
+     npx -y remote-webview-debugger-mcp@latest init
+     ```
+
+   Always write `@latest`: without it npx reuses an old cached version. Don't call the gateway's HTTP API yourself as a workaround, and don't read API keys out of the config file.
 2. If a tool fails with a connection or API key error, call `list_gateways`: it shows each configured gateway, whether it is reachable, and why not. The fix for a rejected key is a new key in the console and `init` again.
 3. A device only appears while a page with the SDK is open on it. If the user's device is missing, ask them to open the page (or the app screen) and call `wait_for_device`.
 
