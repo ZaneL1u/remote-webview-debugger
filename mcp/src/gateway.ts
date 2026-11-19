@@ -19,12 +19,20 @@ export interface GatewayInfo {
   instructions?: string | undefined
 }
 
+export type GatewayErrorKind = 'no_endpoint' | 'auth' | 'session_lost' | 'rate' | 'unreachable' | 'other'
+
 export class GatewayError extends Error {
   /** The request never reached the gateway's tool: safe to send again. */
   readonly retryable: boolean
-  constructor(message: string, retryable: boolean) {
+  /** What went wrong, so `init` can say it in the person's language. */
+  readonly kind: GatewayErrorKind
+  /** The HTTP status or system error code behind it, if any. */
+  readonly code: string | undefined
+  constructor(message: string, retryable: boolean, kind: GatewayErrorKind = 'other', code?: string) {
     super(message)
     this.retryable = retryable
+    this.kind = kind
+    this.code = code
   }
 }
 
@@ -118,7 +126,7 @@ export class Gateway {
       await client.close().catch(() => {})
       const err =
         e instanceof StreamableHTTPError && e.code === 404
-          ? new GatewayError(`gateway "${this.name}": no MCP endpoint at ${this.cfg.url} (HTTP 404); check the gateway address`, false)
+          ? new GatewayError(`gateway "${this.name}": no MCP endpoint at ${this.cfg.url} (HTTP 404); check the gateway address`, false, 'no_endpoint', '404')
           : this.describe(e)
       this.lastError = err.message
       throw err
@@ -168,18 +176,18 @@ export class Gateway {
     const where = `gateway "${this.name}" (${this.host})`
     if (e instanceof StreamableHTTPError) {
       if (e.code === 401 || e.code === 403)
-        return new GatewayError(`${where} rejected the API key (HTTP ${e.code}). Check the key in the gateway's console (API Key) and run \`npx -y remote-webview-debugger-mcp init\` to update it.`, false)
+        return new GatewayError(`${where} rejected the API key (HTTP ${e.code}). Check the key in the gateway's console (API Key) and run \`npx -y remote-webview-debugger-mcp init\` to update it.`, false, 'auth', String(e.code))
       // The gateway no longer knows our session (it restarted): the call was not run.
-      if (e.code === 404) return new GatewayError(`${where} lost the MCP session (HTTP 404)`, true)
-      if (e.code === 429) return new GatewayError(`${where} is rate limiting this machine (HTTP 429); try again in a minute`, false)
-      return new GatewayError(`${where}: ${e.message}`, (e.code ?? 0) >= 502 && (e.code ?? 0) <= 504)
+      if (e.code === 404) return new GatewayError(`${where} lost the MCP session (HTTP 404)`, true, 'session_lost', '404')
+      if (e.code === 429) return new GatewayError(`${where} is rate limiting this machine (HTTP 429); try again in a minute`, false, 'rate', '429')
+      return new GatewayError(`${where}: ${e.message}`, (e.code ?? 0) >= 502 && (e.code ?? 0) <= 504, 'other', e.code === undefined ? undefined : String(e.code))
     }
     const msg = e instanceof Error ? e.message : String(e)
     const cause = errorCode(e)
     // Nothing was sent: the connection was not made.
     if (cause && ['ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ECONNRESET', 'UND_ERR_CONNECT_TIMEOUT'].includes(cause))
       // ECONNRESET may come after the request went out, so only a refused connection is sent again.
-      return new GatewayError(`${where} is unreachable (${cause})`, cause === 'ECONNREFUSED')
+      return new GatewayError(`${where} is unreachable (${cause})`, cause === 'ECONNREFUSED', 'unreachable', cause)
     return new GatewayError(`${where}: ${msg}`, false)
   }
 }

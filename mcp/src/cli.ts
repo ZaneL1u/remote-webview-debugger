@@ -7,8 +7,10 @@ import { parseArgs } from 'node:util'
 import { CLIENTS, DEFAULT_SERVER_NAME, defaultCtx } from './clients.ts'
 import { loadConfig } from './config.ts'
 import { Gateway } from './gateway.ts'
+import { detectLang, langOf, LANGS, MESSAGES, type Lang } from './i18n.ts'
 import { runInit, terminalIo } from './init.ts'
 import { serve } from './server.ts'
+import { colorWanted, makeStyle, plainStyle } from './tui.ts'
 
 declare const __VERSION__: string | undefined
 
@@ -33,6 +35,7 @@ init options:
   --name <name>            the server's name in the agents' configs (default ${DEFAULT_SERVER_NAME})
   --no-verify              don't check the gateway and key before saving
   -y, --yes                no questions: detected agents, no skill unless --skill
+  --lang <lang>            ${LANGS.join(', ')} (default: RWD_LANG, the terminal's locale, the system language)
 
 Gateways (config file, default ~/.config/remote-webview-debugger/mcp.json, or RWD_CONFIG):
   { "gateways": { "prod": { "url": "https://rwd.example.com", "apiKey": "rwd_sk_…" } } }
@@ -41,28 +44,31 @@ Environment instead of / on top of the file:
   RWD_GATEWAYS="prod=https://…,staging=https://…" with RWD_API_KEY_PROD, RWD_API_KEY_STAGING
 `
 
-async function doctor(config: string | undefined, v: string): Promise<number> {
+async function doctor(config: string | undefined, v: string, lang: Lang): Promise<number> {
+  const t = MESSAGES[lang]
+  const s = colorWanted(process.stderr, process.env) ? makeStyle(true) : plainStyle
   const cfg = loadConfig(config ? { config } : {})
-  const log = (s: string) => process.stderr.write(s + '\n')
-  log(`remote-webview-debugger-mcp ${v}\nConfig file: ${cfg.file}${fs.existsSync(cfg.file) ? '' : ' (missing)'}`)
-  for (const p of cfg.problems) log(`✗ ${p}`)
-  if (cfg.gateways.length === 0) log('✗ No gateway configured. Run: npx -y remote-webview-debugger-mcp init')
+  const log = (line: string) => process.stderr.write(line + '\n')
+  log(`${s.brand('◆')} ${s.bold('Remote WebView Debugger')} ${s.dim(`MCP ${v}`)}`)
+  log(`  ${s.dim(t.configFile)}  ${cfg.file}${fs.existsSync(cfg.file) ? '' : s.yellow(` (${t.missing})`)}`)
+  for (const p of cfg.problems) log(`  ${s.red('✖')} ${p}`)
+  if (cfg.gateways.length === 0) log(`  ${s.red('✖')} ${t.noGatewayDoctor}`)
   let bad = cfg.problems.length > 0 || cfg.gateways.length === 0
   for (const g of cfg.gateways) {
     const gw = new Gateway(g, v)
     try {
       await gw.connect()
-      log(`✓ ${g.name}: ${gw.host} — ${gw.info?.name} ${gw.info?.version ?? ''}, ${gw.tools.length} tools`)
+      log(`  ${s.green('✔')} ${s.bold(g.name)}  ${gw.host} ${s.dim('·')} ${gw.info?.name} ${gw.info?.version ?? ''} ${s.dim('·')} ${t.tools(gw.tools.length)}`)
     } catch (e) {
       bad = true
-      log(`✗ ${g.name}: ${(e as Error).message}`)
+      log(`  ${s.red('✖')} ${s.bold(g.name)}  ${(e as Error).message}`)
     } finally {
       await gw.close()
     }
   }
   const ctx = defaultCtx()
   const found = CLIENTS.filter((c) => c.detect(ctx)).map((c) => c.label)
-  log(`Agents found: ${found.join(', ') || 'none'}`)
+  log(`  ${s.dim(t.agentsFound)}  ${found.join(', ') || t.noneChosen}`)
   return bad ? 1 : 0
 }
 
@@ -82,6 +88,7 @@ async function main(): Promise<number> {
       'no-skill': { type: 'boolean' },
       name: { type: 'string' },
       'no-verify': { type: 'boolean' },
+      lang: { type: 'string' },
       yes: { type: 'boolean', short: 'y' },
       help: { type: 'boolean', short: 'h' },
       version: { type: 'boolean', short: 'v' },
@@ -100,7 +107,8 @@ async function main(): Promise<number> {
     await serve({ ...(values.config ? { config: values.config } : {}), version: v })
     return -1 // keep running
   }
-  if (cmd === 'doctor') return doctor(values.config, v)
+  const lang = langOf(values.lang) ?? detectLang(process.env)
+  if (cmd === 'doctor') return doctor(values.config, v, lang)
   if (cmd === 'init') {
     const io = terminalIo()
     try {
@@ -118,6 +126,7 @@ async function main(): Promise<number> {
           yes: !!values.yes,
           verify: !values['no-verify'],
           serverName: values.name ?? DEFAULT_SERVER_NAME,
+          lang,
         },
         io,
         defaultCtx(),

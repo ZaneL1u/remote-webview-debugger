@@ -1,4 +1,4 @@
-<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
+<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | Deutsch | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD-MCP-Server (`mcp/`)
@@ -20,7 +20,7 @@ Legen Sie in der Konsole des Gateways einen API-Key an (API-Keys; ein Key erreic
 npx -y remote-webview-debugger-mcp init
 ```
 
-`init` fragt nach der Gateway-Adresse und dem API-Key und prüft beides beim Gateway. Dann trägt es den MCP-Server bei den Agenten ein, die es auf diesem Rechner findet, und bietet an, den Agent-Skill zu installieren. Starten Sie Ihren Agenten neu und fragen Sie ihn: *„Liste die Online-Geräte auf“*.
+`init` fragt nach der Gateway-Adresse und dem API-Key und prüft beides beim Gateway. Dann trägt es den MCP-Server bei den Agenten ein, die es auf diesem Rechner findet, und bietet an, den Agent-Skill zu installieren. Starten Sie Ihren Agenten neu und fragen Sie ihn: *„Liste die Online-Geräte auf“*. Es spricht die Sprache deines Terminals (`--lang` wählt eine andere) und lässt dich die Agents in einer Liste ankreuzen.
 
 Was `init` ändert:
 

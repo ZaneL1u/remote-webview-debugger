@@ -1,4 +1,4 @@
-<!-- i18n-source: 656f4e4e2fa8dd72e4182a210aba6a469d4d348c -->
+<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP 서버(`mcp/`)
@@ -20,7 +20,7 @@ HTTP로 MCP를 쓸 수 있는 에이전트는 게이트웨이에 직접 접속�
 npx -y remote-webview-debugger-mcp init
 ```
 
-`init`은 게이트웨이 주소와 API 키를 묻고, 게이트웨이에 확인해요. 그런 다음 이 컴퓨터에서 찾은 에이전트에 MCP 서버를 추가하고, 에이전트 스킬 설치를 제안해요. 에이전트를 다시 시작하고 이렇게 요청하세요: *“온라인 기기 목록을 보여 줘.”*
+`init`은 게이트웨이 주소와 API 키를 묻고, 게이트웨이에 확인해요. 그런 다음 이 컴퓨터에서 찾은 에이전트에 MCP 서버를 추가하고, 에이전트 스킬 설치를 제안해요. 에이전트를 다시 시작하고 이렇게 요청하세요: *“온라인 기기 목록을 보여 줘.”* 터미널 언어로 표시되며(`--lang`으로 바꿀 수 있음), 에이전트는 목록에서 체크해 고릅니다.
 
 `init`이 바꾸는 것:
 

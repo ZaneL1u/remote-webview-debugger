@@ -19,7 +19,7 @@ Create an API key in the gateway's console (API Key; one key reaches every devic
 npx -y remote-webview-debugger-mcp init
 ```
 
-`init` asks for the gateway address and the API key, and checks them against the gateway. Then it adds the MCP server to the agents it finds on this machine and offers to install the agent skill. Restart your agent and ask it: *"list online devices"*.
+`init` asks for the gateway address and the API key, and checks them against the gateway. Then it adds the MCP server to the agents it finds on this machine and offers to install the agent skill. Restart your agent and ask it: *"list online devices"*. It talks in your terminal's language (`--lang` picks another) and lets you tick the agents in a list.
 
 What `init` changes:
 
