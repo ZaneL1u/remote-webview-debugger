@@ -1,6 +1,6 @@
 {
   "name": "remote-webview-debugger-mcp",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Remote WebView Debugger MCP server for any agent (Cursor, Codex, Gemini CLI, Claude Code, …): stdio MCP that reaches one or more RWD gateways",
   "license": "MIT",
   "homepage": "https://debugger.site",

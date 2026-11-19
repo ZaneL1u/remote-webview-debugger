@@ -4,6 +4,17 @@
 
 网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）。tag 形如 `gateway-vX.Y.Z`。
 
+## v0.4.2 (2026-11-19)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.4.1...gateway-v0.4.2)
+
+> 内嵌页面 SDK：v0.3.0（含未发版的改动）
+
+### 🚀 新功能
+
+- **mcp:** init 问 API Key 前先说明去哪里生成，没粘贴、格式不对或被网关拒绝时重新问；在 AI 助手里运行时不提问、只配置该助手；-y 真正不提问；文档和控制台里的命令统一带 @latest ([432d331](https://github.com/ZaneL1u/remote-webview-debugger/commit/432d331))
+- **console:** 控制台接入引导写明在自己的终端里运行 init、粘贴第 1 步生成的 Key；手机上「推荐」标签不再被挤成两行 ([0f2ac58](https://github.com/ZaneL1u/remote-webview-debugger/commit/0f2ac58))
+
 ## v0.4.1 (2026-11-19)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.4.0...gateway-v0.4.1)

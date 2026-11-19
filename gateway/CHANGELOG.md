@@ -4,6 +4,17 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded). Tags: `gateway-vX.Y.Z`.
 
+## v0.4.2 (2026-11-19)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.4.1...gateway-v0.4.2)
+
+> Embedded page SDK: v0.3.0 (plus unreleased changes)
+
+### 🚀 Enhancements
+
+- **mcp:** init explains where the API key comes from and asks again; agents run it without questions ([432d331](https://github.com/ZaneL1u/remote-webview-debugger/commit/432d331))
+- **console:** the onboarding card says to run init in your own terminal and paste the key from step 1 ([0f2ac58](https://github.com/ZaneL1u/remote-webview-debugger/commit/0f2ac58))
+
 ## v0.4.1 (2026-11-19)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.4.0...gateway-v0.4.1)
