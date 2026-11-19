@@ -42,6 +42,7 @@ const ui: UiMessages = {
   takeover: '接管',
   handback: '交还 AI',
   end: '结束',
+  stopAssist: '结束远程协助',
   autoTitle: '自动允许 AI 接入',
   autoOn: level => `不再询问，以「${level}」接入`,
   autoOff: '每次 AI 请求接入都先问你',

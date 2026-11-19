@@ -42,6 +42,7 @@ const ui: UiMessages = {
   takeover: 'تولّي التحكم',
   handback: 'إعادة التحكم',
   end: 'إنهاء',
+  stopAssist: 'إنهاء المساعدة عن بُعد',
   autoTitle: 'السماح التلقائي للذكاء الاصطناعي',
   autoOn: level => `يرتبط دون سؤال · ${level}`,
   autoOff: 'السؤال في كل مرة يطلب فيها الذكاء الاصطناعي الربط',

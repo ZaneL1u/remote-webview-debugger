@@ -442,6 +442,8 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   eruda,                 // true | { dock, load, src, name }: show as a tab inside eruda
   networkExclude,        // requests to keep out of what the agent reads (§11)
   record,                // keep the session log (default true; the policy can turn it off, §5.4)
+  stopOnEnd,             // the user's End also ends remote assistance: the page goes offline until run() again; adds an "End remote assistance" button
+  onStop,                // called after the user ended remote assistance (stopOnEnd)
   // native hosts
   deviceId,              // one id per install, shared by every WebView and domain
   deviceToken,           // the token from status().deviceToken, kept by the host

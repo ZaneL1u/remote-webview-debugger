@@ -443,6 +443,8 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   eruda,                 // true | { dock, load, src, name }: eruda 안의 탭으로 표시
   networkExclude,        // 에이전트가 읽는 내용에서 뺄 요청(§11)
   record,                // 세션 로그 기록(기본값 true, 정책으로 끌 수 있음, §5.4)
+  stopOnEnd,             // 사용자가 「종료」하면 원격 지원도 끝남: 다시 run() 할 때까지 오프라인, 플로팅 창에 「원격 지원 종료」 추가
+  onStop,                // 사용자가 원격 지원을 끝낸 뒤 호출(stopOnEnd)
   // 네이티브 호스트
   deviceId,              // 설치마다 하나인 ID. 모든 WebView와 도메인이 공유
   deviceToken,           // status().deviceToken의 토큰. 호스트가 보관

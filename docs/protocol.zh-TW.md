@@ -443,6 +443,8 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   eruda,                 // true | { dock, load, src, name }：以 eruda 分頁的形式出現
   networkExclude,        // 不讓 agent 看到的請求（§11）
   record,                // 是否保留工作階段記錄（預設 true，專案原則可以關閉，§5.4）
+  stopOnEnd,             // 使用者按「結束」時一併結束遠端協助：頁面離線，直到再次 run()；懸浮視窗多一個「結束遠端協助」
+  onStop,                // 使用者結束遠端協助後呼叫（stopOnEnd）
   // 原生宿主
   deviceId,              // 每次安裝一個 id，所有 WebView、所有網域共用
   deviceToken,           // status().deviceToken 中的權杖，由宿主保存

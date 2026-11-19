@@ -443,6 +443,8 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   eruda,                 // true | { dock, load, src, name }: als Tab in eruda anzeigen
   networkExclude,        // Anfragen, die aus dem herausgehalten werden, was der Agent liest (§11)
   record,                // das Sitzungsprotokoll führen (Standard true; die Richtlinie kann es abschalten, §5.4)
+  stopOnEnd,             // „Beenden“ des Nutzers beendet auch die Fernhilfe: die Seite geht offline bis zum nächsten run(); fügt „Fernhilfe beenden“ hinzu
+  onStop,                // wird aufgerufen, nachdem der Nutzer die Fernhilfe beendet hat (stopOnEnd)
   // native Hosts
   deviceId,              // eine ID pro Installation, geteilt von allen WebViews und Domains
   deviceToken,           // das Token aus status().deviceToken, vom Host verwahrt

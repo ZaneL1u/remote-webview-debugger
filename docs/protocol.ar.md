@@ -475,6 +475,8 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   eruda,                 // true | { dock, load, src, name }: الظهور كتبويب داخل eruda
   networkExclude,        // طلبات تُستبعد مما يقرؤه الوكيل (§11)
   record,                // الاحتفاظ بسجل الجلسة (الافتراضي true؛ ويمكن للسياسة إيقافه، §5.4)
+  stopOnEnd,             // «إنهاء» المستخدم ينهي المساعدة عن بُعد أيضًا: تبقى الصفحة غير متصلة حتى run() التالي؛ ويضيف زر «إنهاء المساعدة عن بُعد»
+  onStop,                // يُستدعى بعد أن ينهي المستخدم المساعدة عن بُعد (stopOnEnd)
   // المضيفون الأصليون
   deviceId,              // معرّف واحد لكل تثبيت، تتشاركه كل WebView وكل النطاقات
   deviceToken,           // التوكن من status().deviceToken، يحتفظ به المضيف

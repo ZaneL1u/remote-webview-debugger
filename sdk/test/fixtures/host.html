@@ -7,11 +7,20 @@
     <script src="/v1/sdk.js"></script>
     <script>
       // Tests set window.__rwdOpts (addInitScript) to play a native host:
-      // nativeKey, nativeApproval, deviceToken, deviceId, helpButton.
+      // nativeKey, nativeApproval, deviceToken, deviceId, helpButton, stopOnEnd.
       window.runResult = RemoteWebviewDebugger.run(
         location.origin + '/v1',
         'rwd_pk_test0000000000000000000',
-        Object.assign({ helpButton: false }, window.__rwdOpts || {})
+        Object.assign(
+          {
+            helpButton: false,
+            // Counted for tests of run({ stopOnEnd }).
+            onStop: function () {
+              window.__stopped = (window.__stopped || 0) + 1
+            },
+          },
+          window.__rwdOpts || {}
+        )
       )
     </script>
     <style>

@@ -443,6 +443,8 @@ RemoteWebviewDebugger.run(gatewayUrl, appKey, {
   eruda,                 // true | { dock, load, src, name } : s'affiche comme un onglet dans eruda
   networkExclude,        // requêtes à tenir à l'écart de ce que lit l'agent (§11)
   record,                // tient le journal de session (true par défaut ; la politique peut le désactiver, §5.4)
+  stopOnEnd,             // le « Terminer » de l’utilisateur arrête aussi l’assistance à distance : la page passe hors ligne jusqu’au prochain run() ; ajoute « Arrêter l’assistance à distance »
+  onStop,                // appelé après que l’utilisateur a arrêté l’assistance à distance (stopOnEnd)
   // hôtes natifs
   deviceId,              // un id par installation, partagé par toutes les WebView et tous les domaines
   deviceToken,           // le jeton de status().deviceToken, conservé par l'hôte

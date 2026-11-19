@@ -43,6 +43,7 @@ const ui: UiMessages = {
   takeover: 'Übernehmen',
   handback: 'Zurückgeben',
   end: 'Beenden',
+  stopAssist: 'Fernhilfe beenden',
   autoTitle: 'KI automatisch zulassen',
   autoOn: level => `Ohne Rückfrage · ${level}`,
   autoOff: 'Jedes Mal fragen, bevor sich die KI verbindet',

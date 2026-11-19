@@ -45,6 +45,7 @@ const ui: UiMessages = {
   takeover: '引き継ぐ',
   handback: 'AI に戻す',
   end: '終了',
+  stopAssist: 'リモートサポートを終了',
   autoTitle: 'AI の接続を自動許可',
   autoOn: level => `確認なしで接続 · ${level}`,
   autoOff: 'AI が接続しようとするたびに確認します',

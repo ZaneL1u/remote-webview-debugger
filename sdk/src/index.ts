@@ -144,6 +144,17 @@ export interface RunOptions {
    * define window.RWDLaunchId.
    */
   launchId?: string
+  /**
+   * The user's "End" also ends remote assistance: after the agent (or
+   * DevTools) is let go, the page disconnects and the UI goes away, so no
+   * agent can reach the device until the page starts it again. The floating
+   * window gets an "End remote assistance" button too. For hosts that start
+   * the SDK on demand (a "start remote assistance" switch); they learn of it
+   * through onStop.
+   */
+  stopOnEnd?: boolean
+  /** Called after the user ended remote assistance (stopOnEnd). */
+  onStop?: () => void
 }
 
 export type Status = 'idle' | LinkState
@@ -585,8 +596,12 @@ export function run(gatewayUrl: string, appKey: string, opts: RunOptions = {}): 
       if (session) applyLock(session)
     },
     onHelp: on => setHelp(on),
+    stopButton: !!opts.stopOnEnd,
+    onStop: () => void endAssistance(),
     onControl: action => {
-      if (session) session.transport.send({ t: 'control', action }, true)
+      if (!session) return
+      if (action === 'end' && session.opts.stopOnEnd) void endAssistance()
+      else session.transport.send({ t: 'control', action }, true)
     },
   })
   uiRef = ui
@@ -792,6 +807,40 @@ export function getStatus() {
 }
 export { getStatus as status }
 
+let ending = false
+
+/**
+ * The user ended remote assistance (run({ stopOnEnd })): let the agent and
+ * DevTools go, then go offline. The gateway also ends them when the page
+ * disconnects; waiting for its answer first means none of them is still
+ * attached when the page comes back.
+ */
+async function endAssistance() {
+  const s = session
+  if (!s || ending) return
+  ending = true
+  try {
+    const busy = () => s.control !== 'none' || Object.keys(s.inspectors).length > 0
+    if (busy() && s.transport.isOnline()) {
+      s.transport.send({ t: 'control', action: 'end' }, true)
+      for (let waited = 0; busy() && waited < 1500 && session === s; waited += 50) await new Promise(r => setTimeout(r, 50))
+    }
+    logRecord('control', { state: 'stopped', agent: null }, true)
+    // The next page must not lock for an agent that is gone.
+    write('localStorage', CONTROL_KEY, null)
+    if (session === s) stop()
+  } finally {
+    ending = false
+  }
+  if (s.opts.onStop) {
+    try {
+      s.opts.onStop()
+    } catch (e) {
+      // The host's problem.
+    }
+  }
+}
+
 /** Disconnect and remove the UI. Console / network collection continues (bounded). */
 export function stop() {
   const s = session
@@ -879,7 +928,8 @@ export function help(on = true) {
 export function nativeControl(key: string, action: 'takeover' | 'handback' | 'end'): boolean {
   const s = session
   if (!s || !keyMatches(s, key) || (action !== 'takeover' && action !== 'handback' && action !== 'end')) return false
-  s.transport.send({ t: 'control', action }, true)
+  if (action === 'end' && s.opts.stopOnEnd) void endAssistance()
+  else s.transport.send({ t: 'control', action }, true)
   return true
 }
 
