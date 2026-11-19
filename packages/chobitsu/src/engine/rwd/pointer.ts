@@ -224,37 +224,47 @@ function fireMouse(type: string, el: Element, x: number, y: number, init: MouseE
 let touchId = 1
 
 function fireTouch(type: string, el: Element, x: number, y: number) {
-  try {
-    const touch = new Touch({
-      identifier: touchId,
-      target: el,
-      clientX: x,
-      clientY: y,
-      pageX: x + window.scrollX,
-      pageY: y + window.scrollY,
-      screenX: x,
-      screenY: y,
-      radiusX: 1,
-      radiusY: 1,
-      rotationAngle: 0,
-      force: 1,
-    })
-    const active = type === 'touchend' || type === 'touchcancel' ? [] : [touch]
-    return el.dispatchEvent(
-      new TouchEvent(type, {
-        bubbles: true,
-        cancelable: true,
-        composed: true,
-        view: window,
-        touches: active,
-        targetTouches: active,
-        changedTouches: [touch],
-      })
-    )
-  } catch (e) {
-    // No Touch constructor (desktop Safari): pointer and mouse events only.
-    return true
+  const init = {
+    identifier: touchId,
+    target: el,
+    clientX: x,
+    clientY: y,
+    pageX: x + window.scrollX,
+    pageY: y + window.scrollY,
+    screenX: x,
+    screenY: y,
+    radiusX: 1,
+    radiusY: 1,
+    rotationAngle: 0,
+    force: 1,
   }
+  const ended = type === 'touchend' || type === 'touchcancel'
+  let event: Event
+  try {
+    const touch = new Touch(init)
+    const active = ended ? [] : [touch]
+    event = new TouchEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      view: window,
+      touches: active,
+      targetTouches: active,
+      changedTouches: [touch],
+    })
+  } catch (e) {
+    // No Touch / TouchEvent constructor (WebKit builds without them): an event
+    // of the same type with the same touch lists, which touchstart / touchend
+    // listeners receive and read just the same.
+    const touch = { ...init }
+    const list = (items: object[]) => Object.assign([...items], { item: (i: number) => items[i] || null })
+    const active = list(ended ? [] : [touch])
+    event = new UIEvent(type, { bubbles: true, cancelable: true, composed: true, view: window })
+    for (const [k, v] of Object.entries({ touches: active, targetTouches: active, changedTouches: list([touch]) })) {
+      Object.defineProperty(event, k, { value: v })
+    }
+  }
+  return el.dispatchEvent(event)
 }
 
 /** Move the (virtual) pointer onto el: over/enter on change, then move. */

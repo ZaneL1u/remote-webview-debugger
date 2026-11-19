@@ -1,4 +1,4 @@
-<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
+<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
 
 <div dir="rtl">
 
@@ -98,7 +98,7 @@ SDK هو حزمة npm [`remote-webview-debugger`](sdk/README.ar.md): حمّله 
 <div dir="ltr">
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 </div>

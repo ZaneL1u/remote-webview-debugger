@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | 日本語 | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP サーバー（`mcp/`）
@@ -17,7 +17,7 @@ HTTP 経由の MCP に対応したエージェントは、ゲートウェイに�
 ゲートウェイの管理コンソールで API キーを作成し（API キー。1 つのキーですべてのデバイスに届きます）、次を実行します：
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 `init` はゲートウェイのアドレスと API キーを尋ね、それをゲートウェイに照会して確認します。続いて、このマシンで見つかったエージェントに MCP サーバーを追加し、エージェントスキルのインストールを提案します。エージェントを再起動して、こう頼んでください：*「オンラインのデバイスを一覧表示して」*。表示はターミナルの言語に合わせます（`--lang` で変更可）。エージェントは一覧でチェックして選べます。
@@ -173,14 +173,14 @@ claude mcp add -s user remote-webview-debugger -- npx -y remote-webview-debugger
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # stdio MCP サーバー（エージェントが実行するもの）
-npx -y remote-webview-debugger-mcp init            # ゲートウェイを追加し、エージェントを設定し、スキルをインストール
-npx -y remote-webview-debugger-mcp doctor          # すべてのゲートウェイとキーを確認し、見つかったエージェントを一覧表示
+npx -y remote-webview-debugger-mcp@latest init            # ゲートウェイを追加し、エージェントを設定し、スキルをインストール
+npx -y remote-webview-debugger-mcp@latest doctor          # すべてのゲートウェイとキーを確認し、見つかったエージェントを一覧表示
 ```
 
 `init` は質問なしでも実行でき、スクリプトやチーム向けのセットアップ手順に使えます：
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -198,7 +198,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## トラブルシューティング
 
-- **エージェントに Remote WebView Debugger のツールがない。** `init` の後にエージェントを再起動してください。`npx -y remote-webview-debugger-mcp doctor` を実行すると、設定ファイルとゲートウェイに問題がないか確認できます。
+- **エージェントに Remote WebView Debugger のツールがない。** `init` の後にエージェントを再起動してください。`npx -y remote-webview-debugger-mcp@latest doctor` を実行すると、設定ファイルとゲートウェイに問題がないか確認できます。
 - **「rejected the API key」。** キーが取り消されたか、期限切れか、所有者が削除されています。管理コンソールで新しいキーを作成し、同じゲートウェイ名で `init` をもう一度実行してください。
 - **初回の起動が遅い。** npx は初回と、新しいバージョンが出るたびにパッケージをダウンロードします。それ以降の起動では npx のキャッシュが使われます。
 - **呼び出しが 60 秒でタイムアウトする。** エージェント自身のツールタイムアウトが短すぎます。[エージェントを手動で設定する](#エージェントを手動で設定する)のとおりに引き上げてください。

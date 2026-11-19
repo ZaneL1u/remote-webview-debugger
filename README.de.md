@@ -1,4 +1,4 @@
-<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
+<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -81,7 +81,7 @@ In einer App injizieren Sie dasselbe Script bei Dokumentbeginn aus nativem Code 
 Legen Sie in der Konsole einen API-Key an (ein Key erreicht jedes Gerät) und führen Sie dann aus:
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 Der Befehl fragt nach der Gateway-Adresse und dem Key und trägt den MCP-Server dann bei den Agenten ein, die er findet: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code oder Claude Desktop. Außerdem installiert er den Agent-Skill (`npx skills add zanel1u/remote-webview-debugger`). Ein MCP-Server kann mehrere Gateways erreichen. Die Einrichtung für jeden Agenten steht im [MCP-Paket](mcp/README.de.md).

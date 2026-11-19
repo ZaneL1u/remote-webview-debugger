@@ -52,3 +52,35 @@ test('click with holdMs is a long press', async ({ page, gw }) => {
   expect(Date.now() - t0).toBeGreaterThanOrEqual(650)
   expect(await page.evaluate(() => (window as any).__events)).toEqual(['long'])
 })
+
+// Some WebKit builds have no Touch / TouchEvent constructor: touch listeners
+// still get touchstart / touchend, with the touch lists to read.
+test('long press and tap without the Touch constructor', async ({ page, gw }) => {
+  const s = await openDemo(page, gw)
+  await page.evaluate(() => {
+    const w = window as any
+    delete w.Touch
+    delete w.TouchEvent
+    const b = document.createElement('button')
+    b.textContent = '长按看全标题'
+    b.style.cssText = 'position:fixed;top:120px;left:20px;z-index:2147483000'
+    w.__events = []
+    let timer: ReturnType<typeof setTimeout> | undefined
+    b.addEventListener('touchstart', (e: any) => {
+      w.__events.push(`start ${e.touches.length} ${Math.round(e.touches[0].clientX) > 0} ${e.changedTouches.item(0) === e.changedTouches[0]}`)
+      timer = setTimeout(() => w.__events.push('long'), 450)
+    })
+    b.addEventListener('touchend', (e: any) => {
+      w.__events.push(`end ${e.touches.length} ${e.changedTouches.length}`)
+      clearTimeout(timer)
+    })
+    b.addEventListener('click', () => w.__events.push('click'))
+    document.body.appendChild(b)
+  })
+  const ref = refOf(await snapshot(gw, s.pageId!), 'button', '长按看全标题')
+  await rpc(gw, s.pageId!, 'rwd.click', { ref, holdMs: 700 })
+  expect(await page.evaluate(() => (window as any).__events)).toEqual(['start 1 true true', 'long', 'end 0 1'])
+  await page.evaluate(() => ((window as any).__events = []))
+  await rpc(gw, s.pageId!, 'rwd.click', { ref })
+  expect(await page.evaluate(() => (window as any).__events)).toEqual(['start 1 true true', 'end 0 1', 'click'])
+})

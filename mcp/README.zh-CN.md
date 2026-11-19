@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | 简体中文 | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP 服务（`mcp/`）
@@ -17,7 +17,7 @@
 在网关的控制台创建一个 API Key（API Key 页面；一个 Key 可以访问所有设备），然后运行：
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 `init` 会询问网关地址和 API Key，并到网关上验证。然后它把 MCP 服务加到这台机器上找到的 agent 里，并询问是否安装 agent skill。重启 agent，然后问它：*「列出在线设备」*。它跟随终端的语言显示（用 `--lang` 可以换），agent 在列表里勾选即可。
@@ -173,14 +173,14 @@ claude mcp add -s user remote-webview-debugger -- npx -y remote-webview-debugger
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # stdio MCP 服务（agent 运行的就是它）
-npx -y remote-webview-debugger-mcp init            # 添加网关、配置 agent、安装 skill
-npx -y remote-webview-debugger-mcp doctor          # 检查每个网关和 Key；列出找到的 agent
+npx -y remote-webview-debugger-mcp@latest init            # 添加网关、配置 agent、安装 skill
+npx -y remote-webview-debugger-mcp@latest doctor          # 检查每个网关和 Key；列出找到的 agent
 ```
 
 `init` 也可以不提问直接运行，适合脚本和团队的配置文档：
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -198,7 +198,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## 故障排查
 
-- **agent 里没有 Remote WebView Debugger 的工具。** `init` 之后要重启 agent。运行 `npx -y remote-webview-debugger-mcp doctor`，检查配置文件和网关是否正常。
+- **agent 里没有 Remote WebView Debugger 的工具。** `init` 之后要重启 agent。运行 `npx -y remote-webview-debugger-mcp@latest doctor`，检查配置文件和网关是否正常。
 - **「rejected the API key」。** Key 被吊销、已过期，或者它的所有者已被移除。在控制台新建一个 Key，用同一个网关名再运行一次 `init`。
 - **第一次启动很慢。** npx 第一次会下载这个包，每次有新版本后也会重新下载。之后的启动会用 npx 的缓存。
 - **调用 60 秒后超时。** agent 自己的工具超时太短。按[手动配置 agent](#手动配置-agent)里的方法调大。

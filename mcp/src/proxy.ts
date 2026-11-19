@@ -75,7 +75,7 @@ export class Proxy {
     const from = this.gateways.find((g) => g.info?.instructions)?.info?.instructions ?? FALLBACK_INSTRUCTIONS
     const notes: string[] = []
     if (this.gateways.length === 0)
-      notes.push('No gateway is configured yet. Ask the user to run `npx -y remote-webview-debugger-mcp init` (gateway address and API key), then restart the MCP server.')
+      notes.push('No gateway is configured yet. Ask the user to run `npx -y remote-webview-debugger-mcp@latest init` (gateway address and API key), then restart the MCP server.')
     if (this.multi)
       notes.push(
         `This MCP server reaches ${this.gateways.length} gateways (${this.gateways.map((g) => g.name).join(', ')}). list_devices shows the devices of all of them, grouped by gateway. To attach, pass \`gateway\` to connect_device or write the device as \`<gateway>:<code>\`; without it, the gateway that knows the device code is used. After that, every tool works on that device's gateway.`,
@@ -122,7 +122,7 @@ export class Proxy {
   private async route(name: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<CallToolResult> {
     if (name === 'list_gateways') return this.listGateways()
     if (this.gateways.length === 0)
-      return text(`No gateway is configured (looked in ${this.configFile}). Run \`npx -y remote-webview-debugger-mcp init\` to add one, then restart the MCP server.`, true)
+      return text(`No gateway is configured (looked in ${this.configFile}). Run \`npx -y remote-webview-debugger-mcp@latest init\` to add one, then restart the MCP server.`, true)
 
     const wanted = typeof args.gateway === 'string' && args.gateway ? args.gateway : null
     delete args.gateway
@@ -220,7 +220,7 @@ export class Proxy {
   private async listGateways(): Promise<CallToolResult> {
     await Promise.allSettled(this.gateways.filter((g) => !g.connected).map((g) => g.connect()))
     const lines: string[] = []
-    if (this.gateways.length === 0) lines.push(`No gateway is configured (config file: ${this.configFile}). Run \`npx -y remote-webview-debugger-mcp init\`.`)
+    if (this.gateways.length === 0) lines.push(`No gateway is configured (config file: ${this.configFile}). Run \`npx -y remote-webview-debugger-mcp@latest init\`.`)
     for (const g of this.gateways) {
       const state = g.connected ? `reachable, ${g.info?.name ?? 'gateway'} ${g.info?.version ?? ''}`.trim() : `not reachable: ${g.lastError ?? 'not connected yet'}`
       lines.push(`- ${g.name}: ${g.host} — ${state}${this.active === g ? ' — attached device is here' : ''}`)

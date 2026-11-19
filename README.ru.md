@@ -1,4 +1,4 @@
-<!-- i18n-source: 6194f6feab1bb99363508bcb4baba45a781fab1b -->
+<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -81,7 +81,7 @@ SDK — это npm-пакет [`remote-webview-debugger`](sdk/README.ru.md): з�
 Создайте в веб-консоли API-ключ (один ключ даёт доступ ко всем устройствам), затем выполните:
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 Команда спросит адрес шлюза и ключ, а затем добавит MCP-сервер в найденных агентов: Cursor, Codex, Gemini CLI, Windsurf, Cline, VS Code, opencode, Claude Code или Claude Desktop. Она также установит навык агента (`npx skills add zanel1u/remote-webview-debugger`). Один MCP-сервер может работать с несколькими шлюзами. Настройка каждого агента описана в [MCP-пакете](mcp/README.ru.md).

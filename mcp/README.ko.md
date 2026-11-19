@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | 한국어 | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP 서버(`mcp/`)
@@ -17,7 +17,7 @@ HTTP로 MCP를 쓸 수 있는 에이전트는 게이트웨이에 직접 접속�
 게이트웨이의 콘솔에서 API 키를 만든 뒤(API 키, 키 하나로 모든 기기에 접근할 수 있어요) 다음을 실행하세요.
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 `init`은 게이트웨이 주소와 API 키를 묻고, 게이트웨이에 확인해요. 그런 다음 이 컴퓨터에서 찾은 에이전트에 MCP 서버를 추가하고, 에이전트 스킬 설치를 제안해요. 에이전트를 다시 시작하고 이렇게 요청하세요: *“온라인 기기 목록을 보여 줘.”* 터미널 언어로 표시되며(`--lang`으로 바꿀 수 있음), 에이전트는 목록에서 체크해 고릅니다.
@@ -173,14 +173,14 @@ claude mcp add -s user remote-webview-debugger -- npx -y remote-webview-debugger
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # stdio MCP 서버(에이전트가 실행하는 것)
-npx -y remote-webview-debugger-mcp init            # 게이트웨이 추가, 에이전트 설정, 스킬 설치
-npx -y remote-webview-debugger-mcp doctor          # 모든 게이트웨이와 키를 확인하고, 찾은 에이전트를 나열
+npx -y remote-webview-debugger-mcp@latest init            # 게이트웨이 추가, 에이전트 설정, 스킬 설치
+npx -y remote-webview-debugger-mcp@latest doctor          # 모든 게이트웨이와 키를 확인하고, 찾은 에이전트를 나열
 ```
 
 `init`은 질문 없이도 실행돼서, 스크립트나 팀 설정 문서에 쓸 수 있어요.
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -198,7 +198,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## 문제 해결
 
-- **에이전트에 Remote WebView Debugger 도구가 없어요.** `init` 후에 에이전트를 다시 시작하세요. `npx -y remote-webview-debugger-mcp doctor`를 실행하면 설정 파일과 게이트웨이에 문제가 없는지 확인할 수 있어요.
+- **에이전트에 Remote WebView Debugger 도구가 없어요.** `init` 후에 에이전트를 다시 시작하세요. `npx -y remote-webview-debugger-mcp@latest doctor`를 실행하면 설정 파일과 게이트웨이에 문제가 없는지 확인할 수 있어요.
 - **"rejected the API key".** 키가 폐기되었거나 만료되었거나, 키 소유자가 삭제되었어요. 콘솔에서 새 키를 만들고 같은 게이트웨이 이름으로 `init`을 다시 실행하세요.
 - **처음 시작이 느려요.** npx는 처음, 그리고 새 버전이 나올 때마다 패키지를 내려받아요. 이후에는 npx 캐시를 써요.
 - **호출이 60초 후 타임아웃돼요.** 에이전트 자체의 도구 타임아웃이 너무 짧아요. [에이전트 직접 설정하기](#에이전트-직접-설정하기)에 나온 대로 늘리세요.

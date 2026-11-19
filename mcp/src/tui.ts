@@ -165,7 +165,7 @@ export class Terminal {
   /** The finished question, on one line: "✔ question  answer". */
   private settle(message: string, answer: string): void {
     this.clear()
-    this.out.write(`  ${this.st.green('✔')} ${this.st.bold(message)} ${this.st.cyan(answer)}\n`)
+    this.out.write(`  ${answer ? this.st.green('✔') : this.st.dim('·')} ${this.st.bold(message)} ${answer ? this.st.cyan(answer) : this.st.dim('—')}\n`)
   }
 
   async confirm(message: string, def: boolean, labels: { yes: string; no: string }): Promise<boolean> {

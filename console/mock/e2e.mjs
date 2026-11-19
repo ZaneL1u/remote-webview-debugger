@@ -259,7 +259,7 @@ async function run(vp) {
   await page.getByText('这是唯一一次显示完整 Key').waitFor()
   await page.getByRole('dialog').getByText('203.0.113.0/24').waitFor()
   // the npm package's init comes first and never carries the key
-  await page.getByRole('dialog').getByText(`npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`, { exact: true }).waitFor()
+  await page.getByRole('dialog').getByText(`npx -y remote-webview-debugger-mcp@latest init --gateway localhost=${base}`, { exact: true }).waitFor()
   await shot(page, `${n}-14-key-created`, { fullPage: false })
   // pressing Escape must not close the dialog while the plaintext key is shown
   await page.keyboard.press('Escape')
@@ -592,7 +592,7 @@ async function devicesHome(page, n) {
 async function onboarding(page, n) {
   const card = page.locator('section[aria-labelledby="onboard-title"]')
   await card.waitFor()
-  const init = `npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`
+  const init = `npx -y remote-webview-debugger-mcp@latest init --gateway localhost=${base}`
   await card.getByText(init, { exact: true }).waitFor()
   await card.getByText('npx skills add zanel1u/remote-webview-debugger', { exact: true }).waitFor()
   if (/rwd_sk_|RWD_API_KEY=/.test(init)) throw new Error('the init command must not carry the key')
@@ -682,7 +682,7 @@ async function docs(page, n) {
   await page.waitForFunction((k) => !document.body.innerText.includes(k), appKey)
   await page.getByText(`claude mcp add --transport http rwd ${gateway}/mcp`).first().waitFor()
   // other clients: the npm package first (init with this gateway, the skill), then its stdio snippets
-  const init = `npx -y remote-webview-debugger-mcp init --gateway localhost=${base}`
+  const init = `npx -y remote-webview-debugger-mcp@latest init --gateway localhost=${base}`
   await visible(page.getByRole('tab', { name: 'npm 包（推荐）' })).waitFor()
   await visible(page.getByText(init, { exact: true })).waitFor()
   await visible(page.getByText('npx skills add zanel1u/remote-webview-debugger', { exact: true })).waitFor()

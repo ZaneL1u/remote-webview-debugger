@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // remote-webview-debugger-mcp            stdio MCP server (what agents run)
-// remote-webview-debugger-mcp init       add gateways, set up agents, install the skill
-// remote-webview-debugger-mcp doctor     check the gateways and the agents' configs
+// remote-webview-debugger-mcp@latest init       add gateways, set up agents, install the skill
+// remote-webview-debugger-mcp@latest doctor     check the gateways and the agents' configs
 import fs from 'node:fs'
 import { parseArgs } from 'node:util'
-import { CLIENTS, DEFAULT_SERVER_NAME, defaultCtx } from './clients.ts'
+import { agentShell, CLIENTS, DEFAULT_SERVER_NAME, defaultCtx } from './clients.ts'
 import { loadConfig } from './config.ts'
 import { Gateway } from './gateway.ts'
 import { detectLang, langOf, LANGS, MESSAGES, type Lang } from './i18n.ts'
@@ -23,8 +23,8 @@ const HELP = `Remote WebView Debugger MCP server
 
 Usage:
   npx -y remote-webview-debugger-mcp [--config <file>]     run the stdio MCP server (agents start this)
-  npx -y remote-webview-debugger-mcp init [options]        add gateways and set up your agents
-  npx -y remote-webview-debugger-mcp doctor [--config <file>]
+  npx -y remote-webview-debugger-mcp@latest init [options]        add gateways and set up your agents
+  npx -y remote-webview-debugger-mcp@latest doctor [--config <file>]
 
 init options:
   --gateway [name=]<url>   a gateway to add (repeatable); asked for when omitted
@@ -127,6 +127,7 @@ async function main(): Promise<number> {
           verify: !values['no-verify'],
           serverName: values.name ?? DEFAULT_SERVER_NAME,
           lang,
+          ...(agentShell(process.env) && !values.yes ? { agent: agentShell(process.env)! } : {}),
         },
         io,
         defaultCtx(),

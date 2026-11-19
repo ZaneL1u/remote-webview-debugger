@@ -1,4 +1,4 @@
-<!-- i18n-source: 4c1d07f81a9ad2916a55470637b38ed6f66dea99 -->
+<!-- i18n-source: 675a8f40bfbb5e3b48c68169205c5b2a3f09866a -->
 [English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文 | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Português (Brasil)](README.pt-BR.md) | [Русский](README.ru.md) | [العربية](README.ar.md)
 
 # RWD MCP 伺服器（`mcp/`）
@@ -17,7 +17,7 @@
 在閘道的主控台建立一把 API 金鑰（API 金鑰頁面；一把金鑰就能存取所有裝置），然後執行：
 
 ```bash
-npx -y remote-webview-debugger-mcp init
+npx -y remote-webview-debugger-mcp@latest init
 ```
 
 `init` 會詢問閘道位址和 API 金鑰，並向閘道驗證。接著它會把 MCP 伺服器加到這台電腦上找到的 agent 裡，並詢問是否安裝 agent skill。重新啟動 agent，然後問它：*「列出線上裝置」*。它會跟隨終端機的語言顯示（用 `--lang` 可以切換），agent 在清單裡勾選即可。
@@ -173,14 +173,14 @@ claude mcp add -s user remote-webview-debugger -- npx -y remote-webview-debugger
 
 ```bash
 npx -y remote-webview-debugger-mcp                 # stdio MCP 伺服器（agent 執行的就是它）
-npx -y remote-webview-debugger-mcp init            # 新增閘道、設定 agent、安裝 skill
-npx -y remote-webview-debugger-mcp doctor          # 檢查每個閘道和金鑰；列出找到的 agent
+npx -y remote-webview-debugger-mcp@latest init            # 新增閘道、設定 agent、安裝 skill
+npx -y remote-webview-debugger-mcp@latest doctor          # 檢查每個閘道和金鑰；列出找到的 agent
 ```
 
 `init` 也可以不提問直接執行，適合腳本和團隊的設定文件：
 
 ```bash
-RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
+RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp@latest init \
   --gateway prod=https://rwd.example.com --clients cursor,codex --skill -y
 ```
 
@@ -198,7 +198,7 @@ RWD_API_KEY=rwd_sk_live_… npx -y remote-webview-debugger-mcp init \
 
 ## 疑難排解
 
-- **agent 裡沒有 Remote WebView Debugger 的工具。** `init` 之後請重新啟動 agent。執行 `npx -y remote-webview-debugger-mcp doctor`，確認設定檔和閘道都正常。
+- **agent 裡沒有 Remote WebView Debugger 的工具。** `init` 之後請重新啟動 agent。執行 `npx -y remote-webview-debugger-mcp@latest doctor`，確認設定檔和閘道都正常。
 - **「rejected the API key」。** 金鑰已被撤銷、已過期，或其擁有者已被移除。在主控台建立一把新的金鑰，再用同一個閘道名稱執行一次 `init`。
 - **第一次啟動很慢。** npx 第一次會下載這個套件，每次有新版本後也會重新下載。之後的啟動會使用 npx 的快取。
 - **呼叫 60 秒後逾時。** agent 自己的工具逾時太短。請依[手動設定 agent](#手動設定-agent)中的方式調高。
