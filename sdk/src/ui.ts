@@ -53,6 +53,10 @@ export interface UiOptions {
   style?: StyleOptions
   onHelp(on: boolean): void
   onControl(action: 'takeover' | 'handback' | 'end'): void
+  /** Show "End remote assistance" in the floating window (run({ stopOnEnd })). */
+  stopButton?: boolean
+  /** The user tapped it. */
+  onStop?(): void
   /** The user changed a setting in our window (auto-approve, lock). */
   onSettings(): void
 }
@@ -224,6 +228,7 @@ ${CJK_FONTS}
 .win .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 /* Equal halves; a label too long for half the card gets its own row. */
 .win .row .btn { flex: 1 0 0; min-width: max-content; text-align: center; white-space: nowrap; }
+.win .btn.quit { background: rgba(var(--danger-rgb), .1); color: rgb(var(--danger-rgb)); box-shadow: inset 0 0 0 1px rgba(var(--danger-rgb), .28); }
 .code { font: 500 12px/16px var(--mono); letter-spacing: .5px; color: rgba(var(--ink), .7); }
 .pill { border-radius: calc(var(--radius) - 2px); padding: 7px 12px 7px 9px; gap: 9px; }
 .pill .lines { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
@@ -1081,6 +1086,7 @@ export class Ui {
     const row = make('div', 'row', '', win)
     if (this.opts.helpButton) make('button', this.help ? 'btn ghost' : 'btn accent', this.help ? t.cancelHelp : t.help, row, 'help')
     make('button', 'btn ghost', t.collapse, row, 'toggle')
+    if (this.opts.stopButton) make('button', 'btn quit', t.stopAssist, make('div', 'row', '', win), 'stop')
 
     // Bottom bar.
     const bar = this.bar
@@ -1262,6 +1268,7 @@ export class Ui {
     if (this.opts.helpButton && this.control === 'none') {
       make('button', this.help ? 'ghost' : 'warn', this.help ? t.cancelHelp : t.help, acts, 'help')
     }
+    if (this.opts.stopButton && this.control === 'none') make('button', 'ghost', t.stopAssist, acts, 'stop')
   }
 
   private onClick(e: Event) {
@@ -1302,6 +1309,8 @@ export class Ui {
       }
     } else if (action === 'takeover' || action === 'handback' || action === 'end') {
       this.opts.onControl(action)
+    } else if (action === 'stop') {
+      if (this.opts.onStop) this.opts.onStop()
     }
   }
 

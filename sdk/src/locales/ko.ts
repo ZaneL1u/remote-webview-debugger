@@ -55,6 +55,7 @@ const ui: UiMessages = {
   takeover: '직접 조작',
   handback: 'AI에 맡기기',
   end: '종료',
+  stopAssist: '원격 지원 종료',
   autoTitle: 'AI 자동 허용',
   autoOn: level => `묻지 않고 접속 · ${level}`,
   autoOff: 'AI가 접속하려고 할 때마다 물어봐요',

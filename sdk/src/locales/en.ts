@@ -47,6 +47,8 @@ const ui = {
   takeover: 'Take over',
   handback: 'Hand back',
   end: 'End',
+  /** Floating window, with run({ stopOnEnd }): end and go offline until the user starts again. */
+  stopAssist: 'End remote assistance',
   autoTitle: 'Auto-allow AI',
   autoOn: (level: string) => `Joins without asking · ${level}`,
   autoOff: 'Ask me each time AI wants to join',

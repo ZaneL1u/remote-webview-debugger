@@ -44,6 +44,7 @@ const ui: UiMessages = {
   takeover: 'Assumir',
   handback: 'Devolver à IA',
   end: 'Encerrar',
+  stopAssist: 'Encerrar assistência remota',
   autoTitle: 'Permitir a IA automaticamente',
   autoOn: level => `Conecta sem perguntar · ${level}`,
   autoOff: 'Perguntar sempre que a IA quiser se conectar',

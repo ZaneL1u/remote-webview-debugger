@@ -42,6 +42,7 @@ const ui: UiMessages = {
   takeover: '接管',
   handback: '交還 AI',
   end: '結束',
+  stopAssist: '結束遠端協助',
   autoTitle: '自動允許 AI 加入',
   autoOn: level => `不再詢問，以「${level}」加入`,
   autoOff: '每次 AI 要求加入時都先詢問你',
