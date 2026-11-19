@@ -147,9 +147,9 @@ export function AgentOnboarding() {
         <div className="flex min-w-0 flex-col gap-3">
           <div className="rounded-xl border border-brand/30 bg-brand-soft/30 p-4">
             <div className="mb-2.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <SquareTerminalIcon className="size-3.5" />
-              {t.stepInit}
-              <span className="rounded-full bg-brand/10 px-1.5 py-px text-[11px] text-brand">{t.recommended}</span>
+              <SquareTerminalIcon className="size-3.5 shrink-0" />
+              <span className="min-w-0">{t.stepInit}</span>
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-brand/10 px-1.5 py-px text-[11px] text-brand">{t.recommended}</span>
             </div>
             <CommandLine value={init} />
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t.initHint}</p>
