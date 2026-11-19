@@ -4,6 +4,29 @@
 
 网关（`rwd` 二进制和 Docker 镜像，内嵌控制台和页面 SDK）。tag 形如 `gateway-vX.Y.Z`。
 
+## v0.4.1 (2026-11-19)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.4.0...gateway-v0.4.1)
+
+> 内嵌页面 SDK：v0.3.0（含未发版的改动）
+
+### 🚀 新功能
+
+- 新增长按（click 的 holdMs）；页面用 CSS zoom 放大时（iOS 18 WebKit），点击不再落到左边相邻的元素上 ([f7ec9bf](https://github.com/ZaneL1u/remote-webview-debugger/commit/f7ec9bf))
+- fewer round trips for agents: click by text, screenshots with actions, on-screen snapshots ([1066d44](https://github.com/ZaneL1u/remote-webview-debugger/commit/1066d44))
+- click by text picks the copy a tap reaches; close an open eruda / vConsole panel ([392f2ac](https://github.com/ZaneL1u/remote-webview-debugger/commit/392f2ac))
+- **mcp:** MCP 包的 init 跟随终端语言（11 种，--lang 可改），AI 助手用勾选列表多选；输入 1.2.3.9 这类序号不再什么都不改，界面更清楚 ([bb88c00](https://github.com/ZaneL1u/remote-webview-debugger/commit/bb88c00))
+
+### 🩹 修复
+
+- wait_for 等待超过 20 秒不再报“页面没有及时响应” ([9054010](https://github.com/ZaneL1u/remote-webview-debugger/commit/9054010))
+- **mcp:** init 带 --api-key-env 和 --no-verify 时，即使环境变量还没设置也能保存网关 ([a051a4a](https://github.com/ZaneL1u/remote-webview-debugger/commit/a051a4a))
+- **mcp:** 修复 Node 26 下连接 HTTPS 网关时所有调用卡住直到超时的问题 ([2d3b156](https://github.com/ZaneL1u/remote-webview-debugger/commit/2d3b156))
+
+### 📖 文档
+
+- skill 安装命令统一写成小写：npx skills add zanel1u/remote-webview-debugger ([1346982](https://github.com/ZaneL1u/remote-webview-debugger/commit/1346982))
+
 ## v0.4.0 (2026-11-17)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.3.1...gateway-v0.4.0)

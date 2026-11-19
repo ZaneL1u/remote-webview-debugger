@@ -1,6 +1,6 @@
 {
   "name": "remote-webview-debugger",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "mcpServers": {
     "remote-webview-debugger": {
       "command": "npx",

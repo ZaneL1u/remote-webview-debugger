@@ -4,6 +4,29 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The gateway (`rwd` binary and Docker image, with the console and the page SDK embedded). Tags: `gateway-vX.Y.Z`.
 
+## v0.4.1 (2026-11-19)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.4.0...gateway-v0.4.1)
+
+> Embedded page SDK: v0.3.0 (plus unreleased changes)
+
+### 🚀 Enhancements
+
+- long press (click holdMs), and taps land on the right element under CSS zoom ([f7ec9bf](https://github.com/ZaneL1u/remote-webview-debugger/commit/f7ec9bf))
+- fewer round trips for agents: click by text, screenshots with actions, on-screen snapshots ([1066d44](https://github.com/ZaneL1u/remote-webview-debugger/commit/1066d44))
+- click by text picks the copy a tap reaches; close an open eruda / vConsole panel ([392f2ac](https://github.com/ZaneL1u/remote-webview-debugger/commit/392f2ac))
+- **mcp:** init speaks the terminal's language and picks agents from a checklist ([bb88c00](https://github.com/ZaneL1u/remote-webview-debugger/commit/bb88c00))
+
+### 🩹 Fixes
+
+- wait_for over 20 seconds no longer times out ([9054010](https://github.com/ZaneL1u/remote-webview-debugger/commit/9054010))
+- **mcp:** init --api-key-env --no-verify saves the variable even when it is not set yet ([a051a4a](https://github.com/ZaneL1u/remote-webview-debugger/commit/a051a4a))
+- **mcp:** calls no longer hang on Node 26 against HTTPS gateways ([2d3b156](https://github.com/ZaneL1u/remote-webview-debugger/commit/2d3b156))
+
+### 📖 Documentation
+
+- write the skill source in lower case (npx skills add zanel1u/remote-webview-debugger) ([1346982](https://github.com/ZaneL1u/remote-webview-debugger/commit/1346982))
+
 ## v0.4.0 (2026-11-17)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/gateway-v0.3.1...gateway-v0.4.0)
