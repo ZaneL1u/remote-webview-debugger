@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>确认订单</title>
+    <script src="../rwd-shim.js"></script>
+    <script src="../sdk.js"></script>
+    <script src="../boot.js"></script>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header><a class="back" href="javascript:history.back()" aria-label="返回">‹</a><h1>确认订单</h1><span class="spacer"></span></header>
+    <main>
+      <div class="error-box" id="error" role="alert"></div>
+      <div class="section">
+        <h2>商品</h2>
+        <p id="item" class="muted">（购物车是空的）</p>
+      </div>
+      <form class="section" id="form" novalidate>
+        <h2>收货信息</h2>
+        <label class="field"><span>收货人</span><input id="receiver" name="receiver" placeholder="请输入姓名" autocomplete="name" /></label>
+        <label class="field"><span>手机号</span><input id="phone" name="phone" type="tel" placeholder="11 位手机号" data-rwd-mask /></label>
+        <label class="field"><span>收货地址</span><input id="address" name="address" placeholder="省市区 + 详细地址" /></label>
+        <label class="field">
+          <span>配送方式</span>
+          <select id="delivery" name="delivery">
+            <option value="express">快递（免运费）</option>
+            <option value="same-day">同城急送（+¥12）</option>
+            <option value="pickup">到店自提</option>
+          </select>
+        </label>
+        <label class="field"><span>订单备注</span><textarea id="note" name="note" placeholder="选填"></textarea></label>
+        <div class="field">
+          <span class="muted">优惠码</span>
+          <div class="row">
+            <input id="coupon" placeholder="输入优惠码" aria-label="优惠码" />
+            <button type="button" id="apply">使用</button>
+          </div>
+        </div>
+        <label class="field"><span>支付密码</span><input id="paypwd" type="password" inputmode="numeric" placeholder="6 位数字" /></label>
+      </form>
+      <p class="muted">会员卡号：<span data-rwd-mask>6222 0200 1234 5678</span></p>
+    </main>
+    <div class="bar">
+      <div class="total">合计 <span class="price" id="total">--</span></div>
+      <button class="primary" id="submit" type="button" data-rwd-confirm>提交订单</button>
+    </div>
+    <script src="../shop.js"></script>
+    <script>
+      var order = null
+      try {
+        order = JSON.parse(sessionStorage.getItem('demo:order') || 'null')
+      } catch (e) {
+        console.error('订单数据损坏', e)
+      }
+
+      function deliveryFee() {
+        return document.getElementById('delivery').value === 'same-day' ? 12 : 0
+      }
+
+      // 订单价格不是数字时会抛错（见 detail.html）。
+      function computeTotal() {
+        var subtotal = order.price.toFixed(2) * order.qty
+        return subtotal + deliveryFee()
+      }
+
+      function render() {
+        if (!order) return
+        document.getElementById('item').textContent = order.name + ' · ' + order.spec + ' × ' + order.qty
+        document.getElementById('total').textContent = Shop.money(computeTotal())
+      }
+
+      render()
+      document.getElementById('delivery').addEventListener('change', render)
+
+      document.getElementById('apply').addEventListener('click', function () {
+        var code = document.getElementById('coupon').value.trim()
+        if (!code) return Shop.toast('请输入优惠码')
+        // 故意的：优惠码接口不存在（404）。
+        fetch('api/coupon?code=' + encodeURIComponent(code))
+          .then(function (res) {
+            if (!res.ok) throw new Error('优惠码校验失败（HTTP ' + res.status + '）')
+            return res.json()
+          })
+          .catch(function (err) {
+            console.error(err.message)
+            Shop.toast('优惠码暂不可用')
+          })
+      })
+
+      document.getElementById('submit').addEventListener('click', function () {
+        var receiver = document.getElementById('receiver').value.trim()
+        var phone = document.getElementById('phone').value.trim()
+        var error = document.getElementById('error')
+        if (!order) return Shop.toast('购物车是空的')
+        if (!receiver || !/^1\d{10}$/.test(phone)) {
+          error.textContent = '请填写收货人和正确的手机号'
+          error.className = 'error-box show'
+          return
+        }
+        error.className = 'error-box'
+        var total = computeTotal()
+        fetch('api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer demo-token-123' },
+          body: JSON.stringify({ order: order, receiver: receiver, total: total, note: document.getElementById('note').value }),
+        }).then(function (res) {
+          if (!res.ok) {
+            console.error('下单失败：HTTP ' + res.status)
+            Shop.toast('下单失败，请稍后再试')
+            return
+          }
+          Shop.toast('下单成功')
+        })
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>Checkout</title>
+    <script src="../rwd-shim.js"></script>
+    <script src="../sdk.js"></script>
+    <script src="../boot.js"></script>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header><a class="back" href="javascript:history.back()" aria-label="Back">‹</a><h1>Checkout</h1><span class="spacer"></span></header>
+    <main>
+      <div class="error-box" id="error" role="alert"></div>
+      <div class="section">
+        <h2>Item</h2>
+        <p id="item" class="muted">(Your cart is empty)</p>
+      </div>
+      <form class="section" id="form" novalidate>
+        <h2>Shipping</h2>
+        <label class="field"><span>Recipient</span><input id="receiver" name="receiver" placeholder="Full name" autocomplete="name" /></label>
+        <label class="field"><span>Phone</span><input id="phone" name="phone" type="tel" placeholder="Mobile number" data-rwd-mask /></label>
+        <label class="field"><span>Address</span><input id="address" name="address" placeholder="Street, city, ZIP" /></label>
+        <label class="field">
+          <span>Delivery</span>
+          <select id="delivery" name="delivery">
+            <option value="express">Standard (free)</option>
+            <option value="same-day">Same-day (+$12)</option>
+            <option value="pickup">Pick up in store</option>
+          </select>
+        </label>
+        <label class="field"><span>Note</span><textarea id="note" name="note" placeholder="Optional"></textarea></label>
+        <div class="field">
+          <span class="muted">Coupon</span>
+          <div class="row">
+            <input id="coupon" placeholder="Coupon code" aria-label="Coupon code" />
+            <button type="button" id="apply">Apply</button>
+          </div>
+        </div>
+        <label class="field"><span>Payment PIN</span><input id="paypwd" type="password" inputmode="numeric" placeholder="6 digits" /></label>
+      </form>
+      <p class="muted">Member card <span data-rwd-mask>6222 0200 1234 5678</span></p>
+    </main>
+    <div class="bar">
+      <div class="total">Total <span class="price" id="total">--</span></div>
+      <button class="primary" id="submit" type="button" data-rwd-confirm>Place order</button>
+    </div>
+    <script src="../shop.js"></script>
+    <script>
+      var order = null
+      try {
+        order = JSON.parse(sessionStorage.getItem('demo:order') || 'null')
+      } catch (e) {
+        console.error('Corrupt order data', e)
+      }
+
+      function deliveryFee() {
+        return document.getElementById('delivery').value === 'same-day' ? 12 : 0
+      }
+
+      // Throws for orders whose price is not a number (see detail.html).
+      function computeTotal() {
+        var subtotal = order.price.toFixed(2) * order.qty
+        return subtotal + deliveryFee()
+      }
+
+      function render() {
+        if (!order) return
+        document.getElementById('item').textContent = order.name + ' · ' + order.spec + ' × ' + order.qty
+        document.getElementById('total').textContent = Shop.money(computeTotal())
+      }
+
+      render()
+      document.getElementById('delivery').addEventListener('change', render)
+
+      document.getElementById('apply').addEventListener('click', function () {
+        var code = document.getElementById('coupon').value.trim()
+        if (!code) return Shop.toast('Enter a coupon code')
+        // Deliberate: the coupon API is missing (404).
+        fetch('api/coupon?code=' + encodeURIComponent(code))
+          .then(function (res) {
+            if (!res.ok) throw new Error('Coupon check failed (HTTP ' + res.status + ')')
+            return res.json()
+          })
+          .catch(function (err) {
+            console.error(err.message)
+            Shop.toast('Coupons are unavailable right now')
+          })
+      })
+
+      document.getElementById('submit').addEventListener('click', function () {
+        var receiver = document.getElementById('receiver').value.trim()
+        var phone = document.getElementById('phone').value.trim()
+        var error = document.getElementById('error')
+        if (!order) return Shop.toast('Your cart is empty')
+        if (!receiver || !/^\+?[\d\s-]{7,}$/.test(phone)) {
+          error.textContent = 'Please enter a recipient and a valid phone number'
+          error.className = 'error-box show'
+          return
+        }
+        error.className = 'error-box'
+        var total = computeTotal()
+        fetch('api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer demo-token-123' },
+          body: JSON.stringify({ order: order, receiver: receiver, total: total, note: document.getElementById('note').value }),
+        }).then(function (res) {
+          if (!res.ok) {
+            console.error('Order failed: HTTP ' + res.status)
+            Shop.toast('Could not place the order, try again later')
+            return
+          }
+          Shop.toast('Order placed')
+        })
+      })
+    </script>
+  </body>
+</html>
