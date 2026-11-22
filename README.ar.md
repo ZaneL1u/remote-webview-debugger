@@ -1,4 +1,4 @@
-<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
+<!-- i18n-source: d87080f5ab766b849f6e6af8ccc33bce78b4b5c5 -->
 
 <div dir="rtl">
 
@@ -81,13 +81,13 @@ docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \
 <div dir="ltr">
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.4.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
 
 </div>
 
-SDK هو حزمة npm [`remote-webview-debugger`](sdk/README.ar.md): حمّله من jsDelivr كما في المثال أعلاه أو من unpkg (`https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`)، أو نفّذ `npm install remote-webview-debugger` ثم `import { run } from 'remote-webview-debugger'`. وتقدّم بوابتك كذلك النسخة المضمَّنة فيها على `/v1/sdk.js`.
+SDK هو حزمة npm [`remote-webview-debugger`](sdk/README.ar.md): حمّله من jsDelivr كما في المثال أعلاه أو من unpkg (`https://unpkg.com/remote-webview-debugger@0.4.0/dist/sdk.js`)، أو نفّذ `npm install remote-webview-debugger` ثم `import { run } from 'remote-webview-debugger'`. وتقدّم بوابتك كذلك النسخة المضمَّنة فيها على `/v1/sdk.js`.
 
 داخل تطبيق، احقن السكربت نفسه عند بدء المستند من الشيفرة الأصلية (`WKUserScript` في iOS، و `addDocumentStartJavaScript` في Android): انظر [التكامل مع التطبيقات الأصلية](docs/native-integration.ar.md) والدليل المدمج في لوحة التحكم.
 

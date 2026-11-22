@@ -4,6 +4,25 @@ English | [简体中文](CHANGELOG.zh-CN.md)
 
 The page SDK, published to npm as [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger). Tags: `sdk-vX.Y.Z`.
 
+## v0.4.0 (2026-11-22)
+
+[compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.3.0...sdk-v0.4.0)
+
+### 🚀 Enhancements
+
+- Chrome DevTools for people from the console ([8562652](https://github.com/ZaneL1u/remote-webview-debugger/commit/8562652))
+- long press (click holdMs), and taps land on the right element under CSS zoom ([f7ec9bf](https://github.com/ZaneL1u/remote-webview-debugger/commit/f7ec9bf))
+- the bar and the task card slide in and out, fade only under the agent, and stay out of native screenshots ([5c92035](https://github.com/ZaneL1u/remote-webview-debugger/commit/5c92035))
+- fewer round trips for agents: click by text, screenshots with actions, on-screen snapshots ([1066d44](https://github.com/ZaneL1u/remote-webview-debugger/commit/1066d44))
+- click by text picks the copy a tap reaches; close an open eruda / vConsole panel ([392f2ac](https://github.com/ZaneL1u/remote-webview-debugger/commit/392f2ac))
+- run({ stopOnEnd }) — the user's End ends remote assistance, not only the agent's session ([4755f4c](https://github.com/ZaneL1u/remote-webview-debugger/commit/4755f4c))
+
+### 🩹 Fixes
+
+- the eruda tab renders on eruda before 3.4 ([c820c42](https://github.com/ZaneL1u/remote-webview-debugger/commit/c820c42))
+- snapshot by ref of a popup wrapper shows what is inside it ([1cc2ed7](https://github.com/ZaneL1u/remote-webview-debugger/commit/1cc2ed7))
+- touches reach the page on WebKit, so long press works on iPhones ([55691ff](https://github.com/ZaneL1u/remote-webview-debugger/commit/55691ff))
+
 ## v0.3.0 (2026-11-04)
 
 [compare changes](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.1...sdk-v0.3.0)

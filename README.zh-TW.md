@@ -1,4 +1,4 @@
-<!-- i18n-source: 30aa834f85d6315b9d191dcbf75a3ac1a610879e -->
+<!-- i18n-source: d87080f5ab766b849f6e6af8ccc33bce78b4b5c5 -->
 <div align="center">
 
 # Remote WebView Debugger
@@ -68,11 +68,11 @@ docker run -d --name rwd -p 8080:8080 -v rwd-data:/data \
 在主控台建立專案以取得接入金鑰，接著在頁面裡加上 SDK，並填入你的閘道位址：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.3.0/dist/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/remote-webview-debugger@0.4.0/dist/sdk.js"></script>
 <script>RemoteWebviewDebugger.run('https://rwd.example.com/v1', 'rwd_pk_…')</script>
 ```
 
-SDK 以 npm 套件 [`remote-webview-debugger`](sdk/README.zh-TW.md) 發布：可以像上面這樣從 jsDelivr 載入，也可以用 unpkg（`https://unpkg.com/remote-webview-debugger@0.3.0/dist/sdk.js`），或是 `npm install remote-webview-debugger` 後 `import { run } from 'remote-webview-debugger'`。閘道本身也會在 `/v1/sdk.js` 提供它內嵌的那一份。
+SDK 以 npm 套件 [`remote-webview-debugger`](sdk/README.zh-TW.md) 發布：可以像上面這樣從 jsDelivr 載入，也可以用 unpkg（`https://unpkg.com/remote-webview-debugger@0.4.0/dist/sdk.js`），或是 `npm install remote-webview-debugger` 後 `import { run } from 'remote-webview-debugger'`。閘道本身也會在 `/v1/sdk.js` 提供它內嵌的那一份。
 
 App 裡的 WebView 則要在原生程式碼中於 document start 時注入同一段指令碼（iOS 用 `WKUserScript`，Android 用 `addDocumentStartJavaScript`），詳見[原生整合](docs/native-integration.zh-TW.md)和主控台內建的整合指南。
 

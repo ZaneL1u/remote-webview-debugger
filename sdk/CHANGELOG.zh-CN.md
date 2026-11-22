@@ -4,6 +4,25 @@
 
 页面 SDK，npm 包名 [`remote-webview-debugger`](https://www.npmjs.com/package/remote-webview-debugger)。tag 形如 `sdk-vX.Y.Z`。
 
+## v0.4.0 (2026-11-22)
+
+[对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.3.0...sdk-v0.4.0)
+
+### 🚀 新功能
+
+- 控制台里可以直接用 Chrome DevTools 调试设备页面 ([8562652](https://github.com/ZaneL1u/remote-webview-debugger/commit/8562652))
+- 新增长按（click 的 holdMs）；页面用 CSS zoom 放大时（iOS 18 WebKit），点击不再落到左边相邻的元素上 ([f7ec9bf](https://github.com/ZaneL1u/remote-webview-debugger/commit/f7ec9bf))
+- 底部条和任务卡片改为滑入滑出，只在 AI 操作时变淡，且不会出现在原生截图里 ([5c92035](https://github.com/ZaneL1u/remote-webview-debugger/commit/5c92035))
+- 减少 AI 的往返次数：支持按文字点击、操作时顺带截图、快照只取屏幕上可见部分 ([1066d44](https://github.com/ZaneL1u/remote-webview-debugger/commit/1066d44))
+- 按文字点击时选用真正点得到的那个元素；会先关掉打开着的 eruda / vConsole 面板 ([392f2ac](https://github.com/ZaneL1u/remote-webview-debugger/commit/392f2ac))
+- 新增 run({ stopOnEnd, onStop })：用户点「结束」时一并结束远程协助，页面断开网关、收起悬浮窗，AI 连不上，直到宿主再次 run()；悬浮窗多一个「结束远程协助」按钮 ([4755f4c](https://github.com/ZaneL1u/remote-webview-debugger/commit/4755f4c))
+
+### 🩹 修复
+
+- eruda 3.4 以下也能显示「远程调试」标签页 ([c820c42](https://github.com/ZaneL1u/remote-webview-debugger/commit/c820c42))
+- 按 ref 对弹窗外层做快照时，能看到弹窗里面的内容 ([1cc2ed7](https://github.com/ZaneL1u/remote-webview-debugger/commit/1cc2ed7))
+- 修复 iPhone（WebKit）上触摸事件发不出去：长按（click holdMs）在 iPhone 上不生效，点按时页面的 touchstart / touchend 监听也收不到 ([55691ff](https://github.com/ZaneL1u/remote-webview-debugger/commit/55691ff))
+
 ## v0.3.0 (2026-11-04)
 
 [对比变更](https://github.com/ZaneL1u/remote-webview-debugger/compare/sdk-v0.2.1...sdk-v0.3.0)
