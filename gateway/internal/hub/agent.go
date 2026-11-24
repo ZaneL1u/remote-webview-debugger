@@ -325,6 +325,17 @@ func (h *Hub) release(a *Agent, reason i18n.Msg) {
 
 // Current resolves the agent's device and page. page may name another page
 // (label) for this call only.
+// DeviceTZ is the UTC offset in minutes of the agent's device, nil when it
+// has none or its SDK doesn't report one.
+func (h *Hub) DeviceTZ(a *Agent) *int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if a.device == nil {
+		return nil
+	}
+	return a.device.TZ
+}
+
 func (h *Hub) Current(a *Agent, page string) (*Session, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()

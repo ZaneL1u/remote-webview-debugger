@@ -99,6 +99,7 @@ Each connection has a 64-message send queue. A page that can't keep up is closed
  "userId":"<string>"|null,
  "page":{"url":"…","title":"…","visibility":"visible"|"hidden"},
  "device":{"ua":"…","platform":"ios"|"android"|"web",
+           "tz":480,
            "screen":{"w":393,"h":852,"dpr":3},
            "app":{"name":"…","version":"…"}|null},
  "help":false,

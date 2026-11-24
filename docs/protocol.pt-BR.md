@@ -100,6 +100,7 @@ Cada conexão tem uma fila de envio de 64 mensagens. Uma página que não dá co
  "userId":"<string>"|null,
  "page":{"url":"…","title":"…","visibility":"visible"|"hidden"},
  "device":{"ua":"…","platform":"ios"|"android"|"web",
+           "tz":480,
            "screen":{"w":393,"h":852,"dpr":3},
            "app":{"name":"…","version":"…"}|null},
  "help":false,

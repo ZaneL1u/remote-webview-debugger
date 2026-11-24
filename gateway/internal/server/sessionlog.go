@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -87,18 +86,19 @@ func (s *Server) addSessionLogTools(srv *mcp.Server) {
 				current = o.lang.T(i18n.ResLogCurrent)
 			}
 			o.t(i18n.ResLogHeader, m.ID, source, current)
+			clk := o.clock(s.hub.DeviceTZ(a))
 			first, last := ov.First, ov.Last
 			if first == 0 {
 				first, last = m.StartedAt, m.LastAt
 			}
-			o.t(i18n.ResLogSpan, fmtTime(first), fmtTime(last), fmtBytes(m.Bytes), m.Trimmed)
+			o.t(i18n.ResLogSpan, clk.time(first), clk.time(last), fmtBytes(m.Bytes), m.Trimmed)
 			c := m.Counts
 			o.t(i18n.ResLogCounts, c["console"]+c["error"], c["error"], c["net"]+c["netFail"], c["netFail"], c["action"], c["agent"], c["page"])
 
 			if len(ov.Pages) > 0 {
 				var b strings.Builder
 				for _, p := range ov.Pages {
-					fmt.Fprintf(&b, "%s %s %s\n", fmtTime(p.At), s.logPage(a, p.Page), recordLine(logRecord{Kind: "page", Data: p.Data}))
+					fmt.Fprintf(&b, "%s %s %s\n", clk.time(p.At), s.logPage(a, p.Page), recordLine(logRecord{Kind: "page", Data: p.Data}))
 				}
 				o.t(i18n.ResLogPages)
 				o.add("%s", untrusted(o.lang, "session_pages", strings.TrimRight(b.String(), "\n")))
@@ -107,7 +107,7 @@ func (s *Server) addSessionLogTools(srv *mcp.Server) {
 				o.t(i18n.ResLogNoProblems)
 			} else {
 				o.t(i18n.ResLogProblems)
-				o.add("%s", untrusted(o.lang, "session_problems", s.recordLines(a, ov.Problems)))
+				o.add("%s", untrusted(o.lang, "session_problems", s.recordLines(a, clk, ov.Problems)))
 			}
 
 			if raw, _, err := s.call(ctx, a, "", "rwd.log", map[string]any{"op": "sessions"}, false); err == nil {
@@ -118,7 +118,7 @@ func (s *Server) addSessionLogTools(srv *mcp.Server) {
 				var others []string
 				for _, x := range list.Sessions {
 					if x.ID != m.ID {
-						others = append(others, o.lang.T(i18n.ResLogOther, x.ID, time.UnixMilli(x.StartedAt).Format("01-02 15:04:05"), fmtTime(x.LastAt), fmtBytes(x.Bytes)))
+						others = append(others, o.lang.T(i18n.ResLogOther, x.ID, clk.date(x.StartedAt), clk.time(x.LastAt), fmtBytes(x.Bytes)))
 					}
 				}
 				if len(others) > 0 {
@@ -171,7 +171,8 @@ func (s *Server) addSessionLogTools(srv *mcp.Server) {
 				o.t(i18n.ResLogEmpty, res.Session)
 			} else {
 				o.t(i18n.ResLogOf, res.Session)
-				o.add("%s", untrusted(o.lang, "session_log", s.recordLines(a, res.Records)))
+				c := o.clock(s.hub.DeviceTZ(a))
+				o.add("%s", untrusted(o.lang, "session_log", s.recordLines(a, c, res.Records)))
 			}
 			if res.Hidden > 0 {
 				o.t(i18n.ResNetHidden, res.Hidden)
@@ -183,10 +184,10 @@ func (s *Server) addSessionLogTools(srv *mcp.Server) {
 		})
 }
 
-func (s *Server) recordLines(a *hub.Agent, records []logRecord) string {
+func (s *Server) recordLines(a *hub.Agent, c clock, records []logRecord) string {
 	var b strings.Builder
 	for _, r := range records {
-		fmt.Fprintf(&b, "#%d %s %s %s\n", r.Seq, fmtTime(r.At), s.logPage(a, r.Page), recordLine(r))
+		fmt.Fprintf(&b, "#%d %s %s %s\n", r.Seq, c.time(r.At), s.logPage(a, r.Page), recordLine(r))
 	}
 	return strings.TrimRight(b.String(), "\n")
 }

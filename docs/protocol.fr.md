@@ -100,6 +100,7 @@ Chaque connexion dispose d'une file d'envoi de 64 messages. Une page qui ne suit
  "userId":"<string>"|null,
  "page":{"url":"…","title":"…","visibility":"visible"|"hidden"},
  "device":{"ua":"…","platform":"ios"|"android"|"web",
+           "tz":480,
            "screen":{"w":393,"h":852,"dpr":3},
            "app":{"name":"…","version":"…"}|null},
  "help":false,

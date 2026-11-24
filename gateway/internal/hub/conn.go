@@ -192,6 +192,7 @@ type deviceInfo struct {
 	UA       string         `json:"ua"`
 	Platform string         `json:"platform"`
 	App      *store.AppInfo `json:"app"`
+	TZ       *int           `json:"tz"` // the phone's UTC offset in minutes (UTC+8 = 480); older SDKs omit it
 }
 
 type Hello struct {
@@ -404,6 +405,10 @@ func (h *Hub) attach(ctx context.Context, projectID string, hello *Hello, c *Con
 		return nil, &CloseError{Code: 4409, Reason: "resume token mismatch"}
 	}
 	d.SDK = clip(hello.SDK, 32)
+	if tz := hello.Device.TZ; tz != nil && *tz >= -12*60 && *tz <= 14*60 {
+		v := *tz
+		d.TZ = &v
+	}
 	if invite != nil {
 		d.Invited = true
 		d.Help = true

@@ -12,6 +12,8 @@ const (
 	MCPKeyOwnerSignIn     Key = "mcp.key_owner_sign_in"
 	MCPKeyOwnerUnverified Key = "mcp.key_owner_unverified"
 	MCPUntrusted          Key = "mcp.untrusted"
+	MCPTimeZone           Key = "mcp.time_zone"
+	MCPTimeZoneUTC        Key = "mcp.time_zone_utc"
 	ExplainNotFoundRef    Key = "explain.not_found_ref"
 	ExplainNotFound       Key = "explain.not_found"
 	ExplainNotUsable      Key = "explain.not_interactable"
