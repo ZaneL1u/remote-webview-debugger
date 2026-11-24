@@ -100,6 +100,7 @@ Cada conexión tiene una cola de envío de 64 mensajes. Una página que no da ab
  "userId":"<string>"|null,
  "page":{"url":"…","title":"…","visibility":"visible"|"hidden"},
  "device":{"ua":"…","platform":"ios"|"android"|"web",
+           "tz":480,
            "screen":{"w":393,"h":852,"dpr":3},
            "app":{"name":"…","version":"…"}|null},
  "help":false,

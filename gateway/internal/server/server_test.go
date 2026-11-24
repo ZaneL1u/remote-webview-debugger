@@ -131,6 +131,7 @@ type pageOpts struct {
 	device, pageID, url, title, opener, resume, invite, ua string
 	noToken                                                bool
 	decide                                                 func(map[string]any) any
+	tz                                                     *int // UTC offset in minutes the SDK reports
 }
 
 func approveAs(level string) func(map[string]any) any {
@@ -160,9 +161,13 @@ func (f *fixture) page(o pageOpts) *fakePage {
 	if o.noToken {
 		token = ""
 	}
+	device := map[string]any{"platform": "ios", "ua": o.ua}
+	if o.tz != nil {
+		device["tz"] = *o.tz
+	}
 	hello, _ := json.Marshal(map[string]any{"t": "hello", "v": 1, "deviceId": o.device, "pageId": o.pageID, "openerId": o.opener,
 		"userId": "u1", "page": map[string]string{"url": o.url, "title": o.title, "visibility": "visible"},
-		"device": map[string]any{"platform": "ios", "ua": o.ua}, "deviceToken": token, "resume": o.resume, "invite": o.invite})
+		"device": device, "deviceToken": token, "resume": o.resume, "invite": o.invite})
 	ws.Write(ctx, websocket.MessageText, hello)
 	p := &fakePage{ws: ws, controls: make(chan map[string]any, 16), tasks: make(chan map[string]any, 8), requests: make(chan map[string]any, 4),
 		devtools: make(chan map[string]any, 8), cdp: make(chan map[string]any, 8), rpcs: make(chan map[string]any, 64), closed: make(chan websocket.StatusCode, 1), decide: o.decide}
@@ -1238,6 +1243,47 @@ func TestSessionLogTools(t *testing.T) {
 	}
 	if out, isErr := callText(t, s, "get_session_log", map[string]any{"seq": 7}); !isErr || !strings.Contains(out, "advanced") {
 		t.Fatalf("record detail at interact: %s", out)
+	}
+}
+
+// Times are shown in the phone's time zone, as the user saw them, not in the
+// gateway's; an SDK that doesn't report its zone gets UTC, said as such.
+func TestDeviceTimeZone(t *testing.T) {
+	f := setup(t, "")
+	s := f.mcp()
+
+	// The tap is at 2023-11-14 22:13:30 UTC.
+	utc := f.page(pageOpts{device: "dev-utc", pageID: "page1", decide: approveAs("interact")})
+	callText(t, s, "connect_device", map[string]any{"device": utc.welcome["deviceCode"]})
+	out, _ := callText(t, s, "get_session_log", nil)
+	for _, want := range []string{"时间为 UTC：手机上的 SDK 没有上报时区。", "#3 22:13:30 p1 user tap"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("no tz: missing %q: %s", want, out)
+		}
+	}
+	callText(t, s, "disconnect_device", nil)
+
+	east8 := 480
+	cst := f.page(pageOpts{device: "dev-cst", pageID: "page2", tz: &east8, decide: approveAs("interact")})
+	if out, _ := callText(t, s, "list_devices", nil); !strings.Contains(out, " UTC+08:00\n") || !strings.Contains(out+"\n", " UTC\n") {
+		t.Fatalf("list_devices zones: %s", out)
+	}
+	callText(t, s, "connect_device", map[string]any{"device": cst.welcome["deviceCode"]})
+	out, _ = callText(t, s, "get_session_overview", nil)
+	for _, want := range []string{"时间为手机本地时间（UTC+08:00）。", "时间 06:13:20 – 06:14:20", "#7 06:13:50 p1", "launch-0：开始于 11-15 05:56:40"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("east 8: missing %q: %s", want, out)
+		}
+	}
+	if strings.Count(out, "时间为") != 1 {
+		t.Fatalf("time zone line more than once: %s", out)
+	}
+
+	west := -210 // Newfoundland, UTC-03:30
+	f.page(pageOpts{device: "dev-cst", pageID: "page3", tz: &west}) // the user moved
+	time.Sleep(100 * time.Millisecond)
+	if out, _ := callText(t, s, "get_session_log", nil); !strings.Contains(out, "（UTC-03:30）") || !strings.Contains(out, "#3 18:43:30 ") {
+		t.Fatalf("west: %s", out)
 	}
 }
 

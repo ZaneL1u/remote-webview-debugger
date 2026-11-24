@@ -84,12 +84,28 @@ type out struct {
 	lang  i18n.Lang
 	lines []string
 	image *mcp.ImageContent
+	zoned bool // the time zone line has been added
 }
 
 func (o *out) add(format string, a ...any) { o.lines = append(o.lines, fmt.Sprintf(format, a...)) }
 
 // t adds a line from the message catalog.
 func (o *out) t(k i18n.Key, a ...any) { o.lines = append(o.lines, o.lang.T(k, a...)) }
+
+// clock returns the device's clock and, the first time, adds the line saying
+// which time zone the times that follow are in.
+func (o *out) clock(tz *int) clock {
+	c := deviceClock(tz)
+	if !o.zoned {
+		o.zoned = true
+		if c.known {
+			o.t(i18n.MCPTimeZone, c.loc.String())
+		} else {
+			o.t(i18n.MCPTimeZoneUTC)
+		}
+	}
+	return c
+}
 
 type handler[In any] func(ctx context.Context, a *hub.Agent, in In, o *out) error
 
@@ -267,7 +283,31 @@ func untrusted(l i18n.Lang, tag, body string) string {
 	return l.T(i18n.MCPUntrusted, tag, body, tag)
 }
 
-func fmtTime(ms int64) string { return time.UnixMilli(ms).Format("15:04:05") }
+// clock shows times in the phone's own time zone, so they match what the user
+// saw on it. The gateway's zone (UTC in its container) means nothing to them.
+type clock struct {
+	loc   *time.Location
+	known bool // false: the SDK doesn't report the zone, times are UTC
+}
+
+// deviceClock is the clock for a device's UTC offset in minutes (nil: unknown).
+func deviceClock(tz *int) clock {
+	if tz == nil {
+		return clock{loc: time.UTC}
+	}
+	off, sign := *tz, '+'
+	if off < 0 {
+		off, sign = -off, '-'
+	}
+	return clock{loc: time.FixedZone(fmt.Sprintf("UTC%c%02d:%02d", sign, off/60, off%60), *tz*60), known: true}
+}
+
+func (c clock) time(ms int64) string { return time.UnixMilli(ms).In(c.loc).Format("15:04:05") }
+
+func (c clock) date(ms int64) string { return time.UnixMilli(ms).In(c.loc).Format("01-02 15:04:05") }
+
+// zoned is a time with its zone, for lines that don't follow a time zone line.
+func (c clock) zoned(ms int64) string { return c.time(ms) + " " + c.loc.String() }
 
 func controlName(l i18n.Lang, c string) string {
 	return l.T(map[string]i18n.Key{hub.ControlNone: i18n.ControlNone, hub.ControlObserve: i18n.ControlObserve,
@@ -299,7 +339,7 @@ func describeDevice(l i18n.Lang, d hub.DeviceView) string {
 	if d.Control != hub.ControlNone {
 		parts = append(parts, controlName(l, d.Control))
 	}
-	parts = append(parts, l.T(i18n.DeviceLastSeen, fmtTime(d.LastSeenAt)))
+	parts = append(parts, l.T(i18n.DeviceLastSeen, deviceClock(d.TZ).zoned(d.LastSeenAt)))
 	return strings.Join(parts, " · ")
 }
 
@@ -800,16 +840,17 @@ func (s *Server) addTools(srv *mcp.Server) {
 			if len(all) > limit {
 				all = all[len(all)-limit:]
 			}
-			var b strings.Builder
-			for _, m := range all {
-				fmt.Fprintf(&b, "%s %s [%s] %s\n", fmtTime(m.At), m.page, m.Type, m.Text)
-			}
 			if len(all) == 0 {
 				o.t(i18n.ResNoConsole)
 				return nil
 			}
 			if dropped > 0 {
 				o.t(i18n.ResConsoleDropped, dropped)
+			}
+			c := o.clock(s.hub.DeviceTZ(a))
+			var b strings.Builder
+			for _, m := range all {
+				fmt.Fprintf(&b, "%s %s [%s] %s\n", c.time(m.At), m.page, m.Type, m.Text)
 			}
 			o.add("%s", untrusted(o.lang, "console", strings.TrimRight(b.String(), "\n")))
 			return nil
@@ -911,13 +952,14 @@ func (s *Server) addTools(srv *mcp.Server) {
 				o.t(i18n.ResNoEvents)
 				return nil
 			}
+			c := o.clock(s.hub.DeviceTZ(a))
 			var b strings.Builder
 			for _, e := range events {
 				page := e.Page
 				if page == "" {
 					page = "--"
 				}
-				fmt.Fprintf(&b, "%s %s %s %s\n", fmtTime(e.At), page, e.Kind, e.Summary)
+				fmt.Fprintf(&b, "%s %s %s %s\n", c.time(e.At), page, e.Kind, e.Summary)
 			}
 			o.add("%s", untrusted(o.lang, "timeline", strings.TrimRight(b.String(), "\n")))
 			return nil
@@ -966,7 +1008,8 @@ func (s *Server) addTools(srv *mcp.Server) {
 			if page == "" {
 				page = "--"
 			}
-			o.add("%s", untrusted(o.lang, "event", fmt.Sprintf("%s %s %s %s", fmtTime(e.At), page, e.Kind, e.Summary)))
+			c := o.clock(s.hub.DeviceTZ(a))
+			o.add("%s", untrusted(o.lang, "event", fmt.Sprintf("%s %s %s %s", c.time(e.At), page, e.Kind, e.Summary)))
 			return nil
 		})
 

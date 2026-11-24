@@ -134,6 +134,7 @@ type Device struct {
 
 	Help         bool
 	SDK          string
+	TZ           *int // the phone's UTC offset in minutes, from its latest hello; nil if its SDK doesn't report it
 	Invited      bool
 	Control      string
 	Level        store.Level // granted to the attached agent
@@ -496,6 +497,7 @@ type DeviceView struct {
 	Invited     bool           `json:"invited"`
 	Pages       int            `json:"pages"`
 	SDK         string         `json:"sdk"`
+	TZ          *int           `json:"tz,omitempty"`
 	CurrentPage any            `json:"currentPage"`
 	FirstSeenAt int64          `json:"firstSeenAt"`
 	LastSeenAt  int64          `json:"lastSeenAt"`
@@ -524,6 +526,7 @@ func (h *Hub) viewOf(info store.Device, d *Device) DeviceView {
 		v.Control = d.Control
 		v.Pages = d.connectedPages()
 		v.SDK = d.SDK
+		v.TZ = d.TZ
 		if f := d.focused(); f != nil {
 			v.CurrentPage = map[string]string{"label": f.Label, "url": f.URL, "title": f.Title}
 		}

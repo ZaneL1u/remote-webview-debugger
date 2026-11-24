@@ -300,6 +300,8 @@ function deviceInfo(opts: RunOptions) {
   return {
     ua: navigator.userAgent,
     platform: platform(),
+    // UTC offset in minutes (UTC+8 = 480): the agent sees times as the user saw them.
+    tz: -new Date().getTimezoneOffset(),
     screen: {
       w: window.screen ? screen.width : window.innerWidth,
       h: window.screen ? screen.height : window.innerHeight,
