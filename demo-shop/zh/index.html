@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>演示商城 - 商品列表</title>
+    <!-- RWD SDK：尽早加载，console 和网络从一开始就被记录。 -->
+    <script src="../rwd-shim.js"></script>
+    <script src="../sdk.js"></script>
+    <script src="../boot.js"></script>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header><span class="spacer"></span><h1>演示商城</h1><span class="spacer"></span></header>
+    <main>
+      <div class="banner">
+        <strong>双 11 会员日</strong>
+        <span>满 300 减 40 · 优惠码 VIP40</span>
+      </div>
+      <div class="list" id="list" aria-label="商品列表"></div>
+      <div class="section" style="margin-top: 12px">
+        <h2>为你推荐</h2>
+        <p class="muted" id="recommend">加载中…</p>
+      </div>
+    </main>
+    <script src="../shop.js"></script>
+    <script>
+      Shop.loadProducts().then(function (products) {
+        var list = document.getElementById('list')
+        products.forEach(function (p) {
+          var a = document.createElement('a')
+          a.className = 'card'
+          a.href = 'detail.html?id=' + p.id
+          a.innerHTML =
+            '<div class="pic" style="background:' + p.color + '" aria-hidden="true">' + p.name.slice(0, 1) + '</div>' +
+            '<div class="info"><p class="name">' + p.name + '</p><span class="price">' + Shop.money(p.price) + '</span>' +
+            (p.stock ? '' : ' <span class="muted">已售罄</span>') + '</div>'
+          list.appendChild(a)
+        })
+      })
+
+      // Deliberate: the recommendation API does not exist (404).
+      fetch('api/recommend.json')
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status)
+          return res.json()
+        })
+        .catch(function (err) {
+          console.error('推荐商品加载失败：', err.message)
+          document.getElementById('recommend').textContent = '暂无推荐'
+        })
+      console.warn('[埋点] 曝光上报失败，将在下次启动时重试')
+    </script>
+  </body>
+</html>

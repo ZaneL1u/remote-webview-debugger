@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>Demo Shop - Products</title>
+    <!-- RWD SDK: as early as possible, so console and network are recorded from the start. -->
+    <script src="../rwd-shim.js"></script>
+    <script src="../sdk.js"></script>
+    <script src="../boot.js"></script>
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <header><span class="spacer"></span><h1>Demo Shop</h1><span class="spacer"></span></header>
+    <main>
+      <div class="banner">
+        <strong>Members’ Week</strong>
+        <span>$40 off orders over $300 · code VIP40</span>
+      </div>
+      <div class="list" id="list" aria-label="Products"></div>
+      <div class="section" style="margin-top: 12px">
+        <h2>Recommended for you</h2>
+        <p class="muted" id="recommend">Loading…</p>
+      </div>
+    </main>
+    <script src="../shop.js"></script>
+    <script>
+      Shop.loadProducts().then(function (products) {
+        var list = document.getElementById('list')
+        products.forEach(function (p) {
+          var a = document.createElement('a')
+          a.className = 'card'
+          a.href = 'detail.html?id=' + p.id
+          a.innerHTML =
+            '<div class="pic" style="background:' + p.color + '" aria-hidden="true">' + p.name.slice(0, 1) + '</div>' +
+            '<div class="info"><p class="name">' + p.name + '</p><span class="price">' + Shop.money(p.price) + '</span>' +
+            (p.stock ? '' : ' <span class="muted">Sold out</span>') + '</div>'
+          list.appendChild(a)
+        })
+      })
+
+      // Deliberate: the recommendation API does not exist (404).
+      fetch('api/recommend.json')
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status)
+          return res.json()
+        })
+        .catch(function (err) {
+          console.error('Failed to load recommendations:', err.message)
+          document.getElementById('recommend').textContent = 'No recommendations yet'
+        })
+      console.warn('[analytics] impression beacon failed, will retry on next launch')
+    </script>
+  </body>
+</html>
