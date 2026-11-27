@@ -144,3 +144,47 @@ test('rwd.query tells whether a tap reaches each match: a sheet over the page co
   const res = await rpc(gw, s.pageId!, 'rwd.query', { text: '按钮 A', role: 'button' })
   expect(res.matches.map((m: any) => m.reach).sort()).toEqual(['covered', 'yes'])
 })
+
+// eruda bundles its own chobitsu, which also keeps its XHR request on the xhr
+// object. With a shared slot, the outer hook sent twice on one id (a row stuck
+// "pending" in eruda) and the inner one never sent (eruda's list stayed empty).
+async function xhrInBoth(page: any, gw: any, pageId: string) {
+  await page.evaluate(
+    () =>
+      new Promise<void>(resolve => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('GET', '/v1/healthz?probe=xhr')
+        xhr.onloadend = () => resolve()
+        xhr.send()
+      })
+  )
+  // eruda's Network rows for that URL, with their status cells.
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const host = document.querySelector('#eruda') as any
+        const root = (host && (host.shadowRoot || host)) as ParentNode
+        const rows = Array.from(root.querySelectorAll('.eruda-network [class*="data-grid-node"]')) as HTMLElement[]
+        return rows.filter(r => r.textContent!.includes('healthz')).map(r => /pending/.test(r.textContent!) ? 'pending' : 'done')
+      })
+    )
+    .toEqual(['done'])
+  const net = await rpc(gw, pageId, 'rwd.network', {})
+  expect(net.requests.filter((r: any) => r.url.includes('probe=xhr'))).toHaveLength(1)
+}
+
+test('XHR shows once in eruda and once for us when eruda loads first', async ({ page, gw, errors }) => {
+  await page.goto('/test/compat.html')
+  const s = await waitOnline(page, gw)
+  await page.evaluate(() => (window as any).eruda.show('network'))
+  await xhrInBoth(page, gw, s.pageId!)
+  expect(errors).toEqual([])
+})
+
+test('XHR shows once in eruda and once for us when eruda loads after us', async ({ page, gw, errors }) => {
+  const s = await openFixture(page, gw, { eruda: { load: true, dock: false } })
+  await expect.poll(() => page.evaluate(() => !!(window as any).eruda && (window as any).eruda._isInit), { timeout: 20000 }).toBe(true)
+  await page.evaluate(() => (window as any).eruda.show('network'))
+  await xhrInBoth(page, gw, s.pageId!)
+  expect(errors).toEqual([])
+})

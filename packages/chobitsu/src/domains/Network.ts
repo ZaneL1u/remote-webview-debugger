@@ -66,6 +66,12 @@ export function getResponseBody(
   }
 }
 
+// eruda bundles its own chobitsu, which keeps its request on
+// xhr.chobitsuRequest too. Sharing that slot makes the two hooks overwrite each
+// other's request: whichever wraps the other sends twice on one id (a request
+// stuck pending in eruda) and the inner one never sends (eruda shows nothing).
+const XHR_REQ = '__rwdRequest'
+
 function enableXhr() {
   const winXhrProto = window.XMLHttpRequest.prototype
 
@@ -80,7 +86,7 @@ function enableXhr() {
 
     const xhr = this
 
-    const req = ((xhr as any).chobitsuRequest = new XhrRequest(
+    const req = ((xhr as any)[XHR_REQ] = new XhrRequest(
       xhr,
       method,
       url
@@ -92,14 +98,14 @@ function enableXhr() {
   }
 
   winXhrProto.send = function (data) {
-    const req = (this as any).chobitsuRequest
+    const req = (this as any)[XHR_REQ]
     if (req) req.handleSend(data)
 
     origSend.apply(this, arguments)
   }
 
   winXhrProto.setRequestHeader = function (key, val) {
-    const req = (this as any).chobitsuRequest
+    const req = (this as any)[XHR_REQ]
     if (req) {
       req.handleReqHeadersSet(key, val)
     }
